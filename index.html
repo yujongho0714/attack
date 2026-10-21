@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ZEMITA 허브</title>
+<style>
+:root{--bg:#14101a;--fg:#efeaf3;--mut:#9a92a6;--card:#201a2a;--line:#362d45;--p1:#4cb4ff;--p2:#ff6b6b;--hp:#e8343f;--time:#f3e74a;--acc:#d6381f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f1eef4;--fg:#1d1a22;--mut:#6c6577;--card:#fff;--line:#d9d3e0;--time:#8a6a00;--p1:#0b6fc2;--p2:#c42d2d}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:"Noto Sans KR",system-ui,sans-serif;padding:12px;max-width:640px;margin-inline:auto;overflow-x:hidden}
+h1{font-size:18px;margin:0 0 8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.p{background:var(--card);border:2px solid var(--c);border-radius:12px;padding:8px;text-align:center}
+.p1{--c:var(--p1)}.p2{--c:var(--p2)}
+.p h2{margin:0;font-size:14px;color:var(--c)}.conn{font-size:12px;color:var(--mut);min-height:16px}
+.big{font-size:30px;font-weight:900;color:var(--c);line-height:1.15}
+.st{font-size:12px;color:var(--mut);line-height:1.6}.st b{color:var(--fg)}
+button,select{font:inherit}
+button{font-weight:800;border:0;border-radius:10px;padding:10px;width:100%;margin-top:6px;background:var(--c,var(--acc));color:#fff}
+button.sub{background:transparent;color:var(--fg);border:1px solid var(--line)}button:disabled{opacity:.4}
+select{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px}
+.tabs{display:flex;gap:6px;margin:12px 0 6px}.tabs button{margin:0;background:var(--card);color:var(--mut);border:1px solid var(--line)}
+.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.bar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:13px;color:var(--mut)}
+.timer{text-align:center;font-size:46px;font-weight:900;color:var(--time);font-variant-numeric:tabular-nums;line-height:1.1;margin-top:4px}
+.msg{text-align:center;min-height:24px;font-weight:800;font-size:17px}
+.hpw{height:22px;border-radius:11px;background:var(--card);border:1px solid var(--line);overflow:hidden;position:relative}
+.hpw i{display:block;height:100%;width:100%;background:var(--hp);transition:width .12s}
+.hpw span{position:absolute;inset:0;text-align:center;font-size:12px;font-weight:800;line-height:20px;color:#fff;mix-blend-mode:difference}
+.stage{position:relative;height:min(46vw,230px);display:flex;align-items:center;justify-content:center}
+.boss{font-size:min(32vw,150px);line-height:1;user-select:none}
+.boss.hurt{animation:sh .12s}.boss.weak{filter:drop-shadow(0 0 18px #ffd34d)}.boss.dead{filter:grayscale(1);transform:rotate(90deg) scale(.8);transition:transform .6s}
+@keyframes sh{0%{transform:translateX(-8px)}50%{transform:translateX(8px)}100%{transform:translateX(0)}}
+.tag{position:absolute;top:2px;left:0;right:0;text-align:center;font-weight:900;color:#ffd34d;min-height:20px}
+.fl{position:absolute;font-weight:900;pointer-events:none;animation:up .8s forwards;text-shadow:0 1px 3px #000}
+@keyframes up{to{transform:translateY(-70px);opacity:0}}
+.cnt{font-size:min(22vw,100px);font-weight:900;line-height:1.05;color:var(--c)}
+.cnt.pop{transform:scale(1.1)}
+.log{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:120px;max-height:200px;overflow:auto;white-space:pre-wrap}
+details{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}summary{font-weight:800}
+.m{display:none}.m.on{display:block}
+#start{--c:var(--acc);margin-top:10px}
+</style>
+</head>
+<body>
+<h1>ZEMITA 허브</h1>
+<div class="grid">
+  <div class="p p1"><h2>선수 1 (청)</h2><div class="conn" id="c1">연결 안 됨</div><div class="big" id="l1">0</div><div class="st">마지막 파워</div><button id="b1">1P 연결</button></div>
+  <div class="p p2"><h2>선수 2 (홍)</h2><div class="conn" id="c2">연결 안 됨</div><div class="big" id="l2">0</div><div class="st">마지막 파워</div><button id="b2">2P 연결</button></div>
+</div>
+
+<div class="tabs"><button data-m="speed" class="on">스피드 대결</button><button data-m="boss">보스 잡기</button><button data-m="prac">연습/로그</button></div>
+<div class="timer" id="timer">15.0</div>
+<div class="msg" id="msg">송신기를 연결하세요</div>
+
+<section class="m on" id="m-speed">
+  <div class="bar"><label>시간 <select id="sp-secs"><option>10</option><option selected>15</option><option>30</option></select>초</label><label>라운드 <select id="sp-rounds"><option>1</option><option selected>3</option><option>5</option></select></label><span id="sp-rd">1R</span></div>
+  <div class="grid" style="margin-top:8px">
+    <div class="p p1"><div class="cnt" id="sn1">0</div><div class="st">평균 속도 <b id="ss1">0.000</b><br>평균 파워 <b id="sw1">0.0</b><br><span id="sr1"></span></div></div>
+    <div class="p p2"><div class="cnt" id="sn2">0</div><div class="st">평균 속도 <b id="ss2">0.000</b><br>평균 파워 <b id="sw2">0.0</b><br><span id="sr2"></span></div></div>
+  </div>
+</section>
+
+<section class="m" id="m-boss">
+  <div class="bar"><label>난이도 <select id="bo-lv"><option value="1000">쉬움</option><option value="1800" selected>보통</option><option value="2800">어려움</option></select></label><label>제한시간 <select id="bo-secs"><option>20</option><option selected>30</option><option>45</option></select>초</label></div>
+  <div class="hpw" style="margin-top:6px"><i id="hp"></i><span id="hpt"></span></div>
+  <div class="stage" id="stage"><div class="tag" id="tag"></div><div class="boss" id="boss">👹</div></div>
+  <div class="grid"><div class="p p1"><div class="big" id="bd1">0</div><div class="st">횟수 <b id="bh1">0</b></div></div><div class="p p2"><div class="big" id="bd2">0</div><div class="st">횟수 <b id="bh2">0</b></div></div></div>
+</section>
+
+<section class="m" id="m-prac">
+  <div class="st" style="text-align:center;margin-bottom:6px">송신기에서 오는 값을 그대로 보여 줍니다 (다른 프로그램 만들 때 확인용)</div>
+  <div class="log" id="log">대기 중…</div>
+  <button class="sub" id="logclr">로그 지우기</button>
+</section>
+
+<button id="start" disabled>시작</button>
+
+<details>
+  <summary>송신기 정보 · 기록 내보내기</summary>
+  <button class="sub" id="ex-json">송신기 정보만 내보내기 (zemita-info.json)</button>
+  <button class="sub" id="ex-zip" style="--c:var(--acc);background:var(--acc);color:#fff;border:0">ZIP으로 한 번에 내보내기 (정보·코드·분석·타격 기록)</button>
+  <button class="sub" id="ex-js">연결 코드만 내보내기 (zemita-link.js)</button>
+  <button class="sub" id="im-btn">기록 불러오기 (json)</button>
+  <input type="file" id="im" accept=".json,application/json" hidden>
+  <div class="st" id="ex-msg" style="margin-top:6px">앱에서 만든 JSON/JS를 다른 프로그램에 넣으면 같은 송신기를 바로 쓸 수 있어요.</div>
+</details>
+
+<script id="zlib">
+/* zemita-link.js — ZEMITA ZT-02 송신기(BLE) 연결 라이브러리 (안드로이드 크롬 Web Bluetooth)
+ * 사용: const link = new ZemitaLink();
+ *       link.on('hit', e => console.log(e.player, e.strength));   // 타격할 때마다
+ *       link.on('status', e => console.log(e.player, e.state));   // connecting/connected/disconnected/error
+ *       button.onclick = () => link.connect(1);                    // 버튼 클릭 안에서 호출해야 함
+ * 이벤트 hit: { player, strength, time, raw(Uint8Array), hex }
+ */
+class ZemitaLink{
+  constructor(){this.slots={1:{dev:null,ok:false,chr:null,fn:null},2:{dev:null,ok:false,chr:null,fn:null}};this.h={}}
+  on(e,f){(this.h[e]=this.h[e]||[]).push(f);return this}
+  emit(e,d){(this.h[e]||[]).forEach(f=>f(d))}
+  get count(){return (this.slots[1].ok?1:0)+(this.slots[2].ok?1:0)}
+  async connect(p){
+    if(!navigator.bluetooth){this.emit('status',{player:p,state:'error',error:'unsupported'});return false}
+    const q=this.slots[p],o=this.slots[p===1?2:1];
+    try{
+      if(!q.dev){
+        const d=await navigator.bluetooth.requestDevice({filters:[{namePrefix:ZemitaLink.NAME_PREFIX}],optionalServices:[ZemitaLink.SERVICE]});
+        if(o.dev&&o.dev.id===d.id){this.emit('status',{player:p,state:'error',error:'duplicate'});return false}
+        q.dev=d;d.addEventListener('gattserverdisconnected',()=>{q.ok=false;this.emit('status',{player:p,state:'disconnected',name:d.name})});
+      }
+      this.emit('status',{player:p,state:'connecting',name:q.dev.name});
+      const srv=await q.dev.gatt.connect();
+      const chr=await (await srv.getPrimaryService(ZemitaLink.SERVICE)).getCharacteristic(ZemitaLink.CHARACTERISTIC);
+      if(q.chr&&q.fn)q.chr.removeEventListener('characteristicvaluechanged',q.fn);
+      q.fn=e=>{const dv=e.target.value,raw=new Uint8Array(dv.buffer,dv.byteOffset,dv.byteLength);
+        this.emit('hit',{player:p,strength:raw[raw.length-1],time:performance.now(),raw,hex:Array.from(raw).map(b=>b.toString(16).padStart(2,'0')).join(' ')})};
+      q.chr=chr;chr.addEventListener('characteristicvaluechanged',q.fn);await chr.startNotifications();
+      q.ok=true;this.emit('status',{player:p,state:'connected',name:q.dev.name,id:q.dev.id});return true;
+    }catch(e){this.emit('status',{player:p,state:'error',error:e.name==='NotFoundError'?'cancelled':'failed',message:e.message});return false}
+  }
+}
+ZemitaLink.NAME_PREFIX='ZEMITA';
+ZemitaLink.SERVICE='0000185a-0000-1010-2013-5a454d495465';
+ZemitaLink.CHARACTERISTIC='00005a10-0000-1010-2013-5a454d495465';
+</script>
+
+<script>
+const $=id=>document.getElementById(id);
+const link=new ZemitaLink();
+let mode='speed',state='idle',tm=null,t0=0,dur=0,actx=null;
+const ld=(k,d)=>{try{return Object.assign({},d,JSON.parse(localStorage.getItem(k)||'{}'))}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let Rec=ld('zemita_records',{bossBest:0,speedMaxHits:0}),Dev=ld('zemita_devices',{});
+
+function beep(f,d){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;g.gain.value=.1;o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+(d||.07))}catch(e){}}
+const msg=t=>$('msg').textContent=t;
+
+/* 공통: 카운트다운 → 플레이 → 종료 */
+function run(secs,begin){
+  state='count';upd();let c=3;msg(c);beep(500);
+  const cd=setInterval(()=>{c--;if(c>0){msg(c);beep(500);return}clearInterval(cd);state='play';dur=secs*1000;t0=performance.now();beep(900);begin();tm=setInterval(tick,50)},1000);
+}
+function tick(){const left=dur-(performance.now()-t0);$('timer').textContent=Math.max(0,left/1000).toFixed(1);M[mode].tick&&M[mode].tick();if(left<=0)stop(false)}
+function stop(win){if(state!=='play')return;clearInterval(tm);state='idle';$('timer').textContent='0.0';M[mode].end(win);upd()}
+function upd(){
+  const need={speed:link.count===2,boss:link.count>=1,prac:false}[mode];
+  const b=$('start');b.disabled=!need||state!=='idle';b.style.display=mode==='prac'?'none':'block';
+}
+
+/* 모드: 스피드 대결 */
+const S={1:{},2:{}};let sRound=1,sWins={1:0,2:0};
+const speed={
+  title:15,
+  start(){[1,2].forEach(p=>{S[p]={n:0,tot:0,first:0,last:0};sdraw(p)});run(+$('sp-secs').value,()=>msg('차세요!'))},
+  hit(p,s){const q=S[p],now=performance.now();if(!q.n)q.first=now;q.last=now;q.n++;q.tot+=s;const e=$('sn'+p);e.classList.add('pop');setTimeout(()=>e.classList.remove('pop'),70);beep(300+s*6);sdraw(p)},
+  end(){
+    const a=S[1],b=S[2];let w=0;if(a.n!==b.n)w=a.n>b.n?1:2;else if(a.tot!==b.tot)w=a.tot>b.tot?1:2;
+    if(w)sWins[w]++;[a,b].forEach(q=>{if(q.n>Rec.speedMaxHits)Rec.speedMaxHits=q.n});sv('zemita_records',Rec);
+    const total=+$('sp-rounds').value,need=Math.floor(total/2)+1,fin=sWins[1]>=need||sWins[2]>=need||sRound>=total;
+    let m=(w?w+'P 승! ':'무승부 ')+a.n+' : '+b.n;
+    if(fin){m+=' · '+(sWins[1]===sWins[2]?'최종 무승부':(sWins[1]>sWins[2]?'1P':'2P')+' 최종 우승!');sRound=1;sWins={1:0,2:0};setTimeout(swin,3000);$('start').textContent='새 대결 시작'}
+    else{sRound++;m+=' · 다음 '+sRound+'R';$('start').textContent=sRound+'R 시작'}
+    msg(m);swin();
+  }
+};
+function sdraw(p){const q=S[p],iv=q.n>1?(q.last-q.first)/(q.n-1)/1000:0;$('sn'+p).textContent=q.n||0;$('ss'+p).textContent=iv.toFixed(3);$('sw'+p).textContent=q.n?(q.tot/q.n).toFixed(1):'0.0'}
+function swin(){[1,2].forEach(p=>$('sr'+p).textContent=sWins[p]?'승 '+sWins[p]:'');$('sp-rd').textContent=sRound+'R'}
+
+/* 모드: 보스 잡기 */
+let maxHp=0,hp=0,combo=0,lastHit=0;const BD={1:{dmg:0,n:0},2:{dmg:0,n:0}},FACES=['👹','👺','👿'];
+const weak=()=>state==='play'&&((performance.now()-t0)/1000%7)>=5;
+function hpDraw(){const r=Math.max(0,hp/maxHp);$('hp').style.width=r*100+'%';$('hpt').textContent=Math.ceil(Math.max(0,hp))+' / '+maxHp;$('boss').textContent=r>.66?FACES[0]:r>.33?FACES[1]:FACES[2]}
+function floatNum(p,t,crit){const e=document.createElement('div');e.className='fl';e.textContent=t;e.style.color=crit?'#ffd34d':(p===1?'var(--p1)':'var(--p2)');e.style.fontSize=crit?'30px':'22px';e.style.left=(30+Math.random()*40)+'%';e.style.top=(35+Math.random()*25)+'%';$('stage').appendChild(e);setTimeout(()=>e.remove(),800)}
+const boss={
+  start(){maxHp=+$('bo-lv').value*link.count;hp=maxHp;combo=0;lastHit=0;[1,2].forEach(p=>{BD[p]={dmg:0,n:0};$('bd'+p).textContent=0;$('bh'+p).textContent=0});$('boss').classList.remove('dead');hpDraw();run(+$('bo-secs').value,()=>msg('보스를 쓰러뜨려라!'))},
+  hit(p,s){
+    const now=performance.now();combo=(now-lastHit<800)?combo+1:1;lastHit=now;
+    const crit=weak(),dmg=Math.round(s*(1+Math.min(10,combo-1)*.1)*(crit?2:1));
+    BD[p].dmg+=dmg;BD[p].n++;hp-=dmg;$('bd'+p).textContent=BD[p].dmg;$('bh'+p).textContent=BD[p].n;
+    floatNum(p,(crit?'약점! ':'')+dmg+(combo>2?' x'+combo:''),crit);
+    const b=$('boss');b.classList.add('hurt');setTimeout(()=>b.classList.remove('hurt'),120);beep(250+s*6);hpDraw();if(hp<=0)stop(true);
+  },
+  tick(){const w=weak();$('tag').textContent=w?'⚡ 약점 노출! 데미지 2배':'';$('boss').classList.toggle('weak',w)},
+  end(win){
+    $('tag').textContent='';$('boss').classList.remove('weak');const used=(performance.now()-t0)/1000,tot=BD[1].dmg+BD[2].dmg;
+    const mvp=link.count===2&&BD[1].dmg!==BD[2].dmg?' · MVP '+(BD[1].dmg>BD[2].dmg?'1P':'2P'):'';
+    if(win){$('boss').classList.add('dead');beep(900,.3);const nb=!Rec.bossBest||used<Rec.bossBest;if(nb){Rec.bossBest=used;sv('zemita_records',Rec)}msg('보스 격파! '+used.toFixed(1)+'초'+(nb?' (신기록)':'')+mvp)}
+    else{msg('실패… 남은 체력 '+Math.ceil(hp)+' · 총 '+tot+mvp);beep(150,.3)}
+    $('start').textContent='다시 도전';
+  }
+};
+const prac={hit(p,s,e){const l=$('log');l.textContent=(l.textContent==='대기 중…'?'':l.textContent)+new Date().toISOString().slice(14,23)+'  '+p+'P  파워 '+s+'  ['+e.hex+']\n';l.scrollTop=l.scrollHeight;beep(300+s*6)}};
+const M={speed,boss,prac};
+
+/* 연결 + 이벤트 */
+const TXT={connecting:'연결 중…',disconnected:'연결 끊김',error:'실패'};
+link.on('status',e=>{
+  const c=$('c'+e.player),b=$('b'+e.player);
+  if(e.state==='connected'){c.textContent=e.name.replace('ZEMITA-','…');b.textContent='연결됨';
+    Dev[e.player]={name:e.name,id:e.id,lastConnected:new Date().toISOString()};sv('zemita_devices',Dev);
+    msg(link.count===2?'준비 완료! 시작을 누르세요':'이제 '+(e.player===1?'2':'1')+'P를 연결하세요 (보스·연습은 1명도 OK)')}
+  else{c.textContent=TXT[e.state];if(e.state==='disconnected')b.textContent=e.player+'P 다시 연결';
+    if(e.state==='error')msg(e.error==='duplicate'?'다른 선수가 쓰는 송신기예요. 다른 걸 고르세요':e.error==='cancelled'?'송신기를 선택하지 않았어요':e.error==='unsupported'?'안드로이드 크롬에서 열어 주세요':'ZESS 앱을 끄고 송신기를 다시 켜 보세요')}
+  upd();
+});
+link.on('hit',e=>{HITS.push({t:Math.round(e.time),iso:new Date().toISOString(),player:e.player,strength:e.strength,hex:e.hex,mode,state});if(HITS.length>5000)HITS.shift();$('l'+e.player).textContent=e.strength;if(mode==='prac')prac.hit(e.player,e.strength,e);else if(state==='play')M[mode].hit(e.player,e.strength,e)});
+$('b1').onclick=()=>link.connect(1);$('b2').onclick=()=>link.connect(2);
+$('start').onclick=()=>{if(state==='idle')M[mode].start()};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  if(state!=='idle')return;mode=b.dataset.m;
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.m').forEach(s=>s.classList.toggle('on',s.id==='m-'+mode));
+  $('timer').textContent=mode==='speed'?(+$('sp-secs').value).toFixed(1):mode==='boss'?(+$('bo-secs').value).toFixed(1):'--';
+  $('start').textContent=mode==='boss'?'보스전 시작':'시작';upd()});
+$('sp-secs').onchange=()=>{if(state==='idle')$('timer').textContent=(+$('sp-secs').value).toFixed(1)};
+$('bo-secs').onchange=()=>{if(state==='idle'&&mode==='boss')$('timer').textContent=(+$('bo-secs').value).toFixed(1)};
+$('logclr').onclick=()=>$('log').textContent='대기 중…';
+
+/* 내보내기 / 불러오기 */
+function dl(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+$('ex-json').onclick=()=>{
+  const info={schema:'zemita-info/1',exportedAt:new Date().toISOString(),
+    protocol:{namePrefix:ZemitaLink.NAME_PREFIX,service:ZemitaLink.SERVICE,characteristic:ZemitaLink.CHARACTERISTIC,property:'NOTIFY',
+      packet:{length:9,example:'FE 01 20 F1 1F 5B 00 XX XX',strength:'마지막 바이트(두 번 반복됨), 관측 범위 1~116',note:'타격할 때만 notification이 옴'},
+      platform:'안드로이드 크롬 Web Bluetooth (ZESS 앱·nRF Connect를 종료한 상태에서 연결)'},
+    knownDevices:Object.keys(Dev).map(k=>Object.assign({player:+k},Dev[k])),records:Rec};
+  dl('zemita-info.json',JSON.stringify(info,null,2),'application/json');$('ex-msg').textContent='zemita-info.json을 내보냈어요.'};
+$('ex-js').onclick=()=>{dl('zemita-link.js',$('zlib').textContent.trim()+'\n','text/javascript');$('ex-msg').textContent='zemita-link.js를 내보냈어요. <script src="zemita-link.js"> 로 쓰면 돼요.'};
+$('im-btn').onclick=()=>$('im').click();
+$('im').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+  try{const j=JSON.parse(await f.text());if(j.records){Rec=Object.assign(Rec,j.records);sv('zemita_records',Rec)}
+    if(Array.isArray(j.knownDevices))j.knownDevices.forEach(d=>{Dev[d.player]=d});sv('zemita_devices',Dev);$('ex-msg').textContent='기록을 불러왔어요.'}
+  catch(x){$('ex-msg').textContent='파일을 읽지 못했어요: '+x.message}e.target.value=''};
+
+
+/* ZIP 내보내기: 정보 + 코드 + 분석 리포트 + 타격 기록 */
+const HITS=[];
+const STATIC_MD=`# ZEMITA 송신기 분석 (ZT-02)
+
+## 1. 연결 정보
+- 광고 이름: ZEMITA- + 12자리 16진수 (예: ZEMITA-FE4A20F11F5B, ZEMITA-E8F4958DB313)
+- 전용 서비스: 0000185a-0000-1010-2013-5a454d495465
+- 타격 특성: 00005a10-0000-1010-2013-5a454d495465 (속성: NOTIFY 하나뿐)
+- 표준 서비스(참고): 0x1800, 0x1801, 0x180A(기기 정보), 0x180F(배터리)
+- 두 송신기 모두 UUID가 같다. 이름 뒤 12자리(MAC)만 다르다.
+- 전용 서비스는 Web Bluetooth의 optionalServices에 UUID를 넣어야 보인다.
+
+## 2. 송신기가 반응하는 방식 (관측)
+- 알림을 켜기(startNotifications)만 하면 되고, 시작 명령을 쓸 필요가 없다.
+- 타격할 때만 notification이 온다. 가만히 있을 때는 값이 유지된다(nRF Connect 화면 녹화에서 값이 몇 초씩 그대로 유지).
+- 패킷은 9바이트: FE 01 20 F1 1F 5B 00 XX XX
+  - 앞 6바이트는 송신기 고유값(첫 번째 송신기 기준), 7번째 바이트는 00
+  - 마지막 두 바이트가 같은 값으로 반복되며, 이 값이 타격 파워다.
+- 파워가 클수록 값이 크다. 관측한 값(16진수 → 10진수): 01=1, 04=4, 09=9, 0C=12, 18=24, 1D=29, 27=39, 35=53, 3D=61, 41=65, 74=116
+- ZESS 앱의 스피드 모드와 비교: 앱의 "평균 파워"와 "마지막 파워"는 15~28 정도의 숫자로, 이 값과 같은 범위다. 앱의 "평균 속도"는 타격 사이 평균 간격(초)으로 보인다.
+- 아직 모르는 것: 파워의 이론상 최대값, 두 번째 바이트(01)와 7번째 바이트(00)의 의미, 배터리 값 읽는 법(0x180F 표준 서비스로 읽을 수 있을 가능성).
+
+## 3. 연결할 때 주의
+- 안드로이드 크롬만 가능(iOS 사파리 불가). HTTPS 주소나 파일로 연 페이지에서 사용자가 버튼을 눌러야 선택창이 뜬다.
+- ZESS 앱과 nRF Connect를 완전히 종료해야 한다. 송신기는 한 번에 한 곳에만 연결된다.
+- 폰의 블루투스 설정 목록에는 뜨지 않는 게 정상이다.
+`;
+const EXAMPLE_HTML=`<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZEMITA 예제</title></head>
+<body style="font-family:sans-serif;padding:16px">
+<h1>ZEMITA 최소 예제</h1>
+<button id="b1">1P 연결</button> <button id="b2">2P 연결</button>
+<p>마지막 타격: <b id="out">-</b></p>
+<script src="zemita-link.js"><\/script>
+<script>
+const link = new ZemitaLink();
+link.on('status', e => console.log('상태', e));
+link.on('hit', e => { document.getElementById('out').textContent = e.player + 'P 파워 ' + e.strength; });
+document.getElementById('b1').onclick = () => link.connect(1);
+document.getElementById('b2').onclick = () => link.connect(2);
+<\/script></body></html>
+`;
+const CT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CT[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function makeZip(files){
+  const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+  for(const f of files){
+    const nm=enc.encode(f.name),d=enc.encode(f.data),crc=crc32(d);
+    const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(12,0x21,true);
+    lh.setUint32(14,crc,true);lh.setUint32(18,d.length,true);lh.setUint32(22,d.length,true);lh.setUint16(26,nm.length,true);
+    parts.push(new Uint8Array(lh.buffer),nm,d);
+    const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(14,0x21,true);
+    ch.setUint32(16,crc,true);ch.setUint32(20,d.length,true);ch.setUint32(24,d.length,true);ch.setUint16(28,nm.length,true);ch.setUint32(42,off,true);
+    cen.push(new Uint8Array(ch.buffer),nm);off+=30+nm.length+d.length;
+  }
+  const cs=cen.reduce((a,b)=>a+b.length,0),end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true);end.setUint16(8,files.length,true);end.setUint16(10,files.length,true);end.setUint32(12,cs,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...cen,end.buffer],{type:'application/zip'});
+}
+function st(a){if(!a.length)return null;const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return{n:a.length,min:s[0],max:s[s.length-1],mean:a.reduce((x,y)=>x+y,0)/a.length,med:s.length%2?s[m]:(s[m-1]+s[m])/2}}
+function sessionMd(){
+  if(!HITS.length)return '## 4. 이번 세션 타격 분석\n\n기록된 타격이 없어요. 송신기를 연결하고 차 본 뒤 다시 내보내면 여기에 통계가 들어갑니다.\n';
+  let o='## 4. 이번 세션 타격 분석\n\n총 '+HITS.length+'회 기록 ('+HITS[0].iso+' ~ '+HITS[HITS.length-1].iso+')\n';
+  const lens={},same={ok:0,all:0},heads={};
+  HITS.forEach(h=>{const b=h.hex.split(' ');lens[b.length]=(lens[b.length]||0)+1;if(b.length>=9){same.all++;if(b[b.length-1]===b[b.length-2])same.ok++}
+    const k=h.player+'P '+b.slice(0,7).join(' ').toUpperCase();heads[k]=(heads[k]||0)+1});
+  o+='\n### 패킷 검증\n- 길이 분포: '+Object.keys(lens).map(k=>k+'바이트 '+lens[k]+'회').join(', ')+'\n';
+  o+='- 마지막 두 바이트가 같은 비율: '+(same.all?(same.ok/same.all*100).toFixed(1)+'% ('+same.ok+'/'+same.all+')':'해당 없음')+'\n';
+  o+='- 앞 7바이트 종류: '+Object.keys(heads).map(k=>k+' ('+heads[k]+'회)').join(', ')+'\n';
+  [1,2].forEach(p=>{
+    const hs=HITS.filter(h=>h.player===p);if(!hs.length)return;
+    const v=hs.map(h=>h.strength),a=st(v);
+    o+='\n### '+p+'P ('+(Dev[p]?Dev[p].name:'-')+')\n- 횟수 '+a.n+' · 파워 최소 '+a.min+' / 최대 '+a.max+' / 평균 '+a.mean.toFixed(1)+' / 중앙값 '+a.med+'\n';
+    const g=[];for(let i=1;i<hs.length;i++){const d=(hs[i].t-hs[i-1].t)/1000;if(d<5)g.push(d)}
+    if(g.length){const b=st(g);o+='- 타격 간격(5초 미만만): 평균 '+b.mean.toFixed(3)+'초 / 최소 '+b.min.toFixed(3)+' / 최대 '+b.max.toFixed(3)+' (표본 '+b.n+')\n'}
+    const bins={};v.forEach(x=>{const k=Math.floor((x-1)/10);bins[k]=(bins[k]||0)+1});
+    o+='- 파워 분포:\n';Object.keys(bins).map(Number).sort((x,y)=>x-y).forEach(k=>{o+='  - '+(k*10+1)+'~'+(k*10+10)+': '+'#'.repeat(Math.min(40,bins[k]))+' '+bins[k]+'\n'});
+    const bm={};hs.forEach(h=>{bm[h.mode+'/'+h.state]=(bm[h.mode+'/'+h.state]||0)+1});
+    o+='- 모드별 횟수: '+Object.keys(bm).map(k=>k+' '+bm[k]).join(', ')+'\n';
+  });
+  return o;
+}
+function infoJson(){
+  return JSON.stringify({schema:'zemita-info/1',exportedAt:new Date().toISOString(),
+    protocol:{namePrefix:ZemitaLink.NAME_PREFIX,service:ZemitaLink.SERVICE,characteristic:ZemitaLink.CHARACTERISTIC,property:'NOTIFY',
+      packet:{length:9,example:'FE 01 20 F1 1F 5B 00 XX XX',strength:'마지막 바이트(두 번 반복됨), 관측 범위 1~116',note:'타격할 때만 notification이 옴'}},
+    knownDevices:Object.keys(Dev).map(k=>Object.assign({player:+k},Dev[k])),records:Rec},null,2);
+}
+$('ex-zip').onclick=()=>{
+  const csv='time_ms,iso,player,strength,hex,mode,state\n'+HITS.map(h=>[h.t,h.iso,h.player,h.strength,'"'+h.hex+'"',h.mode,h.state].join(',')).join('\n')+'\n';
+  const readme='# ZEMITA 송신기 내보내기\n\n내보낸 시각: '+new Date().toISOString()+'\n\n## 파일 설명\n- README.md: 이 문서 (분석 + 이번 세션 통계)\n- zemita-info.json: UUID, 패킷 형식, 연결했던 송신기, 기록\n- zemita-link.js: 연결 라이브러리 (ZemitaLink)\n- example.html: 라이브러리 최소 사용 예제\n- hits.csv: 이번 세션의 타격 원본 기록\n\n'+STATIC_MD+'\n'+sessionMd();
+  const d=new Date(),z=n=>String(n).padStart(2,'0'),name='zemita-export-'+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'-'+z(d.getHours())+z(d.getMinutes())+'.zip';
+  const blob=makeZip([{name:'README.md',data:readme},{name:'zemita-info.json',data:infoJson()},{name:'zemita-link.js',data:$('zlib').textContent.trim()+'\n'},{name:'example.html',data:EXAMPLE_HTML},{name:'hits.csv',data:csv}]);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  $('ex-msg').textContent=name+' 을 내보냈어요 (타격 기록 '+HITS.length+'회 포함).';
+};
+
+maxHp=1800;hp=maxHp;hpDraw();upd();
+</script>
+</body>
+</html>
