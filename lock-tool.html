@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>잠금 도구</title>
+<style>
+:root{--bg:#14101a;--fg:#efeaf3;--mut:#9a92a6;--card:#201a2a;--line:#362d45;--acc:#d6381f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Sans KR",system-ui,sans-serif;padding:16px;max-width:520px;margin-inline:auto}
+h1{font-size:20px}h2{font-size:16px;margin:0 0 6px}.c{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+p,li{color:var(--mut);font-size:13px;line-height:1.5}input{width:100%;font:inherit;padding:10px;margin:4px 0;border-radius:8px;border:1px solid var(--line);background:#14101a;color:var(--fg)}
+button{width:100%;margin-top:8px;font:inherit;font-weight:800;padding:12px;border:0;border-radius:10px;background:var(--acc);color:#fff}.m{min-height:20px;margin-top:8px;font-weight:700;font-size:14px}
+</style></head><body>
+<h1>🔐 ZEMITA 게임 잠금 도구</h1>
+<p>이 도구는 폰 안에서만 계산해요. 파일이나 비밀번호를 어디에도 보내지 않아요.</p>
+<div class="c"><h2>① 비밀번호 바꾸기</h2><p>지금 올려 둔 잠긴 <b>index.html</b>을 고르고, 지금 비밀번호와 새 비밀번호를 넣으면 새로 잠긴 index.html이 저장돼요. 그 파일을 다시 올리면 끝이에요.</p>
+<input type="file" id="a-f" accept=".html,text/html"><input type="password" id="a-old" placeholder="지금 비밀번호"><input type="password" id="a-new" placeholder="새 비밀번호"><input type="password" id="a-new2" placeholder="새 비밀번호 한 번 더">
+<button id="a-go">새 비밀번호로 바꾸기</button><div class="m" id="a-m"></div></div>
+<div class="c"><h2>② 새 버전 잠그기</h2><p>잠기지 않은 새 게임 파일(원본 index.html)을 받았을 때, 비밀번호로 잠근 index.html을 만들어요.</p>
+<input type="file" id="b-f" accept=".html,text/html"><input type="password" id="b-pw" placeholder="비밀번호"><input type="password" id="b-pw2" placeholder="비밀번호 한 번 더">
+<button id="b-go">잠근 파일 만들기</button><div class="m" id="b-m"></div></div>
+<script>
+(function(){const $=i=>document.getElementById(i),E=new TextEncoder();
+const b64=s=>{const r=atob(s),u=new Uint8Array(r.length);for(let i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u};
+const tob64=u=>{let s='';const n=0x8000;for(let i=0;i<u.length;i+=n)s+=String.fromCharCode.apply(null,u.subarray(i,i+n));return btoa(s)};
+async function key(pw,salt,it){const base=await crypto.subtle.importKey('raw',E.encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function enc(gz,pw){const IT=200000,s=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k=await key(pw,s,IT),ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},k,gz));return{v:1,it:IT,s:tob64(s),i:tob64(iv),d:tob64(ct)}}
+const RE=/var B=(\{[^;]*?\}),K='zemita_lock_pw'/;
+function save(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+const msg=(id,t,ok)=>{$(id).style.color=ok?'#7CFF6B':'#ff8a8a';$(id).textContent=t};
+let LOADER=null;
+$('a-go').onclick=async()=>{try{const f=$('a-f').files[0];if(!f)return msg('a-m','잠긴 index.html을 골라 주세요');if(!$('a-new').value||$('a-new').value!==$('a-new2').value)return msg('a-m','새 비밀번호 두 칸이 달라요');
+ const t=await f.text(),m=t.match(RE);if(!m)return msg('a-m','잠긴 게임 파일이 아니에요');const B=JSON.parse(m[1]);msg('a-m','바꾸는 중…',true);
+ let gz;try{gz=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(B.i)},await key($('a-old').value,b64(B.s),B.it),b64(B.d)))}catch(e){return msg('a-m','지금 비밀번호가 틀렸어요')}
+ const nb=await enc(gz,$('a-new').value);save('index.html',t.replace(m[1],JSON.stringify(nb)));msg('a-m','✅ 새 index.html을 저장했어요. 이 파일을 다시 올려 주세요. (폰에 기억된 옛 비밀번호는 다음에 열 때 새로 물어봐요)',true)}catch(e){msg('a-m','실패: '+e.message)}};
+$('b-go').onclick=async()=>{try{const f=$('b-f').files[0];if(!f)return msg('b-m','원본 index.html을 골라 주세요');if(!$('b-pw').value||$('b-pw').value!==$('b-pw2').value)return msg('b-m','비밀번호 두 칸이 달라요');
+ const t=await f.text();if(RE.test(t))return msg('b-m','이미 잠긴 파일이에요 (①을 쓰세요)');msg('b-m','잠그는 중…',true);
+ if(!LOADER){LOADER=await (await fetch('index.html',{cache:'no-store'})).text();if(!RE.test(LOADER))return msg('b-m','이 도구는 게임 사이트 안에서 열어 주세요')}
+ let h=t.replace("addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))","navigator.serviceWorker.register('sw.js').catch(()=>{})");
+ const gz=new Uint8Array(await new Response(new Blob([E.encode(h)]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer()),nb=await enc(gz,$('b-pw').value);
+ save('index.html',LOADER.replace(LOADER.match(RE)[1],JSON.stringify(nb)));msg('b-m','✅ 잠근 index.html을 저장했어요. 이 파일을 올리면 돼요.',true)}catch(e){msg('b-m','실패: '+e.message)}};
+if(!window.crypto||!crypto.subtle)msg('a-m','https 주소(게임 사이트)에서 열어 주세요');
+})();
+</script></body></html>
