@@ -1,0 +1,19 @@
+name: fetch-arena
+on:
+  push:
+    branches: [fetch-arena]
+permissions:
+  contents: write
+jobs:
+  f:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          set -e
+          git clone --depth 1 -b fetch-arena https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} r
+          cd r && mkdir -p inbox
+          curl -fsSL -o inbox/arena0.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_105424_425d1c10-92ab-4b5f-b822-2ccd1fe9b03c.png
+          curl -fsSL -o inbox/arena1.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_105424_3063e6d2-8e35-4446-b8a9-3220f398c2af.png
+          curl -fsSL -o inbox/title0.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_105448_7c959266-d49a-4157-8a00-a1fafd775e40.png
+          git config user.email noreply@anthropic.com; git config user.name Claude
+          git add inbox && git commit -m "inbox: arena" && git push origin HEAD:fetch-arena-out
