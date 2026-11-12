@@ -1,0 +1,2 @@
+pixelfx (MIT) - Copyright (c) 2026 Patch, Copyright (c) 2026 Hugo Duprez - https://github.com/patch-gg/pixelfx
+The MIT license applies to the code and effects. The Patch Pixel font is not included.

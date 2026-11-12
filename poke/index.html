@@ -390,7 +390,7 @@ small.itd{display:block;color:#5a4a20;font-weight:700;font-size:11px}
 .htown{display:flex;gap:10px;margin:8px 0;padding:8px;border-radius:14px;background:#fff;border:3px solid var(--c);box-shadow:0 0 10px var(--c)}.htown>img{width:88px;height:88px;border-radius:12px;object-fit:cover;flex:none;image-rendering:pixelated}.htown>div{flex:1}.htown b{font-size:16px}.htown small{display:block}.htown ul{margin:4px 0;padding-left:18px}.htown em{font-style:normal;background:#ff3b3b;color:#fff;border-radius:6px;padding:0 6px;margin-left:6px;font-size:11px}
 .htown.lk{filter:saturate(.5);opacity:.85}
 .panel .tabs button.on{background:linear-gradient(#3a4a8a,#1c2550)!important;color:#fff!important}
-</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
+</style><script src="lib/pixelfx.js" defer></script></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
@@ -2760,10 +2760,10 @@ const tcol=t=>TCOL[t]||'#ffd060';
 // 맞을 때: 세게 맞으면 땅이 갈라지고 파편, 치명타+효과 굉장이면 화면이 깨져요
 {const _h=hitFeel;hitFeel=function(A,B,k,crit,e,mine,S){_h.apply(this,arguments);try{const col=tcol(A.lastMv&&A.lastMv.type),pw=(A.lastMv&&A.lastMv.pw)||40,heavy=crit||e>=2||pw>=90;const y=B.ay,x=B.ax;
   if(e<1&&e>0)snd('not_eff',.45);else if(e>=2)snd('super_eff',.5);if(heavy)snd(pw>=90||crit?'hit_heavy':'hit_light',.5);
-  const ty=A.lastMv&&A.lastMv.type,st=stopsOf(ty);hitSpark(x,y-S*.45,ty,S,crit?1:e>=2?.75:heavy?.5:.25);if(heavy){crackMake(x,y+S*.12,S*(crit?1.1:e>=2?.9:.75),st[2]);shardBurst(x,y-S*.45,crit?18:10,st[2],S*(crit?4:2.8),crit,st)}
+  const ty=A.lastMv&&A.lastMv.type,st=stopsOf(ty);if(!pxOk())hitSpark(x,y-S*.45,ty,S,crit?1:e>=2?.75:heavy?.5:.25);if(heavy){crackMake(x,y+S*.12,S*(crit?1.1:e>=2?.9:.75),st[2]);shardBurst(x,y-S*.45,crit?18:10,st[2],S*(crit?4:2.8),crit,st)}
   if(crit&&e>=2){snd('shatter',.6);const [sx,sy]=w2s(x,y-S*.45);screenCrack(sx,sy)}else if(crit)snd('shatter',.35)}catch(err){}}}
 // 쓰러질 때: 포켓몬이 산산조각 + 큰 갈라짐
-{const _u=actUpdate;actUpdate=function(dt){_u(dt);try{if(!ACT.on)return;const S=bsz();for(const B of [BS.me,BS.foe]){if(!B||!B.m)continue;if(B.m.hp<=0&&B.koM!==B.m){B.koM=B.m;const ty=META[B.m.n].types[0],st=stopsOf(ty),col=st[2];snd('ep_shatter',.65);snd('ko',.5);crackMake(B.ax,B.ay+S*.1,S*1.4,col);shardBurst(B.ax,B.ay-S*.5,34,col,S*5,1,st);hitSpark(B.ax,B.ay-S*.5,ty,S*1.4,1);SH.lt.push({x:B.ax,y:B.ay-S*.5,r:S*3,c:st[3],t:0,life:.7});if(B===BS.foe){const [sx,sy]=w2s(B.ax,B.ay-S*.5);screenCrack(sx,sy)}try{FX2.flash&&FX2.flash('#ffffff',.35)}catch(e){}}if(B.m.hp>0&&B.koM===B.m)B.koM=null}}catch(e){}}}
+{const _u=actUpdate;actUpdate=function(dt){_u(dt);try{if(!ACT.on)return;const S=bsz();for(const B of [BS.me,BS.foe]){if(!B||!B.m)continue;if(B.m.hp<=0&&B.koM!==B.m){B.koM=B.m;const ty=META[B.m.n].types[0],st=stopsOf(ty),col=st[2];snd('ep_shatter',.65);snd('ko',.5);crackMake(B.ax,B.ay+S*.1,S*1.4,col);if(!pxOk()){shardBurst(B.ax,B.ay-S*.5,34,col,S*5,1,st);hitSpark(B.ax,B.ay-S*.5,ty,S*1.4,1)}SH.lt.push({x:B.ax,y:B.ay-S*.5,r:S*3,c:st[3],t:0,life:.7});if(B===BS.foe){const [sx,sy]=w2s(B.ax,B.ay-S*.5);screenCrack(sx,sy)}try{FX2.flash&&FX2.flash('#ffffff',.35)}catch(e){}}if(B.m.hp>0&&B.koM===B.m)B.koM=null}}catch(e){}}}
 // 월드 좌표 → 화면 좌표 (drawBattle 카메라와 똑같이)
 function w2s(x,y){if(!camOn())return[x,y];const z=1+(ACT.zp||0);const X=x-(ACT.cx||0)+(ACT.bx||0),Y=y-(ACT.cy||0)+(ACT.by||0);return[(X-VW/2)*z+VW/2,(Y-VH/2)*z+VH/2]}
 function camT(){cx.setTransform(DPR,0,0,DPR,0,0);if(camOn()){const z=1+(ACT.zp||0);if(z!==1){cx.translate(VW/2,VH/2);cx.scale(z,z);cx.translate(-VW/2,-VH/2)}cx.translate(-(ACT.cx||0)+(ACT.bx||0),-(ACT.cy||0)+(ACT.by||0))}}
@@ -2793,6 +2793,29 @@ function shDraw(dt){if(!SH.cr.length&&!SH.sd.length&&!SH.sc.length&&!SH.lt.lengt
     for(const pass of [0,1]){cx.strokeStyle=pass?'rgba(255,255,255,.95)':'rgba(10,20,40,.55)';cx.lineWidth=pass?1.6:3.4;for(const p of s.L){cx.beginPath();const n=Math.max(2,Math.ceil(p.length*grow));for(let i=0;i<n;i++){const [x,y]=p[i];i?cx.lineTo(x,y):cx.moveTo(x,y)}cx.stroke()}
       if(grow>=1)for(const r of s.rings){cx.beginPath();r.forEach(([x,y],i)=>i?cx.lineTo(x,y):cx.moveTo(x,y));cx.stroke()}}
     const g=cx.createRadialGradient(s.x,s.y,0,s.x,s.y,60);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,0)');cx.fillStyle=g;cx.beginPath();cx.arc(s.x,s.y,60,0,7);cx.fill();cx.setTransform(DPR,0,0,DPR,0,0)}cx.restore()}}
+
+// ===== pixelfx (MIT) 도트 이펙트 레이어 =====
+const PXL={list:[],fr:null,cv:null,c:null,img:null,ps:2};
+const PXPAL={NORMAL:'bone',FIRE:'fire',WATER:'water',GRASS:'leaf',ELECTRIC:'volt',ICE:'ice',FIGHTING:'ember',POISON:'poison',GROUND:'earth',FLYING:["#0e1830","#1e3460","#3a5c98","#6a8ccc","#a4c0f0","#d4e4ff","#ffffff"],PSYCHIC:'neon',BUG:["#141a08","#2c3a10","#4a6018","#6e8a24","#9ab838","#c8e070","#f0ffc0"],ROCK:'stone',GHOST:'arcane',DRAGON:["#100a2a","#22125a","#3a1e9a","#5a32d0","#8a62ff","#bca0ff","#ece0ff","#ffffff"],DARK:'shadow',STEEL:'metal',FAIRY:["#2a0a20","#5a1846","#962a74","#d04aa8","#ff7ad0","#ffb8e6","#ffe8f6","#ffffff"]};
+const PXHEAVY={ELECTRIC:'lightning/zap-hit',FIRE:'explosions/small-explosion',ICE:'ice/snowflake-burst',WATER:'water/splash',GROUND:'impacts/ground-slam',ROCK:'nature/boulder',POISON:'nature/acid-splash',GRASS:'nature/spore-burst',PSYCHIC:'arcane/mana-burst',GHOST:'shadow/dark-explosion',DARK:'shadow/dark-explosion',FIGHTING:'explosions/cartoon-pow',DRAGON:'explosions/plasma-explosion',STEEL:'melee/sword-slash',FLYING:'holy/feather-burst',FAIRY:'holy/smite',BUG:'melee/claw-swipe',NORMAL:'impacts/blunt-hit'};
+const pxOk=()=>typeof PixelFX!=='undefined'&&PixelFX.fx&&!(G&&G.opt&&G.opt.pfx===0);
+function pxPal(t){const v=PXPAL[t]||'bone';return Array.isArray(v)?v:(PixelFX.PAL[v]||undefined)}
+// wx,wy = 월드 좌표 (배틀) · 화면 좌표면 scr=1
+function pxPlay(id,wx,wy,o){try{if(!pxOk())return;const M=PixelFX.fx[id];if(!M)return;if(PXL.list.length>14)PXL.list.shift();const op=Object.assign({seed:ri(1,9999)},o||{});if(op.type){const pl=pxPal(op.type);if(pl)op.palette=pl;delete op.type}
+  const fx=PixelFX.createFx(M,op);PXL.list.push({fx,wx,wy,scr:op.scr})}catch(e){}}
+function pxDraw(dt){if(!PXL.list.length)return;const S=typeof bsz==='function'?bsz():60;const ps=Math.max(2,Math.min(5,Math.round(S/34)));const w=Math.ceil(VW/ps),h=Math.ceil(VH/ps);
+  if(!PXL.fr||PXL.fr.w!==w||PXL.fr.h!==h){PXL.fr=PixelFX.createFrame(w,h,0,0);PXL.cv=document.createElement('canvas');PXL.cv.width=w;PXL.cv.height=h;PXL.c=PXL.cv.getContext('2d');PXL.img=PXL.c.createImageData(w,h)}
+  const fr=PXL.fr;PixelFX.clearFrame(fr);const step=FX2.stop>0?0:dt;
+  PXL.list=PXL.list.filter(e=>{try{e.fx.update(step);const [sx,sy]=e.scr?[e.wx,e.wy]:w2s(e.wx,e.wy);e.fx.options.x=Math.round(sx/ps);e.fx.options.y=Math.round(sy/ps);e.fx.draw(fr);return !e.fx.done()}catch(err){return false}});
+  PixelFX.composite(fr,PXL.img.data,null,1);PXL.c.putImageData(PXL.img,0,0);cx.save();cx.setTransform(DPR,0,0,DPR,0,0);cx.imageSmoothingEnabled=false;cx.drawImage(PXL.cv,0,0,w*ps,h*ps);cx.restore()}
+{const _d=drawBattle;drawBattle=function(dt){_d(dt);try{if(PXL.list.length)pxDraw(dt)}catch(e){}}}
+// 맞을 때 / 쓰러질 때 도트 이펙트
+{const _h=hitFeel;hitFeel=function(A,B,k,crit,e,mine,S){_h.apply(this,arguments);try{if(!pxOk())return;const ty=(A.lastMv&&A.lastMv.type)||'NORMAL',pw=(A.lastMv&&A.lastMv.pw)||40,aim=Math.atan2(B.ay-A.ay,B.ax-A.ax);
+  const bx=B.ax,by=B.ay-S*.45;if(crit)pxPlay('impacts/crit-hit',bx,by,{type:ty,aim});
+  if(e>=2||pw>=90||crit){const id=PXHEAVY[ty]||'impacts/blunt-hit';const ground=/ground-slam|boulder|quake/.test(id);pxPlay(id,bx,ground?B.ay:by,{type:ty})}
+  else pxPlay(e>0&&e<1?'impacts/bullet-impact':'impacts/hit-spark',bx,by,{type:ty,aim})}catch(err){}}}
+{const _u=actUpdate;actUpdate=function(dt){_u(dt);try{if(!ACT.on||!pxOk())return;for(const B of [BS.me,BS.foe]){if(!B||!B.m)continue;if(B.m.hp<=0&&B.pxKo!==B.m){B.pxKo=B.m;const ty=META[B.m.n].types[0];pxPlay('spawn/shatter-death',B.ax,B.ay,{type:ty});pxPlay('ui/poke-cracks',B.ax,B.ay,{})}if(B.m.hp>0&&B.pxKo===B.m)B.pxKo=null}}catch(e){}}}
+{const _l=lvShow;lvShow=function(m,a,b){try{if(SCENE==='battle'&&BS.me&&BS.me.m===m&&pxOk())pxPlay('status/poke-levelup',BS.me.ax,BS.me.ay,{})}catch(e){}return _l.apply(this,arguments)}}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
