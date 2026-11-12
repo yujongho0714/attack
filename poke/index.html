@@ -902,7 +902,7 @@ bt('bTx').addEventListener('pointerdown',()=>{if(MSGR){const r=MSGR;MSGR=null;r(
 const BGIMG={};function bgImg(k){if(BGIMG[k])return BGIMG[k];const im=new Image();im.src='stages/'+k+'.webp';return BGIMG[k]=im}
 const STG={meadow:'grass',forest:'forest',cave:'ruins',beach:'seaside',swamp:'forest',ruins:'ruins',volcano:'volcanic',road:'ruins',town:'grass',ice:'ice'};
 function side(mine){if(ACT.on||(advOn()&&BS.me&&BS.me.ax!=null)){const B=mine?BS.me:BS.foe;if(B&&B.ax!=null)return{x:B.ax,y:B.ay,row:B.row??(mine?2:6)}}return VW>VH?(mine?{x:VW*.3,y:VH*.7,row:4}:{x:VW*.55,y:VH*.46,row:7}):mine?{x:VW*.27,y:VH*.6,row:4}:{x:VW*.73,y:VH*.36,row:7}}
-const bsz=()=>VW>VH?Math.min(VW*.12,VH*.2)*(ACT.on?1.2:1):Math.min(VW*.3,VH*.19);
+const bsz=()=>VW>VH?Math.min(VW*.105,VH*.17)*(ACT.on?.95:1):Math.min(VW*.3,VH*.19);
 function bsc(S,mine){const A=S.meta.anims.idle;return bsz()/24*(mine?1.15:1)*Math.max(.7,Math.min(1.6,30/Math.max(16,A.h*.6)))}
 function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.update(dt);try{actUpdate(dt)}catch(e){console.warn(e)}const fr=FX2.stop>0?0:dt;cx.setTransform(1,0,0,1,0,0);
   const [sx,sy]=FX2.shakeXY();cx.setTransform(d,0,0,d,sx*d,sy*d);const th=THEME[BS.bg]||THEME.meadow;const im=bgImg(STG[BS.bg]||'grass');
@@ -1089,12 +1089,12 @@ function actUpdate(dt){if(!ACT.on)return;const fr=FX2.stop>0?0:dt;if(!fr)return;
     me.ax+=me.vx*fr;me.ay+=me.vy*fr;const mvg=Math.hypot(me.vx,me.vy)>VW*.03;if(mvg)me.row=dirRow(me.vx,me.vy);else me.row=dirRow(f.ax-me.ax,f.ay-me.ay);
     if(me.st==='idle'||me.st==='walk'){const w=mvg&&me.S.meta.anims.walk?'walk':'idle';if(me.st!==w){me.st=w;me.t=0}}}
   // 상대 (AI)
-  const ai=ACT.ai;if(!ACT.fbusy&&f.hp>0){ai.str+=fr;const dx=me.ax-f.ax,dy=me.ay-f.ay,d=Math.hypot(dx,dy)||1;const want=VW*ai.want;
+  const ai=ACT.ai;if(!ACT.fbusy&&f.m.hp>0){ai.str+=fr;const dx=me.ax-f.ax,dy=me.ay-f.ay,d=Math.hypot(dx,dy)||1;const want=VW*ai.want;
     let vx=0,vy=0;if(ai.tel<=0){const ap=(d-want)/want;vx=dx/d*ap;vy=dy/d*ap;vx+=-dy/d*Math.sin(ai.str*1.3)*.6;vy+=dx/d*Math.sin(ai.str*1.3)*.6}
     const sp=spd(f)*(BS.trainer?.75:.6);f.vx+=(vx*sp-f.vx)*Math.min(1,fr*6);f.vy+=(vy*sp*.8-f.vy)*Math.min(1,fr*6);f.ax+=f.vx*fr;f.ay+=f.vy*fr;
     const mvg=Math.hypot(f.vx,f.vy)>VW*.03;f.row=mvg&&ai.tel<=0?dirRow(f.vx,f.vy):dirRow(dx,dy);if(f.st==='idle'||f.st==='walk'){const w=mvg&&f.S.meta.anims.walk?'walk':'idle';if(f.st!==w){f.st=w;f.t=0}}
     if(ai.tel>0){ai.tel-=fr;if(ai.tel<=0){const m=ai.m;ai.m=null;actCast(0,m)}}
-    else{ai.cd-=fr*(BS.trainer?1.15:.9);if(ai.cd<=0&&!ACT.busy||ai.cd<-1.5){ai.cd=(BS.trainer?1.9:2.6)+R()*1.4;ai.m=R()<.6?bestMove(f.m,me.m):mv(pick(f.m.moves));ai.tel=BS.trainer?.5:.65;ai.want=.24+R()*.16}}}
+    else{ai.cd-=fr*(BS.trainer?1.15:.9);if(ai.cd<=0&&!ACT.busy||ai.cd<-1.5){ai.cd=(BS.trainer?1.6:2.1)+R()*1.2;ai.m=R()<.6?bestMove(f.m,me.m):mv(pick(f.m.moves));ai.tel=BS.trainer?.5:.65;ai.want=.24+R()*.16}}}
   // 밀려남 + 경기장 안에 두기
   for(const B of [me,f]){if(B.kx||B.ky){B.ax+=B.kx*fr*6;B.ay+=B.ky*fr*6;B.kx*=Math.max(0,1-fr*6);B.ky*=Math.max(0,1-fr*6);if(Math.abs(B.kx)+Math.abs(B.ky)<1)B.kx=B.ky=0}
     B.ax=Math.max(r.x0,Math.min(r.x1,B.ax));B.ay=Math.max(r.y0,Math.min(r.y1,B.ay))}
