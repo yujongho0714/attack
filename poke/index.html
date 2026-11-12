@@ -1873,6 +1873,26 @@ async function offlinePrep(){if(OFF.run||!('caches' in window))return;OFF.run=1;
   await Promise.all([work(),work(),work(),work(),work(),work()]);OFF.p=100;if(ok>=files.length*.98)LS.set('pka-off',ver);offUI()}catch(e){}OFF.run=0}
 function offUI(){const t=OFF.p>=100?'✅ 오프라인 준비 완료 (인터넷 없이도 돼요)':'📦 오프라인 준비 중… '+OFF.p+'%';const e=bt('tOff');if(e)e.textContent=t;const h=bt('hOff');if(h){h.textContent=OFF.p>=100?'':'📦 '+OFF.p+'%'}}
 setTimeout(offlinePrep,2500);
+
+// ===== ?install=1 (출결 앱 · 도장 QR) → 큰 설치 안내 =====
+(function(){const q=new URLSearchParams(location.search);if(!q.has('install'))return;try{history.replaceState(null,'',location.pathname)}catch(e){}
+  const ua=navigator.userAgent,ios=/iphone|ipad|ipod/i.test(ua),inApp=/KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\//i.test(ua),sam=/SamsungBrowser/i.test(ua);
+  const done=matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone;
+  const d=document.createElement('div');d.id='instOv';
+  const chrome='intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end';
+  d.innerHTML=`<div class="ib"><div class="ball"></div><h2>포켓몬 어드벤처</h2>`+(done?`<p>이미 설치되어 있어요! 🎉</p><button class="go">▶ 바로 시작</button>`:
+    ios?`<p>아이폰은 이렇게 설치해요</p><ol><li>사파리 아래 <b>공유 버튼 (□↑)</b></li><li><b>「홈 화면에 추가」</b></li><li>홈 화면의 <b>포켓몬</b> 아이콘으로 시작!</li></ol>${inApp?'<p class="w">⚠️ 카카오톡 안이라면 오른쪽 아래 ⋯ → 「다른 브라우저로 열기」(사파리)부터!</p>':''}<button class="go">알겠어요</button>`:
+    `<button class="ins">📲 지금 설치하기</button><p class="st">설치 준비 중…</p><ol class="man" style="display:none"><li>${sam?'아래 메뉴 <b>≡</b> → <b>「현재 페이지 추가」 → 홈 화면</b>':'오른쪽 위 <b>⋮</b> → <b>「앱 설치」</b> 또는 <b>「홈 화면에 추가」</b>'}</li><li>홈 화면의 <b>포켓몬</b> 아이콘으로 시작!</li></ol>${inApp||!/Chrome|SamsungBrowser/i.test(ua)?`<a class="cr" href="${chrome}">🌐 크롬으로 열기</a>`:''}<button class="go">나중에 할래요</button>`)+`</div>`;
+  const css=document.createElement('style');css.textContent=`#instOv{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:#0a1024e6;padding:16px}#instOv .ib{width:min(420px,100%);max-height:100%;overflow:auto;background:#fffdf0;border:4px solid #1c2550;border-radius:22px;padding:18px;text-align:center;color:#1c2550;box-shadow:0 8px 0 #1c2550}
+#instOv .ball{width:56px;height:56px;margin:0 auto;border-radius:50%;background:radial-gradient(circle,#fff 0 16%,#1c2550 16% 24%,transparent 24%),linear-gradient(#ff4a4a 0 46%,#1c2550 46% 54%,#fff 54%);border:3px solid #1c2550}
+#instOv h2{margin:6px 0;font:italic 900 28px system-ui,sans-serif}#instOv p{margin:6px 0;font-weight:800}#instOv .w{color:#c0392b;font-size:14px}#instOv ol{text-align:left;font-size:16px;line-height:1.6;padding-left:22px;margin:8px 0}
+#instOv button,#instOv a.cr{display:block;width:100%;margin-top:8px;border:3px solid #1c2550;border-radius:14px;padding:12px;font-weight:900;font-size:18px;box-shadow:0 4px 0 #1c2550;background:#fff;color:#1c2550;text-decoration:none;box-sizing:border-box}#instOv .ins{background:#ffd23f;font-size:22px;padding:16px}#instOv .st{font-size:13px;opacity:.7}`;
+  css.textContent+='body:has(#instOv) #rot{display:none!important}';document.head.appendChild(css);const go=()=>{document.body.appendChild(d);const close=()=>d.remove();d.querySelectorAll('.go').forEach(b=>b.onclick=close);const ins=d.querySelector('.ins');if(!ins)return;const st=d.querySelector('.st'),man=d.querySelector('.man');
+    const ready=()=>{st.textContent='눌러서 설치해요!';ins.disabled=false};if(typeof INSTP!=='undefined'&&INSTP)ready();addEventListener('beforeinstallprompt',()=>setTimeout(ready,0));
+    setTimeout(()=>{if(!(typeof INSTP!=='undefined'&&INSTP)){st.textContent='버튼이 안 되면 아래처럼 해 주세요';man.style.display=''}},2500);
+    ins.onclick=async()=>{if(typeof INSTP!=='undefined'&&INSTP){INSTP.prompt();try{const r=await INSTP.userChoice;if(r&&r.outcome==='accepted'){d.querySelector('.ib').innerHTML='<div class="ball"></div><h2>설치 완료! 🎉</h2><p>홈 화면의 포켓몬 아이콘으로 시작해요.</p><button class="go">닫기</button>';d.querySelector('.go').onclick=close}}catch(e){}INSTP=null}else{man.style.display='';st.textContent='브라우저 메뉴에서 설치해 주세요'}}};
+  if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+addEventListener('appinstalled',()=>{try{toast('📲 설치 완료! 홈 화면의 포켓몬 아이콘으로 시작해요')}catch(e){}});
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
