@@ -1010,7 +1010,7 @@ function showBattleUI(on){document.body.classList.toggle('inb',!!on);bt('bF').in
 // 왼쪽 아무 데나 끌면 이동(떠오르는 조이스틱) · 오른쪽 기술 4개(쿨타임) · 🌀 구르기(무적 0.4초)
 // 기술 연출은 턴제와 같은 MV 레시피를 그대로 씀 → 맞는 순간 상대가 그 자리에 없으면 "피했다!"
 let ACT={on:0};
-const advOn=()=>G&&G.mode!=='turn'&&!AUTO.on&&!G.autoBattle;
+const advOn=()=>G&&G.mode!=='turn';const actAuto=()=>AUTO.on||G.autoBattle;
 const AR=()=>({x0:VW*.07,x1:VW*.9,y0:VH*.4,y1:VH*.88});
 function dirRow(dx,dy){const a=Math.atan2(dy,dx);const o=((Math.round(a/(Math.PI/4))%8)+8)%8;return[2,1,0,7,6,5,4,3][o]}
 function cdOf(m){return Math.max(.9,Math.min(4.2,.6+(m.pw||40)/32))}
@@ -1080,6 +1080,8 @@ async function actCast(mine,m){const AB=mine?BS.me:BS.foe,DB=mine?BS.foe:BS.me,a
 function actUpdate(dt){if(!ACT.on)return;const fr=FX2.stop>0?0:dt;if(!fr)return;ACT.t+=fr;const me=BS.me,f=BS.foe,r=AR(),S=bsz();
   for(const k in ACT.cd)ACT.cd[k]=Math.max(0,ACT.cd[k]-fr);ACT.dcd=Math.max(0,ACT.dcd-fr);ACT.inv=Math.max(0,ACT.inv-fr);
   if(ACT.buf){ACT.buf.t-=fr;if(ACT.buf.t<=0)ACT.buf=null;else if(!ACT.busy&&ACT.roll<=0){const i=ACT.buf.i;ACT.buf=null;actPress(i)}}
+  // 자동 전투: 내 포켓몬도 스스로 움직이고 · 피하고 · 기술 씀
+  if(actAuto())actPilot(fr);
   // 나
   const spd=(B)=>VW*.3*(.85+Math.min(1,stOf(B.m)[5]/220)*.4);
   if(ACT.roll>0){ACT.roll-=fr;const v=spd(me)*2.7;me.ax+=ACT.rdx*v*fr;me.ay+=ACT.rdy*v*fr;me.alpha=.55;me.rot=(1-ACT.roll/.28)*Math.PI*2*(ACT.rdx>=0?1:-1);if(ACT.roll<=0){me.trail=0;me.alpha=1;me.rot=0}}
@@ -1117,6 +1119,16 @@ function modePick(){let m='adv';try{m=localStorage.getItem('pka-mode')||'adv'}ca
   if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 {const _st2=start;start=function(...a){const r=_st2.apply(this,a);try{if(G){G.mode=modePick()}}catch(e){}return r}}
 function modeToggle(){G.mode=G.mode==='turn'?'adv':'turn';try{localStorage.setItem('pka-mode',G.mode)}catch(e){}save();toast(G.mode==='turn'?'🎴 턴제 모드로 바꿨어요':'⚔️ 어드벤처 모드로 바꿨어요 (직접 움직여 싸워요)')}
+
+function actPilot(fr){const me=BS.me,f=BS.foe,ai=ACT.ai,st=ACT.stick;ACT.pt=(ACT.pt||0)+fr;
+  // 잡기 · 회복은 턴제 자동과 같은 판단
+  if(!ACT.busy&&ACT.pt>.8){const S=stOf(f.m);
+    if(!BS.trainer&&wantCatch(f.m)){const ball=G.bag.hyper>0?'hyper':G.bag.great>0?'great':G.bag.ball>0?'ball':null;if(ball&&(f.m.hp/S[0]<.5||ACT.t>7)){actEnd({t:'item',k:ball});return}}
+    const M=stOf(me.m);if(me.m.hp/M[0]<.25&&BS.healUsed<2){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p){BS.healUsed++;actEnd({t:'item',k:p});return}}}
+  const dx=f.ax-me.ax,dy=f.ay-me.ay,d=Math.hypot(dx,dy)||1,want=VW*.26;
+  if(ai.tel>0&&ai.tel<.32&&ACT.dcd<=0){st.x=-dy/d;st.y=dx/d;actRoll();return}
+  const ap=(d-want)/want;st.x=dx/d*ap*1.2+(-dy/d)*Math.sin(ACT.t*1.1)*.5;st.y=dy/d*ap*1.2+(dx/d)*Math.sin(ACT.t*1.1)*.5;const L=Math.hypot(st.x,st.y);if(L>1){st.x/=L;st.y/=L}
+  if(!ACT.busy&&ACT.roll<=0){let best=-1,bi=-1;me.m.moves.forEach((id,i)=>{if((ACT.cd[id]||0)>0)return;const v=dmgCalc(me.m,f.m,mv(id),0).d;if(v>best){best=v;bi=i}});if(bi>=0&&ACT.pt>.5)actPress(bi)}}
 
 // ===== 게임 진행: 건물 · 트레이너 · 체육관 · 리그 · 자동 진행 · 메뉴 · 도감 · 저장 =====
 const ITEMS={ball:{n:'몬스터볼',e:'🔴',ball:1,col:'#e83838',p:200},great:{n:'슈퍼볼',e:'🔵',ball:1.5,col:'#3a6ae8',p:600,b:2},hyper:{n:'하이퍼볼',e:'🟡',ball:2.2,col:'#f0c020',p:1200,b:5},
