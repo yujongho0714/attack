@@ -72,7 +72,7 @@ body.inact #bTx,body.inact #bMenu{display:none!important}
  body.inb #bMenu:not(:empty)~#bTx,body.inb #bTx{bottom:calc(8px + env(safe-area-inset-bottom));right:calc(min(32vw,270px) + 18px);min-height:0;padding:8px 12px;font-size:16px}
  body.inact #aTop{top:calc(10px + env(safe-area-inset-top));right:auto;left:50%;transform:translateX(-50%)}
 }
-</style><style>#bAutoB{display:none;position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));border:3px solid #2c3050;border-radius:14px;background:#fffdf0;color:#2c3050;font-weight:900;font-size:15px;padding:7px 14px;box-shadow:0 3px 0 #2c3050}#bAutoB.on{background:#ffd060}body.inb #bAutoB{display:block}body.inb:not(.inact) #bAutoB{bottom:auto;top:calc(10px + env(safe-area-inset-top))}body.inact #bAutoB{bottom:auto;top:calc(56px + env(safe-area-inset-top))}</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
+</style><style>#bAutoB{display:none;position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));border:3px solid #2c3050;border-radius:14px;background:#fffdf0;color:#2c3050;font-weight:900;font-size:15px;padding:7px 14px;box-shadow:0 3px 0 #2c3050}#bAutoB.on{background:#ffd060}body.inb #bAutoB{display:block}body.inb:not(.inact) #bAutoB{bottom:auto;top:calc(10px + env(safe-area-inset-top))}body.inact #bAutoB{bottom:auto;top:calc(56px + env(safe-area-inset-top))}</style><style>#qrOv{position:fixed;inset:0;z-index:100001;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;font-weight:800}#qrOv video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}#qrOv .qrb{position:relative;width:min(60vh,60vw);height:min(60vh,60vw);border:4px solid #ffd060;border-radius:18px;box-shadow:0 0 0 2000px #0007}#qrOv p,#qrOv button{position:relative}#qrOv button{border:3px solid #fff;border-radius:12px;background:#2c3050;color:#fff;font-weight:900;padding:8px 18px;font-size:16px}</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
@@ -1346,9 +1346,9 @@ function useMv(m,id){m.mu=m.mu||{};const before=mlv(m,id);m.mu[id]=(m.mu[id]||0)
 function giftLabel(g){if(g.kind==='P'){const n=BYDEX[g.id];return(g.sh?'✨이로치 ':'')+(n?META[n].name:'포켓몬 No.'+g.id)+' Lv.'+g.lv}const mm=GMOVES[g.id];return'📀 기술 카드: '+(mm?mm[1]:'?')}
 function giftOpen(){if(SCENE!=='over')return;const L=G.gifts||[];
   openPanel('🎁 선물 · 출석 뽑기',`<div class="row"><span>본인 번호: <b>${G.num?G.num.replace(/(\d{3})(\d+)(\d{4})/,'$1-****-$3'):'아직 없음'}</b></span><button id="gNum">${G.num?'바꾸기':'넣기'}</button></div>
-  <p style="margin:8px 0 4px;font-weight:800">선물 코드 넣기</p><div class="nw"><input id="gCode" placeholder="PK-XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"><button id="gGo" class="it">받기</button></div><p id="gMsg" style="font-weight:800;min-height:1.2em"></p>
-  <h4>선물 가방 (눌러서 사용) ${L.length}개</h4>${L.length?L.map((g,i)=>`<div class="row"><span><b style="color:${RARC[g.rar]}">[${RAR[g.rar]}]</b> ${giftLabel(g)}</span><button data-u="${i}">사용</button></div>`).join(''):'<small>출석 앱에서 뽑기를 하면 문자로 코드가 와요</small>'}`,null,p=>{
-    p.querySelector('#gNum').onclick=()=>askNum().then(giftOpen);
+  <button id="gQr" class="it" style="width:100%;background:#9ad0ff;margin:6px 0">📷 출석 앱 QR 찍어서 한 번에 받기</button><p style="margin:8px 0 4px;font-weight:800">선물 코드 넣기</p><div class="nw"><input id="gCode" placeholder="PK-XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"><button id="gGo" class="it">받기</button></div><p id="gMsg" style="font-weight:800;min-height:1.2em"></p>
+  <h4>선물 가방 (눌러서 사용) ${L.length}개</h4>${L.some(g=>g.kind==='P')?'<button id="gAll" class="it" style="width:100%;background:#ffd060">⚡ 포켓몬 전부 꺼내기</button>':''}${L.length?L.map((g,i)=>`<div class="row"><span><b style="color:${RARC[g.rar]}">[${RAR[g.rar]}]</b> ${giftLabel(g)}</span><button data-u="${i}">사용</button></div>`).join(''):'<small>출석 앱에서 뽑기를 하면 문자로 코드가 와요</small>'}`,null,p=>{
+    p.querySelector('#gNum').onclick=()=>askNum().then(giftOpen);p.querySelector('#gQr').onclick=()=>{closePanel(1);qrScan()};const ga=p.querySelector('#gAll');if(ga)ga.onclick=()=>giftAllMons();
     p.querySelector('#gGo').onclick=async()=>{const M=p.querySelector('#gMsg');if(!G.num){M.textContent='먼저 본인 번호를 넣어 주세요';return}const code=p.querySelector('#gCode').value;const r=await giftDecode(code,G.num);if(r.err){M.textContent='❌ '+r.err;sfx('faint');return}
       const used=LS.get('pka-used',{});if(used[r.key]||(G.usedG||{})[r.key]){M.textContent='❌ 이미 받은 선물이에요';return}used[r.key]=G.name||1;LS.set('pka-used',used);G.usedG=G.usedG||{};G.usedG[r.key]=Date.now();
       if(r.kind==='P'&&!BYDEX[r.id]){M.textContent='❌ 이 포켓몬 그림이 아직 없어요 (No.'+r.id+')';return}if(r.kind==='M'&&!GMOVES[r.id]){M.textContent='❌ 이 기술은 새 버전에서 받을 수 있어요';return}
@@ -1549,6 +1549,38 @@ async function wardrobe(cat){if(SCENE!=='over')return;const pk=await dressPack()
       g.clearRect(0,0,150,150);g.imageSmoothingEnabled=false;const k=1.35;g.save();g.translate(75,138);if(ph===3)g.scale(-1,1);g.drawImage(c,-DRS.foot[0]*k,-DRS.foot[1]*k,DRS.W*k,DRS.H*k);g.restore()})()})}
 
 {const _st=start;start=function(...a){const r=_st.apply(this,a);MEFK='';MEF=null;setTimeout(()=>{dressPack().then(()=>meBuild());mePending()},900);return r}}
+
+// ===== 출석 앱 QR 한 번에 받기: 가방의 포켓몬·기술 카드 전부 =====
+// QR = 게임주소/?gb=<8글자×개수>.<확인 8글자>  (본인 번호로 도장 → 다른 사람은 못 받음 · 이미 받은 건 다시 안 들어옴)
+const GBSEC='jungdo2-poke-bulk-v1';
+async function gbMac(num,p){const h=await sha(GBSEC+'|'+normNum(num)+'|'+p);let v=0;for(let i=0;i<5;i++)v=v*256+h[i];return b32(v,8)}
+function decP8(p){let v=ub32(p);if(v<0)return null;const serial=v%262144;v=Math.floor(v/262144);const rar=v%4;v=Math.floor(v/4);const sh=v%2;v=Math.floor(v/2);const lv=v%128;v=Math.floor(v/128);const id=v%2048;const kind=Math.floor(v/2048)?'M':'P';return{kind,id,lv:Math.max(1,lv),sh,rar,serial,key:p}}
+async function gbApply(link){if(!G)return false;const m=/(?:gb=)?([0-9A-Z]{8,})\.([0-9A-Z]{8})/.exec(String(link||'').toUpperCase());if(!m){toast('❌ 출석 앱 QR이 아니에요');return false}
+  if(!G.num)await askNum();if(await gbMac(G.num,m[1])!==m[2]){await say(['❌ 내 번호로 만든 QR이 아니에요.<br><small>출석 앱에서 넣은 번호와 게임의 본인 번호가 같아야 해요. (메뉴 → 🎁 선물에서 번호 확인)</small>']);return false}
+  const used=LS.get('pka-used',{});G.usedG=G.usedG||{};G.gifts=G.gifts||[];const got=[];let dup=0,bad=0;
+  for(let i=0;i+8<=m[1].length;i+=8){const r=decP8(m[1].slice(i,i+8));if(!r){bad++;continue}if(used[r.key]||G.usedG[r.key]){dup++;continue}
+    if(r.kind==='P'&&!BYDEX[r.id]||r.kind==='M'&&!GMOVES[r.id]){bad++;continue}used[r.key]=G.name||1;G.usedG[r.key]=Date.now();G.gifts.push(Object.assign(r,{t:Date.now()}));got.push(r)}
+  LS.set('pka-used',used);save();
+  if(!got.length){toast(dup?'✔ 이미 다 받은 것들이에요':'받을 게 없어요');return true}
+  const best=got.slice().sort((a,b)=>b.rar-a.rar||b.sh-a.sh)[0];closePanel(1);try{await packFor(best)}catch(e){}
+  const nP=got.filter(g=>g.kind==='P').length,nM=got.length-nP;sfx('get');
+  await say(['📱 출석 앱에서 <b>'+got.length+'개</b>가 왔어요! (포켓몬 '+nP+' · 기술 카드 '+nM+')'+(dup?'<br><small>이미 받은 '+dup+'개는 빼고요</small>':''),'🎁 <b>선물 가방</b>에 들어갔어요. 「포켓몬 전부 꺼내기」를 누르면 동료가 되고, 기술 카드는 가르칠 포켓몬을 골라요.']);
+  giftOpen();return true}
+// 선물 가방의 포켓몬 전부 꺼내기 (6마리 넘으면 보관함)
+async function giftAllMons(){const L=(G.gifts||[]).filter(g=>g.kind==='P');if(!L.length){toast('꺼낼 포켓몬이 없어요');return}let toBox=0;
+  for(const g of L){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else{G.box.push(m);toBox++}}
+  G.gifts=G.gifts.filter(g=>g.kind!=='P');save();refreshSpr();sfx('lv');closePanel(1);await say(['🎉 포켓몬 '+L.length+'마리가 동료가 됐어요!'+(toBox?' ('+toBox+'마리는 보관함으로 갔어요)':'')]);giftOpen()}
+// 카메라로 QR 찍기 (안드로이드 크롬)
+async function qrScan(){if(!('BarcodeDetector' in window)){await say(['이 폰은 게임 안에서 QR을 못 읽어요.<br><b>폰 카메라 앱</b>으로 출석 앱 QR을 찍고, 뜨는 링크를 누르세요!']);return}
+  let st=null;const ov=document.createElement('div');ov.id='qrOv';ov.innerHTML='<video playsinline muted></video><div class="qrb"></div><p>출석 앱 화면의 QR을 네모 안에 맞춰요</p><button>닫기</button>';document.body.appendChild(ov);
+  const v=ov.querySelector('video');const stop=()=>{try{st&&st.getTracks().forEach(t=>t.stop())}catch(e){}ov.remove()};ov.querySelector('button').onclick=stop;
+  try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});v.srcObject=st;await v.play()}catch(e){stop();toast('카메라를 쓸 수 없어요');return}
+  const det=new BarcodeDetector({formats:['qr_code']});let done=0;
+  (async function tick(){if(done||!document.body.contains(ov))return;try{const r=await det.detect(v);const t=r&&r[0]&&r[0].rawValue;if(t&&/gb=|\.[0-9A-Z]{8}$/i.test(t)){done=1;stop();sfx('get');await gbApply(t);return}}catch(e){}setTimeout(tick,200)})()}
+// 링크로 들어오면(폰 카메라로 찍음) 기억했다가 게임 시작 후 받기
+try{const q=new URLSearchParams(location.search).get('gb');if(q){LS.set('pka-gb-pending',q);history.replaceState(null,'',location.pathname)}}catch(e){}
+async function gbPending(){const q=LS.get('pka-gb-pending','');if(!q||!G)return;if(await gbApply(q))LS.set('pka-gb-pending','')}
+{const _st3=start;start=function(...a){const r=_st3.apply(this,a);setTimeout(()=>gbPending(),1500);return r}}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
