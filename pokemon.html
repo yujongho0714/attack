@@ -793,11 +793,12 @@ async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');
     if(!m.anim)continue;META[x.n]=m}
   if(dirty)LS.set('pka-meta',C);BYDEX={};for(const n in META){const d=META[n].dex;if(!d)continue;if(!BYDEX[d]||/shiny|_\d+$/i.test(BYDEX[d]))BYDEX[d]=n}SPECIES=Object.values(BYDEX).sort((a,b)=>META[a].dex-META[b].dex);
   for(const n of SPECIES)for(const q of META[n].moves)if(q.id)mvOf(q);try{FXA=await UP.fxaAll()||{}}catch(e){FXA={}}return SPECIES.length}
-async function title(){SCENE='title';bt('title').classList.add('on');const T=bt('tInfo');T.textContent='포켓몬 불러오는 중…';let n=0;
-  try{await Promise.race([UP.autoSync(),sleep(6000)])}catch(e){}
+async function title(noSync){SCENE='title';bt('title').classList.add('on');const T=bt('tInfo');T.textContent='포켓몬 불러오는 중…';let n=0;
+  if(!noSync)try{await Promise.race([UP.autoSync(),sleep(6000)])}catch(e){}
   try{n=await loadPool((i,N)=>T.textContent='포켓몬 불러오는 중… '+Math.round(i/N*100)+'%')}catch(e){T.textContent='불러오기 실패: '+e.message}
   const sv=LS.get('pka-save',null);bt('tCont').style.display=sv&&n>=10?'':'none';bt('tNew').disabled=n<10;
-  T.innerHTML=n>=10?`움직이는 포켓몬 <b>${n}</b>마리 준비 완료!`+(sv?`<br><small>이어하기: ${areaName(sv.a)} · 배지 ${sv.badges} · 도감 ${Object.keys(sv.dex.c).length}</small>`:''):`움직이는 포켓몬이 ${n}마리뿐이에요 (10마리 이상 필요)<br><small>아래 「☁ 받기」(출결 PC에 올린 포켓몬) 또는 「📦 ZIP 넣기」(레조넌스 팩)를 눌러 주세요</small>`}
+  T.innerHTML=n>=10?`움직이는 포켓몬 <b>${n}</b>마리 준비 완료!`+(sv?`<br><small>이어하기: ${areaName(sv.a)} · 배지 ${sv.badges} · 도감 ${Object.keys(sv.dex.c).length}</small>`:''):`움직이는 포켓몬이 ${n}마리뿐이에요 (10마리 이상 필요)`+(await other())+`<br><small>아래 「☁ 받기」(출결 PC에 올린 포켓몬) 또는 「📦 ZIP 넣기」(레조넌스 팩)를 눌러 주세요</small>`}
+async function other(){try{const L=await UP.index();const b=L.filter(x=>x.k==='bed'||x.k==='glb').length;return b?`<br><small>(3D 포켓몬 ${b}마리는 있지만, 이 게임은 레조넌스 팩의 움직이는 포켓몬만 써요)</small>`:''}catch(e){return''}}
 function start(sv){G=sv||null;if(!G)newGame();G.opt=G.opt||{catchNew:true};G.flags=G.flags||{};G.party=(G.party||[]).filter(m=>META[m.n]);G.box=(G.box||[]).filter(m=>META[m.n]);G.got=G.got||{};G.beat=G.beat||{};
   if(G.party.length===0&&G.box.length)G.party.push(G.box.shift());if(G.rival&&!META[G.rival.n])G.rival={n:pick(SPECIES)};
   for(const k in AREAS)delete AREAS[k];buildLoc();for(const m of G.party)askEvo(META[m.n].dex);
@@ -805,7 +806,7 @@ function start(sv){G=sv||null;if(!G)newGame();G.opt=G.opt||{catchNew:true};G.fla
   if(!sv)say(['포켓몬 어드벤처에 온 걸 환영해요!','이곳은 새싹마을. 먼저 오른쪽 아래 <b>연구소</b>에서 첫 포켓몬을 받아요.','화면 위 「▶ 자동」을 누르면 다음 할 일을 알아서 진행해요. 방향 버튼을 누르면 직접 움직여요!'])}
 bt('tCont').onclick=()=>{sfx('tap');start(LS.get('pka-save',null))};
 bt('tNew').onclick=()=>{sfx('tap');if(LS.get('pka-save',null)&&!confirm('처음부터 시작할까요? 지금 저장은 지워져요.'))return;start(null)};
-bt('tSync').onclick=async()=>{const T=bt('tInfo');T.textContent='☁ 출결 서버에서 받는 중…';try{await UP.autoSync(true)}catch(e){T.textContent='받기 실패: '+e.message;return}title()};
+bt('tSync').onclick=async()=>{const T=bt('tInfo');T.textContent='☁ 출결 서버에 연결하는 중…';let r=null;try{r=await UP.syncCloud(t=>T.textContent='☁ '+t,false)}catch(e){T.textContent='받기 실패: '+e.message;return}if(r===null&&/없어요|취소|못 받|실패/.test(T.textContent))return;LS.set('pka-meta',{});title(1)};
 bt('tZip').onchange=async e=>{const fs=[...e.target.files];if(!fs.length)return;const T=bt('tInfo');try{await UP.importFiles(fs,t=>T.textContent=t)}catch(err){T.textContent='넣기 실패: '+err.message;return}LS.set('pka-meta',{});title()};
 // 방향 버튼
 document.querySelectorAll('#pad [data-d]').forEach(b=>{const d=+b.dataset.d;const on=e=>{e.preventDefault();KEY.dir=d;userMove();b.classList.add('on')},off=e=>{if(KEY.dir===d)KEY.dir=-1;b.classList.remove('on')};b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off)});
