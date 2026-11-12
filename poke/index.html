@@ -189,6 +189,17 @@ body.inb #mini{display:none}
 @property --aa{syntax:'<angle>';initial-value:0deg;inherits:false}@keyframes auAng{to{--aa:360deg}}
 #fuseOv .fc.hit.r1{box-shadow:0 0 18px 6px #4aa8ff}#fuseOv .fc.hit.r2{box-shadow:0 0 24px 8px #c070ff;animation:au3p .8s infinite alternate}#fuseOv .fc.hit.r3{box-shadow:0 0 30px 10px #ffd060;animation:au3 .8s infinite alternate}
 @keyframes au3p{to{box-shadow:0 0 36px 14px #e8b0ff}}
+</style><style>
+#multiOv .mc.r4 .frm{background-image:url(cardpack/frame4.webp)}#multiOv .mc.r5 .frm{background-image:url(cardpack/frame5.webp)}#multiOv .mc.r6 .frm{background-image:url(cardpack/frame6.webp)}
+#multiOv .mc.on.r4::before,#multiOv .mc.on.r5::before,#multiOv .mc.on.r6::before{content:'';position:absolute;inset:-9px;border-radius:18px;z-index:-1;animation:auAng 1.6s linear infinite;filter:blur(4px)}
+#multiOv .mc.on.r4::before{background:conic-gradient(from var(--aa),#ff3b6b,#300010,#ff9a3a,#ff3b6b)}#multiOv .mc.on.r4 .fr{box-shadow:0 0 28px 9px #ff3b6b;animation:au4 .7s infinite alternate}
+#multiOv .mc.on.r5::before{background:conic-gradient(from var(--aa),#22e6d0,#0a2a6a,#b0fff6,#7a5aff,#22e6d0)}#multiOv .mc.on.r5 .fr{box-shadow:0 0 30px 10px #22e6d0;animation:au5 .7s infinite alternate}
+#multiOv .mc.on.r6::before{background:conic-gradient(from var(--aa),#ff2a6a,#ffd23f,#2aff8a,#2ac8ff,#b02aff,#ff2a6a);inset:-12px}#multiOv .mc.on.r6 .fr{box-shadow:0 0 36px 14px #fff;animation:au6 .5s infinite alternate}
+#multiOv .mc.on.r4,#multiOv .mc.on.r5,#multiOv .mc.on.r6{animation:auPop .8s;z-index:2}
+@keyframes au4{to{box-shadow:0 0 44px 16px #ff9a3a}}@keyframes au5{to{box-shadow:0 0 46px 16px #b0fff6}}@keyframes au6{0%{box-shadow:0 0 30px 12px #ff2aa0}50%{box-shadow:0 0 40px 16px #2ac8ff}100%{box-shadow:0 0 50px 18px #ffd23f}}
+#fuseOv .fc.hit.r4{box-shadow:0 0 34px 12px #ff3b6b;animation:au4 .7s infinite alternate}#fuseOv .fc.hit.r5{box-shadow:0 0 34px 12px #22e6d0;animation:au5 .7s infinite alternate}#fuseOv .fc.hit.r6{animation:au6 .5s infinite alternate}
+#multiOv .fr .fk,#fuseOv .fc .fk{position:absolute;top:14%;right:4%;font-size:9px;font-weight:900;color:#fff;background:linear-gradient(90deg,#ff3b6b,#ff9a3a);padding:1px 4px;border-radius:5px;text-shadow:0 1px 0 #000}
+#fuseOv .fc{position:relative}
 </style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
@@ -1578,7 +1589,7 @@ const GSEC='jungdo2-poke-gift-v1',B32='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const GMOVES=[["tackle","몸통박치기"],["headbutt","박치기"],["hyperbeam","파괴광선"],["ember","불꽃세례"],["flamewheel","화염자동차"],["flamethrower","화염방사"],["watergun","물대포"],["bubblebeam","거품광선"],["surf","파도타기"],["vinewhip","덩굴채찍"],["razorleaf","잎날가르기"],["energyball","에너지볼"],["thundershock","전기쇼크"],["spark","스파크"],["thunderbolt","10만볼트"],["powdersnow","눈싸라기"],["icepunch","냉동펀치"],["icebeam","냉동빔"],["karatechop","태권당수"],["brickbreak","깨트리기"],["closecombat","인파이트"],["acid","용해액"],["poisonjab","독찌르기"],["sludgebomb","오물폭탄"],["mudshot","머드숏"],["bulldoze","땅고르기"],["earthquake","지진"],["peck","쪼기"],["wingattack","날개치기"],["airslash","에어슬래시"],["confusion","염동력"],["psybeam","환상빔"],["psychic","사이코키네시스"],["bugbite","벌레먹음"],["xscissor","시저크로스"],["bugbuzz","벌레의야단법석"],["rockthrow","돌떨구기"],["ancientpower","원시의힘"],["stoneedge","스톤에지"],["lick","핥기"],["shadowclaw","섀도크루"],["shadowball","섀도볼"],["dragonbreath","용의숨결"],["dragonclaw","드래곤크루"],["outrage","역린"],["bite","물기"],["crunch","깨물어부수기"],["darkpulse","악의파동"],["metalclaw","메탈크로우"],["ironhead","아이언헤드"],["flashcannon","러스터캐논"],["fairywind","요정의바람"],["drainingkiss","드레인키스"],["moonblast","문포스"],["watershuriken","물수리검"],["doubleteam","그림자분신"],["dragondance","용의춤"],["aquatail","아쿠아테일"],["bodyslam","누르기"],["dig","구멍파기"],["fly","공중날기"],["fireblast","대문자"],["inferno","불기둥"],["firespin","회오리불꽃"],["blastburn","블래스트번"],["thunder","번개"],["volttackle","볼트태클"],["hydropump","하이드로펌프"],["waterpulse","물의파동"],["solarbeam","솔라빔"],["aurasphere","파동탄"],["earthpower","대지의힘"],["rockslide","스톤샤워"],["hurricane","폭풍"],["hypnosis","최면술"],["willowisp","도깨비불"],["nightslash","깜짝베기"],["dracometeor","용성군"],["dragonpulse","용의파동"],["bulletpunch","불릿펀치"],["dazzlinggleam","매지컬샤인"],["extremespeed","신속"],["doubleedge","이판사판태클"],["blizzard","눈보라"],["meteormash","코멧펀치"],["bravebird","브레이브버드"],["steelwing","강철날개"],["irontail","아이언테일"],["powerwhip","파워휩"],["leafblade","리프블레이드"],["leafstorm","리프스톰"],["gigadrain","기가드레인"],["aircutter","에어커터"],["aerialace","제비반환"],["drillpeck","회전부리"],["cut","풀베기"],["feintattack","속여때리기"],["astonish","놀래키기"],["ominouswind","괴상한바람"],["drainpunch","드레인펀치"],["counter","카운터"],["firepunch","불꽃펀치"],["thunderpunch","번개펀치"],["nuzzle","볼부비부비"],["wildcharge","와일드볼트"],["sludgewave","오물웨이브"],["crosspoison","크로스포이즌"],["icywind","얼어붙은바람"],["playrough","치근거리기"],["zenheadbutt","사념의박치기"],["extrasensory","신통력"],["powergem","파워젬"],["strength","괴력"],["takedown","돌진"],["hiddenpower","잠재파워"],["leechlife","흡혈"],["quickattack","전광석화"],["scratch","할퀴기"]];
 const GMT={watershuriken:['WATER',70,0],doubleteam:['DARK',60,1],dragondance:['DRAGON',0,0],aquatail:['WATER',90,1],bodyslam:['NORMAL',85,1],dig:['GROUND',80,1],fly:['FLYING',90,1],fireblast:['FIRE',110,0],inferno:['FIRE',100,0],firespin:['FIRE',50,0],blastburn:['FIRE',130,0],thunder:['ELECTRIC',110,0],volttackle:['ELECTRIC',120,1],hydropump:['WATER',110,0],waterpulse:['WATER',60,0],solarbeam:['GRASS',120,0],aurasphere:['FIGHTING',80,0],earthpower:['GROUND',90,0],rockslide:['ROCK',75,1],hurricane:['FLYING',110,0],hypnosis:['PSYCHIC',40,0],willowisp:['FIRE',50,0],nightslash:['DARK',70,1],dracometeor:['DRAGON',130,0],dragonpulse:['DRAGON',85,0],bulletpunch:['STEEL',40,1],dazzlinggleam:['FAIRY',80,0],extremespeed:['NORMAL',80,1],doubleedge:['NORMAL',120,1],blizzard:['ICE',110,0],meteormash:['STEEL',90,1],bravebird:['FLYING',120,1],steelwing:['STEEL',70,1],irontail:['STEEL',100,1],powerwhip:['GRASS',120,1],leafblade:['GRASS',90,1],leafstorm:['GRASS',130,0],gigadrain:['GRASS',75,0],aircutter:['FLYING',60,0],aerialace:['FLYING',60,1],drillpeck:['FLYING',80,1],cut:['NORMAL',50,1],feintattack:['DARK',60,1],astonish:['GHOST',30,1],ominouswind:['GHOST',60,0],drainpunch:['FIGHTING',75,1],counter:['FIGHTING',70,1],firepunch:['FIRE',75,1],thunderpunch:['ELECTRIC',75,1],nuzzle:['ELECTRIC',20,1],wildcharge:['ELECTRIC',90,1],sludgewave:['POISON',95,0],crosspoison:['POISON',70,1],icywind:['ICE',55,0],playrough:['FAIRY',90,1],zenheadbutt:['PSYCHIC',80,1],extrasensory:['PSYCHIC',80,0],powergem:['ROCK',80,0],strength:['NORMAL',80,1],takedown:['NORMAL',90,1],hiddenpower:['NORMAL',60,0],leechlife:['BUG',80,1],xscissor:['BUG',80,1]};
 for(const [id,name] of GMOVES){if(!MOVES[id]&&GMT[id]){const [t,pw,ph]=GMT[id];MOVES[id]={id,name,type:t,pw,ph:!!ph,acc:t==='PSYCHIC'&&id==='hypnosis'?60:100}}else if(MOVES[id])MOVES[id].name=MOVES[id].name||name}
-const RAR=['일반','희귀','영웅','전설'],RARC=['#9aa','#4aa8ff','#c070ff','#ffb020'];
+const RAR=['일반','희귀','영웅','전설','신화','환상','유일'],RARC=['#9aa','#4aa8ff','#c070ff','#ffb020','#ff3b6b','#14c8b8','#ff2aa0'];
 const normNum=s=>String(s||'').replace(/\D/g,'');
 async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return new Uint8Array(b)}
 function b32(v,n){let s='';for(let i=0;i<n;i++){s=B32[v%32]+s;v=Math.floor(v/32)}return s}
@@ -1591,7 +1602,7 @@ async function giftDecode(code,num){const c=String(code).toUpperCase().replace(/
 const MLV=[0,10,25,50,90];const mlv=(m,id)=>{const u=(m.mu||{})[id]||0;let l=1;for(let i=1;i<MLV.length;i++)if(u>=MLV[i])l=i+1;return l};
 function useMv(m,id){m.mu=m.mu||{};const before=mlv(m,id);m.mu[id]=(m.mu[id]||0)+1;return mlv(m,id)>before}
 // ---------- 선물 받기 화면 ----------
-function giftLabel(g){if(g.kind==='P'){const n=BYDEX[g.id];return(g.sh?'✨이로치 ':'')+(n?META[n].name:'포켓몬 No.'+g.id)+' Lv.'+g.lv}const mm=GMOVES[g.id];return'📀 기술 카드: '+(mm?mm[1]:'?')}
+function giftLabel(g){if(g.kind==='P'&&g.f&&META[g.f])return(g.sh?'✨이로치 ':'')+META[g.f].name+' Lv.'+g.lv;if(g.kind==='P'){const n=BYDEX[g.id];return(g.sh?'✨이로치 ':'')+(n?META[n].name:'포켓몬 No.'+g.id)+' Lv.'+g.lv}const mm=GMOVES[g.id];return'📀 기술 카드: '+(mm?mm[1]:'?')}
 function giftOpen(){if(SCENE!=='over')return;const L=G.gifts||[];
   openPanel('🎁 선물 · 출석 뽑기',`<div class="row"><span>본인 번호: <b>${G.num?G.num.replace(/(\d{3})(\d+)(\d{4})/,'$1-****-$3'):'아직 없음'}</b></span><button id="gNum">${G.num?'바꾸기':'넣기'}</button></div>
   <button id="gQr" class="it" style="width:100%;background:#9ad0ff;margin:6px 0">📷 출석 앱 QR 찍어서 한 번에 받기</button><p style="margin:8px 0 4px;font-weight:800">선물 코드 넣기</p><div class="nw"><input id="gCode" placeholder="PK-XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase"><button id="gGo" class="it">받기</button></div><p id="gMsg" style="font-weight:800;min-height:1.2em"></p>
@@ -1604,11 +1615,11 @@ function giftOpen(){if(SCENE!=='over')return;const L=G.gifts||[];
     p.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>useGift(+b.dataset.u))})}
 function askNum(){return new Promise(r=>{openPanel('본인 번호',`<p>내 휴대폰 번호를 써 주세요.<br><small>폰이 없으면 도장에서 받은 <b>원생 번호</b>를 써요. 출석 문자의 부모님 번호가 아니에요!</small></p><div class="nw"><input id="nIn" inputmode="numeric" placeholder="01012345678" value="${G.num||''}"><button id="nOk" class="it">확인</button></div>`,r,p=>{p.querySelector('#nOk').onclick=()=>{const v=normNum(p.querySelector('#nIn').value);if(v.length<4){toast('번호를 다시 확인해 주세요');return}G.num=v;save();closePanel(1);r()}})})}
 async function useGift(i){const g=G.gifts[i];if(!g)return;
-  if(g.kind==='P'){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);G.gifts.splice(i,1);save();closePanel(1);sfx('lv');refreshSpr();await say([{t:'🎁 <b>'+nm(m)+'</b>(이)가 동료가 됐어요! '+(G.party.includes(m)?'':'(보관함으로 갔어요)'),f:[n,'Joyous']}]);return}
+  if(g.kind==='P'){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0];G.forms=G.forms||{};G.forms[g.f]=1}m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);G.gifts.splice(i,1);save();closePanel(1);sfx('lv');refreshSpr();await say([{t:'🎁 <b>'+nm(m)+'</b>(이)가 동료가 됐어요! '+(G.party.includes(m)?'':'(보관함으로 갔어요)'),f:[n,'Joyous']}]);return}
   const id=GMOVES[g.id][0],mvv=mv(id);openPanel('📀 '+mvv.name+' 가르치기',`<p>누구에게 가르칠까요? <small>(${TN[mvv.type]} · 위력 ${mvv.pw})</small></p>${G.party.map((m,j)=>`<div class="row"><span>${nm(m)} Lv.${m.lv} <small>${m.moves.map(x=>mv(x).name).join(', ')}</small></span><button data-p="${j}" ${m.moves.includes(id)?'disabled':''}>선택</button></div>`).join('')}`,giftOpen,p=>{
     p.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const m=G.party[+b.dataset.p];if(m.moves.length<4){m.moves.push(id);done(m)}else{openPanel('잊을 기술 고르기',m.moves.map((x,k)=>`<div class="row"><span>${mv(x).name} <small>Lv.${mlv(m,x)}</small></span><button data-f="${k}">잊기</button></div>`).join(''),giftOpen,q=>q.querySelectorAll('[data-f]').forEach(c=>c.onclick=()=>{m.moves[+c.dataset.f]=id;done(m)}))}})});
   function done(m){G.gifts.splice(i,1);save();closePanel(1);sfx('lv');say([{t:'<b>'+nm(m)+'</b>(은)는 <b>'+mvv.name+'</b>을(를) 배웠다!',f:[m.n,'Joyous']}])}}
-function packFor(g){try{if(g.kind==='P'){const n=BYDEX[g.id],M=META[n];return CardPack.open({rar:g.rar,sh:g.sh,kind:'P',name:M.name,sub:'Lv.'+g.lv+' · '+M.types.map(t=>TN[t]).join('/'),img:faceUrl(n,'Normal'),col:TCOL[M.types[0]]})}
+function packFor(g){try{if(g.kind==='P'){const n=g.f&&META[g.f]?g.f:BYDEX[g.id],M=META[n];return CardPack.open({rar:g.rar,sh:g.sh,kind:'P',name:M.name,sub:'Lv.'+g.lv+' · '+M.types.map(t=>TN[t]).join('/'),img:faceUrl(n,'Normal'),col:TCOL[M.types[0]]})}
   const mm=GMOVES[g.id],mvv=mv(mm[0]);return CardPack.open({rar:g.rar,kind:'M',name:mvv.name,sub:TN[mvv.type]+' · 위력 '+(mvv.pw||'-'),col:TCOL[mvv.type]})}catch(e){console.warn(e);return Promise.resolve()}}
 
 // ===== 운영자 모드 (관장님): 무엇이든 주고·바꾸고·선물 코드도 직접 만들기 =====
@@ -1648,20 +1659,20 @@ function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
 // 카드팩 뜯기 연출 (게임 + 출석앱 공용, 다른 코드에 의존하지 않음)
 // CardPack.open({rar:0..3, sh:0/1, kind:'P'|'M', name, sub, img(초상화 url), col(타입색), base:'cardpack/'}) → Promise
 const CardPack=(()=>{
-  const COL=['#c9d3dc','#4aa8ff','#c070ff','#ffb020'],COL2=['#8a98a6','#1d5fd0','#6a1fc0','#ff6a00'],RN=['일반','희귀','영웅','전설'];
-  const TAPS=[1,1,3,3];
+  const COL=['#c9d3dc','#4aa8ff','#c070ff','#ffb020','#ff3b6b','#22e6d0','#ffffff'],COL2=['#8a98a6','#1d5fd0','#6a1fc0','#ff6a00','#a0002a','#0a7a8a','#ff2aa0'],RN=['일반','희귀','영웅','전설','신화','환상','유일'];
+  const TAPS=[1,1,3,3,4,5,6];
   let AC=null;function tone(f,d,ty,v,at){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+(at||0);o.type=ty||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
   function noise(d,v){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const n=AC.sampleRate*d,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=v||.2;s.buffer=b;s.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
   const S={tap:r=>tone(300+r*120,.08,'square',.06),tear:()=>noise(.35,.25),
-    rev:r=>{const N=[[523,659,784],[523,659,784,1046],[392,523,659,784,1046],[262,392,523,659,784,1046,1318]][r];N.forEach((f,i)=>tone(f,.25+(i==N.length-1?.5:0),'triangle',.1,i*.09))},
+    rev:r=>{const N=[[523,659,784],[523,659,784,1046],[392,523,659,784,1046],[262,392,523,659,784,1046,1318],[262,330,392,523,659,784,1046,1318,1568]][Math.min(4,r)];N.forEach((f,i)=>tone(f,.25+(i==N.length-1?.5:0),'triangle',.1,i*.09))},
     zap:()=>tone(80+Math.random()*60,.15,'sawtooth',.08),boom:()=>{noise(.8,.35);tone(55,.8,'sine',.3)}};
   function loadImg(u,ms){return new Promise(r=>{if(!u)return r(null);const i=new Image();let d=0;const ok=v=>{if(!d){d=1;r(v)}};i.onload=()=>ok(i);i.onerror=()=>ok(null);i.src=u;setTimeout(()=>ok(i.complete&&i.naturalWidth?i:null),ms||1200)})}
   function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
   function bolt(c,x1,y1,x2,y2,w){c.beginPath();c.moveTo(x1,y1);const n=8;for(let i=1;i<n;i++){const t=i/n;c.lineTo(x1+(x2-x1)*t+(Math.random()-.5)*40,y1+(y2-y1)*t+(Math.random()-.5)*40)}c.lineTo(x2,y2);c.lineWidth=w;c.stroke()}
 
   async function open(o){
-    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const R=Math.max(0,Math.min(3,o.rar|0));
-    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>art=v):null;const pk=await loadImg(o.base+'pk'+R+'.webp',800);let frm=null;loadImg(o.base+'frame'+R+'.webp',4000).then(v=>frm=v);
+    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const R=Math.max(0,Math.min(6,o.rar|0));
+    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>art=v):null;const pk=await loadImg(o.base+'pk'+Math.min(3,R)+'.webp',800);let frm=null;loadImg(o.base+'frame'+R+'.webp',4000).then(v=>frm=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
@@ -1696,8 +1707,8 @@ const CardPack=(()=>{
         c.fillStyle='#333';c.font=`800 ${w*.07}px sans-serif`;c.fillText(o.sub||'',w/2,h*.84,w*.8);
         if(frm){c.shadowBlur=0;c.drawImage(frm,-w*.07,-h*.055,w*1.14,h*1.11)}
         // 이름 (프레임 위에 띠로)
-        c.fillStyle='rgba(20,22,40,.82)';rr(c,w*.12,h*.065,w*.76,h*.075,h*.03);c.fill();c.fillStyle='#fff';c.font=`900 ${w*.085}px sans-serif`;c.textAlign='left';c.textBaseline='middle';c.fillText(o.name,w*.16,h*.103,w*.5);
-        c.textAlign='right';c.fillStyle=R>=3?'#ffd060':R>=2?'#e0a0ff':R>=1?'#8fd0ff':'#ccc';c.font=`900 ${w*.065}px sans-serif`;c.fillText('★'.repeat(R+1),w*.85,h*.103);
+        c.fillStyle='rgba(20,22,40,.82)';rr(c,w*.12,h*.065,w*.76,h*.075,h*.03);c.fill();c.fillStyle='#fff';c.font=`900 ${w*.085}px sans-serif`;c.textAlign='left';c.textBaseline='middle';c.fillText(o.name,w*.16,h*.103,R>=4?w*.46:w*.5);
+        c.textAlign='right';c.fillStyle=R>=4?COL[R]:R>=3?'#ffd060':R>=2?'#e0a0ff':R>=1?'#8fd0ff':'#ccc';c.font=`900 ${w*.065}px sans-serif`;c.fillText(R>=4?['🔥','🌌','👑'][R-4]+'★'+(R+1):'★'.repeat(R+1),w*.85,h*.103,w*.22);
         c.restore()}
       function frame(now){
         if(closed)return;const e=now-pt;c.save();
@@ -1715,7 +1726,7 @@ const CardPack=(()=>{
         if(ph==='tear'){const k=Math.min(1,e/500);const cut=.2;
           if(pk){c.save();c.translate(W/2+k*pw*.6,H*.48-phh/2-k*H*.5);c.rotate(k*1.2);c.drawImage(pk,0,0,pk.width,pk.height*cut,-pw/2,0,pw,phh*cut);c.restore();
             c.save();c.globalAlpha=1-k;c.translate(W/2,H*.48+k*H*.6);c.drawImage(pk,0,pk.height*cut,pk.width,pk.height*(1-cut),-pw/2,-phh/2+phh*cut,pw,phh*(1-cut));c.restore()}
-          if(e>250&&!rev){rev=1;flash=1;S.rev(R);burst(30+R*40,5+R*2,C,70);if(o.sh)burst(40,7,'#fff',80);if(R>=2)bolts=1}
+          if(e>250&&!rev){rev=1;flash=1;S.rev(R);burst(30+Math.min(R,3)*40,5+Math.min(R,3)*2,C,70);if(o.sh)burst(40,7,'#fff',80);if(R>=2)bolts=1}
           if(e>500)setPh('card')}
         if(ph==='card'||ph==='show'){const k=Math.min(1,e/(R>=3?1400:R>=2?1000:600));const ease=1-Math.pow(1-k,3);
           // 빛줄기
@@ -1724,11 +1735,11 @@ const CardPack=(()=>{
           const cw=Math.min(W*.7,H*.42*.72),chh=cw/.72;let sx=1,y=H*.48+(1-ease)*H*.2,sc=.3+.7*ease;
           if(R==2)sx=Math.cos((1-ease)*Math.PI);if(R>=3)sx=Math.cos((1-ease)*Math.PI*4);
           if(R>=1){c.save();c.translate(W/2,y);c.scale(sc,sc);const pul=.6+.4*Math.sin(now/(R>=3?160:260));
-            const ag=c.createRadialGradient(0,0,cw*.3,0,0,cw*(1+R*.25));const AC=R>=3?'hsla('+((now/6)%360)+',95%,62%,':R>=2?'rgba(190,90,255,':'rgba(70,160,255,';ag.addColorStop(0,AC+(.55*pul)+')');ag.addColorStop(1,AC+'0)');c.fillStyle=ag;c.fillRect(-cw*2,-chh*2,cw*4,chh*4);
-            const n=R*10;for(let i=0;i<n;i++){const a=now/(900-R*150)*(i%2?1:-1)+i*Math.PI*2/n,rx=cw*(.62+.06*Math.sin(now/300+i)),ry=chh*(.6+.05*Math.cos(now/280+i));c.fillStyle=R>=3?'hsl('+((i*36+now/5)%360)+',100%,70%)':R>=2?'#e2b8ff':'#bfe0ff';c.globalAlpha=.5+.5*Math.sin(now/120+i);c.beginPath();c.arc(Math.cos(a)*rx,Math.sin(a)*ry,2+R*1.2,0,7);c.fill()}
-            if(R>=2){c.globalAlpha=.7*pul;c.lineWidth=3+R;c.strokeStyle=R>=3?'hsl('+((now/4)%360)+',100%,65%)':'#c070ff';c.shadowColor=c.strokeStyle;c.shadowBlur=25;rr(c,-cw*.58,-chh*.56,cw*1.16,chh*1.12,cw*.1);c.stroke()}c.restore()}
+            const ag=c.createRadialGradient(0,0,cw*.3,0,0,cw*(1+R*.25));const AC=R>=6?'hsla('+((now/4)%360)+',100%,65%,':R===5?'rgba(40,240,220,':R===4?'rgba(255,50,90,':R>=3?'rgba(255,200,60,':R>=2?'rgba(190,90,255,':'rgba(70,160,255,';ag.addColorStop(0,AC+(.55*pul)+')');ag.addColorStop(1,AC+'0)');c.fillStyle=ag;c.fillRect(-cw*2,-chh*2,cw*4,chh*4);
+            const n=R*10;for(let i=0;i<n;i++){const a=now/(900-R*150)*(i%2?1:-1)+i*Math.PI*2/n,rx=cw*(.62+.06*Math.sin(now/300+i)),ry=chh*(.6+.05*Math.cos(now/280+i));c.fillStyle=R>=6||R===3?'hsl('+((i*36+now/5)%360)+',100%,70%)':R===5?'#aafff4':R===4?'#ff9ab0':R>=2?'#e2b8ff':'#bfe0ff';c.globalAlpha=.5+.5*Math.sin(now/120+i);c.beginPath();c.arc(Math.cos(a)*rx,Math.sin(a)*ry,2+R*1.2,0,7);c.fill()}
+            if(R>=2){c.globalAlpha=.7*pul;c.lineWidth=3+R;c.strokeStyle=R>=6||R===3?'hsl('+((now/4)%360)+',100%,65%)':R===5?'#22e6d0':R===4?'#ff3b6b':'#c070ff';c.shadowColor=c.strokeStyle;c.shadowBlur=25;rr(c,-cw*.58,-chh*.56,cw*1.16,chh*1.12,cw*.1);c.stroke()}c.restore()}
           c.save();c.translate(W/2,y);c.scale(sc,sc);c.shadowColor=o.sh?'#fff':R>=3?'#ffd060':C;c.shadowBlur=30+R*25;card(0,0,cw,chh,now,sx||.001);c.restore();
-          if(ph==='card'&&k>=1){setPh('show');if(R>=1)burst(20+R*20,4+R,C,60)}
+          if(ph==='card'&&k>=1){setPh('show');if(R>=1)burst(20+Math.min(R,3)*20,4+Math.min(R,3),C,60)}
           if(ph==='show'){if(R>=3&&Math.random()<.5)P.push({x:Math.random()*W,y:-10,vx:(Math.random()-.5)*2,vy:2+Math.random()*3,l:200,L:200,s:4+Math.random()*4,c:'hsl('+(Math.random()*360|0)+',90%,60%)',k:'conf'});
             if(R>=1&&Math.random()<.2+R*.1)P.push({x:W/2+(Math.random()-.5)*cw,y:H*.48+(Math.random()-.5)*chh,vx:0,vy:-.3,l:40,L:40,s:3+Math.random()*3,c:'#fff',k:'star'});
             if(e>900){c.fillStyle='#fff';c.font='900 20px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText('눌러서 가방에 넣기',W/2,H*.92);c.globalAlpha=1}}}
@@ -1970,18 +1981,20 @@ setInterval(()=>{try{if(AUTO.on&&AUTO.guide&&!AUTO.huntOnly&&G){const t=objectiv
 
 // ===== 카드팩 보상 · 중복 → 몬스터볼 · 합성(2장 → 10% 다음 등급) · 배지 케이스 =====
 // 로그인: 하루 1팩 (포켓몬팩 ↔ 기술팩 번갈아) · 퀘스트(첫 포켓몬·배지·챔피언) 깨면 랜덤 팩
-const RW=[70,22,7,1];
-function rollRar(){let u=R()*100;for(let i=0;i<4;i++){u-=RW[i];if(u<0)return i}return 0}
-const RPOOL={P:[[],[],[],[]],M:[[],[],[],[]]};
-function rpoolInit(){if(RPOOL.ok)return;for(const d in RARP){const n=BYDEX[+d];if(n&&META[n])RPOOL.P[RARP[d]].push(+d)}GMOVES.forEach(([id],i)=>{if(MOVES[id]&&RARM[id]!=null)RPOOL.M[RARM[id]].push(i)});RPOOL.ok=1}
-function rollItem(kind,rar){rpoolInit();if(rar==null)rar=rollRar();let r=rar;while(r>0&&!RPOOL[kind][r].length)r--;const L=RPOOL[kind][r];const id=L[R()*L.length|0];
-  const lv=Math.max(3,Math.min(100,(G.party.length?topLv():5)-2+(R()*5|0)));return{kind,id,rar:r,lv,sh:kind==='P'&&R()<1/100?1:0,serial:0,key:'pk'+Date.now().toString(36)+(R()*1e6|0)}}
-function isDup(g){if(g.kind==='P')return !!(G.dex.c[g.id]||(G.gifts||[]).some(x=>x.kind==='P'&&x.id===g.id));G.mvown=G.mvown||{};return !!(G.mvown[g.id]||(G.gifts||[]).some(x=>x.kind==='M'&&x.id===g.id))}
+// 등급: 일반·희귀·영웅·전설 + 신화(메가진화)·환상(거다이맥스)·유일(원시회귀·무한다이맥스)
+const RW=[68.5,22,7,1.8,.5,.15,.05],FTIER={mega:4,gmax:5,primal:6,emax:6};const PMAX=6,MMAX=3;
+function rollRar(kind){let u=R()*100;const n=kind==='M'?4:7;for(let i=0;i<n;i++){u-=RW[i];if(u<0)return i}return 0}
+const RPOOL={P:[[],[],[],[],[],[],[]],M:[[],[],[],[]]};
+function rpoolInit(){if(RPOOL.ok)return;for(const d in RARP){const n=BYDEX[+d];if(n&&META[n])RPOOL.P[RARP[d]].push(+d)}GMOVES.forEach(([id],i)=>{if(MOVES[id]&&RARM[id]!=null)RPOOL.M[RARM[id]].push(i)});
+  try{for(const d in FORMS)for(const [p,k] of FORMS[d]){const fk='sc:'+p;if(META[fk]&&FTIER[k])RPOOL.P[FTIER[k]].push(fk)}}catch(e){}RPOOL.ok=RPOOL.P[4].length>0||!Object.keys(META).some(k=>k.startsWith('sc:'))?1:0}
+function rollItem(kind,rar){rpoolInit();if(rar==null)rar=rollRar(kind);let r=Math.min(rar,kind==='M'?MMAX:PMAX);while(r>0&&!RPOOL[kind][r].length)r--;const L=RPOOL[kind][r];let id=L[R()*L.length|0],f=null;if(typeof id==='string'){f=id;id=META[f].dex}
+  const lv=Math.max(3,Math.min(100,(G.party.length?topLv():5)-2+(R()*5|0)));const o={kind,id,rar:r,lv,sh:kind==='P'&&R()<1/100?1:0,serial:0,key:'pk'+Date.now().toString(36)+(R()*1e6|0)};if(f)o.f=f;return o}
+function isDup(g){if(g.kind==='P'&&g.f)return !!((G.forms||{})[g.f]||[...G.party,...G.box].some(m=>m.n===g.f)||(G.gifts||[]).some(x=>x.f===g.f));if(g.kind==='P')return !!(G.dex.c[g.id]||(G.gifts||[]).some(x=>x.kind==='P'&&x.id===g.id));G.mvown=G.mvown||{};return !!(G.mvown[g.id]||(G.gifts||[]).some(x=>x.kind==='M'&&x.id===g.id))}
 const PKN={P:'🎴 포켓몬 카드팩',M:'📀 기술 카드팩'};
 // 받기: 연출 → 가방 (중복이면 몬스터볼 5개 + 합성 재료)
-function grantQuiet(g){const dup=isDup(g);if(dup){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh})}else{if(g.kind==='M'){G.mvown=G.mvown||{};G.mvown[g.id]=1}G.gifts=G.gifts||[];G.gifts.push(Object.assign(g,{t:Date.now()}))}return dup}
+function grantQuiet(g){const dup=isDup(g);if(dup){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh,f:g.f})}else{if(g.kind==='M'){G.mvown=G.mvown||{};G.mvown[g.id]=1}G.gifts=G.gifts||[];G.gifts.push(Object.assign(g,{t:Date.now()}))}return dup}
 async function grant(g,why){const dup=isDup(g);try{await packFor(g)}catch(e){}
-  if(dup){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh});save();await say(['🔁 이미 가진 '+(g.kind==='P'?'포켓몬':'기술')+'이에요! → <b>몬스터볼 5개</b>를 받았어요.','🧪 중복 카드는 <b>합성 재료</b>가 됐어요. (메뉴 → 🎴 카드팩·합성)'])}
+  if(dup){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh,f:g.f});save();await say(['🔁 이미 가진 '+(g.kind==='P'?'포켓몬':'기술')+'이에요! → <b>몬스터볼 5개</b>를 받았어요.','🧪 중복 카드는 <b>합성 재료</b>가 됐어요. (메뉴 → 🎴 카드팩·합성)'])}
   else{if(g.kind==='M'){G.mvown=G.mvown||{};G.mvown[g.id]=1}G.gifts=G.gifts||[];G.gifts.push(Object.assign(g,{t:Date.now()}));save();toast('🎁 선물 가방에 들어갔어요: '+giftLabel(g)+(why?' · '+why:''))}
   try{hud()}catch(e){}}
 // ---------- 보상 대기열 (마을을 걷고 있을 때 하나씩) ----------
@@ -2005,32 +2018,32 @@ function badgeShow(i){return new Promise(res=>{const d=document.createElement('d
   const end=()=>{d.remove();res()};setTimeout(()=>d.onclick=end,600);setTimeout(()=>{if(d.isConnected)end()},6000)})}
 // ---------- 합성 ----------
 function fuseOpen(){if(!G)return;const D=G.dupes||[];const grp={};D.forEach(x=>{const k=x.kind+x.rar;(grp[k]=grp[k]||[]).push(x)});
-  const row=(kind,r)=>{const L=grp[kind+r]||[];const can=L.length>=2&&r<3;return `<div class="row"><span><b style="color:${RARC[r]}">[${RAR[r]}]</b> ${kind==='P'?'🎴 포켓몬':'📀 기술'} 재료 <b>${L.length}</b>장</span><button data-f="${kind}${r}" ${can?'':'disabled'}>${r<3?'2장 합성 → '+RAR[r+1]+' 10%':'최고 등급'}</button></div>`};
-  const pairs=['P','M'].reduce((a,k)=>a+[0,1,2].reduce((b,r)=>b+((grp[k+r]||[]).length>>1),0),0);const ld=G.loginDays||0;
+  const row=(kind,r)=>{const L=grp[kind+r]||[];const mx=kind==='M'?MMAX:PMAX;const can=L.length>=2&&r<mx;return `<div class="row"><span><b style="color:${RARC[r]}">[${RAR[r]}]</b> ${kind==='P'?'🎴 포켓몬':'📀 기술'} 재료 <b>${L.length}</b>장</span><button data-f="${kind}${r}" ${can?'':'disabled'}>${r<mx?'2장 합성 → '+RAR[r+1]+' 10%':'최고 등급'}</button></div>`};
+  const pairs=['P','M'].reduce((a,k)=>a+[0,1,2,3,4,5].filter(r=>r<(k==='M'?MMAX:PMAX)).reduce((b,r)=>b+((grp[k+r]||[]).length>>1),0),0);const ld=G.loginDays||0;
   openPanel('🎴 카드팩 · 합성',`<div class="lgd"><b>📅 출석 ${ld}일째</b> · 7일마다 포켓몬팩 5 + 기술팩 5!<div class="qbar"><i style="width:${(ld%7)/7*100}%"></i></div><small>다음 보너스까지 ${7-ld%7}일</small></div><button class="it" id="fAll" style="width:100%;background:#ffd23f;margin:4px 0 8px" ${pairs?'':'disabled'}>⚡ 일괄 합성 (${pairs}번 한꺼번에)</button><p style="margin:0 0 6px"><b>중복 카드 2장</b>(같은 종류·같은 등급)을 합치면 <b>10%</b> 확률로 <b>한 등급 위</b> 카드가 나와요!<br><small>실패하면 재료 2장은 사라지고 몬스터볼 2개를 받아요.</small></p>
-    ${[0,1,2,3].map(r=>row('P',r)).join('')}${[0,1,2,3].map(r=>row('M',r)).join('')}<p style="margin:10px 0 0;font-size:13px;opacity:.8">📅 매일 접속하면 카드팩 1장 (포켓몬팩 ↔ 기술팩 번갈아) · 🎯 퀘스트를 깨면 랜덤 카드팩 · 🔁 중복은 몬스터볼 5개 + 합성 재료</p>`,null,p=>{
+    ${[0,1,2,3,4,5,6].map(r=>row('P',r)).join('')}${[0,1,2,3].map(r=>row('M',r)).join('')}<p style="font-size:12.5px;margin:6px 0 0">🔥 <b style="color:#ff3b6b">신화</b> = 메가진화 · 🌌 <b style="color:#14c8b8">환상</b> = 거다이맥스 · 👑 <b style="color:#ff2aa0">유일</b> = 원시회귀·무한다이맥스 (포켓몬팩·합성에서만)</p><p style="margin:10px 0 0;font-size:13px;opacity:.8">📅 매일 접속하면 카드팩 1장 (포켓몬팩 ↔ 기술팩 번갈아) · 🎯 퀘스트를 깨면 랜덤 카드팩 · 🔁 중복은 몬스터볼 5개 + 합성 재료</p>`,null,p=>{
     p.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>fuseDo(b.dataset.f[0],+b.dataset.f[1]));const fa=p.querySelector('#fAll');if(fa)fa.onclick=fuseAll})}
 async function fuseAll(){const D=G.dupes||[];const out=[];let fails=0;
-  for(const kind of ['P','M'])for(let r=0;r<3;r++){let L=D.filter(x=>x.kind===kind&&x.rar===r);while(L.length>=2){const a=L.shift(),b=L.shift();[a,b].forEach(x=>D.splice(D.indexOf(x),1));if(R()<(window.FUSEP||.1))out.push(rollItem(kind,r+1));else{out.push({fail:1,kind,rar:r});fails++}}}
+  for(const kind of ['P','M'])for(let r=0;r<(kind==='M'?MMAX:PMAX);r++){let L=D.filter(x=>x.kind===kind&&x.rar===r);while(L.length>=2){const a=L.shift(),b=L.shift();[a,b].forEach(x=>D.splice(D.indexOf(x),1));if(R()<(window.FUSEP||.1))out.push(rollItem(kind,r+1));else{out.push({fail:1,kind,rar:r});fails++}}}
   if(!out.length)return;addItem('ball',fails*2);save();closePanel(1);await multiOpen(out,'⚡ 일괄 합성 '+out.length+'번 · 성공 '+(out.length-fails)+' · 실패 '+fails+(fails?' (몬스터볼 +'+fails*2+')':''));fuseOpen()}
 // 여러 장 한꺼번에 뒤집기 (스킵 가능) → 조용히 가방/합성 재료로
 function multiOpen(list,title){return new Promise(done=>{const d=document.createElement('div');d.id='multiOv';
-  d.innerHTML=`<div class="mb"><h3>${title}</h3><div class="grid">${list.map((g,i)=>`<div class="mc${g.fail?'':' r'+g.rar}" data-i="${i}"><div class="bk">${g.fail?'🧪':g.kind==='P'?'🎴':'📀'}</div><div class="fr" style="border-color:${g.fail?'#999':RARC[g.rar]}">${g.fail?'<div class="fl">💨<small>실패</small></div>':cardFace(g.kind,g.id)+`<small style="background:${RARC[g.rar]}">${RAR[g.rar]}</small>`}<i class="dp"></i><u class="frm"></u></div></div>`).join('')}</div><div class="msg"></div><button class="skip">⏭ 스킵 (전부 뒤집기)</button></div>`;document.body.appendChild(d);
+  d.innerHTML=`<div class="mb"><h3>${title}</h3><div class="grid">${list.map((g,i)=>`<div class="mc${g.fail?'':' r'+g.rar}" data-i="${i}"><div class="bk">${g.fail?'🧪':g.kind==='P'?'🎴':'📀'}</div><div class="fr" style="border-color:${g.fail?'#999':RARC[g.rar]}">${g.fail?'<div class="fl">💨<small>실패</small></div>':cardFace(g.kind,g.id,g.f)+`<small style="background:${RARC[g.rar]}">${RAR[g.rar]}</small>`}<i class="dp"></i><u class="frm"></u></div></div>`).join('')}</div><div class="msg"></div><button class="skip">⏭ 스킵 (전부 뒤집기)</button></div>`;document.body.appendChild(d);
   const cs=[...d.querySelectorAll('.mc')],sk=d.querySelector('.skip'),msg=d.querySelector('.msg');let i=0,fin=0,dups=0;
   const flip=k=>{const c=cs[k];if(!c||c.classList.contains('on'))return;const g=list[k];c.classList.add('on');if(!g.fail){const dup=grantQuiet(g);if(dup){dups++;c.querySelector('.dp').textContent='중복 +볼5'}if(g.rar>=2)c.classList.add('hi')}try{sfx(g.fail?'tap':g.rar>=2?'badge':'get')}catch(e){}};
   const end=()=>{if(fin)return;fin=1;cs.forEach((_,k)=>flip(k));save();try{hud()}catch(e){}msg.innerHTML=`🎁 선물 가방에 ${list.filter(g=>!g.fail).length-dups}장${dups?` · 🔁 중복 ${dups}장 → 몬스터볼 +${dups*5} · 합성 재료`:''}`;sk.textContent='닫기';sk.onclick=()=>{d.remove();done()}};
   const tick=()=>{if(fin)return;flip(i++);if(i<cs.length)setTimeout(tick,list.length>8?180:320);else end()};sk.onclick=end;setTimeout(tick,500)})}
-async function fuseDo(kind,r){const D=G.dupes||[];const idx=[];D.forEach((x,i)=>{if(x.kind===kind&&x.rar===r&&idx.length<2)idx.push(i)});if(idx.length<2||r>=3)return;
+async function fuseDo(kind,r){const D=G.dupes||[];const idx=[];D.forEach((x,i)=>{if(x.kind===kind&&x.rar===r&&idx.length<2)idx.push(i)});if(idx.length<2||r>=(kind==='M'?MMAX:PMAX))return;
   const mats=idx.map(i=>D[i]);idx.reverse().forEach(i=>D.splice(i,1));const ok=R()<(window.FUSEP||.1);const res=ok?rollItem(kind,r+1):null;save();closePanel(1);
   await fuseShow(kind,r,mats,ok,res);if(ok)await grant(res,'합성 성공!');else{addItem('ball',2);save();toast('💨 아쉽게 실패… 몬스터볼 2개를 받았어요');}fuseOpen()}
-function cardFace(kind,id){if(kind==='P'){const n=BYDEX[id];return n?`<img src="${faceUrl(n,'Normal')}">`:'❔'}const m=GMOVES[id];const v=m&&mv(m[0]);return `<em style="background:${v?TCOL[v.type]:'#888'}">${v?v.name:'?'}</em>`}
-function fuseShow(kind,r,mats,ok,res){return new Promise(done=>{rpoolInit();const nx=Math.min(3,r+1);const pool=RPOOL[kind][nx].length?RPOOL[kind][nx]:RPOOL[kind][r];
+function cardFace(kind,id,f){if(kind==='P'){const n=f&&META[f]?f:BYDEX[id];return n?`<img src="${faceUrl(n,'Normal')}">`+(f?`<b class="fk">${META[f].form==='mega'?'MEGA':META[f].form==='primal'?'원시':'G-MAX'}</b>`:''):'❔'}const m=GMOVES[id];const v=m&&mv(m[0]);return `<em style="background:${v?TCOL[v.type]:'#888'}">${v?v.name:'?'}</em>`}
+function fuseShow(kind,r,mats,ok,res){return new Promise(done=>{rpoolInit();const nx=Math.min(kind==='M'?MMAX:PMAX,r+1);const pool=RPOOL[kind][nx].length?RPOOL[kind][nx]:RPOOL[kind][r];
   const d=document.createElement('div');d.id='fuseOv';d.innerHTML=`<div class="fb"><h3>🧪 합성 중… <small>${RAR[r]} 2장 → <b style="color:${RARC[nx]}">${RAR[nx]}</b> 10%</small></h3>
-    <div class="mats">${mats.map(m=>`<div class="fc" style="border-color:${RARC[r]}">${cardFace(kind,m.id)}</div>`).join('<span>+</span>')}</div>
+    <div class="mats">${mats.map(m=>`<div class="fc" style="border-color:${RARC[r]}">${cardFace(kind,m.id,m.f)}</div>`).join('<span>+</span>')}</div>
     <div class="slot"><div class="reel"></div><div class="win"></div></div><div class="msg">두근두근…</div><button class="skip">⏭ 스킵</button></div>`;document.body.appendChild(d);
   const reel=d.querySelector('.reel'),msg=d.querySelector('.msg'),sk=d.querySelector('.skip');const N=28;const items=[];
-  for(let i=0;i<N;i++){const fail=i%3===1;items.push(fail?'<div class="fc fail">💨<small>실패</small></div>':`<div class="fc" style="border-color:${RARC[nx]}">${cardFace(kind,pool[R()*pool.length|0])}</div>`)}
-  items[N-2]=ok?`<div class="fc hit r${nx}" style="border-color:${RARC[nx]}">${cardFace(kind,res.id)}</div>`:'<div class="fc fail">💨<small>실패</small></div>';reel.innerHTML=items.join('');
+  for(let i=0;i<N;i++){const fail=i%3===1;items.push(fail?'<div class="fc fail">💨<small>실패</small></div>':`<div class="fc" style="border-color:${RARC[nx]}">${(x=>typeof x==='string'?cardFace(kind,META[x].dex,x):cardFace(kind,x))(pool[R()*pool.length|0])}</div>`)}
+  items[N-2]=ok?`<div class="fc hit r${nx}" style="border-color:${RARC[nx]}">${cardFace(kind,res.id,res.f)}</div>`:'<div class="fc fail">💨<small>실패</small></div>';reel.innerHTML=items.join('');
   const H=()=>reel.firstChild.getBoundingClientRect().height+10;let stopped=0,t0=performance.now(),T=2800,tick=-1;
   const fin=()=>{if(stopped)return;stopped=1;reel.style.transform=`translateY(${-(N-2)*H()}px)`;d.classList.add(ok?'okk':'nok');msg.innerHTML=ok?`🎉 <b>성공!</b> ${RAR[nx]} 카드!`:'💨 아쉽게 실패…';sk.textContent=ok?'카드 받기 ▶':'닫기';sk.onclick=()=>{d.remove();done()};try{sfx(ok?'badge':'faint')}catch(e){}if(ok)FX2&&0};
   const step=now=>{if(stopped)return;const u=Math.min(1,(now-t0)/T),e=1-Math.pow(1-u,3);const pos=e*(N-2);reel.style.transform=`translateY(${-pos*H()}px)`;const k=pos|0;if(k!==tick){tick=k;try{sfx('tap')}catch(_){}}if(u<1)requestAnimationFrame(step);else fin()};
