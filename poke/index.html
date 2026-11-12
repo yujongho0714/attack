@@ -160,6 +160,23 @@ body.inb #mini{display:none}
 #fuseOv .reel .fc{flex:none}#fuseOv .reel{display:flex;flex-direction:column;gap:10px;padding-top:5px;will-change:transform}#fuseOv .win{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 14px 14px -8px #000c,inset 0 -14px 14px -8px #000c}
 #fuseOv.okk .slot{border-color:#ffd23f;box-shadow:0 0 0 4px #ffd23f88,0 0 30px #ffd23f}#fuseOv.okk .msg{color:#d08000}#fuseOv.nok .slot{filter:grayscale(.6)}
 #fuseOv .msg{font-weight:900;font-size:18px;min-height:1.4em}#fuseOv .skip{margin-top:8px;width:100%;border:3px solid #1c2550;border-radius:12px;background:#ffd23f;font-weight:900;font-size:17px;padding:10px;box-shadow:0 3px 0 #1c2550;color:#1c2550}
+</style><style>
+.lgd{background:#fff3c4;border:2px solid #2c3050;border-radius:12px;padding:8px 10px;margin-bottom:4px;font-size:14px}.lgd .qbar{height:10px;background:#0002;border-radius:6px;overflow:hidden;margin:4px 0}.lgd .qbar i{display:block;height:100%;background:linear-gradient(90deg,#ff9a3a,#ffd23f)}
+#multiOv{position:fixed;inset:0;z-index:61;background:#0a1024ee;display:flex;align-items:center;justify-content:center;padding:10px}
+#multiOv .mb{width:min(640px,100%);max-height:100%;overflow:auto;background:#fffdf0;border:4px solid #1c2550;border-radius:20px;padding:12px;text-align:center;color:#1c2550;box-shadow:0 6px 0 #1c2550}
+#multiOv h3{margin:0 0 8px;font-size:17px}#multiOv .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+#multiOv .mc{position:relative;aspect-ratio:1;perspective:400px}#multiOv .mc>div{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;transition:transform .45s;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#multiOv .bk{background:linear-gradient(135deg,#3a4a9a,#1c2550);border:3px solid #ffd23f;font-size:28px}#multiOv .fr{transform:rotateY(180deg);background:radial-gradient(#fff,#e8e4d0);border:4px solid #888;flex-direction:column}
+#multiOv .mc.on .bk{transform:rotateY(180deg)}#multiOv .mc.on .fr{transform:none}#multiOv .mc.hi .fr{box-shadow:0 0 0 3px #ffd23f,0 0 16px #ffd23f}
+#multiOv .fr img{width:100%;height:100%;image-rendering:pixelated}#multiOv .fr em{font-style:normal;color:#fff;font-weight:900;font-size:12px;padding:3px 5px;border-radius:7px}#multiOv .fr>small{position:absolute;left:0;right:0;bottom:0;color:#fff;font-size:10px;font-weight:900}
+#multiOv .fr .dp{position:absolute;top:0;left:0;right:0;font-style:normal;font-size:10px;font-weight:900;background:#1c2550cc;color:#ffd23f}#multiOv .fr .dp:empty{display:none}#multiOv .fl{font-size:28px;display:flex;flex-direction:column}#multiOv .fl small{font-size:11px;font-weight:900}
+#multiOv .msg{font-weight:900;margin:8px 0 0;min-height:1.3em}#multiOv .skip{margin-top:8px;width:100%;border:3px solid #1c2550;border-radius:12px;background:#ffd23f;font-weight:900;font-size:17px;padding:10px;box-shadow:0 3px 0 #1c2550;color:#1c2550}
+</style><style>
+.bdg2{position:relative;display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;overflow:visible}.bdg2 img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 2px #0008)}
+.bdg2:not(.got) img{filter:grayscale(1) brightness(.35) contrast(.8)}.bdg2 b{position:absolute;color:#fff9;font-size:18px;font-weight:900}
+.bdg2.got{animation:bfl 3s ease-in-out infinite}
+@keyframes bfl{50%{transform:translateY(-2px)}}.bdg2.big{width:min(42vh,180px);height:min(42vh,180px)}
+#bdgOv .bdg2.big{animation:bpop .9s cubic-bezier(.2,1.6,.4,1)}
 </style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
@@ -1945,17 +1962,18 @@ function rollItem(kind,rar){rpoolInit();if(rar==null)rar=rollRar();let r=rar;whi
 function isDup(g){if(g.kind==='P')return !!(G.dex.c[g.id]||(G.gifts||[]).some(x=>x.kind==='P'&&x.id===g.id));G.mvown=G.mvown||{};return !!(G.mvown[g.id]||(G.gifts||[]).some(x=>x.kind==='M'&&x.id===g.id))}
 const PKN={P:'🎴 포켓몬 카드팩',M:'📀 기술 카드팩'};
 // 받기: 연출 → 가방 (중복이면 몬스터볼 5개 + 합성 재료)
+function grantQuiet(g){const dup=isDup(g);if(dup){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh})}else{if(g.kind==='M'){G.mvown=G.mvown||{};G.mvown[g.id]=1}G.gifts=G.gifts||[];G.gifts.push(Object.assign(g,{t:Date.now()}))}return dup}
 async function grant(g,why){const dup=isDup(g);try{await packFor(g)}catch(e){}
   if(dup){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh});save();await say(['🔁 이미 가진 '+(g.kind==='P'?'포켓몬':'기술')+'이에요! → <b>몬스터볼 5개</b>를 받았어요.','🧪 중복 카드는 <b>합성 재료</b>가 됐어요. (메뉴 → 🎴 카드팩·합성)'])}
   else{if(g.kind==='M'){G.mvown=G.mvown||{};G.mvown[g.id]=1}G.gifts=G.gifts||[];G.gifts.push(Object.assign(g,{t:Date.now()}));save();toast('🎁 선물 가방에 들어갔어요: '+giftLabel(g)+(why?' · '+why:''))}
   try{hud()}catch(e){}}
 // ---------- 보상 대기열 (마을을 걷고 있을 때 하나씩) ----------
 const REWQ=[];let REWBUSY=0;
-setInterval(async()=>{if(REWBUSY||!REWQ.length||!G||SCENE!=='over'||DLG.on||PANEL||P.busy||document.getElementById('fuseOv'))return;REWBUSY=1;const q=REWQ.shift();
-  try{if(q.badge!=null)await badgeShow(q.badge);else{toast(q.msg);sfx('get');await sleep(500);await grant(rollItem(q.kind),q.why)}}catch(e){console.warn(e)}REWBUSY=0},700);
+setInterval(async()=>{if(REWBUSY||!REWQ.length||!G||SCENE!=='over'||DLG.on||PANEL||P.busy||document.getElementById('fuseOv')||document.getElementById('multiOv'))return;REWBUSY=1;const q=REWQ.shift();
+  try{if(q.badge!=null)await badgeShow(q.badge);else if(q.multi){toast(q.msg);sfx('badge');await multiOpen(q.multi.map(k=>rollItem(k)),q.title)}else{toast(q.msg);sfx('get');await sleep(500);await grant(rollItem(q.kind),q.why)}}catch(e){console.warn(e)}REWBUSY=0},700);
 function dayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
 function rewardCheck(){if(!G)return;const today=dayKey();
-  if(G.lastLogin!==today){G.lastLogin=today;const idx=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);const kind=idx%2?'M':'P';REWQ.push({kind,msg:'📅 오늘의 출석 선물! '+PKN[kind]+' 1장',why:'오늘의 선물'});save()}
+  if(G.lastLogin!==today){G.lastLogin=today;const idx=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);const kind=idx%2?'M':'P';REWQ.push({kind,msg:'📅 오늘의 출석 선물! '+PKN[kind]+' 1장',why:'오늘의 선물'});G.loginDays=(G.loginDays||0)+1;if(G.loginDays%7===0)REWQ.push({multi:[...Array(5).fill('P'),...Array(5).fill('M')],msg:'🎉 '+G.loginDays+'일 출석 보너스!',title:'🎉 '+G.loginDays+'일 출석 보너스! 포켓몬팩 5 + 기술팩 5'});save()}
   const qn=(G.party.length?1:0)+G.badges+(G.champ||0);if(G.qrw==null)G.qrw=qn;
   if(G.badgeSeen==null)G.badgeSeen=G.badges;while(G.badgeSeen<G.badges){REWQ.push({badge:G.badgeSeen});G.badgeSeen++}
   while(G.qrw<qn){G.qrw++;const kind=R()<.5?'P':'M';REWQ.push({kind,msg:'🎯 퀘스트 완료 보상! '+PKN[kind]+' 1장',why:'퀘스트 보상'})}}
@@ -1964,16 +1982,27 @@ setInterval(()=>{try{if(SCENE==='over')rewardCheck()}catch(e){}},1500);
 const BSH=['polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%)','polygon(50% 0,85% 45%,85% 75%,50% 100%,15% 75%,15% 45%)','polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)','polygon(50% 0,65% 30%,100% 35%,72% 60%,80% 100%,50% 80%,20% 100%,28% 60%,0 35%,35% 30%)',
   'polygon(50% 15%,70% 0,100% 15%,100% 45%,50% 100%,0 45%,0 15%,30% 0)','circle(50% at 50% 50%)','polygon(50% 0,80% 35%,70% 30%,90% 70%,50% 100%,10% 70%,30% 30%,20% 35%)','polygon(50% 0,100% 50%,50% 100%,0 50%)'];
 const BICO={ROCK:'🪨',WATER:'💧',ELECTRIC:'⚡',GRASS:'🌿',POISON:'🧪',PSYCHIC:'🔮',FIRE:'🔥',GROUND:'⛰️',ICE:'❄️',FIGHTING:'👊',DRAGON:'🐉',BUG:'🐛',GHOST:'👻',FLYING:'🪶',STEEL:'⚙️',FAIRY:'✨',DARK:'🌙',NORMAL:'⭐'};
-function badgeHtml(i,got,big){const g=GYM[i]||{t:'NORMAL'},c=TCOL[g.t]||'#ccc';return `<span class="bdg${got?' got':''}${big?' big':''}" title="${TOWNS[i+1]||''} 배지" style="--cp:${BSH[i%8]}"><i style="clip-path:var(--cp);background:${got?`radial-gradient(circle at 35% 30%,#fff 0 8%,${c} 30%,#1c2550 120%)`:'#3a3f55'}"></i><b>${got?BICO[g.t]||'⭐':'?'}</b></span>`}
+function badgeHtml(i,got,big){return `<span class="bdg2${got?' got':''}${big?' big':''}" title="${TOWNS[i+1]||''} 배지"><img src="badges/b${i%8}.webp" alt="">${got?'':'<b>?</b>'}</span>`}
 function badgeCase(){return `<div class="bcase">${[0,1,2,3,4,5,6,7].map(i=>badgeHtml(i,i<G.badges)).join('')}</div>`}
 function badgeShow(i){return new Promise(res=>{const d=document.createElement('div');d.id='bdgOv';d.innerHTML=`<div class="rays"></div>${badgeHtml(i,1,1)}<h2>${TOWNS[i+1]||''} 배지 획득!</h2><p>${badgeCase()}</p><small>눌러서 계속</small>`;document.body.appendChild(d);sfx('badge');
   const end=()=>{d.remove();res()};setTimeout(()=>d.onclick=end,600);setTimeout(()=>{if(d.isConnected)end()},6000)})}
 // ---------- 합성 ----------
 function fuseOpen(){if(!G)return;const D=G.dupes||[];const grp={};D.forEach(x=>{const k=x.kind+x.rar;(grp[k]=grp[k]||[]).push(x)});
   const row=(kind,r)=>{const L=grp[kind+r]||[];const can=L.length>=2&&r<3;return `<div class="row"><span><b style="color:${RARC[r]}">[${RAR[r]}]</b> ${kind==='P'?'🎴 포켓몬':'📀 기술'} 재료 <b>${L.length}</b>장</span><button data-f="${kind}${r}" ${can?'':'disabled'}>${r<3?'2장 합성 → '+RAR[r+1]+' 10%':'최고 등급'}</button></div>`};
-  openPanel('🎴 카드팩 · 합성',`<p style="margin:0 0 6px"><b>중복 카드 2장</b>(같은 종류·같은 등급)을 합치면 <b>10%</b> 확률로 <b>한 등급 위</b> 카드가 나와요!<br><small>실패하면 재료 2장은 사라지고 몬스터볼 2개를 받아요.</small></p>
+  const pairs=['P','M'].reduce((a,k)=>a+[0,1,2].reduce((b,r)=>b+((grp[k+r]||[]).length>>1),0),0);const ld=G.loginDays||0;
+  openPanel('🎴 카드팩 · 합성',`<div class="lgd"><b>📅 출석 ${ld}일째</b> · 7일마다 포켓몬팩 5 + 기술팩 5!<div class="qbar"><i style="width:${(ld%7)/7*100}%"></i></div><small>다음 보너스까지 ${7-ld%7}일</small></div><button class="it" id="fAll" style="width:100%;background:#ffd23f;margin:4px 0 8px" ${pairs?'':'disabled'}>⚡ 일괄 합성 (${pairs}번 한꺼번에)</button><p style="margin:0 0 6px"><b>중복 카드 2장</b>(같은 종류·같은 등급)을 합치면 <b>10%</b> 확률로 <b>한 등급 위</b> 카드가 나와요!<br><small>실패하면 재료 2장은 사라지고 몬스터볼 2개를 받아요.</small></p>
     ${[0,1,2,3].map(r=>row('P',r)).join('')}${[0,1,2,3].map(r=>row('M',r)).join('')}<p style="margin:10px 0 0;font-size:13px;opacity:.8">📅 매일 접속하면 카드팩 1장 (포켓몬팩 ↔ 기술팩 번갈아) · 🎯 퀘스트를 깨면 랜덤 카드팩 · 🔁 중복은 몬스터볼 5개 + 합성 재료</p>`,null,p=>{
-    p.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>fuseDo(b.dataset.f[0],+b.dataset.f[1]))})}
+    p.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>fuseDo(b.dataset.f[0],+b.dataset.f[1]));const fa=p.querySelector('#fAll');if(fa)fa.onclick=fuseAll})}
+async function fuseAll(){const D=G.dupes||[];const out=[];let fails=0;
+  for(const kind of ['P','M'])for(let r=0;r<3;r++){let L=D.filter(x=>x.kind===kind&&x.rar===r);while(L.length>=2){const a=L.shift(),b=L.shift();[a,b].forEach(x=>D.splice(D.indexOf(x),1));if(R()<(window.FUSEP||.1))out.push(rollItem(kind,r+1));else{out.push({fail:1,kind,rar:r});fails++}}}
+  if(!out.length)return;addItem('ball',fails*2);save();closePanel(1);await multiOpen(out,'⚡ 일괄 합성 '+out.length+'번 · 성공 '+(out.length-fails)+' · 실패 '+fails+(fails?' (몬스터볼 +'+fails*2+')':''));fuseOpen()}
+// 여러 장 한꺼번에 뒤집기 (스킵 가능) → 조용히 가방/합성 재료로
+function multiOpen(list,title){return new Promise(done=>{const d=document.createElement('div');d.id='multiOv';
+  d.innerHTML=`<div class="mb"><h3>${title}</h3><div class="grid">${list.map((g,i)=>`<div class="mc" data-i="${i}"><div class="bk">${g.fail?'🧪':g.kind==='P'?'🎴':'📀'}</div><div class="fr" style="border-color:${g.fail?'#999':RARC[g.rar]}">${g.fail?'<div class="fl">💨<small>실패</small></div>':cardFace(g.kind,g.id)+`<small style="background:${RARC[g.rar]}">${RAR[g.rar]}</small>`}<i class="dp"></i></div></div>`).join('')}</div><div class="msg"></div><button class="skip">⏭ 스킵 (전부 뒤집기)</button></div>`;document.body.appendChild(d);
+  const cs=[...d.querySelectorAll('.mc')],sk=d.querySelector('.skip'),msg=d.querySelector('.msg');let i=0,fin=0,dups=0;
+  const flip=k=>{const c=cs[k];if(!c||c.classList.contains('on'))return;const g=list[k];c.classList.add('on');if(!g.fail){const dup=grantQuiet(g);if(dup){dups++;c.querySelector('.dp').textContent='중복 +볼5'}if(g.rar>=2)c.classList.add('hi')}try{sfx(g.fail?'tap':g.rar>=2?'badge':'get')}catch(e){}};
+  const end=()=>{if(fin)return;fin=1;cs.forEach((_,k)=>flip(k));save();try{hud()}catch(e){}msg.innerHTML=`🎁 선물 가방에 ${list.filter(g=>!g.fail).length-dups}장${dups?` · 🔁 중복 ${dups}장 → 몬스터볼 +${dups*5} · 합성 재료`:''}`;sk.textContent='닫기';sk.onclick=()=>{d.remove();done()}};
+  const tick=()=>{if(fin)return;flip(i++);if(i<cs.length)setTimeout(tick,list.length>8?180:320);else end()};sk.onclick=end;setTimeout(tick,500)})}
 async function fuseDo(kind,r){const D=G.dupes||[];const idx=[];D.forEach((x,i)=>{if(x.kind===kind&&x.rar===r&&idx.length<2)idx.push(i)});if(idx.length<2||r>=3)return;
   const mats=idx.map(i=>D[i]);idx.reverse().forEach(i=>D.splice(i,1));const ok=R()<(window.FUSEP||.1);const res=ok?rollItem(kind,r+1):null;save();closePanel(1);
   await fuseShow(kind,r,mats,ok,res);if(ok)await grant(res,'합성 성공!');else{addItem('ball',2);save();toast('💨 아쉽게 실패… 몬스터볼 2개를 받았어요');}fuseOpen()}
