@@ -1191,6 +1191,7 @@ function autoBtnB(){let b=document.getElementById('bAutoB');if(!b){b=document.cr
   b.textContent=!autoActive()?'▶ 자동(AUTO)':AUTO.stopAfter?'⏳ 이번 판까지 자동':'⏸ 자동(AUTO) 끄기';b.classList.toggle('on',autoActive()&&!AUTO.stopAfter)}
 setInterval(()=>{try{if(SCENE==='battle')autoBtnB()}catch(e){}},400);
 
+const RIV=()=>G&&G.name==='그린'?'레드':'그린';
 // ===== 게임 진행: 건물 · 트레이너 · 체육관 · 리그 · 자동 진행 · 메뉴 · 도감 · 저장 =====
 const ITEMS={ball:{n:'몬스터볼',e:'🔴',ball:1,col:'#e83838',p:200},great:{n:'슈퍼볼',e:'🔵',ball:1.5,col:'#3a6ae8',p:600,b:2},hyper:{n:'하이퍼볼',e:'🟡',ball:2.2,col:'#f0c020',p:1200,b:5},
  potion:{n:'상처약',e:'💊',heal:20,p:300},spotion:{n:'좋은상처약',e:'💉',heal:60,p:700,b:3},hpotion:{n:'고급상처약',e:'🧪',heal:150,p:1200,b:6},candy:{n:'이상한사탕',e:'🍬',lv:1}};
@@ -1225,7 +1226,7 @@ function starters(){let L=[[1,4,7],[152,155,158],[252,255,258],[387,390,393],[49
   if(!L){const low=SPECIES.filter(s=>bst(META[s].stats)<=340);L=['GRASS','FIRE','WATER'].map(t=>low.find(s=>META[s].types.includes(t))).filter(Boolean);while(L.length<3)L.push(pick(low.length?low:SPECIES))}return L}
 function chooseStarter(){return new Promise(async r=>{await say(['포켓몬 박사: 기다리고 있었단다! 이 세 마리 중 하나를 골라 보렴.']);const L=starters();
   const fin=async n=>{closePanel(1);const m=mkMon(n,6);G.party.push(m);G.dex.s[META[n].dex]=1;G.dex.c[META[n].dex]=1;const rv=L.find(x=>x!==n&&eff(META[x].types[0],META[n].types)>=2)||L.find(x=>x!==n);G.rival={n:rv};
-    addItem('ball',5);addItem('potion',3);await refreshSpr();sfx('get');await say(['<b>'+nm(m)+'</b>(을)를 받았다!','포켓몬 박사: 몬스터볼 5개와 상처약 3개도 가져가렴.','라이벌 민준: 나는 <b>'+META[rv].name+'</b>(으)로 할래! 누가 먼저 챔피언이 되는지 시합이야!','🎯 이제 북쪽 1번 도로로 나가 보자! 화면 위 「▶ 자동」을 누르면 알아서 진행돼요.']);save();hud();r()};
+    addItem('ball',5);addItem('potion',3);await refreshSpr();sfx('get');await say(['<b>'+nm(m)+'</b>(을)를 받았다!','포켓몬 박사: 몬스터볼 5개와 상처약 3개도 가져가렴.','라이벌 '+RIV()+': 나는 <b>'+META[rv].name+'</b>(으)로 할래! 누가 먼저 챔피언이 되는지 시합이야!','🎯 이제 북쪽 1번 도로로 나가 보자! 화면 위 「▶ 자동」을 누르면 알아서 진행돼요.']);save();hud();r()};
   if(AUTO.on){fin(L[0]);return}
   openPanel('첫 포켓몬 고르기',`<div class="st3">${L.map(n=>`<button class="card" data-n="${encodeURIComponent(n)}"><img src="${THUMB[n]||''}"><b>${META[n].name}</b><small>${META[n].types.map(t=>TN[t]).join(' · ')}</small></button>`).join('')}</div>`,null,p=>p.querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>fin(decodeURIComponent(x.dataset.n))),1)})}
 // ---------- 야생 · 트레이너 ----------
@@ -1252,11 +1253,11 @@ async function league(){if(G.badges<8){await say(['리그 경비원: 배지 8개
   await say(['포켓몬 리그에 온 걸 환영합니다! 사천왕 4명과 챔피언을 연달아 이기면 명예의 전당에 올라요.','(한 명을 이길 때마다 포켓몬이 회복돼요)']);
   for(let i=0;i<4;i++){const e=ELITE[i];healAll();await say([e.n+': 여기까지 오다니 대단하군. 하지만 '+TN[e.t]+' 타입의 힘을 보여 주지!']);
     const r=await battle({trainer:e.n,foes:typeTeam(e.t,640,5,[e.lv-2,e.lv-1,e.lv-1,e.lv,e.lv+1],G.seed+i*31),money:e.lv*100,lose:'멋지다… 앞으로 나아가라!',bg:'ruins'});if(r!=='win'){if(r==='lose')await blackout();return}}
-  healAll();await say(['라이벌 민준: 왔구나! 내가 바로 챔피언이야. 마지막 승부다!']);const r=await battle({trainer:'챔피언 민준',foes:rivalTeam(6,[60,61,61,62,63,65]),money:9000,lose:'…졌다. 네가 새로운 챔피언이야!',bg:'ruins'});
+  healAll();await say(['라이벌 '+RIV()+': 왔구나! 내가 바로 챔피언이야. 마지막 승부다!']);const r=await battle({trainer:'챔피언 '+RIV()+'',foes:rivalTeam(6,[60,61,61,62,63,65]),money:9000,lose:'…졌다. 네가 새로운 챔피언이야!',bg:'ruins'});
   if(r==='win'){G.champ=(G.champ||0)+1;sfx('badge');await say(['🏆 축하합니다! 명예의 전당에 올랐어요!','이제 도감을 완성해 봐요. 「📖 도감」에서 포켓몬이 나오는 곳을 누르면 자동으로 찾아가요!']);save()}else if(r==='lose')await blackout()}
 // 라이벌 이벤트
-async function areaEvent(){if(!G.party.length)return;if(G.a===1&&!G.flags.r1){G.flags.r1=1;await say(['라이벌 민준: 기다렸어! 우리 포켓몬 실력 한번 겨뤄 보자!']);const r=await battle({trainer:'라이벌 민준',foes:[mkMon(G.rival.n,4)],money:300,lose:'칫, 다음엔 꼭 이길 거야!',bg:'meadow'});if(r==='lose')await blackout()}
-  if(G.a===9&&!G.flags.r2&&G.badges>=4){G.flags.r2=1;await say(['라이벌 민준: 배지 4개? 나도야! 승부다!']);const r=await battle({trainer:'라이벌 민준',foes:rivalTeam(3,[28,29,31]),money:2500,lose:'강해졌구나…!',bg:'beach'});if(r==='lose')await blackout()}}
+async function areaEvent(){if(!G.party.length)return;if(G.a===1&&!G.flags.r1){G.flags.r1=1;await say(['라이벌 '+RIV()+': 기다렸어! 우리 포켓몬 실력 한번 겨뤄 보자!']);const r=await battle({trainer:'라이벌 '+RIV()+'',foes:[mkMon(G.rival.n,4)],money:300,lose:'칫, 다음엔 꼭 이길 거야!',bg:'meadow'});if(r==='lose')await blackout()}
+  if(G.a===9&&!G.flags.r2&&G.badges>=4){G.flags.r2=1;await say(['라이벌 '+RIV()+': 배지 4개? 나도야! 승부다!']);const r=await battle({trainer:'라이벌 '+RIV()+'',foes:rivalTeam(3,[28,29,31]),money:2500,lose:'강해졌구나…!',bg:'beach'});if(r==='lose')await blackout()}}
 // ---------- 목표 · 자동 진행 ----------
 const topLv=()=>Math.max(0,...G.party.map(m=>m.lv));
 function objective(){if(!G.party.length)return{t:'🧪 연구소에서 첫 포켓몬 받기',g:{a:0,door:'lab'}};const b=G.badges;
