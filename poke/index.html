@@ -824,7 +824,8 @@ function lerpPos(){if(!P.mv)return[P.x,P.y];const u=Math.min(1,P.mv.t/P.mv.d);re
 let LEADS=null,MOUNT=null;
 function surfMon(){const m=G.party.find(m=>m.hp>0&&META[m.n].types.includes('WATER'))||G.party[0];return{m,nm:m?nm(m):''}}
 function flyMon(){return G.party.find(m=>m.hp>0&&META[m.n].types.includes('FLYING'))||G.party.find(m=>META[m.n].types.includes('DRAGON'))||G.party[0]}
-async function refreshSpr(){const L=G.party[0];LEADS=L?await getSpr(L.n):null;const M=P.mode==='surf'?surfMon().m:P.mode==='fly'?flyMon():null;MOUNT=M?await getSpr(M.n):null}
+function folMon(){if(!G.fol)return null;return G.party.find(m=>m.fid===G.fol)||G.box.find(m=>m.fid===G.fol)||null}
+async function refreshSpr(){const L=folMon()||G.party[0];LEADS=L?await getSpr(L.n):null;const M=P.mode==='surf'?surfMon().m:P.mode==='fly'?flyMon():null;MOUNT=M?await getSpr(M.n):null}
 function drawOver(dt){const A=curA();const [px,py]=lerpPos();const s=TS*DPR,camX=px*s+s/2-cv.width/2,camY=py*s+s/2-cv.height/2-(VH*.06*DPR);
   cx.fillStyle=A.th.cave?'#2a2420':'#2e7d32';cx.fillRect(0,0,cv.width,cv.height);cx.imageSmoothingEnabled=false;cx.drawImage(A.cv,-camX,-camY,A.W*s,A.H*s);
   // 물 반짝
@@ -1078,12 +1079,13 @@ let PANEL=null;function openPanel(title,html,onClose,bind,noX){closePanel(1);con
 function closePanel(silent){if(!PANEL)return;const p=PANEL;PANEL=null;p.d.remove();if(!silent&&p.onClose)p.onClose()}
 function monRow(m,i,box){const S=stOf(m),M=META[m.n];return `<div class="mon" data-i="${i}" data-box="${box?1:0}"><img src="${THUMB[m.n]||''}"><div><b>${nm(m)}</b> <small>Lv.${m.lv}</small><div class="hp"><i style="width:${Math.max(0,m.hp/S[0])*100}%"></i></div><small>${M.types.map(t=>TN[t]).join('·')} · 체력 ${Math.ceil(m.hp)}/${S[0]} · ${m.moves.map(id=>mv(id).name+' Lv.'+mlv(m,id)).join(', ')}${m.gift?' · 🎁':''}${m.sh?' · ✨':''}</small></div></div>`}
 function menuOpen(){if(SCENE!=='over')return;const tw=Object.keys(G.visit||{}).map(Number).sort((a,b)=>a-b);
-  openPanel('📋 메뉴',`<button class="it" id="oGift" style="width:100%;background:#ff9ac0">🎁 선물 코드 · 선물 가방 ${(G.gifts||[]).length?'('+G.gifts.length+')':''}</button><h4>내 포켓몬 (눌러서 맨 앞으로)</h4>${G.party.map((m,i)=>monRow(m,i)).join('')}
+  openPanel('📋 메뉴',`<button class="it" id="oGift" style="width:100%;background:#ff9ac0">🎁 선물 코드 · 선물 가방 ${(G.gifts||[]).length?'('+G.gifts.length+')':''}</button><div class="row" style="margin:8px 0"><span>🐾 졸졸 따라오는 포켓몬</span><select id="oF" style="font-size:16px;max-width:55%"><option value="">맨 앞 포켓몬</option>${[...G.party,...G.box].map((m,i)=>`<option value="${i}" ${G.fol&&m.fid===G.fol?'selected':''}>${nm(m)} Lv.${m.lv}${i>=G.party.length?' (보관함)':''}</option>`).join('')}</select></div><h4>내 포켓몬 (눌러서 맨 앞으로)</h4>${G.party.map((m,i)=>monRow(m,i)).join('')}
   <h4>보관함 ${G.box.length}마리 (눌러서 데려오기)</h4><div class="boxg">${G.box.slice(0,300).map((m,i)=>`<button class="bx" data-b="${i}"><img src="${THUMB[m.n]||''}"><small>${nm(m)} ${m.lv}</small></button>`).join('')||'<small>아직 없어요</small>'}</div>
   <h4>가방</h4><div>${Object.keys(G.bag).filter(k=>G.bag[k]>0).map(k=>`<button class="it" data-it="${k}">${ITEMS[k].e} ${ITEMS[k].n} ×${G.bag[k]}</button>`).join('')}</div>
   ${canFly()?`<h4>🕊 날아가기</h4><div>${tw.map(a=>`<button class="it" data-fly="${a}">${areaName(a)}</button>`).join('')}</div>`:'<h4>🕊 날아가기</h4><small>비행 타입 포켓몬이 있으면 가 본 마을로 날아갈 수 있어요</small>'}
   <h4>설정</h4><label><input type="checkbox" id="oC" ${G.opt.catchNew?'checked':''}> 자동일 때 새 포켓몬 잡기</label><label><input type="checkbox" id="oB" ${G.autoBattle?'checked':''}> 걸어 다닐 때도 전투는 자동</label><label><input type="checkbox" id="oP" ${SHOWPATH?'checked':''}> 자동 길 표시</label>
   <div style="margin-top:10px"><button class="it" id="oS">💾 저장</button><button class="it" id="oT">🏠 처음 화면</button></div>`,null,p=>{
+    p.querySelector('#oF').onchange=e=>{const v=e.target.value;if(v===''){G.fol=null}else{const m=[...G.party,...G.box][+v];m.fid=m.fid||('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));G.fol=m.fid;toast('🐾 '+nm(m)+'(이)가 졸졸 따라와요!')}refreshSpr();save()};
     p.querySelectorAll('.mon').forEach(x=>x.onclick=()=>{const i=+x.dataset.i;if(i>0){const [m]=G.party.splice(i,1);G.party.unshift(m);refreshSpr();save();menuOpen()}});
     p.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{const i=+x.dataset.b;const m=G.box[i];if(G.party.length<6){G.box.splice(i,1);G.party.push(m)}else{const o=G.party.pop();G.box[i]=o;G.party.push(m)}save();menuOpen()});
     p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.heal||it.lv){const m=G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
