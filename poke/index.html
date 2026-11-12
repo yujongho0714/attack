@@ -350,6 +350,38 @@ small.lkx{color:#c03030;font-weight:800;margin:0 6px}
 .iip{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;padding:6px 10px;border:3px solid #1c2550;border-radius:12px;background:#fff;text-align:left}.iip img{width:44px;height:44px;object-fit:contain}.iip span{flex:1;position:relative;padding-bottom:7px}.iip small{display:block}.iip i{position:absolute;left:0;bottom:0;height:5px;border-radius:3px;background:#3be06a}
 small.itd{display:block;color:#5a4a20;font-weight:700;font-size:11px}
 .panel .row{cursor:pointer}
+#mg{position:fixed;inset:0;z-index:55;background:#000;animation:wpin .2s}
+.mgw{position:absolute;inset:0;background-size:cover;background-position:center;display:flex;flex-direction:column}
+.mgh{display:flex;align-items:center;justify-content:space-between;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:linear-gradient(#1c2550,#1c2550cc);border-bottom:3px solid #c8a24a}.mgh b{color:#ffe066;font-size:18px}
+.mgx{border:3px solid #1c2550;border-radius:12px;background:linear-gradient(#fff3c0,#ffd23f);font-weight:900;padding:6px 14px;color:#1c2550}
+.mgb{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:12px}
+.mgb>div{width:min(560px,100%);background:#fffaf0ee;border:4px solid #c8a24a;border-radius:18px;box-shadow:0 0 0 3px #1c2550,0 10px 30px #000a;padding:14px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.mgt{margin:0;font-weight:900;font-size:16px;color:#1c2550}.mgt small{font-weight:700;color:#5a4a20}
+.mgbig{font-size:18px!important;padding:12px 26px!important;border:3px solid #1c2550;border-radius:14px;background:linear-gradient(#fff3c0,#ffd23f 55%,#e8a820);font-weight:900;color:#1c2550;box-shadow:0 4px 0 #1c2550}
+.mgb button{font-family:inherit}
+.fwater{position:relative;width:100%;height:120px;border-radius:14px;background:linear-gradient(#5ab0ff,#1f5fb0);overflow:hidden;box-shadow:inset 0 0 20px #0006}
+.fwater::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,#ffffff22 0 20px,transparent 20px 60px);animation:fwav 3s linear infinite}@keyframes fwav{to{background-position:60px 0}}
+.fbob{position:absolute;left:50%;top:40%;width:18px;height:26px;margin-left:-9px;border-radius:50% 50% 40% 40%;background:linear-gradient(#ff3b3b 50%,#fff 50%);box-shadow:0 0 0 2px #1c2550;opacity:0;transition:opacity .2s}
+.fbob.on{opacity:1;animation:fbb 1.6s ease-in-out infinite}.fbob.bite{animation:fbt .12s infinite}@keyframes fbb{50%{transform:translateY(4px)}}@keyframes fbt{50%{transform:translateY(10px) rotate(12deg)}}
+.fbang{position:absolute;left:50%;top:6%;transform:translateX(-50%) scale(0);font-size:40px;color:#ffe066;-webkit-text-stroke:3px #1c2550;transition:transform .1s}.fbang.on{transform:translateX(-50%) scale(1)}
+.mgbar{position:relative;width:100%;height:46px;border-radius:12px;background:#1c2550;border:3px solid #c8a24a;cursor:pointer;margin:6px 0}
+.mgz{position:absolute;top:4px;bottom:4px;border-radius:8px;background:linear-gradient(#7dff8a,#2ab04a);box-shadow:0 0 12px #7dff8a}
+.mgbar i{position:absolute;top:-6px;bottom:-6px;width:8px;margin-left:-4px;border-radius:4px;background:#fff;box-shadow:0 0 0 2px #1c2550,0 0 10px #fff}
+.mgbar small{position:absolute;left:0;right:0;bottom:-22px;color:#fff;font-weight:900;text-shadow:0 1px 2px #000}.mgbar.ok{box-shadow:0 0 0 4px #7dff8a}.mgbar.no{box-shadow:0 0 0 4px #ff5a5a}
+.dgrid{display:grid;gap:4px;width:100%}.dt{aspect-ratio:1;border:0;border-radius:8px;background:radial-gradient(circle at 35% 30%,#b8a890,#7a6650 70%,#5a4a38);box-shadow:inset 0 -4px 0 #0004,0 2px 0 #0006;padding:0}
+.dt.o{background:#d8c8a0;box-shadow:inset 0 2px 4px #0005;animation:dcr .2s}@keyframes dcr{50%{transform:scale(.86)}}
+.dt.h1{background:#ff8a7a}.dt.h2{background:#ffc07a}.dt.h3{background:#f0e0a0}.dt.h4{background:#d8d0c0}.dt.f{background:#fff2b0;box-shadow:0 0 10px #ffd23f}.dt.it{background:#c8f0ff}.dt.miss{outline:3px dashed #ff5a5a}
+.dt .ic{width:70%;height:70%}.fbone{display:block;width:70%;height:70%;margin:15%;border-radius:40%;background:radial-gradient(#fff 30%,#e0c890);box-shadow:0 0 0 2px #a08050}
+.mgwin img,.smon img{width:120px;height:120px;object-fit:contain;image-rendering:pixelated}
+.sinfo{font-weight:800}.smon{display:flex;flex-direction:column;align-items:center}.smon b{font-size:18px}.smon.shake img{animation:shk .25s 4}@keyframes shk{25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+.sact{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}.sact button{border:3px solid #1c2550;border-radius:12px;background:#fff;font-weight:900;padding:8px;color:#1c2550}.sact button.main{background:linear-gradient(#fff3c0,#ffd23f)}.sact small{display:block;font-weight:700;font-size:11px;color:#6a5a30}
+.sgot{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.sgot span{display:flex;flex-direction:column;align-items:center;font-weight:800;font-size:12px}.sgot img{width:56px;height:56px;object-fit:contain}
+.twf{display:flex;flex-direction:column;align-items:center;background:#1c2550;color:#fff;border-radius:14px;padding:8px 26px}.twf b{font-size:34px;color:#ffe066}.twn{font-weight:900;color:#a05a00}
+.wmg{margin:8px 0;padding:8px 10px;border-radius:10px;background:#fff7d8;border:2px solid #e0b040;display:flex;flex-direction:column;gap:4px;align-items:flex-start}.wmg b{color:#a05a00}
+#bAct{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:6;border:3px solid #1c2550;border-radius:16px;background:linear-gradient(#fff3c0,#ffd23f 55%,#e8a820);box-shadow:0 4px 0 #1c2550,0 0 16px #ffd23f;padding:4px 18px;display:flex;flex-direction:column;align-items:center;color:#1c2550;animation:hpul 1.6s infinite}
+#bAct small{font-size:10px;font-weight:800}#bAct b{font-size:16px}body.inb #bAct{display:none!important}
+.dgrid{max-width:calc((100vh - 170px) * 1.4)}.mgwin img,.smon img{width:min(120px,20vh);height:min(120px,20vh)}
+@media (orientation:landscape){.saf{display:grid!important;grid-template-columns:auto 1fr;text-align:left}.saf .sinfo,.saf .mgt{grid-column:1/3}.saf .smon{grid-row:2/4}.sact{grid-template-columns:1fr 1fr}.mgb>div{padding:10px;gap:6px}}
 </style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
@@ -2510,6 +2542,83 @@ setInterval(()=>{try{if(AUTO.healGo&&G&&!hurt().length){AUTO.healGo=0;if(AUTO.on
   const b=document.getElementById('bHeal');if(b&&G){const n=G.party.filter(m=>m.hp<=0).length,h=hurt().length;let e=b.querySelector('.nb');if(!e){e=document.createElement('em');e.className='nb';b.appendChild(e)}e.textContent=n||'';e.style.display=n?'':'none';b.classList.toggle('on',!!AUTO.healGo);b.classList.toggle('need',h>0)}}catch(e){}},600);
 (function(){const go=()=>{const b=document.getElementById('bHeal');if(b)b.onclick=()=>{sfx('tap');if(AUTO.healGo){AUTO.healGo=0;autoStop();return}healGo()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 {const _as=autoStop;autoStop=function(){AUTO.healGo=0;return _as.apply(this,arguments)}}
+
+// ===== 마을 놀거리: 블루시티 낚시 · 회색시티 화석 발굴 · 연분홍시티 사파리존 · 노랑시티 격투 탑 =====
+const MGS={4:{k:'fish',n:'낚시',d:'타이밍 맞춰 낚싯대를 당기면 물 포켓몬이나 아이템이 나와요'},2:{k:'fossil',n:'화석 발굴',d:'바위를 두드려 화석을 캐면 화석 포켓몬으로 복원해 줘요 (하루 1번 무료)'},
+ 10:{k:'safari',n:'사파리존',d:'입장료 1500원 · 사파리볼 20개로 희귀한 포켓몬 잡기'},12:{k:'tower',n:'격투 탑',d:'층마다 강해지는 트레이너와 연속 배틀 · 5층마다 카드팩'}};
+const mgS=()=>{G.mg=G.mg||{};return G.mg};
+function addMon(m){const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;m.hp=stOf(m)[0];if(G.party.length<6)G.party.push(m);else G.box.push(m);try{askEvo(M.dex)}catch(e){}save();return G.party.includes(m)?'동료가 됐어요':'보관함으로 보냈어요'}
+function mgOpen(title,bg){mgClose();const d=document.createElement('div');d.id='mg';d.innerHTML=`<div class="mgw" style="background-image:linear-gradient(#0003,#0006),url(${bg})"><div class="mgh"><b>${title}</b><button class="mgx">나가기</button></div><div class="mgb"></div></div>`;document.body.appendChild(d);d.querySelector('.mgx').onclick=()=>{sfx('tap');mgClose()};return d.querySelector('.mgb')}
+function mgClose(){const d=document.getElementById('mg');if(d)d.remove()}
+function mgStart(a){if(G.a!==a){toast(areaName(a)+'에 가야 할 수 있어요');return}if(SCENE!=='over')return;closePanel(1);const k=MGS[a].k;({fish:fishOpen,fossil:fossilOpen,safari:safariOpen,tower:towerOpen})[k]()}
+const vib=n=>{try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+const wpickW=(L,W)=>{const t=W.reduce((a,b)=>a+b,0);let u=R()*t;for(let i=0;i<L.length;i++){u-=W[i];if(u<=0)return L[i]}return L[0]};
+const openRoutes=()=>{const L=[];for(let a=1;a<18;a+=2)if(areaOpen(a))L.push(a);return L.length?L:[1]};
+// 타이밍 바 (가운데 초록 칸에 맞추기)
+function mgBar(host,zone,speed){return new Promise(res=>{const b=document.createElement('div');b.className='mgbar';b.innerHTML=`<div class="mgz" style="width:${zone*100}%;left:${(1-zone)/2*100}%"></div><i></i><small>초록 칸에서 누르기!</small>`;host.appendChild(b);const k=b.querySelector('i');let t=0,run=1,last=performance.now();
+  const f=now=>{if(!run)return;t+=(now-last)/1000;last=now;const x=(Math.sin(t*speed)+1)/2;k.style.left=(x*100)+'%';k.dataset.x=x;requestAnimationFrame(f)};requestAnimationFrame(f);
+  b.onclick=()=>{run=0;const x=+k.dataset.x,ok=Math.abs(x-.5)<=zone/2;b.classList.add(ok?'ok':'no');vib(ok?[30,40,30]:80);sfx(ok?'get':'tap');setTimeout(()=>{b.remove();res(ok)},450)}})}
+// ---------- 낚시 ----------
+function fishOpen(){const S=mgS(),day=dayKey();if(S.fishDay!==day){S.fishDay=day;S.fishItem=0}const B=mgOpen('블루시티 낚시터','stages/seaside.webp');
+  B.innerHTML=`<div class="fsh"><div class="fwater"><i class="fbob"></i><b class="fbang">!</b></div><p class="mgt">낚싯대를 던져 보세요</p><button class="main mgbig" id="fCast">낚싯대 던지기</button><small>오늘 아이템 ${S.fishItem}/15 · 물 포켓몬은 계속 나와요</small></div>`;
+  const t=B.querySelector('.mgt'),btn=B.querySelector('#fCast'),bob=B.querySelector('.fbob'),bang=B.querySelector('.fbang');let st=0,timer=null,bite=0;
+  btn.onclick=async()=>{if(st===0){st=1;sfx('tap');bob.classList.add('on');t.textContent='조용히… 찌가 움직이면 바로 누르기!';btn.textContent='당기기!';const w=1500+R()*3000;timer=setTimeout(()=>{if(st!==1)return;bite=performance.now();bang.classList.add('on');bob.classList.add('bite');vib([60,40,60]);sfx('hit');t.textContent='지금이야!';timer=setTimeout(()=>{if(st===1){st=0;bang.classList.remove('on');bob.className='fbob';t.textContent='놓쳤어요… 다시 던져 봐요';btn.textContent='낚싯대 던지기'}},850)},w);return}
+    if(st===1){clearTimeout(timer);if(!bite){st=0;bob.className='fbob';t.textContent='너무 빨랐어요! 찌가 움직일 때 눌러요';btn.textContent='낚싯대 던지기';return}
+      st=2;bang.classList.remove('on');btn.style.display='none';t.textContent='줄을 감아요! 타이밍!';const ok=await mgBar(B.querySelector('.fsh'),.24,4.2);bite=0;bob.className='fbob';
+      if(!ok){st=0;btn.style.display='';btn.textContent='낚싯대 던지기';t.textContent='줄이 끊어졌어요… 다시!';return}
+      if(R()<.62||S.fishItem>=15){const W=[];const L=[];for(const a of openRoutes())for(const e of encTable(a).w){L.push([e.n,a]);W.push(e.w*ENCW[rarOf(e.n)])}const [n,a]=wpickW(L,W);const lv=areaLv(Math.max(...openRoutes()));
+        const wm=mkMon(n,ri(lv[0],lv[1]));t.innerHTML=`<b>${META[n].name}</b>(이)가 걸렸다!`;await sleep(700);mgClose();const r=await battle({foes:[wm],bg:'seaside'});if(r==='lose'){await blackout();return}if(G.a===4)fishOpen();return}
+      const I=['potion','ball','great','spotion','candy','hyper'],k=wpickW(I,[40,30,15,10,3,2]);addItem(k,1);S.fishItem++;save();t.innerHTML=`${ITEMS[k].e} <b>${ITEMS[k].n}</b>(을)를 낚았어요!`;B.querySelector('small').textContent='오늘 아이템 '+S.fishItem+'/15';st=0;btn.style.display='';btn.textContent='낚싯대 던지기'}}}
+// ---------- 화석 발굴 ----------
+const FOSS=[{d:138,n:'조개화석'},{d:140,n:'껍질화석'},{d:142,n:'비밀의호박'}];
+function fossilOpen(){const S=mgS(),day=dayKey(),free=S.digDay!==day;const B=mgOpen('회색시티 박물관 · 화석 발굴','stages/cave.webp');
+  B.innerHTML=`<div class="fos0"><p class="mgt">바위 속에 화석이 숨어 있어요. 망치 10번으로 화석 4칸을 모두 캐면 성공!<br><small>빈 칸을 캐면 화석까지 얼마나 가까운지 색으로 알려 줘요 (빨강 = 바로 옆)</small></p><button class="main mgbig" id="dGo">${free?'오늘 무료로 캐기':'2000원 내고 캐기'}</button></div>`;
+  B.querySelector('#dGo').onclick=()=>{if(!free){if(G.money<2000){toast('돈이 모자라요');return}G.money-=2000}else S.digDay=day;save();digGame(B)}}
+function digGame(B){const W=7,H=5,fx=ri(0,W-2),fy=ri(0,H-2);const F=new Set([[fx,fy],[fx+1,fy],[fx,fy+1],[fx+1,fy+1]].map(p=>p+''));const IT={};for(let i=0;i<2;i++){let x,y;do{x=ri(0,W-1);y=ri(0,H-1)}while(F.has(x+','+y)||IT[x+','+y]);IT[x+','+y]=wpickW(['ball','potion','great','candy','sstone'],[35,35,18,9,3])}
+  const fo=wpickW(FOSS,[45,45,10]);let left=10,got=0;
+  B.innerHTML=`<div class="dig"><p class="mgt">남은 망치 <b id="dL">10</b> · 찾은 화석 <b id="dF">0</b>/4</p><div class="dgrid" style="grid-template-columns:repeat(${W},1fr)">${Array.from({length:W*H},(_,i)=>`<button class="dt" data-x="${i%W}" data-y="${i/W|0}"></button>`).join('')}</div></div>`;
+  B.querySelectorAll('.dt').forEach(b=>b.onclick=async()=>{if(left<=0||b.classList.contains('o'))return;const x=+b.dataset.x,y=+b.dataset.y,k=x+','+y;left--;b.classList.add('o');vib(25);sfx('hit');
+    if(F.has(k)){got++;b.classList.add('f');b.innerHTML='<i class="fbone"></i>'}else if(IT[k]){b.classList.add('it');b.innerHTML=ITEMS[IT[k]].e;addItem(IT[k],1);toast(ITEMS[IT[k]].n+' 발견!')}else{let dm=9;for(const p of F){const [a,c]=p.split(',').map(Number);dm=Math.min(dm,Math.abs(a-x)+Math.abs(c-y))}b.classList.add('h'+Math.min(dm,4))}
+    B.querySelector('#dL').textContent=left;B.querySelector('#dF').textContent=got;
+    if(got===4){await sleep(400);const n=BYDEX[fo.d];if(!n||!META[n]){toast('화석을 찾았어요!');mgClose();return}const m=mkMon(n,Math.max(5,topLv()-5));const r=addMon(m);sfx('get');
+      B.innerHTML=`<div class="mgwin"><p class="mgt"><b>${fo.n}</b> 발굴 성공!</p><img src="${THUMB[n]||''}"><p>박물관 박사님이 복원해 줬어요!<br><b>${META[n].name}</b> Lv.${m.lv} · ${r}</p><button class="main mgbig" id="dOk">좋아요</button></div>`;B.querySelector('#dOk').onclick=mgClose;save();return}
+    if(left<=0){await sleep(500);B.querySelectorAll('.dt').forEach(t=>{const kk=t.dataset.x+','+t.dataset.y;if(F.has(kk)&&!t.classList.contains('o'))t.classList.add('miss')});
+      const p=document.createElement('div');p.className='mgwin';p.innerHTML=`<p class="mgt">아쉬워요! 망치를 다 썼어요 (화석 ${got}/4)</p><button class="main mgbig" id="dOk">다음에 또 하기</button>`;B.appendChild(p);p.querySelector('#dOk').onclick=mgClose;save()}})}
+// ---------- 사파리존 ----------
+function safariOpen(){const B=mgOpen('연분홍시티 사파리존','stages/forest.webp');
+  B.innerHTML=`<div class="fos0"><p class="mgt">희귀한 포켓몬이 많이 사는 곳!<br><small>사파리볼 20개 · 포켓몬 8마리를 만나요 · 배틀 없이 던져서 잡기</small></p><button class="main mgbig" id="sGo">입장료 1500원 내고 들어가기</button></div>`;
+  B.querySelector('#sGo').onclick=()=>{if(G.money<1500){toast('돈이 모자라요');return}G.money-=1500;save();safariRun(B,{balls:20,left:8,got:[]})}}
+function safariRun(B,S){if(S.balls<=0||S.left<=0){B.innerHTML=`<div class="mgwin"><p class="mgt">사파리 끝!</p><p>잡은 포켓몬 ${S.got.length}마리</p><div class="sgot">${S.got.map(n=>`<span><img src="${THUMB[n]||''}">${META[n].name}</span>`).join('')||'<small>다음엔 꼭 잡아요!</small>'}</div><button class="main mgbig" id="sOk">나가기</button></div>`;B.querySelector('#sOk').onclick=mgClose;return}
+  S.left--;const L=SPECIES.filter(n=>!META[n].form&&rarOf(n)<=3&&bst(META[n].stats)<600),n=wpickW(L,L.map(n=>[1,2.2,1.6,.12][rarOf(n)]));const r=rarOf(n),lv=Math.max(5,topLv()-ri(0,3));let ck=1,fl=1;
+  const draw=(msg)=>{B.innerHTML=`<div class="saf"><div class="sinfo">사파리볼 <b>${S.balls}</b> · 남은 만남 <b>${S.left}</b> · 잡음 <b>${S.got.length}</b></div><div class="smon"><img src="${THUMB[n]||''}"><b>${META[n].name}</b> ${RARS(n)} <small>Lv.${lv}</small></div><p class="mgt">${msg}</p>
+    <div class="sact"><button class="main" data-s="ball">사파리볼 던지기</button><button data-s="bait">먹이 주기<small>도망 덜 감 · 조금 덜 잡힘</small></button><button data-s="rock">돌 던지기<small>잘 잡힘 · 도망 잘 감</small></button><button data-s="run">다음으로</button></div></div>`;
+    B.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>act(b.dataset.s))};
+  const act=async s=>{sfx('tap');if(s==='run'){safariRun(B,S);return}
+    if(s==='bait'){fl*=.55;ck*=.85;draw(META[n].name+'(이)가 먹이를 먹고 있어요')}
+    if(s==='rock'){ck*=1.6;fl*=1.9;draw(META[n].name+'(이)가 화가 났어요!')}
+    if(s==='ball'){S.balls--;B.querySelector('.smon').classList.add('shake');B.querySelector('.mgt').textContent='흔들… 흔들…';await sleep(1100);const p=Math.min(.95,[.5,.35,.22,.08][r]*ck);
+      if(R()<p){S.got.push(n);const m=mkMon(n,lv);const rr=addMon(m);sfx('get');vib([40,40,80]);B.querySelector('.mgt').innerHTML=`<b>${META[n].name}</b>(을)를 잡았다! ${rr}`;await sleep(1300);safariRun(B,S);return}
+      if(S.balls<=0){safariRun(B,S);return}draw('앗, 볼에서 나와 버렸어요!')}
+    if(R()<Math.min(.8,[.1,.15,.22,.3][r]*fl)){await sleep(500);B.querySelector('.mgt').textContent=META[n].name+'(이)가 도망쳤어요…';B.querySelectorAll('[data-s]').forEach(b=>b.disabled=true);await sleep(1100);safariRun(B,S)}};
+  draw('야생 '+META[n].name+'(이)가 나타났다!')}
+// ---------- 격투 탑 ----------
+const TWR=[['BLACKBELT','태권 소년'],['PSYCHIC_M','초능력자'],['PSYCHIC_F','초능력 소녀'],['COOLTRAINER_M','엘리트 트레이너'],['COOLTRAINER_F','엘리트 트레이너'],['HIKER','등산가'],['JUGGLER','저글러'],['CHANNELER','무당'],['SCIENTIST','연구원']];
+function towerOpen(){const S=mgS();S.tw=S.tw||{f:1,best:0};const T=S.tw;const B=mgOpen('노랑시티 격투 탑','stages/gym_psychic.webp');const lv=twLv(T.f);
+  B.innerHTML=`<div class="twr"><div class="twf"><small>지금</small><b>${T.f}층</b><small>최고 기록 ${T.best}층</small></div><p class="mgt">층마다 트레이너가 기다려요. 이기면 다음 층!<br><small>5층마다 카드팩 · 5층마다 회복 · 지면 1층부터 (돈은 안 잃어요)</small></p>
+   <div class="twn">다음 상대: Lv.${lv} · ${twCnt(T.f)}마리</div><button class="main mgbig" id="tGo">${T.f}층 도전!</button></div>`;
+  B.querySelector('#tGo').onclick=async()=>{if(!G.party.some(m=>m.hp>0)){toast('먼저 치료하고 와요');return}const [spr,name]=pick(TWR);const f=T.f,lv=twLv(f),n=twCnt(f);
+    const L=SPECIES.filter(s=>!META[s].form&&bst(META[s].stats)<=360+f*14&&bst(META[s].stats)>=260+f*8);const foes=Array.from({length:n},()=>mkMon(pick(L.length>4?L:SPECIES),lv+ri(-1,1)));mgClose();
+    try{await trainerScene(spr,name+' ('+f+'층)',[pick(['격투 탑에 온 걸 환영해!','여기까지 오다니 제법인데?','내 포켓몬이 더 강해!','한 층 한 층이 시험이야!'])])}catch(e){}
+    const r=await battle({trainer:name,foes,money:lv*40,scaled:1,bg:'gym_psychic',lose:'다음 층도 힘내!'});
+    if(r==='win'){T.f++;if(T.f-1>T.best)T.best=T.f-1;if((T.f-1)%5===0){healAll();REWQ.push({kind:R()<.5?'P':'M',msg:'격투 탑 '+(T.f-1)+'층 돌파! 카드팩 1장',why:'격투 탑'});toast((T.f-1)+'층 돌파! 포켓몬 회복 + 카드팩')}save();if(G.a===12)towerOpen()}
+    else{T.f=1;healAll();save();toast('격투 탑 도전 끝! 최고 '+T.best+'층 · 다음엔 더 높이!')}}}
+const twLv=f=>Math.max(5,Math.min(100,topLv()-4+Math.round(f*1.3)));const twCnt=f=>Math.min(3,1+Math.floor(f/3));
+// ---------- 들어가는 곳: 마을에 있으면 화면 버튼 + 월드맵 팝업 ----------
+setInterval(()=>{try{let b=document.getElementById('bAct');const on=G&&SCENE==='over'&&MGS[G.a]&&!document.getElementById('mg');if(!b){b=document.createElement('button');b.id='bAct';document.body.appendChild(b);b.onclick=()=>{sfx('tap');mgStart(G.a)}}
+  b.style.display=on?'':'none';if(on)b.innerHTML=`<small>${areaName(G.a)} 놀거리</small><b>${MGS[G.a].n}</b>`}catch(e){}},500);
+{const _wi=worldInfo;worldInfo=function(a){let h=_wi(a);const g=MGS[a];if(!g)return h;const here=G.a===a;
+  const x=`<div class="wmg"><b>놀거리 · ${g.n}</b><small>${g.d}</small>${here?`<button class="main" data-mg="${a}">지금 ${g.n} 하기</button>`:`<small class="wnt">${areaName(a)}에 가면 할 수 있어요</small>`}</div>`;return h.replace('<div class="wbt">',x+'<div class="wbt">')}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-mg]');if(!b)return;const p=document.getElementById('wPop');if(p)p.remove();mgStart(+b.dataset.mg)});
 
 // ===== 아이템 설명: 뭐에 쓰고 · 뭐가 좋고 · 누가 쓰면 · 쓰면 어떻게 되는지 =====
 const ITD={
