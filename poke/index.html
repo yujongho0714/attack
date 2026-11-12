@@ -2728,6 +2728,72 @@ setInterval(()=>{try{if(REWBUSY||REWQ.length<2)return;const C=REWQ.filter(q=>q.k
   for(const q of C)REWQ.splice(REWQ.indexOf(q),1);const why=[...new Set(C.map(q=>q.why).filter(Boolean))].join(' · ');REWQ.push({multi:C.map(q=>q.kind),msg:'보상 카드 '+C.length+'장!',title:'보상 카드 '+C.length+'장'+(why?' · '+why:'')})}catch(e){}},250);
 // 레벨 제한 표시: 편성·도감 팝업 등에서 쓰도록
 
+// ===== 타격감: 진짜 효과음 + 부서지는 연출 (땅 갈라짐 · 파편 · 화면 깨짐 · 쓰러질 때 산산조각) =====
+const SFXP='sfx/',SBUF={},SLOAD={};
+function snd(k,v){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const play=b=>{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;s.playbackRate.value=.92+Math.random()*.16;g.gain.value=(v||.5)*(G&&G.opt&&G.opt.vol!=null?G.opt.vol:1);s.connect(g);g.connect(AC.destination);s.start()};
+  if(SBUF[k])return play(SBUF[k]);if(SLOAD[k])return;SLOAD[k]=fetch(SFXP+k+'.mp3').then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(b=>{SBUF[k]=b;play(b)}).catch(()=>{})}catch(e){}}
+// 미리 받아 두기 (배틀에서 처음 소리가 늦지 않게)
+setTimeout(()=>{try{['hit_light','hit_heavy','crit','shatter','ep_shatter','super_eff','not_eff','ko','miss','dash','heal'].forEach(k=>{AC=AC||new (window.AudioContext||window.webkitAudioContext)();SLOAD[k]=fetch(SFXP+k+'.mp3').then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(b=>SBUF[k]=b).catch(()=>{})})}catch(e){}},2500);
+// 기존 삑삑 소리를 진짜 효과음으로
+{const _s=sfx;const MAP={hit:['hit_light',.55],crit:['crit',.7],faint:['ko',.7],heal:['heal',.5]};sfx=function(k){const m=MAP[k];if(m&&SCENE==='battle'){snd(m[0],m[1]);return}return _s(k)}}
+// 기술 타입별 시전 소리
+const TSND={FIRE:'flame_start',WATER:'splash',ELECTRIC:'zap',ICE:'ice_charge',GRASS:'leaf',PSYCHIC:'psychic',GHOST:'ghost',POISON:'poison',ROCK:'rock',GROUND:'quake',FLYING:'wing_flap',DRAGON:'roar',FIGHTING:'claw',STEEL:'blade',BUG:'rb9_buzz',DARK:'slash',FAIRY:'twinkle',NORMAL:'mf4_whoosh'};
+{const _c=actCast;actCast=function(mine,m,dir){try{snd(TSND[m.type]||'mf4_whoosh',mine?.45:.32)}catch(e){}return _c.apply(this,arguments)}}
+// ---------- 부서지는 연출 ----------
+const SH={cr:[],sd:[],sc:[],lt:[]};// cr 땅 갈라짐 · sd 파편 · sc 화면 깨짐
+function crackMake(x,y,r,col){const segs=[];const n=6+ri(0,4);for(let i=0;i<n;i++){let a=i/n*Math.PI*2+R()*.5,px=0,py=0;const pts=[[0,0]];const L=r*(.55+R()*.6);let d=0;while(d<L){const st=r*(.12+R()*.12);a+=(R()-.5)*.7;px+=Math.cos(a)*st;py+=Math.sin(a)*st*.55;d+=st;pts.push([px,py]);if(R()<.25&&pts.length>2){const b=[[px,py]];let bx=px,by=py,ba=a+(R()<.5?-1:1)*(.6+R()*.5);for(let j=0;j<2;j++){bx+=Math.cos(ba)*st*.8;by+=Math.sin(ba)*st*.45;b.push([bx,by])}segs.push(b)}}segs.push(pts)}
+  SH.cr.push({x,y,r,segs,t:0,life:2.2,col})}
+// 타입별 5단계 색 (어두움 → 기본 → 밝음 → 흰색)
+const PST={NORMAL:["#3a2a0a","#c8a24a","#f4e4b0","#fff8e0","#ffffff"],FIRE:["#2a0602","#c02a08","#ff7a1a","#ffd070","#fffbe0"],WATER:["#04163a","#1a5ad0","#4aa4ff","#b0e2ff","#ffffff"],ELECTRIC:["#2a1e02","#c89208","#ffd81a","#fff6a0","#ffffff"],GRASS:["#06200a","#2a8a1a","#6ad83a","#c8ff9a","#f8ffe8"],ICE:["#0c2a44","#3a9ad0","#9ae0ff","#e2f8ff","#ffffff"],FIGHTING:["#280604","#9a2a12","#e0602a","#ffb88a","#fff0e0"],POISON:["#16041e","#6a1a90","#b04ae0","#e8b0ff","#fff0ff"],GROUND:["#201406","#8a5a1a","#d8a24a","#f8dea0","#fffbe8"],FLYING:["#0e1638","#5a6ad8","#a8b4ff","#e4e8ff","#ffffff"],PSYCHIC:["#2a0418","#c01a6a","#ff5aa4","#ffbadc","#fff0f8"],BUG:["#121a04","#6a8a0a","#b8d82a","#ecff9a","#fbffe8"],ROCK:["#1a1408","#7a6a2a","#c8b05a","#eedca0","#fffbea"],GHOST:["#10041a","#4a1470","#9a3cc8","#e0a8ff","#fff0ff"],DRAGON:["#04102a","#1a3cc0","#3f7dff","#a8d4ff","#ffffff"],DARK:["#0a0606","#3a2a24","#7a6050","#c8b0a0","#fff4ec"],STEEL:["#101820","#5a6a80","#a8b8cc","#e4eef8","#ffffff"],FAIRY:["#2a0a20","#d0509a","#ff9ad0","#ffdcf0","#ffffff"]};
+const stopsOf=t=>PST[t]||PST.NORMAL;
+// 파티클: shard(파편) · star(반짝) · px(도트 가루) · puff(연기) — 살아 있는 동안 흰색 → 기본색 → 어두운색으로 변해요
+function pAdd(o){SH.sd.push(Object.assign({x:0,y:0,vx:0,vy:0,drag:.06,g:0,r:0,vr:0,s:3,s1:null,t:0,life:.6,st:PST.NORMAL,k:'shard',glow:0},o))}
+function shardBurst(x,y,n,col,sp,big,stops){const st=stops||[ '#1c2550',col,col,'#ffffff','#ffffff'];for(let i=0;i<n;i++){const a=R()*Math.PI*2,v=sp*(.4+R()*.9);pAdd({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.7-sp*(.4+R()*.5),r:a,vr:(R()-.5)*12,s:(big?7:4)+R()*(big?10:6),s1:1,life:.55+R()*.6,g:sp*2.4,st,k:'shard',glow:big?1:.5})}}
+function hitSpark(x,y,type,S,pow){const st=stopsOf(type);const n=Math.round(6+pow*10);for(let i=0;i<n;i++){const a=R()*Math.PI*2,v=S*(1.5+R()*3)*(.6+pow*.6);pAdd({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,drag:.12,s:S*.09+R()*S*.09,s1:0,life:.25+R()*.3,st,k:'shard',r:a,glow:1})}
+  for(let i=0;i<4+pow*6;i++)pAdd({x:x+(R()-.5)*S*.6,y:y+(R()-.5)*S*.6,s:S*.1+R()*S*.1,s1:0,life:.25+R()*.35,st:['#ffffff','#ffffff',st[3],st[2],st[1]],k:'star',r:R()*3,glow:1});
+  for(let i=0;i<5+pow*6;i++){const a=R()*Math.PI*2,v=S*(.6+R()*1.6);pAdd({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-S*.6,g:S*3,drag:.04,s:S*.05+R()*S*.04,life:.45+R()*.5,st,k:'px'})}
+  pAdd({x,y,s:S*.25,s1:S*(.8+pow*.6),life:.22,st:['#ffffff',st[3],st[2],st[1],st[0]],k:'ring',glow:1});SH.lt.push({x,y,r:S*(1.5+pow*1.2),c:st[2],t:0,life:.4})}
+function screenCrack(sx,sy){const L=[];const n=9+ri(0,5),M=Math.max(VW,VH);for(let i=0;i<n;i++){let a=i/n*Math.PI*2+R()*.35,x=sx,y=sy;const p=[[x,y]];for(let k=0;k<7;k++){a+=(R()-.5)*.5;const st=M*(.04+R()*.07);x+=Math.cos(a)*st;y+=Math.sin(a)*st;p.push([x,y])}L.push(p)}
+  const rings=[];for(let k=1;k<=3;k++){const rr=k*M*.07*(1+R()*.3),pts=[];for(let i=0;i<=16;i++){const a=i/16*Math.PI*2;pts.push([sx+Math.cos(a)*rr*(1+(R()-.5)*.25),sy+Math.sin(a)*rr*(1+(R()-.5)*.25)])}rings.push(pts)}
+  SH.sc.push({x:sx,y:sy,L,rings,t:0,life:1.1})}
+const tcol=t=>TCOL[t]||'#ffd060';
+// 맞을 때: 세게 맞으면 땅이 갈라지고 파편, 치명타+효과 굉장이면 화면이 깨져요
+{const _h=hitFeel;hitFeel=function(A,B,k,crit,e,mine,S){_h.apply(this,arguments);try{const col=tcol(A.lastMv&&A.lastMv.type),pw=(A.lastMv&&A.lastMv.pw)||40,heavy=crit||e>=2||pw>=90;const y=B.ay,x=B.ax;
+  if(e<1&&e>0)snd('not_eff',.45);else if(e>=2)snd('super_eff',.5);if(heavy)snd(pw>=90||crit?'hit_heavy':'hit_light',.5);
+  const ty=A.lastMv&&A.lastMv.type,st=stopsOf(ty);hitSpark(x,y-S*.45,ty,S,crit?1:e>=2?.75:heavy?.5:.25);if(heavy){crackMake(x,y+S*.12,S*(crit?1.1:e>=2?.9:.75),st[2]);shardBurst(x,y-S*.45,crit?18:10,st[2],S*(crit?4:2.8),crit,st)}
+  if(crit&&e>=2){snd('shatter',.6);const [sx,sy]=w2s(x,y-S*.45);screenCrack(sx,sy)}else if(crit)snd('shatter',.35)}catch(err){}}}
+// 쓰러질 때: 포켓몬이 산산조각 + 큰 갈라짐
+{const _u=actUpdate;actUpdate=function(dt){_u(dt);try{if(!ACT.on)return;const S=bsz();for(const B of [BS.me,BS.foe]){if(!B||!B.m)continue;if(B.m.hp<=0&&B.koM!==B.m){B.koM=B.m;const ty=META[B.m.n].types[0],st=stopsOf(ty),col=st[2];snd('ep_shatter',.65);snd('ko',.5);crackMake(B.ax,B.ay+S*.1,S*1.4,col);shardBurst(B.ax,B.ay-S*.5,34,col,S*5,1,st);hitSpark(B.ax,B.ay-S*.5,ty,S*1.4,1);SH.lt.push({x:B.ax,y:B.ay-S*.5,r:S*3,c:st[3],t:0,life:.7});if(B===BS.foe){const [sx,sy]=w2s(B.ax,B.ay-S*.5);screenCrack(sx,sy)}try{FX2.flash&&FX2.flash('#ffffff',.35)}catch(e){}}if(B.m.hp>0&&B.koM===B.m)B.koM=null}}catch(e){}}}
+// 월드 좌표 → 화면 좌표 (drawBattle 카메라와 똑같이)
+function w2s(x,y){if(!camOn())return[x,y];const z=1+(ACT.zp||0);const X=x-(ACT.cx||0)+(ACT.bx||0),Y=y-(ACT.cy||0)+(ACT.by||0);return[(X-VW/2)*z+VW/2,(Y-VH/2)*z+VH/2]}
+function camT(){cx.setTransform(DPR,0,0,DPR,0,0);if(camOn()){const z=1+(ACT.zp||0);if(z!==1){cx.translate(VW/2,VH/2);cx.scale(z,z);cx.translate(-VW/2,-VH/2)}cx.translate(-(ACT.cx||0)+(ACT.bx||0),-(ACT.cy||0)+(ACT.by||0))}}
+{const _d=drawBattle;drawBattle=function(dt){_d(dt);try{shDraw(dt)}catch(e){}}}
+function shDraw(dt){if(!SH.cr.length&&!SH.sd.length&&!SH.sc.length&&!SH.lt.length)return;const fr=FX2.stop>0?0:dt;cx.save();camT();
+  // 땅 갈라짐
+  SH.cr=SH.cr.filter(c=>(c.t+=dt)<c.life);for(const c of SH.cr){const grow=Math.min(1,c.t/.12),a=c.t<c.life-.6?1:(c.life-c.t)/.6;cx.save();cx.translate(c.x,c.y);cx.globalAlpha=a;
+    const g=cx.createRadialGradient(0,0,2,0,0,c.r*.8);g.addColorStop(0,'rgba(0,0,0,.45)');g.addColorStop(1,'rgba(0,0,0,0)');cx.fillStyle=g;cx.beginPath();cx.ellipse(0,0,c.r*.8,c.r*.42,0,0,7);cx.fill();
+    cx.lineCap='round';cx.lineJoin='round';for(const pass of [0,1,2]){cx.strokeStyle=pass===0?'rgba(20,12,8,.9)':pass===1?'rgba(60,40,30,.9)':c.col;cx.lineWidth=pass===0?4.5:pass===1?2.2:1;cx.globalAlpha=a*(pass===2?(c.t<.5?1-c.t*1.6:.2):1);
+      for(const s of c.segs){cx.beginPath();const n=Math.max(2,Math.ceil(s.length*grow));for(let i=0;i<n&&i<s.length;i++){const [px,py]=s[i];i?cx.lineTo(px,py):cx.moveTo(px,py)}cx.stroke()}}
+    if(c.t<.25){cx.globalAlpha=(.25-c.t)*3;cx.fillStyle=c.col;cx.beginPath();cx.ellipse(0,0,c.r*.6*(1+c.t*3),c.r*.3*(1+c.t*3),0,0,7);cx.fill()}cx.restore()}
+  // 빛
+  SH.lt=SH.lt.filter(l=>(l.t+=dt)<l.life);if(SH.lt.length){cx.save();cx.globalCompositeOperation='lighter';for(const l of SH.lt){const a=1-l.t/l.life;const g=cx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r);g.addColorStop(0,l.c);g.addColorStop(1,'rgba(0,0,0,0)');cx.globalAlpha=a*.7;cx.fillStyle=g;cx.beginPath();cx.arc(l.x,l.y,l.r,0,7);cx.fill()}cx.restore()}
+  // 파티클
+  const lerpC=(st,u)=>st[Math.min(st.length-1,Math.floor(u*(st.length-1)+.5))];
+  SH.sd=SH.sd.filter(p=>(p.t+=dt)<p.life);for(const p of SH.sd){const df=Math.pow(1-Math.min(.9,p.drag),fr*60);p.vx*=df;p.vy*=df;p.vy+=p.g*fr;p.x+=p.vx*fr;p.y+=p.vy*fr;p.r+=p.vr*fr;const u=p.t/p.life,sz=p.s1==null?p.s:p.s+(p.s1-p.s)*u;
+    const st=p.st,c=lerpC([...st].reverse(),u);cx.save();cx.translate(p.x,p.y);cx.globalAlpha=Math.min(1,(1-u)*1.6);if(p.glow)cx.globalCompositeOperation='lighter';cx.fillStyle=c;
+    if(p.k==='shard'){cx.rotate(p.r);cx.beginPath();cx.moveTo(sz*1.4,0);cx.lineTo(0,sz*.45);cx.lineTo(-sz*.8,0);cx.lineTo(0,-sz*.45);cx.closePath();cx.fill()}
+    else if(p.k==='star'){cx.rotate(p.r);cx.fillRect(-sz*.18,-sz,sz*.36,sz*2);cx.fillRect(-sz,-sz*.18,sz*2,sz*.36);cx.fillRect(-sz*.35,-sz*.35,sz*.7,sz*.7)}
+    else if(p.k==='px'){cx.fillRect(-sz/2,-sz/2,sz,sz)}
+    else if(p.k==='ring'){cx.strokeStyle=c;cx.lineWidth=Math.max(1,sz*.12*(1-u));cx.beginPath();cx.ellipse(0,0,sz,sz*.6,0,0,7);cx.stroke()}
+    else{cx.beginPath();cx.arc(0,0,sz,0,7);cx.fill()}cx.restore()}
+  cx.restore();
+  // 화면 깨짐 (화면 좌표)
+  SH.sc=SH.sc.filter(s=>(s.t+=dt)<s.life);if(SH.sc.length){cx.save();cx.setTransform(DPR,0,0,DPR,0,0);for(const s of SH.sc){const grow=Math.min(1,s.t/.08),fall=Math.max(0,s.t-.55),a=Math.max(0,1-fall/.55);cx.globalAlpha=a;cx.translate(0,fall*fall*260);
+    cx.fillStyle='rgba(255,255,255,'+(.25*Math.max(0,1-s.t*4))+')';cx.fillRect(0,0,VW,VH);cx.lineCap='round';
+    for(const pass of [0,1]){cx.strokeStyle=pass?'rgba(255,255,255,.95)':'rgba(10,20,40,.55)';cx.lineWidth=pass?1.6:3.4;for(const p of s.L){cx.beginPath();const n=Math.max(2,Math.ceil(p.length*grow));for(let i=0;i<n;i++){const [x,y]=p[i];i?cx.lineTo(x,y):cx.moveTo(x,y)}cx.stroke()}
+      if(grow>=1)for(const r of s.rings){cx.beginPath();r.forEach(([x,y],i)=>i?cx.lineTo(x,y):cx.moveTo(x,y));cx.stroke()}}
+    const g=cx.createRadialGradient(s.x,s.y,0,s.x,s.y,60);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,0)');cx.fillStyle=g;cx.beginPath();cx.arc(s.x,s.y,60,0,7);cx.fill();cx.setTransform(DPR,0,0,DPR,0,0)}cx.restore()}}
+
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
   for(const x of L){i++;if(i%20===0){prog&&prog(i,L.length);await sleep(0)}THUMB[x.n]=x.t||'';let m=C[x.n];if(!m){try{const r=await UP.get(x.n);const j=typeof r.meta==='string'?JSON.parse(r.meta):r.meta;m={dex:j.dex|0,name:j.name||x.n,types:(j.types&&j.types.length?j.types:['NORMAL']).map(t=>String(t).toUpperCase()),stats:j.stats&&j.stats.length===6?j.stats:[50,50,50,50,50,50],moves:(j.moves||[]).slice(0,4).map(q=>({id:String(q.id||'').toLowerCase(),name:q.name,type:String(q.type||'NORMAL').toUpperCase()})),anim:!!(j.anims&&j.anims.walk)};C[x.n]=m;dirty=1}catch(e){continue}}
