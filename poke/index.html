@@ -748,7 +748,7 @@ function encTable(a){const k=(a-1)/2,r=rng(G.seed*13+a*101);const maxB=330+38*k,
   const wl=SPECIES.filter(s=>META[s].types.includes('WATER')&&bst(META[s].stats)<=maxB+20&&bst(META[s].stats)>=minB-40);const w=pickW(wl.length?wl:L.slice(),4,['WATER']).map((n,i)=>({n,w:i<2?8:3}));
   return{g,w}}
 // ---------- 지도 만들기 ----------
-function genArea(a){if(AREAS[a])return AREAS[a];const r=rng(G.seed*31+a*977);const town=isTown(a)||a===18;const th=THEME[town?'town':RTH[(a-1)/2]];
+function genArea(a){if(AREAS[a])return AREAS[a];if(RESOK&&RESD[a])return genRes(a);const r=rng(G.seed*31+a*977);const town=isTown(a)||a===18;const th=THEME[town?'town':RTH[(a-1)/2]];
   const W=town?22:20,H=town?18:(a===17?48:42);const M=Array.from({length:H},()=>new Array(W).fill(th.cave?T_.CAVE:T_.G));
   const A={a,W,H,M,th,bld:[],npc:[],items:[],name:areaName(a),town};const set=(x,y,t)=>{if(x>=0&&y>=0&&x<W&&y<H)M[y][x]=t};const get=(x,y)=>x<0||y<0||x>=W||y>=H?-1:M[y][x];
   const wall=th.cave?T_.ROCK:T_.TREE;
@@ -815,6 +815,56 @@ function bfs(A,sx,sy,goal,mode){const W=A.W,H=A.H,prev=new Int32Array(W*H).fill(
   while(Q.length){const i=Q.shift(),x=i%W,y=(i/W)|0;if(goal(x,y)&&!(x===sx&&y===sy&&Q.length===0&&false)){if(!(x===sx&&y===sy)||goal.self){const p=[];let j=i;while(j!==sy*W+sx){p.push([j%W,(j/W)|0]);j=prev[j]}return p.reverse()}}
     for(const [dx,dy] of [[0,-1],[1,0],[-1,0],[0,1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=W||Y>=H)continue;const k=Y*W+X;if(prev[k]>=0)continue;if(!canGo(A,X,Y,mode)&&!goal(X,Y))continue;prev[k]=i;Q.push(k)}}return null}
 
+// ===== 레조넌스 관동 지도 (진짜 마을·도로 그림) =====
+// maps/mNN.json + mNN_lo.webp(바닥) + mNN_hi.webp(나무 윗부분·지붕 → 캐릭터 위에 그림)
+// 출구: [이전 지역 쪽, 다음 지역 쪽] — 숫자 = 가장자리 출구 번호, ['w',x,y] = 문/동굴/게이트로 나가기
+const RESX=[[null,0],[1,0],[0,1],[4,['w',32,19]],[6,3],[1,['w',24,29]],[0,2],[2,['w',6,17]],[1,0],[0,1],[1,2],[2,3],[['w',11,32],['w',64,32]],[2,['w',12,29]],[0,['w',30,20]],[1,['w',30,40]],[0,3],[1,0],[0,null]];
+const RES_TOWNS=['태초마을','회색시티','블루시티','갈색시티','무지개시티','연분홍시티','노랑시티','홍련섬','상록시티'];
+const RES_GYMN=['관장 웅','관장 이슬','관장 마티스','관장 민화','관장 독수','관장 초련','관장 강연','관장 비주기'];
+let RESD={},RESOK=false;
+async function resPreload(){try{const L=await Promise.all(RESX.map((_,a)=>fetch('maps/m'+String(a).padStart(2,'0')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)));
+  L.forEach((j,a)=>{if(j)RESD[a]=j});RESOK=Object.keys(RESD).length===RESX.length;
+  if(RESOK){TOWNS.splice(0,TOWNS.length,...RES_TOWNS);RTN.splice(0,RTN.length,...[1,3,5,7,9,11,13,15,17].map(a=>a===17?'23번도로 · 챔피언 로드':RESD[a].name));RES_GYMN.forEach((n,i)=>{if(GYM[i])GYM[i].n=n})}}catch(e){RESOK=false}}
+const RIMG={};function resImg(a,k){const key=a+k;if(!RIMG[key]){const i=new Image();i.decoding='async';i.src='maps/m'+String(a).padStart(2,'0')+'_'+k+'.webp';RIMG[key]=i}return RIMG[key]}
+function genRes(a){const j=RESD[a],W=j.w,H=j.h,town=isTown(a)||a===18,r=rng(G.seed*31+a*977);const th=THEME[town?'town':RTH[(a-1)/2]];
+  const raw=atob(j.cells);const TT=[T_.TREE,T_.G,T_.TG,T_.WATER,T_.G,T_.DOOR];
+  const M=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>TT[raw.charCodeAt(y*W+x)]??T_.TREE));
+  const A={a,W,H,M,th,bld:[],npc:[],items:[],name:areaName(a),town,res:1,exAt:{},wAt:{}};
+  A.cv=resImg(a,'lo');A.hi=resImg(a,'hi');
+  for(const b of j.blds){if(b.kind==='warp')continue;if(b.kind==='lab'&&a!==0)continue;if(b.kind==='home'&&a!==0)continue;
+    A.bld.push({kind:b.kind,door:{x:b.x,y:b.y},out:{x:b.out[0],y:b.out[1]},name:b.name})}
+  // 출구
+  const mk=(spec,to)=>{if(spec==null||to<0||to>18)return null;
+    if(Array.isArray(spec)){const b=j.blds.find(b=>b.x===spec[1]&&b.y===spec[2])||{x:spec[1],y:spec[2],out:[spec[1],spec[2]+1]};M[b.y][b.x]=T_.DOOR;
+      const e={to,warp:1,cells:[[b.x,b.y]],arr:{x:b.out[0],y:b.out[1],dir:b.out[1]>b.y?0:b.out[1]<b.y?3:b.out[0]>b.x?2:1}};A.wAt[b.x+','+b.y]=e;return e}
+    const run=j.runs[spec];if(!run)return null;const [dx,dy]=run.d;const e={to,edge:1,dx,dy,cells:run.cells};
+    const mid=run.cells[run.cells.length>>1];e.arr={x:mid[0],y:mid[1],dir:dy<0?0:dy>0?3:dx<0?2:1};for(const c of run.cells)A.exAt[c[0]+','+c[1]]=e;return e};
+  A.exP=mk(RESX[a][0],a-1);A.exN=mk(RESX[a][1],a+1);
+  // 처음 나타나는 곳
+  const home=A.bld.find(b=>b.kind==='home')||A.bld.find(b=>b.kind==='center')||A.bld.find(b=>b.kind==='league');
+  A.spawn=home?{x:home.out.x,y:home.out.y}:A.exP?{x:A.exP.arr.x,y:A.exP.arr.y}:{x:W>>1,y:H>>1};
+  const walk=(x,y)=>x>0&&y>0&&x<W-1&&y<H-1&&(M[y][x]===T_.G||M[y][x]===T_.TG);
+  // 길(이전 출구 → 다음 출구)을 따라 트레이너 · 아이템 · 경비원
+  const from=A.exP?A.exP.arr:A.spawn,to2=A.exN?A.exN.arr:null;let path=[];
+  if(to2){const p=bfs(A,from.x,from.y,(x,y)=>x===to2.x&&y===to2.y,'walk');if(p)path=p}
+  if(A.exN&&a>0&&a<18&&town){const g=A.exN.arr;A.guard={x:g.x,y:g.y,need:a/2,beside:1}}
+  if(a===0){const lab=A.bld.find(b=>b.kind==='lab');if(lab){const s=[[1,0],[-1,0],[2,0],[-2,0]].map(([dx,dy])=>[lab.out.x+dx,lab.out.y+dy]).find(([x,y])=>walk(x,y));if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:PAL.prof,kind:'talk',lines:['포켓몬 박사: 어서 와! 연구소에서 첫 포켓몬을 골라 주렴.']})}}
+  if(town&&a>0&&a<16){const c=A.bld.find(b=>b.kind==='center');if(c){const s=[[2,1],[-2,1],[3,0],[-3,0]].map(([dx,dy])=>[c.out.x+dx,c.out.y+dy]).find(([x,y])=>walk(x,y));if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:NPAL(),kind:'talk',lines:[pick(['풀숲에 들어가면 야생 포켓몬이 나와!','포켓몬센터에서 공짜로 회복할 수 있어.','상성이 좋은 기술은 2배 피해야!','비행 타입 포켓몬이 있으면 하늘을 날 수 있대!','물 타입 포켓몬이 있으면 물 위를 탈 수 있어.'])]})}}
+  if(!town){const k=(a-1)/2;A.enc=encTable(a);const enc=A.enc,[lo,hi]=areaLv(a);const nT=3+Math.floor(k/3);const used=new Set(path.map(([x,y])=>x+','+y));
+    for(let i=0;i<nT&&path.length>12;i++){const [px,py]=path[Math.floor(path.length*(i+1)/(nT+1))];
+      const cand=[[2,0],[-2,0],[0,2],[0,-2],[3,0],[-3,0],[1,1],[-1,1]].map(([dx,dy])=>[px+dx,py+dy]).filter(([x,y])=>walk(x,y)&&!used.has(x+','+y));if(!cand.length)continue;const [tx,ty]=cand[r()*cand.length|0];
+      const nm=pick(['반바지 꼬마','곤충채집 소년','등산가','아가씨','낚시꾼','엘리트 트레이너','태권 소녀','캠프 보이','초능력자']);const cnt=k===0?1:1+(r()*Math.min(3,1+k/2)|0);
+      const team=[];for(let q=0;q<cnt;q++)team.push({n:enc.g[r()*Math.min(enc.g.length,7)|0].n,lv:Math.round(lo+(hi-lo)*(k===0?r()*.4:.3+r()*.6))+(k===0?0:1)});
+      const dir=tx<px?2:tx>px?1:ty<py?0:3;A.npc.push({x:tx,y:ty,dir,pal:NPAL(),kind:'trainer',name:nm,team,id:'t'+a+'_'+i,sight:4,lines:[pick(['눈이 마주쳤으니 승부다!','내 포켓몬 실력 좀 볼래?','여기 지나가려면 나를 이겨!','훈련의 성과를 보여 주지!'])]});used.add(tx+','+ty)}
+    const free=[];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)if(M[y][x]===T_.G&&!used.has(x+','+y))free.push([x,y]);
+    for(let i=0;i<3&&free.length;i++){const [x,y]=free[r()*free.length|0];A.items.push({x,y,it:pick(k<2?['ball','potion']:k<5?['great','spotion','ball']:['hyper','hpotion','great']),n:1+(r()*2|0),id:'r'+a+'_'+i})}}
+  AREAS[a]=A;return A}
+// 다른 지역으로 (가장자리·문)
+async function goRes(to){const from=G.a;P.busy=1;await fade(1);const A=genArea(to);const e=to>from?A.exP:A.exN;const s=e?e.arr:A.spawn;place(to,s.x,s.y,s.dir??0);toast('📍 '+A.name);await fade(0);P.busy=0}
+// 예전 저장(옛 지도 자리) → 새 지도에서 안전한 곳으로
+function resFixSave(){if(!RESOK||!G)return;if(G.mapv===2)return;G.mapv=2;const A=genArea(G.a);const c=A.bld.find(b=>b.kind==='center')||A.bld.find(b=>b.kind==='home');const s=c?c.out:A.spawn;G.x=s.x;G.y=s.y;G.dir=0;
+  const H=genArea(G.heal&&G.heal.a!=null?G.heal.a:0),hc=H.bld.find(b=>b.kind==='center')||H.bld.find(b=>b.kind==='home');G.heal=hc?{a:H.a,x:hc.out.x,y:hc.out.y}:{a:0,x:genArea(0).spawn.x,y:genArea(0).spawn.y}}
+
 // ===== 걸어 다니기 · 화면 그리기 · 조작 =====
 const cv=document.getElementById('cv'),cx=cv.getContext('2d');let VW=0,VH=0,DPR=1,TS=32;
 function resize(){DPR=Math.min(2,devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=VW*DPR;cv.height=VH*DPR;cv.style.width=VW+'px';cv.style.height=VH+'px';TS=Math.max(26,Math.floor(Math.min(VW/11,VH/15)))}
@@ -827,6 +877,7 @@ function place(a,x,y,dir){G.a=a;const A=genArea(a);P.x=x;P.y=y;P.dir=dir??P.dir;
 // 한 칸 움직이기
 function tryStep(d){if(P.mv||P.busy)return false;const A=curA();P.dir=d;const dx=[0,-1,1,0][d],dy=[1,0,0,-1][d];const X=P.x+dx,Y=P.y+dy;
   // 지역 밖으로
+  if(A.res){if(X<0||Y<0||X>=A.W||Y>=A.H){const e=A.exAt[P.x+','+P.y];if(e&&e.dx===dx&&e.dy===dy){if(e.to>G.a&&!gateOk(A))return false;goRes(e.to);return true}return false}}
   if(Y<0&&A.gapN&&Math.abs(X-A.GX-.5)<=1){if(!gateOk(A)){return false}go(G.a+1,'S',X-A.GX);return true}
   if(Y>=A.H&&A.gapS){go(G.a-1,'N',X-A.GX);return true}
   if(Y>=0&&Y<A.H&&X>=0&&X<A.W){const t=A.M[Y][X];
@@ -840,6 +891,7 @@ function gateOk(A){if(G.a===0&&!G.party.length){say(['포켓몬 박사: 잠깐! 
   if(A.guard&&G.badges<A.guard.need){say(['경비원: 이 앞은 '+TOWNS[A.guard.need]+' 체육관 배지가 있어야 지나갈 수 있어!']);return false}return true}
 async function go(a,side,X){P.busy=1;await fade(1);const A=genArea(a);const y=side==='S'?A.H-1:0;place(a,A.GX+Math.max(0,Math.min(1,X)),y,side==='S'?3:0);toast('📍 '+A.name);await fade(0);P.busy=0}
 function afterStep(){const A=curA(),t=A.M[P.y][P.x];P.fr=(P.fr+1)%4;
+  if(A.res){const e=A.wAt[P.x+','+P.y];if(e){P.queue=null;if(e.to>G.a&&!gateOk(A)){const b=e.arr;P.x=b.x;P.y=b.y;return}goRes(e.to);return}}
   const it=A.items.find(i=>i.x===P.x&&i.y===P.y&&!G.got[i.id]);if(it){G.got[it.id]=1;addItem(it.it,it.n);toast('✨ '+ITEMS[it.it].n+' ×'+it.n+' 주웠다!');sfx('get');save()}
   if(t===T_.DOOR){const b=A.bld.find(b=>b.door.x===P.x&&b.door.y===P.y);if(b){P.queue=null;enterBld(b);return}}
   if(P.mode!=='fly'){for(const n of A.npc)if(n.kind==='trainer'&&!G.beat[n.id]&&!n.gone&&sees(n)){P.queue=null;trainerSpot(n);return}
@@ -854,13 +906,13 @@ function flyMon(){return G.party.find(m=>m.hp>0&&META[m.n].types.includes('FLYIN
 function folMon(){if(!G.fol)return null;return G.party.find(m=>m.fid===G.fol)||G.box.find(m=>m.fid===G.fol)||null}
 async function refreshSpr(){const L=folMon()||G.party[0];LEADS=L?await getSpr(L.n):null;const M=P.mode==='surf'?surfMon().m:P.mode==='fly'?flyMon():null;MOUNT=M?await getSpr(M.n):null}
 function drawOver(dt){const A=curA();const [px,py]=lerpPos();const s=TS*DPR,camX=px*s+s/2-cv.width/2,camY=py*s+s/2-cv.height/2-(VH*.06*DPR);
-  cx.fillStyle=A.th.cave?'#2a2420':'#2e7d32';cx.fillRect(0,0,cv.width,cv.height);cx.imageSmoothingEnabled=false;cx.drawImage(A.cv,-camX,-camY,A.W*s,A.H*s);
+  cx.fillStyle=A.th.cave?'#2a2420':'#2e7d32';cx.fillRect(0,0,cv.width,cv.height);cx.imageSmoothingEnabled=false;if(!A.res||(A.cv.complete&&A.cv.naturalWidth))cx.drawImage(A.cv,-camX,-camY,A.W*s,A.H*s);
   // 물 반짝
   const sc=s/16;
   for(const it of A.items){if(G.got[it.id])continue;const X=it.x*s-camX+s/2,Y=it.y*s-camY+s/2;cx.fillStyle='#e83838';cx.beginPath();cx.arc(X,Y,s*.22,Math.PI,0);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(X,Y,s*.22,0,Math.PI);cx.fill();cx.strokeStyle='#222';cx.lineWidth=sc;cx.beginPath();cx.arc(X,Y,s*.22,0,7);cx.moveTo(X-s*.22,Y);cx.lineTo(X+s*.22,Y);cx.stroke()}
   const ents=[];
   for(const n of A.npc)if(!n.gone)ents.push({y:n.y,f:()=>drawPerson(n.pal,n.dir,0,n.x*s-camX,n.y*s-camY,s,n.kind==='trainer'&&!G.beat[n.id])});
-  if(A.guard&&G.badges<A.guard.need)ents.push({y:1,f:()=>drawPerson(PAL.guard,0,0,(A.GX-1)*s-camX,1*s-camY,s)});
+  if(A.guard&&G.badges<A.guard.need){const gx=A.res?A.guard.x:A.GX-1,gy=A.res?A.guard.y:1;ents.push({y:gy,f:()=>drawPerson(PAL.guard,0,0,gx*s-camX,gy*s-camY,s)})}
   // 따라오는 포켓몬
   if(LEADS&&P.mode==='walk'&&P.trail[0]){const T=P.trail[0];let fx=T[0],fy=T[1];if(P.mv){const u=Math.min(1,P.mv.t/P.mv.d),T2=P.trail[1]||T;fx=T2[0]+(T[0]-T2[0])*u;fy=T2[1]+(T[1]-T2[1])*u}
     const fd=P.trail[0][2];ents.push({y:fy-.01,f:()=>{const S=LEADS;const st=P.mv?'walk':'idle';drawPm(cx,S,st,ROWOF[fd],NOW,fx*s-camX+s/2,fy*s-camY+s*.45,s/15*pmScale(S))}})}
@@ -869,6 +921,7 @@ function drawOver(dt){const A=curA();const [px,py]=lerpPos();const s=TS*DPR,camX
     else if(P.mode==='fly'&&MOUNT){const bob=Math.sin(NOW*5)*s*.06;cx.fillStyle='#0004';cx.beginPath();cx.ellipse(X+s/2,Y+s*.85,s*.45,s*.16,0,0,7);cx.fill();drawPm(cx,MOUNT,'walk',ROWOF[P.dir],NOW,X+s/2,Y-s*.25+bob,s/11*pmScale(MOUNT));drawMe(P.dir,0,X,Y-s*1.15+bob,s,.7)}
     else drawMe(P.dir,wf,X,Y,s)}});
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.f());
+  if(A.res&&A.hi&&A.hi.complete&&A.hi.naturalWidth)cx.drawImage(A.hi,-camX,-camY,A.W*s,A.H*s);
   if(A.th.cave&&!A.town){const g=cx.createRadialGradient(cv.width/2,cv.height/2-(VH*.06*DPR),s*2,cv.width/2,cv.height/2,s*7);g.addColorStop(0,'#0000');g.addColorStop(1,'#000a');cx.fillStyle=g;cx.fillRect(0,0,cv.width,cv.height)}
   if(P.queue&&P.queue.length&&SHOWPATH){cx.fillStyle='#ffffff70';for(const [x,y] of P.queue.slice(0,40)){cx.beginPath();cx.arc(x*s-camX+s/2,y*s-camY+s/2,s*.09,0,7);cx.fill()}}}
 let SHOWPATH=true;
@@ -882,7 +935,7 @@ addEventListener('keyup',e=>{if(e.key in DIRK&&KEY.dir===DIRK[e.key])KEY.dir=-1}
 function userMove(){if(AUTO.on){AUTO.on=0;AUTO.hunt=null;P.queue=null;hud();toast('✋ 자동 멈춤')}}
 function onA(){if(DLG.on){DLG.next();return}if(SCENE!=='over'||P.busy||P.mv)return;const A=curA();const d=P.dir,X=P.x+[0,-1,1,0][d],Y=P.y+[1,0,0,-1][d];const np=A.npc.find(n=>n.x===X&&n.y===Y&&!n.gone);if(np){talk(np);return}if(A.M[Y]&&A.M[Y][X]===T_.SIGN){say([A.sign.t]);return}meSwing()}
 function updOver(dt){meTick(dt);if(P.mv){P.mv.t+=dt;if(P.mv.t>=P.mv.d){P.mv=null;afterStep()}}
-  if(!P.mv&&!P.busy&&!DLG.on&&SCENE==='over'){if(KEY.dir>=0)tryStep(KEY.dir);else if(P.queue&&P.queue.length){const [x,y]=P.queue[0];const d=x<P.x?1:x>P.x?2:y<P.y?3:0;if(Math.abs(x-P.x)+Math.abs(y-P.y)!==1&&!(y<0||y>=curA().H)){P.queue=null}else{const ok=tryStep(d);if(ok)P.queue.shift();else{P.queue=null}}}
+  if(!P.mv&&!P.busy&&!DLG.on&&SCENE==='over'){if(KEY.dir>=0)tryStep(KEY.dir);else if(P.queue&&P.queue.length){const [x,y]=P.queue[0];const d=x<P.x?1:x>P.x?2:y<P.y?3:0;if(Math.abs(x-P.x)+Math.abs(y-P.y)!==1&&!(y<0||y>=curA().H||x<0||x>=curA().W)){P.queue=null}else{const ok=tryStep(d);if(ok)P.queue.shift();else{P.queue=null}}}
     else if(AUTO.on)autoThink()}}
 
 // ===== 포켓몬 · 배틀 =====
@@ -1154,8 +1207,8 @@ function fade(v){bt('fade').style.opacity=v;return sleep(220)}
 let AC=null;function sfx(k){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const S={tap:[[880,.04]],get:[[660,.08],[880,.08],[1320,.14]],hit:[[140,.12,'square']],atk:[[420,.06,'triangle']],faint:[[300,.1],[200,.12],[120,.2]],lv:[[523,.08],[659,.08],[784,.08],[1046,.2]],heal:[[600,.1],[800,.1],[1000,.16]],enc:[[200,.06,'square'],[300,.06,'square'],[400,.06,'square'],[600,.12,'square']],badge:[[523,.12],[659,.12],[784,.12],[1046,.3]]}[k]||[[500,.05]];
   let t=AC.currentTime;for(const [f,d,w] of S){const o=AC.createOscillator(),g=AC.createGain();o.type=w||'sine';o.frequency.value=f;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d);t+=d*.9}}catch(e){}}
 // ---------- 건물 ----------
-async function enterBld(b){P.busy=1;await fade(.6);await fade(0);P.busy=0;const back=()=>{P.x=b.door.x;P.y=b.door.y+1;P.dir=0;P.trail=[]};
-  if(b.kind==='center'||b.kind==='home'){healAll();G.heal={a:G.a,x:b.door.x,y:b.door.y+1};sfx('heal');back();await say([b.kind==='home'?'엄마: 푹 쉬었다 가렴! 포켓몬들이 모두 건강해졌어.':'간호순: 포켓몬들이 모두 건강해졌어요! 또 오세요 ♪']);if(b.kind==='center'){if(AUTO.on)autoBuy();else await shop(1)}save()}
+async function enterBld(b){P.busy=1;await fade(.6);await fade(0);P.busy=0;const back=()=>{if(b.out){P.x=b.out.x;P.y=b.out.y}else{P.x=b.door.x;P.y=b.door.y+1}P.dir=0;P.trail=[]};
+  if(b.kind==='center'||b.kind==='home'){healAll();G.heal=b.out?{a:G.a,x:b.out.x,y:b.out.y}:{a:G.a,x:b.door.x,y:b.door.y+1};sfx('heal');back();await say([b.kind==='home'?'엄마: 푹 쉬었다 가렴! 포켓몬들이 모두 건강해졌어.':'간호순: 포켓몬들이 모두 건강해졌어요! 또 오세요 ♪']);if(b.kind==='center'){if(AUTO.on)autoBuy();else await shop(1)}save()}
   else if(b.kind==='shop'){back();if(AUTO.on)autoBuy();else await shop(0)}
   else if(b.kind==='lab'){back();if(!G.party.length)await chooseStarter();else await say(['포켓몬 박사: 도감은 잘 채우고 있니? 지금 '+Object.keys(G.dex.c).length+'마리 잡았구나!'])}
   else if(b.kind==='gym'){back();await gym(G.a/2)}
@@ -1221,9 +1274,14 @@ function autoThink(){if(SCENE!=='over'||P.busy||DLG.on||PANEL)return;let g=null,
     const near=tiles.filter(([x,y])=>Math.abs(x-P.x)+Math.abs(y-P.y)<=6);const T=pick(near.length>3?near:tiles);const p=bfs(A,P.x,P.y,(x,y)=>x===T[0]&&y===T[1],P.mode==='fly'?'walk':P.mode);if(p&&p.length){if(P.mode==='fly')P.mode='walk',refreshSpr();P.queue=p}else{AUTO.stuck++;if(AUTO.stuck>20){AUTO.stuck=0;tryStep(ri(0,3))}}return}
   if(g){if(G.a!==g.a){navArea(g.a);return}const A=curA();const b=A.bld.find(b=>b.kind===g.door);if(!b){AUTO.on=0;hud();return}const p=bfs(A,P.x,P.y,(x,y)=>x===b.door.x&&y===b.door.y,P.mode==='fly'?'fly':'walk');if(p){P.queue=p}else{AUTO.stuck++;if(AUTO.stuck>5){toast('길을 못 찾았어요');AUTO.on=0;hud()}}}}
 function navArea(a){if(canFly()){const T=[];for(const k in G.visit)T.push(+k);const best=T.filter(t=>Math.abs(t-a)<Math.abs(G.a-a)-1).sort((p,q)=>Math.abs(p-a)-Math.abs(q-a))[0];if(best!=null&&Math.abs(G.a-a)>2){flyTo(best);return}}
-  const A=curA(),up=a>G.a;const ex=up?[A.GX,A.GX+1].map(x=>[x,0]):[A.GX,A.GX+1].map(x=>[x,A.H-1]);
+  const A=curA(),up=a>G.a;
+  if(A.res){const e=up?A.exN:A.exP;if(!e){AUTO.on=0;hud();return}const onE=e.cells.some(([x,y])=>x===P.x&&y===P.y);
+    if(onE&&e.edge){P.queue=[[P.x+e.dx,P.y+e.dy]];return}
+    const p=bfs(A,P.x,P.y,(x,y)=>e.cells.some(c=>c[0]===x&&c[1]===y),P.mode==='fly'?'fly':'walk');
+    if(p){if(e.edge){const L=p[p.length-1];p.push([L[0]+e.dx,L[1]+e.dy])}P.queue=p}else{AUTO.stuck++;if(AUTO.stuck>5){AUTO.stuck=0;toast('길을 못 찾았어요');AUTO.on=0;hud()}}return}
+  const ex=up?[A.GX,A.GX+1].map(x=>[x,0]):[A.GX,A.GX+1].map(x=>[x,A.H-1]);
   if(ex.some(([x,y])=>x===P.x&&y===P.y)){P.queue=[[P.x,up?-1:A.H]];return}const p=bfs(A,P.x,P.y,(x,y)=>ex.some(e=>e[0]===x&&e[1]===y),P.mode==='fly'?'fly':'walk');if(p){p.push([p[p.length-1][0],up?-1:A.H]);P.queue=p}else{AUTO.stuck++;if(AUTO.stuck>5){AUTO.stuck=0;toast('길을 못 찾았어요');AUTO.on=0;hud()}}}
-async function flyTo(a){P.busy=1;P.mode='fly';await refreshSpr();toast('🕊 '+nm(flyMon())+'(을)를 타고 '+areaName(a)+'(으)로!');sfx('get');await fade(1);const A=genArea(a);const b=A.bld.find(b=>b.kind==='center'||b.kind==='home'||b.kind==='league');place(a,b?b.door.x:A.GX,b?b.door.y+1:A.H-2,0);P.mode='walk';await refreshSpr();await fade(0);P.busy=0}
+async function flyTo(a){P.busy=1;P.mode='fly';await refreshSpr();toast('🕊 '+nm(flyMon())+'(을)를 타고 '+areaName(a)+'(으)로!');sfx('get');await fade(1);const A=genArea(a);const b=A.bld.find(b=>b.kind==='center'||b.kind==='home'||b.kind==='league');place(a,b?(b.out?b.out.x:b.door.x):A.res?A.spawn.x:A.GX,b?(b.out?b.out.y:b.door.y+1):A.res?A.spawn.y:A.H-2,0);P.mode='walk';await refreshSpr();await fade(0);P.busy=0}
 // ---------- 화면 윗부분 ----------
 function hud(){if(!G)return;const o=objective();bt('hTop').innerHTML=`<b>📍 ${areaName(G.a)}</b><span>🏅${G.badges} · 💰${G.money}</span>`;bt('hObj').innerHTML=`<span>🎯 ${o.t}</span>`;
   bt('bAuto').classList.toggle('on',!!AUTO.on&&!AUTO.huntOnly);bt('bAuto').textContent=AUTO.on&&!AUTO.huntOnly?'⏸ 자동(AUTO) 끄기':'▶ 자동(AUTO)';autoBtnB();bt('bHunt').classList.toggle('on',!!AUTO.huntOnly);bt('bFly').style.display=canFly()?'':'none';bt('bFly').classList.toggle('on',P.mode==='fly');bt('bFast').classList.toggle('on',!!G.fast);bt('bOp').style.display=OPER.on?'':'none';
@@ -1502,7 +1560,7 @@ async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');
   const localDex=new Set(Object.values(META).map(m=>m.dex));if(OM)for(const d in OM){const dex=+d;if(!dex||localDex.has(dex))continue;const o=OM[d],n='sc:'+d;META[n]={dex,name:o.n,types:o.t,stats:o.s,moves:o.m,anim:true,online:1};THUMB[n]=faceUrl(n)}
   BYDEX={};for(const n in META){const d=META[n].dex;if(!d)continue;if(!BYDEX[d]||/shiny|_\d+$/i.test(BYDEX[d]))BYDEX[d]=n}SPECIES=Object.values(BYDEX).sort((a,b)=>META[a].dex-META[b].dex);
   for(const n of SPECIES)for(const q of META[n].moves)if(q.id)mvOf(q);try{FXA=await UP.fxaAll()||{}}catch(e){FXA={}}return SPECIES.length}
-async function title(noSync){SCENE='title';bt('title').classList.add('on');const T=bt('tInfo');T.textContent='포켓몬 불러오는 중…';let n=0;
+async function title(noSync){SCENE='title';bt('title').classList.add('on');if(!RESOK)await resPreload();const T=bt('tInfo');T.textContent='포켓몬 불러오는 중…';let n=0;
   if(!noSync)try{await Promise.race([UP.autoSync(),sleep(6000)])}catch(e){}
   try{n=await loadPool((i,N)=>T.textContent='포켓몬 불러오는 중… '+Math.round(i/N*100)+'%')}catch(e){T.textContent='불러오기 실패: '+e.message}
   migrate();const ready=n>=10;bt('tNew').disabled=!ready;slots(ready);
@@ -1515,9 +1573,9 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 async function other(){try{const L=await UP.index();const b=L.filter(x=>x.k==='bed'||x.k==='glb').length;return b?`<br><small>(3D 포켓몬 ${b}마리는 있지만, 이 게임은 레조넌스 팩의 움직이는 포켓몬만 써요)</small>`:''}catch(e){return''}}
 function start(sv,name){G=sv||null;if(!G){newGame();G.name=name}G.opt=G.opt||{catchNew:true};G.flags=G.flags||{};G.party=(G.party||[]).filter(m=>META[m.n]);G.box=(G.box||[]).filter(m=>META[m.n]);G.got=G.got||{};G.beat=G.beat||{};
   if(G.party.length===0&&G.box.length)G.party.push(G.box.shift());if(G.rival&&!META[G.rival.n])G.rival={n:pick(SPECIES)};
-  for(const k in AREAS)delete AREAS[k];buildLoc();for(const m of G.party)askEvo(META[m.n].dex);
+  for(const k in AREAS)delete AREAS[k];buildLoc();if(!sv&&RESOK){G.mapv=2;const A0=genArea(0);G.x=A0.spawn.x;G.y=A0.spawn.y;G.dir=0;G.heal={a:0,x:A0.spawn.x,y:A0.spawn.y}}else resFixSave();for(const m of G.party)askEvo(META[m.n].dex);
   bt('title').classList.remove('on');SCENE='over';place(G.a,G.x,G.y,G.dir);refreshSpr();hud();
-  if(!sv)say(['<b>'+esc(G.name)+'</b>, 포켓몬 어드벤처에 온 걸 환영해!','이곳은 새싹마을. 먼저 오른쪽 아래 <b>연구소</b>에서 첫 포켓몬을 받아요.','화면 위 「▶ 자동」을 누르면 다음 할 일을 알아서 진행해요. 방향 버튼을 누르면 직접 움직여요!'])}
+  if(!sv)say(['<b>'+esc(G.name)+'</b>, 포켓몬 어드벤처에 온 걸 환영해!','이곳은 '+TOWNS[0]+'. 먼저 <b>포켓몬 연구소</b>에서 첫 포켓몬을 받아요.','화면 위 「▶ 자동」을 누르면 다음 할 일을 알아서 진행해요. 방향 버튼을 누르면 직접 움직여요!'])}
 bt('tNew').onclick=()=>{sfx('tap');const k=bt('tName').value.trim().slice(0,8);if(!k){bt('tName').focus();toast('아이 이름을 써 주세요');return}const num=normNum(bt('tNum').value);if(num&&num.length<10){toast('폰 번호를 다시 확인해 주세요');return}if(LS.get('pka-save:'+k,null)&&!confirm(k+'의 기록이 이미 있어요. 처음부터 다시 할까요?'))return;const L=LS.get('pka-slots',[]);if(!L.includes(k))L.push(k);LS.set('pka-slots',L);start(null,k);if(num){G.num=num;save()}};
 bt('tOp').onclick=()=>operLogin();bt('tSync').onclick=async()=>{const T=bt('tInfo');T.textContent='☁ 출결 서버에 연결하는 중…';let r=null;try{r=await UP.syncCloud(t=>T.textContent='☁ '+t,false)}catch(e){T.textContent='받기 실패: '+e.message;return}if(r===null&&/없어요|취소|못 받|실패/.test(T.textContent))return;LS.set('pka-meta',{});title(1)};
 bt('tZip').onchange=async e=>{const fs=[...e.target.files];if(!fs.length)return;const T=bt('tInfo');try{await UP.importFiles(fs,t=>T.textContent=t)}catch(err){T.textContent='넣기 실패: '+err.message;return}LS.set('pka-meta',{});title()};
