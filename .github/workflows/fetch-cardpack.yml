@@ -1,0 +1,19 @@
+name: fetch-cardpack
+on:
+  push:
+    branches: [fetch-cardpack]
+permissions:
+  contents: write
+jobs:
+  f:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          set -e
+          git clone --depth 1 -b fetch-cardpack https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} r
+          cd r
+          curl -fsSL -o /tmp/c.zip https://d2ol7oe51mr4n9.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/f33bed43-6e04-4851-bfc6-b59e3c2d602e.zip
+          echo "9a9fa4f18e73453dccc2c4ea1c692597365b84b61e5bc5f6a6b31547866ce88a  /tmp/c.zip" | sha256sum -c
+          mkdir -p inbox && cd inbox && unzip -o /tmp/c.zip && cd ..
+          git config user.email noreply@anthropic.com; git config user.name Claude
+          git add inbox && git commit -m "inbox: card packs" && git push origin HEAD:fetch-cardpack-out
