@@ -1,0 +1,24 @@
+name: fetch-stg
+on:
+  push:
+    branches: [fetch-stg]
+permissions:
+  contents: write
+jobs:
+  f:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          set -e
+          git clone --depth 1 -b fetch-stg https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} r
+          cd r && mkdir -p inbox
+          curl -fsSL -o inbox/gym_water.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_150337_12482360-047c-4882-b181-8ab83ac099ba.png
+          curl -fsSL -o inbox/gym_elec.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_150656_ea545f1b-b8be-4295-ad1b-96eeccfe804c.png
+          curl -fsSL -o inbox/gym_grass.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_150925_9ac1b4a5-1823-4ab1-8577-faf30c5c53cb.png
+          curl -fsSL -o inbox/gym_poison.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_151025_e0e454a1-477e-4519-b9e3-cbd69e16cf68.png
+          curl -fsSL -o inbox/gym_psychic.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_151055_495a1eff-739d-41f3-9dc2-6ed24fafd304.png
+          curl -fsSL -o inbox/gym_fire.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_151117_fb5a54da-52b9-4f0d-884e-808e6a56e13e.png
+          curl -fsSL -o inbox/gym_ground.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_151135_2f78026a-ae90-44fa-9be8-f28e9450afb7.png
+          curl -fsSL -o inbox/league.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_151159_3641aee5-8a80-473b-ba6f-d2df67d70a6c.png
+          git config user.email noreply@anthropic.com; git config user.name Claude
+          git add inbox && git commit -m "inbox: stages2" && git push -f origin HEAD:fetch-stg-out
