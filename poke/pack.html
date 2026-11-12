@@ -1,0 +1,13 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>카드팩 열기</title>
+<style>html,body{margin:0;height:100%;background:#05050c;color:#fff;font-family:sans-serif;overflow:hidden}#m{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:16px}a{color:#ffd060;font-weight:800;font-size:18px}</style></head>
+<body><div id="m"></div><script src="cardpack/pack.js"></script><script>
+(async()=>{const q=new URLSearchParams(location.search),k=q.get('k')||'P',id=+q.get('id')||25,r=+q.get('r')||0,sh=+q.get('sh')||0,lv=+q.get('lv')||5;
+let o={rar:r,sh,kind:k,base:'cardpack/'};
+try{if(k==='P'){const M=await (await fetch('poke_meta.json')).json();const d=String(id).padStart(4,'0'),m=M[d]||{n:'포켓몬 No.'+id,t:[]};
+  const TC={NORMAL:'#a8a878',FIRE:'#f08030',WATER:'#6890f0',ELECTRIC:'#f8d030',GRASS:'#78c850',ICE:'#98d8d8',FIGHTING:'#c03028',POISON:'#a040a0',GROUND:'#e0c068',FLYING:'#a890f0',PSYCHIC:'#f85888',BUG:'#a8b820',ROCK:'#b8a038',GHOST:'#705898',DRAGON:'#7038f8',DARK:'#705848',STEEL:'#b8b8d0',FAIRY:'#ee99ac'};
+  Object.assign(o,{name:m.n,sub:'Lv.'+lv,img:'pk/portrait/'+d+'/Normal.png',col:TC[m.t[0]]})}
+ else{const G=await (await fetch('giftmoves.json')).json();Object.assign(o,{name:(G[id]||[,'기술'])[1],sub:'기술 카드'})}}catch(e){o.name=o.name||'선물'}
+await CardPack.open(o);
+document.getElementById('m').innerHTML='<div style="font-size:22px;font-weight:900">가방에 들어갔어요!</div><div>[사용]을 누르고 내 번호를 넣으면<br>게임 선물 코드가 문자로 와요</div>'+(q.get('back')?'':'<a href="./">포켓몬 어드벤처 열기 ›</a>');
+try{window.Android&&Android.packDone&&Android.packDone()}catch(e){}})();
+</script></body></html>
