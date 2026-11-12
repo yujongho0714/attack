@@ -72,10 +72,10 @@ body.inact #bTx,body.inact #bMenu{display:none!important}
  body.inb #bMenu:not(:empty)~#bTx,body.inb #bTx{bottom:calc(8px + env(safe-area-inset-bottom));right:calc(min(32vw,270px) + 18px);min-height:0;padding:8px 12px;font-size:16px}
  body.inact #aTop{top:calc(10px + env(safe-area-inset-top));right:auto;left:50%;transform:translateX(-50%)}
 }
-</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
+</style><style>#bAutoB{display:none;position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));border:3px solid #2c3050;border-radius:14px;background:#fffdf0;color:#2c3050;font-weight:900;font-size:15px;padding:7px 14px;box-shadow:0 3px 0 #2c3050}#bAutoB.on{background:#ffd060}body.inb #bAutoB{display:block}body.inb:not(.inact) #bAutoB{bottom:auto;top:calc(10px + env(safe-area-inset-top))}body.inact #bAutoB{bottom:auto;top:calc(56px + env(safe-area-inset-top))}</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
-<div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
+<div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
 <div id="side"><button id="bHunt"><b>🌿</b>자동사냥</button><button id="bDex"><b>📖</b>도감</button><button id="bMenu2"><b>📋</b>메뉴</button><button id="bFly"><b>🕊</b>날기</button><button id="bFast"><b>⚡</b>빠르게</button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
 <div id="pad"><button data-d="3">▲</button><button data-d="1">◀</button><button data-d="2">▶</button><button data-d="0">▼</button></div><button id="bA">A<br><small>조사</small></button>
 <div id="bF"></div><div id="bM"></div><div id="bMenu"></div><div id="bTx"></div>
@@ -981,7 +981,7 @@ async function battle(o){SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg
     if(end)break}
   if(res==='win'&&o.trainer){if(o.lose)await msg('<b>'+o.trainer+'</b>: '+o.lose,1400);if(o.money){G.money+=o.money;await msg('상금으로 '+o.money+'원을 받았다!')}}
   if(res==='lose'){await msg('눈앞이 캄캄해졌다…',1500)}
-  actEnd(null);ACT.cd={};await evolveCheck();showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();save();return res}
+  actEnd(null);ACT.cd={};if(AUTO.stopAfter)autoStop();await evolveCheck();showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();save();return res}
 function forcePick(){return new Promise(r=>{bt('bTx').innerHTML='다음 포켓몬을 고르세요';bt('bMenu').innerHTML=G.party.map((m,i)=>`<button data-p="${i}" ${m.hp<=0?'disabled':''}>${nm(m)} Lv.${m.lv} ${Math.ceil(m.hp)}/${stOf(m)[0]}</button>`).join('');bt('bMenu').querySelectorAll('[data-p]').forEach(x=>x.onclick=()=>r(G.party[+x.dataset.p]))})}
 async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FAST()?300:600);const fp=side(0),mp=side(1);BS.ball={x:mp.x,y:mp.y,col:it.col};
   for(let i=0;i<=20;i++){const u=i/20;BS.ball.x=mp.x+(fp.x-mp.x)*u;BS.ball.y=mp.y-VW*.1+(fp.y-VW*.12-mp.y+VW*.1)*u-Math.sin(u*Math.PI)*VH*.18;BS.ball.rot=u*12;await sleep(18)}
@@ -1130,6 +1130,14 @@ function actPilot(fr){const me=BS.me,f=BS.foe,ai=ACT.ai,st=ACT.stick;ACT.pt=(ACT
   const ap=(d-want)/want;st.x=dx/d*ap*1.2+(-dy/d)*Math.sin(ACT.t*1.1)*.5;st.y=dy/d*ap*1.2+(dx/d)*Math.sin(ACT.t*1.1)*.5;const L=Math.hypot(st.x,st.y);if(L>1){st.x/=L;st.y/=L}
   if(!ACT.busy&&ACT.roll<=0){let best=-1,bi=-1;me.m.moves.forEach((id,i)=>{if((ACT.cd[id]||0)>0)return;const v=dmgCalc(me.m,f.m,mv(id),0).d;if(v>best){best=v;bi=i}});if(bi>=0&&ACT.pt>.5)actPress(bi)}}
 
+// ---------- 자동(AUTO) 끄기: 배틀 중에 끄면 그 판은 자동으로 끝내고, 다음부터 멈춤 ----------
+function autoActive(){return !!(AUTO.on||G.autoBattle)}
+function autoStop(){AUTO.on=0;AUTO.huntOnly=0;AUTO.hunt=null;AUTO.stopAfter=0;G.autoBattle=0;G.autoQuest=0;P.queue=null;try{save()}catch(e){}hud();toast('✋ 자동(AUTO) 꺼졌어요')}
+function autoBtnB(){let b=document.getElementById('bAutoB');if(!b){b=document.createElement('button');b.id='bAutoB';document.body.appendChild(b);
+    b.onclick=()=>{sfx('tap');if(autoActive()){if(SCENE==='battle'){AUTO.stopAfter=AUTO.stopAfter?0:1;toast(AUTO.stopAfter?'⏳ 이번 판까지만 자동으로 하고 멈출게요':'▶ 자동(AUTO) 계속')}else autoStop()}else{G.autoBattle=1;AUTO.stopAfter=0;toast('▶ 이번 배틀부터 자동(AUTO)')}autoBtnB()}}
+  b.textContent=!autoActive()?'▶ 자동(AUTO)':AUTO.stopAfter?'⏳ 이번 판까지 자동':'⏸ 자동(AUTO) 끄기';b.classList.toggle('on',autoActive()&&!AUTO.stopAfter)}
+setInterval(()=>{try{if(SCENE==='battle')autoBtnB()}catch(e){}},400);
+
 // ===== 게임 진행: 건물 · 트레이너 · 체육관 · 리그 · 자동 진행 · 메뉴 · 도감 · 저장 =====
 const ITEMS={ball:{n:'몬스터볼',e:'🔴',ball:1,col:'#e83838',p:200},great:{n:'슈퍼볼',e:'🔵',ball:1.5,col:'#3a6ae8',p:600,b:2},hyper:{n:'하이퍼볼',e:'🟡',ball:2.2,col:'#f0c020',p:1200,b:5},
  potion:{n:'상처약',e:'💊',heal:20,p:300},spotion:{n:'좋은상처약',e:'💉',heal:60,p:700,b:3},hpotion:{n:'고급상처약',e:'🧪',heal:150,p:1200,b:6},candy:{n:'이상한사탕',e:'🍬',lv:1}};
@@ -1218,9 +1226,9 @@ function navArea(a){if(canFly()){const T=[];for(const k in G.visit)T.push(+k);co
 async function flyTo(a){P.busy=1;P.mode='fly';await refreshSpr();toast('🕊 '+nm(flyMon())+'(을)를 타고 '+areaName(a)+'(으)로!');sfx('get');await fade(1);const A=genArea(a);const b=A.bld.find(b=>b.kind==='center'||b.kind==='home'||b.kind==='league');place(a,b?b.door.x:A.GX,b?b.door.y+1:A.H-2,0);P.mode='walk';await refreshSpr();await fade(0);P.busy=0}
 // ---------- 화면 윗부분 ----------
 function hud(){if(!G)return;const o=objective();bt('hTop').innerHTML=`<b>📍 ${areaName(G.a)}</b><span>🏅${G.badges} · 💰${G.money}</span>`;bt('hObj').innerHTML=`<span>🎯 ${o.t}</span>`;
-  bt('bAuto').classList.toggle('on',!!AUTO.on&&!AUTO.huntOnly);bt('bAuto').textContent=AUTO.on&&!AUTO.huntOnly?'⏸ 멈춤':'▶ 자동';bt('bHunt').classList.toggle('on',!!AUTO.huntOnly);bt('bFly').style.display=canFly()?'':'none';bt('bFly').classList.toggle('on',P.mode==='fly');bt('bFast').classList.toggle('on',!!G.fast);bt('bOp').style.display=OPER.on?'':'none';
+  bt('bAuto').classList.toggle('on',!!AUTO.on&&!AUTO.huntOnly);bt('bAuto').textContent=AUTO.on&&!AUTO.huntOnly?'⏸ 자동(AUTO) 끄기':'▶ 자동(AUTO)';autoBtnB();bt('bHunt').classList.toggle('on',!!AUTO.huntOnly);bt('bFly').style.display=canFly()?'':'none';bt('bFly').classList.toggle('on',P.mode==='fly');bt('bFast').classList.toggle('on',!!G.fast);bt('bOp').style.display=OPER.on?'':'none';
   bt('hHunt').textContent=AUTO.hunt&&AUTO.hunt.n?'🧭 '+META[AUTO.hunt.n].name+' 찾는 중 · '+areaName(AUTO.hunt.a):AUTO.huntOnly?'🌿 자동 사냥 중 · '+areaName(AUTO.hunt?AUTO.hunt.a:G.a):'';}
-bt('bAuto').onclick=()=>{sfx('tap');if(AUTO.on&&!AUTO.huntOnly){AUTO.on=0;P.queue=null}else{AUTO.on=1;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1}hud()};
+bt('bAuto').onclick=()=>{sfx('tap');if(AUTO.on&&!AUTO.huntOnly){autoStop()}else{AUTO.on=1;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1}hud()};
 bt('bHunt').onclick=()=>{sfx('tap');if(AUTO.huntOnly){AUTO.on=0;AUTO.huntOnly=0;AUTO.hunt=null;P.queue=null}else{if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}let a=G.a;if(isTown(a)||a===18)a=Math.max(1,Math.min(17,G.a<=2*G.badges?a+1:a-1));AUTO.on=1;AUTO.huntOnly=1;AUTO.hunt={a};toast('🌿 '+areaName(a)+'에서 자동 사냥! (체력이 낮으면 알아서 회복하러 가요)')}hud()};
 bt('bFly').onclick=async()=>{sfx('tap');if(P.mode==='fly'){const t=curA().M[P.y][P.x];if(!WALK.has(t)&&t!==T_.WATER){toast('여기선 내릴 수 없어요');return}P.mode=t===T_.WATER?'surf':'walk'}else{P.mode='fly';toast('🕊 '+nm(flyMon())+'(을)를 타고 날아올랐다! 나무·물 위로 다닐 수 있어요')}await refreshSpr();hud()};
 bt('bFast').onclick=()=>{G.fast=!G.fast;hud();toast(G.fast?'⚡ 빠르게':'보통 속도')};
