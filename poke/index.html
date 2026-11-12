@@ -1260,7 +1260,7 @@ function afterStep(){const A=curA(),t=A.M[P.y][P.x];P.fr=(P.fr+1)%4;
   const it=A.items.find(i=>i.x===P.x&&i.y===P.y&&!G.got[i.id]);if(it){G.got[it.id]=1;addItem(it.it,it.n);toast('✨ '+ITEMS[it.it].n+' ×'+it.n+' 주웠다!');sfx('get');save()}
   if(t===T_.DOOR){const b=A.bld.find(b=>b.door.x===P.x&&b.door.y===P.y);if(b){P.queue=null;enterBld(b);return}}
   if(P.mode!=='fly'){for(const n of A.npc)if(n.kind==='trainer'&&!G.beat[n.id]&&!n.gone&&sees(n)){P.queue=null;trainerSpot(n);return}
-    const enc=t===T_.TG?(A.th.cave?.12:.1):P.mode==='surf'&&t===T_.WATER?.07:0;if(enc&&A.enc&&R()<enc*(G.repel>0?0:1)){P.queue=null;wild(A,t===T_.WATER?'w':'g');return}}
+    let enc=t===T_.TG?(A.th.cave?.06:.05):P.mode==='surf'&&t===T_.WATER?.035:0;if(enc&&(P.grace||0)>0){P.grace--;enc=0}if(enc&&A.enc&&R()<enc*(G.repel>0?0:1)){P.queue=null;wild(A,t===T_.WATER?'w':'g');return}}
   if(G.repel>0)G.repel--}
 function sees(n){const dx=[0,-1,1,0][n.dir],dy=[1,0,0,-1][n.dir];for(let i=1;i<=n.sight;i++){const X=n.x+dx*i,Y=n.y+dy*i;if(X===P.x&&Y===P.y)return true;const A=curA();if(!WALK.has(A.M[Y]&&A.M[Y][X]))return false}return false}
 // ---------- 그리기 ----------
@@ -1318,7 +1318,7 @@ function mkMon(n,lv){const M=META[n];const iv=[0,0,0,0,0,0].map(()=>ri(0,31));co
   for(const [l,id] of learnset(M))if(l<=lv){m.moves.push(id);if(m.moves.length>4)m.moves.shift()}m.hp=stOf(m)[0];askEvo(M.dex);return m}
 // 등급 보너스: 일반 0% · 희귀 +4% · 영웅 +8% · 전설 +12% · 신화 +16% · 환상 +20% · 유일 +25% (체력은 절반만)
 const RSTAT=[0,.04,.08,.12,.16,.20,.25];const rstat=n=>{try{return RSTAT[rarOf(n)]||0}catch(e){return 0}};
-const stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=rstat(m.n);if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}return s};
+const stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=rstat(m.n)+(m.lb||0)*.04;if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}return s};
 const alive=()=>G.party.filter(m=>m.hp>0);
 const BS={on:0,me:null,foe:null,fx:[],bg:'meadow',ball:null};const bt=id=>document.getElementById(id);
 function boxHtml(m,mine){const S=stOf(m),r=Math.max(0,m.hp/S[0]);const col=r>.5?'#3be06a':r>.2?'#ffc83a':'#ff4a3a';const M=META[m.n];const ex=mine?(m.exp-expAt(m.lv))/Math.max(1,expAt(m.lv+1)-expAt(m.lv)):0;
@@ -1397,7 +1397,7 @@ function wantCatch(f){if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;return G.opt.c
 function choose(){return new Promise(r=>{if((AUTO.on&&!AUTO.guide)||G.autoBattle){setTimeout(()=>r(aiAct()),FAST()?250:600);return}CHOOSE=r;menuMain()})}
 async function sendMe(m,first){const S=await getSpr(sprKey(m));BS.me={m,S,st:'idle',t:0,in:0};bbox();await msg((first?'가랏! ':'돌아와! … 가랏! ')+'<b>'+nm(m)+'</b>!',FAST()?400:800,[m.n,'Determined'])}
 async function sendFoe(m){const S=await getSpr(sprKey(m));BS.foe={m,S,st:'idle',t:0,in:0};G.dex.s[META[m.n].dex]=1;bbox()}
-async function battle(o){BS.asked=0;BS.catchK=1;if(o.trainer&&!o.scaled&&DIFF()>0)for(const f of o.foes){f.lv=Math.min(100,Math.round(f.lv*(1+DLV[DIFF()]*.75)));f.exp=expAt(f.lv);f.hp=stOf(f)[0]}SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
+async function battle(o){BS.asked=0;BS.catchK=1;BS.capMsg=0;if(o.trainer&&!o.scaled&&DIFF()>0)for(const f of o.foes){f.lv=Math.min(100,Math.round(f.lv*(1+DLV[DIFF()]*.75)));f.exp=expAt(f.lv);f.hp=stOf(f)[0]}SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
   BS.tt=0;BS.foes=o.foes;BS.marks=[];await flashIn();const foes=o.foes;let fi=0;await sendFoe(foes[0]);bt('bM').innerHTML='';
   await msg(o.trainer?'<b>'+o.trainer+'</b>(이)가 승부를 걸어왔다!':'앗! 야생 <b>'+nm(foes[0])+'</b>(이)가 나타났다!',FAST()?500:1000);
   if(o.trainer)await msg(o.trainer+'(은)는 <b>'+nm(foes[0])+'</b>(을)를 내보냈다!',FAST()?400:800);
@@ -1433,7 +1433,9 @@ async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FA
 async function caught(f){if(f.hpx){const r=f.hp/stOf(f)[0];delete f.hpx;f.hp=Math.max(1,Math.round(stOf(f)[0]*r))}const M=META[f.n];G.dex.c[M.dex]=1;f.hp=Math.max(1,f.hp);askEvo(M.dex);if(G.party.length<6){G.party.push(f);await msg(nm(f)+'(이)가 동료가 됐다!',900)}else{G.box.push(f);await msg(nm(f)+'(은)는 보관함으로 보내졌다.',900)}
   if(AUTO.hunt&&AUTO.hunt.n===f.n){AUTO.hunt=null;AUTO.huntOnly=0;AUTO.on=G.autoQuest?1:0;toast('🎉 찾던 포켓몬을 잡았어요!')}}
 async function giveExp(f,part){const M=META[f.n];const base=Math.max(1,Math.round(bst(M.stats)/4.2*f.lv/7*(BS.trainer?1.5:1)*DEXP[DIFF()]));for(const m of G.party){if(m.hp<=0)continue;const g=part.has(m.uid)?base:Math.round(base*.5);m.exp+=g;if(m===BS.me.m)await msg('<b>'+nm(m)+'</b>(은)는 경험치 '+g+'을(를) 얻었다!',FAST()?400:800);
-  while(m.exp>=expAt(m.lv+1)&&m.lv<100){await gainLv(m,1)}}bbox()}
+  const cap=lvCap();while(m.exp>=expAt(m.lv+1)&&m.lv<cap){await gainLv(m,1)}if(m.lv>=cap&&cap<100){m.exp=Math.min(m.exp,expAt(cap+1)-1);if(!BS.capMsg){BS.capMsg=1;await msg('레벨 제한 Lv.'+cap+'! 배지를 더 모으면 더 올라가요',FAST()?600:1100)}}}bbox()}
+// 배지별 레벨 제한: 배지가 늘수록 올라가요 (챔피언이 되면 100)
+function lvCap(){if(!G)return 100;if(G.champ)return 100;const b=G.badges;return b>=8?76:Math.round((12+6*b)*1.18)+6}
 async function gainLv(m,keep){const S0=stOf(m);m.lv++;if(!keep)m.exp=Math.max(m.exp,expAt(m.lv));const S1=stOf(m);m.hp+=S1[0]-S0[0];m.evoReady=1;sfx('lv');if(BS.on)bbox();try{lvShow(m,S0,S1)}catch(e){}
   await msg('<b>'+nm(m)+'</b>(은)는 레벨 <b>'+m.lv+'</b>(으)로 올랐다!',FAST()?450:900,[m.n,'Joyous']);
   for(const [l,id] of learnset(META[m.n]))if(l===m.lv&&!m.moves.includes(id)){const nmv=mv(id);if(m.moves.length<4){m.moves.push(id);await msg(nm(m)+'(은)는 새로 <b>'+nmv.name+'</b>을(를) 배웠다!')}else{const w=m.moves.slice().sort((a,b)=>mv(a).pw-mv(b).pw)[0];if(mv(w).pw<nmv.pw){m.moves[m.moves.indexOf(w)]=id;await msg(nm(m)+'(은)는 '+mv(w).name+'을(를) 잊고 <b>'+nmv.name+'</b>을(를) 배웠다!')}}}}
@@ -1766,7 +1768,7 @@ function chooseStarter(){return new Promise(async r=>{await say(['포켓몬 박�
 // ---------- 야생 · 트레이너 ----------
 function wpick(T){const W=T.map(e=>{const r=rarOf(e.n);return e.w*ENCW[r]*(r?DRARE[DIFF()]:1)});const tot=W.reduce((a,b)=>a+b,0);let u=R()*tot;for(let i=0;i<T.length;i++){u-=W[i];if(u<=0)return T[i].n}return T[0].n}
 async function wild(A,kind){const T=kind==='w'?A.enc.w:A.enc.g;if(!T||!T.length)return;let n=wpick(T);if(AUTO.hunt&&AUTO.hunt.a===G.a&&T.some(e=>e.n===AUTO.hunt.n)&&R()<.35*[1,.6,.35,.15,.1,.1,.1][rarOf(AUTO.hunt.n)])n=AUTO.hunt.n;const [lo,hi]=areaLv(G.a);
-  const wm=mkMon(n,ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc();toast('✨ 반짝! '+SHC[wm.shc].n+' 포켓몬이 나타났다!')}const r=await battle({foes:[wm],bg:A.th===THEME.town?'meadow':RTH[(G.a-1)/2]});if(r==='lose')await blackout()}
+  const wm=mkMon(n,ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc();toast('✨ 반짝! '+SHC[wm.shc].n+' 포켓몬이 나타났다!')}const r=await battle({foes:[wm],bg:A.th===THEME.town?'meadow':RTH[(G.a-1)/2]});P.grace=ri(4,7);if(r==='lose')await blackout()}
 async function trainerSpot(n){P.busy=1;sfx('enc');toast('❗');await sleep(400);P.busy=0;await say([n.name+': '+n.lines[0]]);
   const r=await battle({trainer:n.name,foes:n.team.map(t=>mkMon(t.n,t.lv)),money:Math.max(...n.team.map(t=>t.lv))*30,lose:pick(['으악, 졌다!','강하구나…!','다음엔 안 질 거야!']),bg:RTH[(G.a-1)/2]});
   if(r==='win'){G.beat[n.id]=1;save()}else if(r==='lose')await blackout()}
@@ -1840,7 +1842,7 @@ function menuOpen(){if(SCENE!=='over')return;const tw=Object.keys(G.visit||{}).m
     p.querySelector('#oF').onchange=e=>{const v=e.target.value;if(v===''){G.fol=null}else{const m=[...G.party,...G.box][+v];m.fid=m.fid||('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));G.fol=m.fid;toast('🐾 '+nm(m)+'(이)가 졸졸 따라와요!')}refreshSpr();save()};
     p.querySelectorAll('.mon').forEach(x=>x.onclick=()=>{const i=+x.dataset.i;if(i>0){const [m]=G.party.splice(i,1);G.party.unshift(m);refreshSpr();save();menuOpen()}});
     p.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{const i=+x.dataset.b;const m=G.box[i];if(G.party.length<6){G.box.splice(i,1);G.party.push(m)}else{const o=G.party.pop();G.box[i]=o;G.party.push(m)}save();menuOpen()});
-    p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.heal||it.lv){const m=(typeof ITPICK!=='undefined'&&ITPICK)||G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
+    p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.heal||it.lv){const m=(typeof ITPICK!=='undefined'&&ITPICK)||G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{if(m.lv>=lvCap()){G.bag[k]++;toast('레벨 제한 Lv.'+lvCap()+'! 배지를 더 모으면 올릴 수 있어요');return}m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
     p.querySelectorAll('[data-fly]').forEach(x=>x.onclick=()=>{closePanel(1);flyTo(+x.dataset.fly)});
     p.querySelector('#oC').onchange=e=>{G.opt.catchNew=e.target.checked;save()};p.querySelector('#oAB').onchange=e=>{BR().auto=e.target.checked?1:0;save()};p.querySelector('#oBG').onchange=e=>{BR().great=+e.target.value;save()};p.querySelector('#oBH').onchange=e=>{BR().hyper=+e.target.value;save()};p.querySelector('#oB').onchange=e=>{G.autoBattle=e.target.checked;save()};p.querySelector('#oP').onchange=e=>{SHOWPATH=e.target.checked};
     p.querySelector('#oGift').onclick=()=>{closePanel(1);giftOpen()};p.querySelector('#oName').onclick=()=>{closePanel(1);nameOpen()};p.querySelector('#oFont').onclick=()=>{closePanel(1);fontOpen()};p.querySelector('#oDiff').onclick=()=>{G.opt.diff=(DIFF()+1)%3;save();toast(['쉬움: 빨리 크지만 보상은 기본','보통: 상금 ×1.6 · 희귀 포켓몬 ×1.6 · 이로치 1/90 · 이기면 가끔 카드팩','어려움: 상금 ×2.4 · 희귀 포켓몬 ×2.5 · 이로치 1/50 · 카드팩 자주'][DIFF()]);closePanel(1);menuOpen()};p.querySelector('#oFuse').onclick=()=>{closePanel(1);fuseOpen()};p.querySelector('#oMe').onclick=()=>{closePanel(1);wardrobe()};p.querySelector('#oDsk').onclick=()=>{closePanel(1);dskinOpen()};p.querySelector('#oBgm').onclick=()=>{BGM.toggle();closePanel(1);menuOpen()};p.querySelector('#oMode').onclick=()=>{modeToggle();closePanel(1);menuOpen()};p.querySelector('#oS').onclick=()=>{save();toast('💾 저장했어요')};p.querySelector('#oT').onclick=()=>{save();closePanel(1);location.reload()}})}
@@ -1940,7 +1942,7 @@ function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
 // CardPack.open({rar:0..3, sh:0/1, kind:'P'|'M', name, sub, img(초상화 url), col(타입색), base:'cardpack/'}) → Promise
 const CardPack=(()=>{
   const COL=['#c9d3dc','#4aa8ff','#c070ff','#ffb020','#ff3b6b','#22e6d0','#ffffff'],COL2=['#8a98a6','#1d5fd0','#6a1fc0','#ff6a00','#a0002a','#0a7a8a','#ff2aa0'],RN=['일반','희귀','영웅','전설','신화','환상','유일'];
-  const TAPS=[1,1,3,3,4,5,6];
+  const TAPS=[1,1,1,2,2,2,2];
   let AC=null;function tone(f,d,ty,v,at){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+(at||0);o.type=ty||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
   function noise(d,v){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const n=AC.sampleRate*d,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=v||.2;s.buffer=b;s.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
   const S={tap:r=>tone(300+r*120,.08,'square',.06),tear:()=>noise(.35,.25),
@@ -2706,6 +2708,25 @@ function hubOpen(tab){if(!G)return;tab=tab||HUB.tab||'c';HUB.tab=tab;
 // 놀거리 하러 간 마을에 도착하면 바로 시작
 setInterval(()=>{try{if(G&&G.navMg!=null&&G.a===G.navMg&&SCENE==='over'&&!P.busy&&!P.mv&&!EVB.n&&!DLG.on&&!PANEL){const a=G.navMg;G.navMg=null;mgStart(a)}}catch(e){}},700);
 (function(){const go=()=>{const b=document.getElementById('bBadge');if(b)b.onclick=()=>{sfx('tap');badgeOpen()};const c=document.getElementById('bHub');if(c)c.onclick=()=>{sfx('tap');hubOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+
+// ===== 한계 돌파 (Lv.100 이후 계속 강해지기) · 보상 카드 한 번에 열기 =====
+// Lv.100 포켓몬은 ★ 한계 돌파 (최대 ★10) · ★마다 전체 능력치 +4%
+// 재료: 같은 포켓몬 중복 카드 (★+1 만큼) 또는 이상한사탕 (★+1)×5개
+const LBMAX=10;
+const lbDupes=m=>(G.dupes||[]).filter(x=>x.kind==='P'&&x.id===META[m.n].dex).length;
+function lbOpen(){if(!G)return;const L=[...G.party,...G.box].filter(m=>m.lv>=100);
+  const body=L.length?L.map((m,i)=>{const lb=m.lb||0,need=lb+1,d=lbDupes(m),c=G.bag.candy||0,max=lb>=LBMAX;
+    return `<div class="hrow ${max?'ok':''}"><img src="${THUMB[m.n]||''}" style="width:48px;height:48px;object-fit:contain"><span><b>${nm(m)} <u class="lbs">${'★'.repeat(lb)}${'☆'.repeat(LBMAX-lb)}</u></b><small>지금 능력치 +${lb*4}% · ${max?'최대!':'다음 ★'+(lb+1)+' → +'+(lb+1)*4+'%'}</small><small>재료: 같은 포켓몬 중복 카드 ${need}장 (가진 것 ${d}) 또는 이상한사탕 ${need*5}개 (가진 것 ${c})</small></span>
+     ${max?'':`<button data-lbd="${i}" ${d>=need?'':'disabled'}>카드로</button><button data-lbc="${i}" ${c>=need*5?'':'disabled'}>사탕으로</button>`}</div>`}).join(''):'<p class="hhint">아직 Lv.100 포켓몬이 없어요. 레벨 제한은 배지를 모을수록 올라가고, 챔피언이 되면 Lv.100까지 키울 수 있어요.</p>';
+  openPanel('한계 돌파',`<p class="hhint">Lv.100이 끝이 아니에요! 한계 돌파 ★ 하나마다 모든 능력치 +4% (최대 ★${LBMAX} = +40%). 중복 카드는 카드팩·사파리·도감 사냥으로 모아요.</p><p class="hhint">지금 레벨 제한: <b>Lv.${lvCap()}</b> ${G.champ?'':'(배지를 더 모으면 올라가요)'}</p>${body}`,null,p=>{
+    const go=(i,kind)=>{const m=L[i],need=(m.lb||0)+1;if(kind==='d'){let n=need;G.dupes=G.dupes.filter(x=>{if(n>0&&x.kind==='P'&&x.id===META[m.n].dex){n--;return false}return true})}else G.bag.candy-=need*5;
+      m.lb=need;m.hp=stOf(m)[0];sfx('badge');toast(nm(m)+' 한계 돌파 ★'+m.lb+'! 능력치 +'+m.lb*4+'%');save();lbOpen()};
+    p.querySelectorAll('[data-lbd]').forEach(b=>b.onclick=()=>go(+b.dataset.lbd,'d'));p.querySelectorAll('[data-lbc]').forEach(b=>b.onclick=()=>go(+b.dataset.lbc,'c'))})}
+try{HUB.push({k:'lb',n:'레벨 제한 · 한계 돌파',d:'배지마다 레벨 제한이 있어서 한 번에 다 키울 수 없어요. 챔피언이 되면 Lv.100까지! Lv.100 포켓몬은 중복 카드나 이상한사탕으로 ★ 한계 돌파 (★마다 능력치 +4%, 최대 ★10).',st:()=>'레벨 제한 Lv.'+lvCap(),go:[['한계 돌파 열기',()=>lbOpen()]]})}catch(e){}
+// 보상 카드가 여러 장 쌓이면 한 장씩 따로 열지 않고 한 번에 펼쳐서 보여 줘요
+setInterval(()=>{try{if(REWBUSY||REWQ.length<2)return;const C=REWQ.filter(q=>q.kind&&!q.multi&&q.badge==null);if(C.length<2)return;
+  for(const q of C)REWQ.splice(REWQ.indexOf(q),1);const why=[...new Set(C.map(q=>q.why).filter(Boolean))].join(' · ');REWQ.push({multi:C.map(q=>q.kind),msg:'보상 카드 '+C.length+'장!',title:'보상 카드 '+C.length+'장'+(why?' · '+why:'')})}catch(e){}},250);
+// 레벨 제한 표시: 편성·도감 팝업 등에서 쓰도록
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
