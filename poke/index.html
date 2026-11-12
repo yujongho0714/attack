@@ -838,9 +838,9 @@ function drawOver(dt){const A=curA();const [px,py]=lerpPos();const s=TS*DPR,camX
   if(LEADS&&P.mode==='walk'&&P.trail[0]){const T=P.trail[0];let fx=T[0],fy=T[1];if(P.mv){const u=Math.min(1,P.mv.t/P.mv.d),T2=P.trail[1]||T;fx=T2[0]+(T[0]-T2[0])*u;fy=T2[1]+(T[1]-T2[1])*u}
     const fd=P.trail[0][2];ents.push({y:fy-.01,f:()=>{const S=LEADS;const st=P.mv?'walk':'idle';drawPm(cx,S,st,ROWOF[fd],NOW,fx*s-camX+s/2,fy*s-camY+s*.45,s/15*pmScale(S))}})}
   ents.push({y:py,f:()=>{const X=px*s-camX,Y=py*s-camY;const wf=P.mv?(P.fr%2?1:2):0;
-    if(P.mode==='surf'&&MOUNT){drawPm(cx,MOUNT,'walk',ROWOF[P.dir],NOW,X+s/2,Y+s*.55,s/13*pmScale(MOUNT));drawPerson(PAL.me,P.dir,0,X,Y-s*.5,s,false,.75)}
-    else if(P.mode==='fly'&&MOUNT){const bob=Math.sin(NOW*5)*s*.06;cx.fillStyle='#0004';cx.beginPath();cx.ellipse(X+s/2,Y+s*.85,s*.45,s*.16,0,0,7);cx.fill();drawPm(cx,MOUNT,'walk',ROWOF[P.dir],NOW,X+s/2,Y-s*.25+bob,s/11*pmScale(MOUNT));drawPerson(PAL.me,P.dir,0,X,Y-s*1.15+bob,s,false,.7)}
-    else drawPerson(PAL.me,P.dir,wf,X,Y,s)}});
+    if(P.mode==='surf'&&MOUNT){drawPm(cx,MOUNT,'walk',ROWOF[P.dir],NOW,X+s/2,Y+s*.55,s/13*pmScale(MOUNT));drawMe(P.dir,0,X,Y-s*.5,s,.75)}
+    else if(P.mode==='fly'&&MOUNT){const bob=Math.sin(NOW*5)*s*.06;cx.fillStyle='#0004';cx.beginPath();cx.ellipse(X+s/2,Y+s*.85,s*.45,s*.16,0,0,7);cx.fill();drawPm(cx,MOUNT,'walk',ROWOF[P.dir],NOW,X+s/2,Y-s*.25+bob,s/11*pmScale(MOUNT));drawMe(P.dir,0,X,Y-s*1.15+bob,s,.7)}
+    else drawMe(P.dir,wf,X,Y,s)}});
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.f());
   if(A.th.cave&&!A.town){const g=cx.createRadialGradient(cv.width/2,cv.height/2-(VH*.06*DPR),s*2,cv.width/2,cv.height/2,s*7);g.addColorStop(0,'#0000');g.addColorStop(1,'#000a');cx.fillStyle=g;cx.fillRect(0,0,cv.width,cv.height)}
   if(P.queue&&P.queue.length&&SHOWPATH){cx.fillStyle='#ffffff70';for(const [x,y] of P.queue.slice(0,40)){cx.beginPath();cx.arc(x*s-camX+s/2,y*s-camY+s/2,s*.09,0,7);cx.fill()}}}
@@ -853,8 +853,8 @@ const DIRK={ArrowDown:0,ArrowLeft:1,ArrowRight:2,ArrowUp:3,s:0,a:1,d:2,w:3};
 addEventListener('keydown',e=>{if(e.key in DIRK){KEY.dir=DIRK[e.key];userMove();e.preventDefault()}else if(e.key==='z'||e.key==='Enter'||e.key===' '){onA();e.preventDefault()}});
 addEventListener('keyup',e=>{if(e.key in DIRK&&KEY.dir===DIRK[e.key])KEY.dir=-1});
 function userMove(){if(AUTO.on){AUTO.on=0;AUTO.hunt=null;P.queue=null;hud();toast('✋ 자동 멈춤')}}
-function onA(){if(DLG.on){DLG.next();return}if(SCENE!=='over'||P.busy||P.mv)return;const A=curA();const d=P.dir,X=P.x+[0,-1,1,0][d],Y=P.y+[1,0,0,-1][d];const np=A.npc.find(n=>n.x===X&&n.y===Y&&!n.gone);if(np){talk(np);return}if(A.M[Y]&&A.M[Y][X]===T_.SIGN)say([A.sign.t])}
-function updOver(dt){if(P.mv){P.mv.t+=dt;if(P.mv.t>=P.mv.d){P.mv=null;afterStep()}}
+function onA(){if(DLG.on){DLG.next();return}if(SCENE!=='over'||P.busy||P.mv)return;const A=curA();const d=P.dir,X=P.x+[0,-1,1,0][d],Y=P.y+[1,0,0,-1][d];const np=A.npc.find(n=>n.x===X&&n.y===Y&&!n.gone);if(np){talk(np);return}if(A.M[Y]&&A.M[Y][X]===T_.SIGN){say([A.sign.t]);return}meSwing()}
+function updOver(dt){meTick(dt);if(P.mv){P.mv.t+=dt;if(P.mv.t>=P.mv.d){P.mv=null;afterStep()}}
   if(!P.mv&&!P.busy&&!DLG.on&&SCENE==='over'){if(KEY.dir>=0)tryStep(KEY.dir);else if(P.queue&&P.queue.length){const [x,y]=P.queue[0];const d=x<P.x?1:x>P.x?2:y<P.y?3:0;if(Math.abs(x-P.x)+Math.abs(y-P.y)!==1&&!(y<0||y>=curA().H)){P.queue=null}else{const ok=tryStep(d);if(ok)P.queue.shift();else{P.queue=null}}}
     else if(AUTO.on)autoThink()}}
 
@@ -1079,7 +1079,7 @@ let PANEL=null;function openPanel(title,html,onClose,bind,noX){closePanel(1);con
 function closePanel(silent){if(!PANEL)return;const p=PANEL;PANEL=null;p.d.remove();if(!silent&&p.onClose)p.onClose()}
 function monRow(m,i,box){const S=stOf(m),M=META[m.n];return `<div class="mon" data-i="${i}" data-box="${box?1:0}"><img src="${THUMB[m.n]||''}"><div><b>${nm(m)}</b> <small>Lv.${m.lv}</small><div class="hp"><i style="width:${Math.max(0,m.hp/S[0])*100}%"></i></div><small>${M.types.map(t=>TN[t]).join('·')} · 체력 ${Math.ceil(m.hp)}/${S[0]} · ${m.moves.map(id=>mv(id).name+' Lv.'+mlv(m,id)).join(', ')}${m.gift?' · 🎁':''}${m.sh?' · ✨':''}</small></div></div>`}
 function menuOpen(){if(SCENE!=='over')return;const tw=Object.keys(G.visit||{}).map(Number).sort((a,b)=>a-b);
-  openPanel('📋 메뉴',`<button class="it" id="oGift" style="width:100%;background:#ff9ac0">🎁 선물 코드 · 선물 가방 ${(G.gifts||[]).length?'('+G.gifts.length+')':''}</button><div class="row" style="margin:8px 0"><span>🐾 졸졸 따라오는 포켓몬</span><select id="oF" style="font-size:16px;max-width:55%"><option value="">맨 앞 포켓몬</option>${[...G.party,...G.box].map((m,i)=>`<option value="${i}" ${G.fol&&m.fid===G.fol?'selected':''}>${nm(m)} Lv.${m.lv}${i>=G.party.length?' (보관함)':''}</option>`).join('')}</select></div><h4>내 포켓몬 (눌러서 맨 앞으로)</h4>${G.party.map((m,i)=>monRow(m,i)).join('')}
+  openPanel('📋 메뉴',`<button class="it" id="oMe" style="width:100%;background:#9ad0ff">👕 옷장 · 내 출결 캐릭터</button><button class="it" id="oGift" style="width:100%;background:#ff9ac0">🎁 선물 코드 · 선물 가방 ${(G.gifts||[]).length?'('+G.gifts.length+')':''}</button><div class="row" style="margin:8px 0"><span>🐾 졸졸 따라오는 포켓몬</span><select id="oF" style="font-size:16px;max-width:55%"><option value="">맨 앞 포켓몬</option>${[...G.party,...G.box].map((m,i)=>`<option value="${i}" ${G.fol&&m.fid===G.fol?'selected':''}>${nm(m)} Lv.${m.lv}${i>=G.party.length?' (보관함)':''}</option>`).join('')}</select></div><h4>내 포켓몬 (눌러서 맨 앞으로)</h4>${G.party.map((m,i)=>monRow(m,i)).join('')}
   <h4>보관함 ${G.box.length}마리 (눌러서 데려오기)</h4><div class="boxg">${G.box.slice(0,300).map((m,i)=>`<button class="bx" data-b="${i}"><img src="${THUMB[m.n]||''}"><small>${nm(m)} ${m.lv}</small></button>`).join('')||'<small>아직 없어요</small>'}</div>
   <h4>가방</h4><div>${Object.keys(G.bag).filter(k=>G.bag[k]>0).map(k=>`<button class="it" data-it="${k}">${ITEMS[k].e} ${ITEMS[k].n} ×${G.bag[k]}</button>`).join('')}</div>
   ${canFly()?`<h4>🕊 날아가기</h4><div>${tw.map(a=>`<button class="it" data-fly="${a}">${areaName(a)}</button>`).join('')}</div>`:'<h4>🕊 날아가기</h4><small>비행 타입 포켓몬이 있으면 가 본 마을로 날아갈 수 있어요</small>'}
@@ -1091,7 +1091,7 @@ function menuOpen(){if(SCENE!=='over')return;const tw=Object.keys(G.visit||{}).m
     p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.heal||it.lv){const m=G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
     p.querySelectorAll('[data-fly]').forEach(x=>x.onclick=()=>{closePanel(1);flyTo(+x.dataset.fly)});
     p.querySelector('#oC').onchange=e=>{G.opt.catchNew=e.target.checked;save()};p.querySelector('#oB').onchange=e=>{G.autoBattle=e.target.checked;save()};p.querySelector('#oP').onchange=e=>{SHOWPATH=e.target.checked};
-    p.querySelector('#oGift').onclick=()=>{closePanel(1);giftOpen()};p.querySelector('#oS').onclick=()=>{save();toast('💾 저장했어요')};p.querySelector('#oT').onclick=()=>{save();closePanel(1);location.reload()}})}
+    p.querySelector('#oGift').onclick=()=>{closePanel(1);giftOpen()};p.querySelector('#oMe').onclick=()=>{closePanel(1);wardrobe()};p.querySelector('#oS').onclick=()=>{save();toast('💾 저장했어요')};p.querySelector('#oT').onclick=()=>{save();closePanel(1);location.reload()}})}
 async function evolveAfterMenu(){closePanel(1);SCENE='battle';showBattleUI(1);BS.on=1;await evolveCheck();showBattleUI(0);BS.on=0;SCENE='over';refreshSpr();save()}
 // ---------- 도감 ----------
 function dexOpen(f){if(SCENE!=='over')return;const c=Object.keys(G.dex.c).length,s=Object.keys(G.dex.s).length;f=f||'all';const L=SPECIES.filter(n=>f==='all'||(f==='no'?!G.dex.c[META[n].dex]:!!G.dex.c[META[n].dex]));
@@ -1271,6 +1271,67 @@ const CardPack=(()=>{
       requestAnimationFrame(frame)})}
   return{open}})();
 if(typeof window!=='undefined')window.CardPack=CardPack;
+
+// 내 출결 캐릭터(드레스업)를 게임 주인공으로: 출석앱에서 문자로 받은 링크(?me=…)로 가진 옷·입은 옷이 와요.
+// 그림: dressup/ (출석앱 드레스업과 같은 묶음) · 방향: 앞 · 뒤 · 옆(왼쪽은 오른쪽 뒤집기) · 걷기 4장 · 공격 2장
+const ME_CATS=['armor','cape','coat','hair','helmet','shield','shoes','weapon'],ME_KO={armor:'갑옷',cape:'망토',coat:'옷',hair:'머리',helmet:'투구',shield:'방패',shoes:'신발',weapon:'무기'};
+const MESEC='jungdo2-me-v1';
+let DRS=null,DRSP=null;const DIMG={};let MEF=null,MEFK='';
+function b64u(u8){let s='';u8.forEach(b=>s+=String.fromCharCode(b));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function ub64u(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s);return Uint8Array.from(b,c=>c.charCodeAt(0))}
+async function meMac(num,p){const h=await sha(MESEC+'|'+normNum(num)+'|'+p);return b64u(h.slice(0,6))}
+// 코드: [1][입은 옷 8칸(0=없음,1~100)][가진 옷 800칸 비트 100바이트]
+async function meDecode(link,num){const m=/(?:me=)?([A-Za-z0-9_-]{100,})\.([A-Za-z0-9_-]{8})/.exec(String(link||''));if(!m)return{err:'캐릭터 코드가 아니에요'};
+  if(await meMac(num,m[1])!==m[2])return{err:'내 번호로 보낸 캐릭터가 아니에요 (번호를 확인해 주세요)'};const u=ub64u(m[1]);if(u[0]!==1||u.length<109)return{err:'새 버전 게임이 필요해요'};
+  const key=(c,i)=>ME_CATS[c]+':'+String(i+1).padStart(3,'0');const eq={};ME_CATS.forEach((c,i)=>{if(u[1+i])eq[c]=key(i,u[1+i]-1)});
+  const own=[];for(let c=0;c<8;c++)for(let i=0;i<100;i++){const b=c*100+i;if(u[9+(b>>3)]&(1<<(b&7)))own.push(key(c,i))}Object.values(eq).forEach(k=>{if(!own.includes(k))own.push(k)});return{eq,own}}
+function meImg(src){if(!DIMG[src])DIMG[src]=new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src='dressup/'+src});return DIMG[src]}
+async function dressPack(){if(DRS)return DRS;if(!DRSP)DRSP=fetch('dressup/dress.json').then(r=>r.json()).then(j=>DRS=j).catch(()=>null);return DRSP}
+function meItem(key){if(!DRS)return null;const [c,id]=key.split(':');return(DRS.cats[c]||[]).find(o=>String(o.id)===id)||null}
+// 입은 옷으로 동작 그림 만들기 (출석앱 마이룸과 같은 순서로 겹쳐 그림)
+async function meBuild(){if(!G||!G.me)return;const k=JSON.stringify(G.me.eq||{});if(k===MEFK&&MEF)return;MEFK=k;const pk=await dressPack();if(!pk)return;const base=await meImg('base.webp');if(!base)return;
+  const its=[];for(const cat in G.me.eq){const it=meItem(G.me.eq[cat]);if(!it)continue;its.push({cat,v:it.v,img:await meImg(it.s),mask:it.e?await meImg(it.e):null})}
+  const bw=pk.base.box[2],bh=pk.base.box[3];const F={};
+  for(const m in pk.base.v){F[m]=pk.base.v[m].map((bf,fi)=>{const c=document.createElement('canvas');c.width=pk.W;c.height=pk.H;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+    const at=(it,cb)=>{const v=it.v[m];if(!v||!it.img)return;const f=v[4][Math.min(fi,v[4].length-1)];cb(v,f)};
+    its.filter(it=>it.cat==='cape').forEach(it=>at(it,(v,f)=>g.drawImage(it.img,f[0],f[1],v[2],v[3],v[0],v[1],v[2],v[3])));
+    const bc=document.createElement('canvas');bc.width=pk.W;bc.height=pk.H;const bg=bc.getContext('2d');bg.imageSmoothingEnabled=false;bg.drawImage(base,bf[0],bf[1],bw,bh,0,0,bw,bh);bg.globalCompositeOperation='destination-out';
+    its.filter(it=>it.mask&&it.cat!=='cape').forEach(it=>at(it,(v,f)=>bg.drawImage(it.mask,f[0],f[1],v[2],v[3],v[0],v[1],v[2],v[3])));g.drawImage(bc,0,0);
+    ['shoes','weapon','shield','armor','coat','hair','helmet'].forEach(cat=>its.filter(it=>it.cat===cat).forEach(it=>at(it,(v,f)=>g.drawImage(it.img,f[0],f[1],v[2],v[3],v[0],v[1],v[2],v[3]))));return c})}
+  if(JSON.stringify(G.me.eq||{})===MEFK)MEF=F}
+let MEATK=0;
+// 주인공 그리기: 내 캐릭터가 있으면 그것, 없으면 원래 도트 사람
+function drawMe(dir,fr,X,Y,s,scl){if(!G||!G.me||!MEF||!DRS){drawPerson(PAL.me,dir,fr,X,Y,s,false,scl);return}
+  const d=dir===0?'f':dir===3?'b':'r',flip=dir===1,atk=MEATK>0;const L=MEF[(atk?'atk_':'walk_')+d]||MEF['walk_'+d];if(!L){drawPerson(PAL.me,dir,fr,X,Y,s,false,scl);return}
+  const fi=atk?(MEATK>.18?0:Math.min(1,L.length-1)):P.mv?Math.floor(NOW*8)%L.length:0;const c=L[fi];const k=s*1.5/84*(scl||1);const fx=DRS.foot[0],fy=DRS.foot[1];
+  cx.imageSmoothingEnabled=false;cx.fillStyle='#0003';cx.beginPath();cx.ellipse(X+s/2,Y+s*.9,s*.3,s*.1,0,0,7);cx.fill();
+  cx.save();cx.translate(X+s/2,Y+s*.92);if(flip)cx.scale(-1,1);cx.drawImage(c,-fx*k,-fy*k,DRS.W*k,DRS.H*k);cx.restore()}
+function meSwing(){if(!G||!G.me)return false;MEATK=.36;sfx('atk');return true}
+function meTick(dt){if(MEATK>0)MEATK=Math.max(0,MEATK-dt)}
+// 받기
+async function meApply(link,quiet){if(!G)return false;if(!G.num){await askNum()}const r=await meDecode(link,G.num);if(r.err){toast('❌ '+r.err);return false}
+  G.me={eq:r.eq,own:r.own,t:Date.now()};save();MEFK='';await meBuild();sfx('get');if(!quiet)toast('👕 내 출결 캐릭터가 왔어요! (옷 '+r.own.length+'벌)');return true}
+async function mePending(){const p=LS.get('pka-me-pending','');if(!p||!G)return;if(await meApply(p)){LS.set('pka-me-pending','');await say([{t:'👕 출결 앱의 <b>내 캐릭터</b>가 게임에 들어왔어요!<br>메뉴 → 👕 옷장에서 가진 옷과 무기로 갈아입을 수 있어요. A를 누르면 무기를 휘둘러요!'}])}}
+try{const q=new URLSearchParams(location.search).get('me');if(q){LS.set('pka-me-pending',q);history.replaceState(null,'',location.pathname)}}catch(e){}
+// 옷장
+async function wardrobe(cat){if(SCENE!=='over')return;const pk=await dressPack();if(!pk){toast('옷 그림을 아직 못 받았어요 (인터넷 연결 후 다시)');return}cat=cat||'coat';
+  if(!G.me){openPanel('👕 옷장',`<p>출석 앱 → <b>옷 입히기</b> → <b>🎮 포켓몬 게임으로 내 캐릭터 보내기</b>를 누르면 내 폰으로 링크가 와요. 그 링크를 누르거나, 아래에 붙여 넣으세요.</p><div class="nw"><input id="meIn" placeholder="링크 붙여 넣기" autocomplete="off"><button id="meGo" class="it">받기</button></div>`,null,p=>{p.querySelector('#meGo').onclick=async()=>{if(await meApply(p.querySelector('#meIn').value)){closePanel(1);wardrobe()}}});return}
+  const own=G.me.own.filter(k=>k.startsWith(cat+':')),eq=G.me.eq[cat];
+  const th=key=>`<canvas class="meth" data-t="${key}" width="48" height="64" style="image-rendering:pixelated"></canvas>`;
+  openPanel('👕 옷장 · 내 출결 캐릭터',`<canvas id="mePrev" width="150" height="150" style="display:block;margin:0 auto;background:#e9f3ff;border-radius:12px;image-rendering:pixelated"></canvas>
+   <div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0">${ME_CATS.map(c=>`<button class="it" data-c="${c}" style="${c===cat?'background:#ffd060':''}">${ME_KO[c]} ${G.me.own.filter(k=>k.startsWith(c+':')).length}</button>`).join('')}</div>
+   <div class="boxg">${eq?`<button class="bx" data-off="1"><small>벗기</small></button>`:''}${own.map(k=>`<button class="bx" data-k="${k}" style="${k===eq?'outline:3px solid #ffb020':''}">${th(k)}<small>${esc((meItem(k)||{}).n||k)}</small></button>`).join('')||'<small>이 부위 옷이 없어요. 출석 앱에서 모아요!</small>'}</div>
+   <p style="margin-top:8px"><small>새 옷을 얻으면 출석 앱에서 다시 「포켓몬 게임으로 보내기」를 눌러요.</small></p><div class="nw"><input id="meIn" placeholder="새 캐릭터 링크 붙여 넣기" autocomplete="off"><button id="meGo" class="it">받기</button></div>`,null,p=>{
+    p.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>wardrobe(b.dataset.c));
+    p.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{G.me.eq[cat]=b.dataset.k;save();await meBuild();sfx('tap');wardrobe(cat)});
+    const off=p.querySelector('[data-off]');if(off)off.onclick=async()=>{delete G.me.eq[cat];save();await meBuild();wardrobe(cat)};
+    p.querySelector('#meGo').onclick=async()=>{if(await meApply(p.querySelector('#meIn').value))wardrobe(cat)};
+    p.querySelectorAll('canvas.meth').forEach(async c=>{const it=meItem(c.dataset.t);if(!it||!it.v.walk_f)return;const im=await meImg(it.s);if(!im)return;const v=it.v.walk_f,f=v[4][0],k=Math.min(48/v[2],64/v[3]);const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(im,f[0],f[1],v[2],v[3],(48-v[2]*k)/2,(64-v[3]*k)/2,v[2]*k,v[3]*k)});
+    // 미리보기: 걷기 → 공격 반복
+    const cv=p.querySelector('#mePrev'),g=cv.getContext('2d');let t0=performance.now();(function f(){if(!document.body.contains(cv))return;requestAnimationFrame(f);if(!MEF)return;const t=(performance.now()-t0)/1000,ph=Math.floor(t/1.6)%4;const D=['f','r','b','r'][ph],atk=(t%1.6)>1.1;const L=MEF[(atk?'atk_':'walk_')+D];const c=L[atk?((t%1.6)>1.3?1:0)%L.length:Math.floor(t*8)%L.length];
+      g.clearRect(0,0,150,150);g.imageSmoothingEnabled=false;const k=1.35;g.save();g.translate(75,138);if(ph===3)g.scale(-1,1);g.drawImage(c,-DRS.foot[0]*k,-DRS.foot[1]*k,DRS.W*k,DRS.H*k);g.restore()})()})}
+
+{const _st=start;start=function(...a){const r=_st.apply(this,a);MEFK='';MEF=null;setTimeout(()=>{dressPack().then(()=>meBuild());mePending()},900);return r}}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
