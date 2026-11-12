@@ -72,7 +72,7 @@ body.inact #bTx,body.inact #bMenu{display:none!important}
  body.inb #bMenu:not(:empty)~#bTx,body.inb #bTx{bottom:calc(8px + env(safe-area-inset-bottom));right:calc(min(32vw,270px) + 18px);min-height:0;padding:8px 12px;font-size:16px}
  body.inact #aTop{top:calc(10px + env(safe-area-inset-top));right:auto;left:50%;transform:translateX(-50%)}
 }
-</style><style>#bAutoB{display:none;position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));border:3px solid #2c3050;border-radius:14px;background:#fffdf0;color:#2c3050;font-weight:900;font-size:15px;padding:7px 14px;box-shadow:0 3px 0 #2c3050}#bAutoB.on{background:#ffd060}body.inb #bAutoB{display:block}body.inb:not(.inact) #bAutoB{bottom:auto;top:calc(10px + env(safe-area-inset-top))}body.inact #bAutoB{bottom:auto;top:calc(56px + env(safe-area-inset-top))}</style><style>#qrOv{position:fixed;inset:0;z-index:100001;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;font-weight:800}#qrOv video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}#qrOv .qrb{position:relative;width:min(60vh,60vw);height:min(60vh,60vw);border:4px solid #ffd060;border-radius:18px;box-shadow:0 0 0 2000px #0007}#qrOv p,#qrOv button{position:relative}#qrOv button{border:3px solid #fff;border-radius:12px;background:#2c3050;color:#fff;font-weight:900;padding:8px 18px;font-size:16px}</style><style>img.ic{width:1.7em;height:1.7em;image-rendering:pixelated;vertical-align:middle;margin:-.3em .1em -.2em 0}</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
+</style><style>#bAutoB{display:none;position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));border:3px solid #2c3050;border-radius:14px;background:#fffdf0;color:#2c3050;font-weight:900;font-size:15px;padding:7px 14px;box-shadow:0 3px 0 #2c3050}#bAutoB.on{background:#ffd060}body.inb #bAutoB{display:block}body.inb:not(.inact) #bAutoB{bottom:auto;top:calc(10px + env(safe-area-inset-top))}body.inact #bAutoB{bottom:auto;top:calc(56px + env(safe-area-inset-top))}</style><style>#qrOv{position:fixed;inset:0;z-index:100001;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;font-weight:800}#qrOv video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}#qrOv .qrb{position:relative;width:min(60vh,60vw);height:min(60vh,60vw);border:4px solid #ffd060;border-radius:18px;box-shadow:0 0 0 2000px #0007}#qrOv p,#qrOv button{position:relative}#qrOv button{border:3px solid #fff;border-radius:12px;background:#2c3050;color:#fff;font-weight:900;padding:8px 18px;font-size:16px}</style><style>img.ic{width:1.7em;height:1.7em;image-rendering:pixelated;vertical-align:middle;margin:-.3em .1em -.2em 0}</style><style>@media (orientation:landscape){#side{top:calc(var(--vh,1vh)*17 + 44px);right:calc(8px + env(safe-area-inset-right));display:grid;grid-template-columns:repeat(2,auto);gap:5px;max-height:calc(100vh - 210px)}#side button{width:min(16vh,62px);min-height:0;height:min(15vh,56px);font-size:min(2.6vh,11px);padding:2px}#side button b{font-size:min(4.6vh,19px)}#pad{transform:scale(.82);transform-origin:left bottom}}</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
@@ -906,7 +906,8 @@ function surfMon(){const m=G.party.find(m=>m.hp>0&&META[m.n].types.includes('WAT
 function flyMon(){return G.party.find(m=>m.hp>0&&META[m.n].types.includes('FLYING'))||G.party.find(m=>META[m.n].types.includes('DRAGON'))||G.party[0]}
 function folMon(){if(!G.fol)return null;return G.party.find(m=>m.fid===G.fol)||G.box.find(m=>m.fid===G.fol)||null}
 async function refreshSpr(){const L=folMon()||G.party[0];LEADS=L?await getSpr(L.n):null;const M=P.mode==='surf'?surfMon().m:P.mode==='fly'?flyMon():null;MOUNT=M?await getSpr(M.n):null}
-function drawOver(dt){const A=curA();const [px,py]=lerpPos();const s=TS*DPR,camX=px*s+s/2-cv.width/2,camY=py*s+s/2-cv.height/2-(VH*.06*DPR);
+function drawOver(dt){const A=curA();const [px,py]=lerpPos();const s=TS*DPR;let camX=px*s+s/2-cv.width/2,camY=py*s+s/2-cv.height/2-(VH*.06*DPR);
+  if(A.res){const mw=A.W*s,mh=A.H*s;camX=mw>cv.width?Math.max(0,Math.min(mw-cv.width,camX)):(mw-cv.width)/2;camY=mh>cv.height?Math.max(0,Math.min(mh-cv.height,camY)):(mh-cv.height)/2}
   cx.fillStyle=A.th.cave?'#2a2420':'#2e7d32';cx.fillRect(0,0,cv.width,cv.height);cx.imageSmoothingEnabled=false;if(!A.res||(A.cv.complete&&A.cv.naturalWidth))cx.drawImage(A.cv,-camX,-camY,A.W*s,A.H*s);
   // 물 반짝
   const sc=s/16;
@@ -963,7 +964,8 @@ const bsz=()=>VW>VH?Math.min(VW*.105,VH*.17)*(ACT.on?.95:1):Math.min(VW*.3,VH*.1
 function bsc(S,mine){const A=S.meta.anims.idle;return bsz()/24*(mine?1.15:1)*Math.max(.7,Math.min(1.6,30/Math.max(16,A.h*.6)))}
 function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.update(dt);try{actUpdate(dt)}catch(e){console.warn(e)}const fr=FX2.stop>0?0:dt;cx.setTransform(1,0,0,1,0,0);
   const [sx,sy]=FX2.shakeXY();cx.setTransform(d,0,0,d,sx*d,sy*d);const th=THEME[BS.bg]||THEME.meadow;const im=bgImg(STG[BS.bg]||'grass');
-  if(im.complete&&im.naturalWidth){const k=Math.max(VW/im.naturalWidth,VH/im.naturalHeight)*1.1;cx.drawImage(im,(VW-im.naturalWidth*k)/2,(VH-im.naturalHeight*k)/2,im.naturalWidth*k,im.naturalHeight*k);cx.fillStyle='rgba(10,8,20,.18)';cx.fillRect(-30,-30,VW+60,VH+60)}
+  const CAM=camOn();if(CAM){camUpd(dt);cx.translate(-(ACT.cx||0),-(ACT.cy||0))}const BW=CAM?WW():VW,BH=CAM?WH():VH;
+  if(im.complete&&im.naturalWidth){const k=Math.max(BW/im.naturalWidth,BH/im.naturalHeight)*1.05;cx.drawImage(im,(BW-im.naturalWidth*k)/2,(BH-im.naturalHeight*k)/2,im.naturalWidth*k,im.naturalHeight*k);cx.fillStyle='rgba(10,8,20,.18)';cx.fillRect(-30,-30,BW+60,BH+60)}
   else{const g=cx.createLinearGradient(0,0,0,VH);g.addColorStop(0,th.g2);g.addColorStop(1,th.g);cx.fillStyle=g;cx.fillRect(-30,-30,VW+60,VH+60)}
   VFX.drawGround(cx);actDrawUnder();
   const L=[[BS.foe,0],[BS.me,1]].filter(x=>x[0]);if(ACT.on&&BS.me.ay<BS.foe.ay)L.reverse();else if(!ACT.on&&BS.me&&BS.foe&&BS.me.lift>BS.foe.lift)L.reverse();
@@ -1069,15 +1071,19 @@ function showBattleUI(on){document.body.classList.toggle('inb',!!on);bt('bF').in
 // 기술 연출은 턴제와 같은 MV 레시피를 그대로 씀 → 맞는 순간 상대가 그 자리에 없으면 "피했다!"
 let ACT={on:0};
 const advOn=()=>G&&G.mode!=='turn';const actAuto=()=>AUTO.on||G.autoBattle;
-const AR=()=>({x0:VW*.07,x1:VW*.9,y0:VH*.4,y1:VH*.88});
+const WW=()=>VW*1.9,WH=()=>VH*1.75;
+const AR=()=>({x0:WW()*.05,x1:WW()*.95,y0:WH()*.22,y1:WH()*.93});
+const camOn=()=>advOn()&&BS.me&&BS.me.ax!=null;
+function camUpd(dt){const me=BS.me,f=BS.foe;if(!me)return;const tx=(me.ax*.72+(f&&f.ax!=null?f.ax:me.ax)*.28)-VW*.5,ty=(me.ay*.72+(f&&f.ay!=null?f.ay:me.ay)*.28)-VH*.58;
+  const cx0=Math.max(0,Math.min(WW()-VW,tx)),cy0=Math.max(0,Math.min(WH()-VH,ty));if(ACT.cx==null){ACT.cx=cx0;ACT.cy=cy0}const k=Math.min(1,dt*6);ACT.cx+=(cx0-ACT.cx)*k;ACT.cy+=(cy0-ACT.cy)*k}
 function dirRow(dx,dy){const a=Math.atan2(dy,dx);const o=((Math.round(a/(Math.PI/4))%8)+8)%8;return[2,1,0,7,6,5,4,3][o]}
 function cdOf(m){return Math.max(.9,Math.min(4.2,.6+(m.pw||40)/32))}
-function actInit(){const r=AR();const me=BS.me,f=BS.foe;
+function actInit(){const r=AR();ACT.cx=null;const me=BS.me,f=BS.foe;
   if(me.ax==null){me.ax=r.x0+(r.x1-r.x0)*.22;me.ay=r.y0+(r.y1-r.y0)*.62;me.row=2}
   if(f.ax==null){f.ax=r.x0+(r.x1-r.x0)*.72;f.ay=r.y0+(r.y1-r.y0)*.45;f.row=6}
   me.vx=me.vy=f.vx=f.vy=0}
 function actChoose(){return new Promise(res=>{actInit();
-  ACT={on:1,res,cd:ACT.cd||{},dcd:0,inv:0,roll:0,rdx:0,rdy:0,busy:0,fbusy:0,buf:null,
+  ACT={on:1,res,cx:ACT.cx,cy:ACT.cy,cd:ACT.cd||{},dcd:0,inv:0,roll:0,rdx:0,rdy:0,busy:0,fbusy:0,buf:null,
     ai:{cd:1.4+R(),tel:0,m:null,str:R()*6,want:.32+R()*.1},stick:{on:0,id:null,x:0,y:0,cx:0,cy:0},keys:ACT.keys||{},t:0,cast:0};
   bt('bMenu').innerHTML='';bt('bTx').innerHTML='';actUI(1);bbox()})}
 function actEnd(r){if(!ACT.on)return;const res=ACT.res;ACT.on=0;actUI(0);const me=BS.me,f=BS.foe;[me,f].forEach(B=>{if(B){B.trail=0;B.alpha=1}});res&&res(r)}
@@ -1185,7 +1191,7 @@ function actPilot(fr){const me=BS.me,f=BS.foe,ai=ACT.ai,st=ACT.stick;ACT.pt=(ACT
     const M=stOf(me.m);if(me.m.hp/M[0]<.25&&BS.healUsed<2){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p){BS.healUsed++;actEnd({t:'item',k:p});return}}}
   const dx=f.ax-me.ax,dy=f.ay-me.ay,d=Math.hypot(dx,dy)||1,want=VW*.26;
   if(ai.tel>0&&ai.tel<.32&&ACT.dcd<=0){st.x=-dy/d;st.y=dx/d;actRoll();return}
-  const ap=(d-want)/want;st.x=dx/d*ap*1.2+(-dy/d)*Math.sin(ACT.t*1.1)*.5;st.y=dy/d*ap*1.2+(dx/d)*Math.sin(ACT.t*1.1)*.5;const L=Math.hypot(st.x,st.y);if(L>1){st.x/=L;st.y/=L}
+  const ap=Math.max(-1,Math.min(1,(d-want)/want));st.x=dx/d*ap*1.2+(-dy/d)*Math.sin(ACT.t*1.1)*.5;st.y=dy/d*ap*1.2+(dx/d)*Math.sin(ACT.t*1.1)*.5;const L=Math.hypot(st.x,st.y);if(L>1){st.x/=L;st.y/=L}
   if(!ACT.busy&&ACT.roll<=0){let best=-1,bi=-1;me.m.moves.forEach((id,i)=>{if((ACT.cd[id]||0)>0)return;const v=dmgCalc(me.m,f.m,mv(id),0).d;if(v>best){best=v;bi=i}});if(bi>=0&&ACT.pt>.5)actPress(bi)}}
 
 // ---------- 자동(AUTO) 끄기: 배틀 중에 끄면 그 판은 자동으로 끝내고, 다음부터 멈춤 ----------
