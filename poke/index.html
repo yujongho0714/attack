@@ -128,6 +128,16 @@ body.inact #aTop{top:auto;bottom:calc(var(--vh,1vh)*42 + env(safe-area-inset-bot
 #title .adm summary{color:#cfe0ff}
 #tFull{background:#ffffffd0!important}
 .aBan.sm{font-size:min(9vh,40px);-webkit-text-stroke:3px #2c3050}
+</style><style>
+#mini{position:fixed;z-index:5;left:calc(8px + env(safe-area-inset-left));top:calc(86px + env(safe-area-inset-top));border:3px solid #fffdf0;border-radius:10px;box-shadow:0 3px 0 #2c3050,0 0 0 2px #2c3050;image-rendering:auto;cursor:pointer}
+#mini.big{left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;border-width:4px}
+body.inb #mini{display:none}
+@media (orientation:landscape){#mini{top:calc(76px + env(safe-area-inset-top))}}
+.qst .qm{background:#f4f1e2;border:2px solid #2c3050;border-radius:12px;padding:10px;margin-bottom:8px}.qst .qm>small{display:block;font-weight:900;color:#7a6a3a;font-size:12px}.qst .qm>b{display:block;font-size:17px;margin:2px 0 6px}
+.qst button{width:100%;margin-top:6px;border:3px solid #2c3050;border-radius:12px;background:#fffdf0;color:#2c3050;font-weight:900;font-size:16px;padding:10px;box-shadow:0 3px 0 #2c3050}.qst button.main{background:#ffd23f;font-size:18px}.qst .qs{display:block;text-align:center;font-size:12px;opacity:.75;margin-top:2px}.qst .qh{color:#d03050;font-weight:900;margin:4px 0}
+.qst ul{list-style:none;margin:0;padding:0;font-weight:800;font-size:14px;line-height:1.7}.qst li.ok{opacity:.55}.qst li.now{color:#d06a00}
+.qst .qbar{height:10px;background:#0002;border-radius:6px;overflow:hidden}.qst .qbar i{display:block;height:100%;background:linear-gradient(90deg,#3ad66a,#ffd23f)}.qst .qg{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:8px;font-weight:800;font-size:14px}
+#hObj::after{content:'📜 퀘스트 ›';margin-left:auto;padding-left:8px;font-size:11.5px;color:#d06a00;white-space:nowrap}
 </style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
@@ -1037,7 +1047,7 @@ function boxHtml(m,mine){const S=stOf(m),r=Math.max(0,m.hp/S[0]);const col=r>.5?
   return `<div class="bn"><b>${nm(m)}</b>${G.dex.c[M.dex]&&!mine?'<i class="cb">●</i>':''}<span>Lv.${m.lv}</span></div><div class="bt2">${M.types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="hp"><i style="width:${r*100}%;background:${col}"></i></div>`+(mine?`<div class="hpn">${Math.ceil(m.hp)} / ${S[0]}</div><div class="ex"><i style="width:${Math.min(100,ex*100)}%"></i></div>`:'')}
 function bbox(){if(BS.me)bt('bM').innerHTML=boxHtml(BS.me.m,1);if(BS.foe)bt('bF').innerHTML=boxHtml(BS.foe.m,0)}
 let MSGR=null;function msg(t,ms,f){bt('bTx').innerHTML=(f?faceImg(f[0],f[1]):'')+t;bt('bMenu').innerHTML='';return new Promise(r=>{MSGR=r;setTimeout(()=>{if(MSGR===r){MSGR=null;r()}},ms||(FAST()?520:1250))})}
-const FAST=()=>AUTO.on||G.fast;
+const FAST=()=>(AUTO.on&&!AUTO.guide)||G.fast;
 bt('bTx').addEventListener('pointerdown',()=>{if(MSGR){const r=MSGR;MSGR=null;r()}});
 // ---------- 그리기 ----------
 const BGIMG={};function bgImg(k){if(BGIMG[k])return BGIMG[k];const im=new Image();im.src='stages/'+k+'.webp';return BGIMG[k]=im}
@@ -1098,7 +1108,7 @@ function aiAct(){const me=BS.me.m,f=BS.foe.m;
   const S=stOf(me);if(me.hp/S[0]<.25){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p&&BS.healUsed<2){BS.healUsed++;return{t:'item',k:p}}}
   return{t:'move',m:bestMove(me,f)}}
 function wantCatch(f){if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;return G.opt.catchNew&&!G.dex.c[META[f.n].dex]&&G.party.length+G.box.length<900}
-function choose(){return new Promise(r=>{if(AUTO.on||G.autoBattle){setTimeout(()=>r(aiAct()),FAST()?250:600);return}CHOOSE=r;menuMain()})}
+function choose(){return new Promise(r=>{if((AUTO.on&&!AUTO.guide)||G.autoBattle){setTimeout(()=>r(aiAct()),FAST()?250:600);return}CHOOSE=r;menuMain()})}
 async function sendMe(m,first){const S=await getSpr(sprKey(m));BS.me={m,S,st:'idle',t:0,in:0};bbox();await msg((first?'가랏! ':'돌아와! … 가랏! ')+'<b>'+nm(m)+'</b>!',FAST()?400:800,[m.n,'Determined'])}
 async function sendFoe(m){const S=await getSpr(sprKey(m));BS.foe={m,S,st:'idle',t:0,in:0};G.dex.s[META[m.n].dex]=1;bbox()}
 async function battle(o){SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
@@ -1120,7 +1130,7 @@ async function battle(o){SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg
       if(f.hp<=0){BS.foe.st='faint';BS.foe.t=0;sfx('faint');await msg((BS.trainer?'상대 ':'야생 ')+'<b>'+nm(f)+'</b>(은)는 쓰러졌다!');BS.foe.hide=1;
         await giveExp(f,part);fi++;if(fi<foes.length){await sendFoe(foes[fi]);await msg(o.trainer+'(은)는 <b>'+nm(foes[fi])+'</b>(을)를 내보냈다!',FAST()?400:800);part.clear();part.add(BS.me.m.uid)}else{end=true}break}
       if(me.hp<=0){BS.me.st='faint';BS.me.t=0;sfx('faint');await msg('<b>'+nm(me)+'</b>(은)는 쓰러졌다!');BS.me.hide=1;const nx=alive();if(!nx.length){res='lose';end=true;break}
-        let pick2=nx[0];if(!(AUTO.on||G.autoBattle))pick2=await forcePick();await sendMe(pick2,1);part.add(pick2.uid);break}}
+        let pick2=nx[0];if(!((AUTO.on&&!AUTO.guide)||G.autoBattle))pick2=await forcePick();await sendMe(pick2,1);part.add(pick2.uid);break}}
     if(end)break}
   if(res==='win'&&o.trainer){if(o.lose)await msg('<b>'+o.trainer+'</b>: '+o.lose,1400);if(o.money){G.money+=o.money;await msg('상금으로 '+o.money+'원을 받았다!')}}
   if(res==='lose'){await msg('눈앞이 캄캄해졌다…',1500)}
@@ -1153,7 +1163,7 @@ function showBattleUI(on){document.body.classList.toggle('inb',!!on);bt('bF').in
 // 왼쪽 아무 데나 끌면 이동(떠오르는 조이스틱) · 오른쪽 기술 4개(쿨타임) · 🌀 구르기(무적 0.4초)
 // 기술 연출은 턴제와 같은 MV 레시피를 그대로 씀 → 맞는 순간 상대가 그 자리에 없으면 "피했다!"
 let ACT={on:0};
-const advOn=()=>G&&G.mode!=='turn';const actAuto=()=>AUTO.on||G.autoBattle;
+const advOn=()=>G&&G.mode!=='turn';const actAuto=()=>(AUTO.on&&!AUTO.guide)||G.autoBattle;
 const WW=()=>VW*1.9,WH=()=>STADOK()?VW*1.9/1.778:VH*1.75;
 const AR=()=>STADOK()?{x0:WW()*.09,x1:WW()*.91,y0:WH()*.27,y1:WH()*.88}:{x0:WW()*.05,x1:WW()*.95,y0:WH()*.22,y1:WH()*.93};
 const camOn=()=>advOn()&&BS.me&&BS.me.ax!=null;
@@ -1225,6 +1235,10 @@ addEventListener('keyup',e=>{ACT.keys&&(ACT.keys[e.key.toLowerCase()]=0)});
 function actPress(i,dir){if(!ACT.on)return;const id=BS.me.m.moves[i];if(!id)return;const m=mv(id);
   if((ACT.cd[id]||0)>0){const b=document.querySelector('.ask[data-i="'+i+'"]');b&&(b.classList.remove('no'),void b.offsetWidth,b.classList.add('no'));return}
   if(ACT.busy||ACT.roll>0){ACT.buf={i,t:.35,dir};return}// 누른 걸 잠깐 기억 → 끝나자마자 나감
+  if(!dir){const me=BS.me,f=BS.foe,sh=shapeOf(m),Rg=rangeOf(sh),S=bsz(),d=Math.hypot(f.ax-me.ax,f.ay-me.ay),want=sh==='circle'?Rg*.55:sh==='line'?Rg*.8:Rg*.7;
+    if(d>want){ACT.cd[id]=cdOf(m);ACT.busy=1;const ux=(f.ax-me.ax)/d,uy=(f.ay-me.ay)/d,dist=d-want,x0=me.ax,y0=me.ay,ar=AR();me.trail=1;me.row=dirRow(ux,uy);sfx('tap');
+      const t0=performance.now(),T=Math.min(260,120+dist*.35);const step=()=>{if(!ACT.on)return;const u=Math.min(1,(performance.now()-t0)/T),e=1-(1-u)*(1-u);
+        me.ax=Math.max(ar.x0,Math.min(ar.x1,x0+ux*dist*e));me.ay=Math.max(ar.y0,Math.min(ar.y1,y0+uy*dist*e));if(u<1)requestAnimationFrame(step);else{me.trail=0;ACT.busy=0;actCast(1,m,null)}};requestAnimationFrame(step);return}}
   ACT.cd[id]=cdOf(m);actCast(1,m,dir)}
 function actRoll(){if(!ACT.on||ACT.dcd>0||ACT.busy)return;const me=BS.me,f=BS.foe,st=ACT.stick,k=ACT.keys;let dx=st.x+((k.arrowright||k.d)?1:0)-((k.arrowleft||k.a)?1:0),dy=st.y+((k.arrowdown||k.s)?1:0)-((k.arrowup||k.w)?1:0);
   if(Math.hypot(dx,dy)<.2){dx=me.ax-f.ax;dy=me.ay-f.ay}const L=Math.hypot(dx,dy)||1;ACT.rdx=dx/L;ACT.rdy=dy/L;ACT.roll=.28;ACT.inv=.42;ACT.dcd=.85;me.trail=1;me.row=dirRow(dx,dy);sfx('tap')}
@@ -1307,8 +1321,8 @@ function actPilot(fr){const me=BS.me,f=BS.foe,ai=ACT.ai,st=ACT.stick;ACT.pt=(ACT
   if(!ACT.busy&&ACT.roll<=0){let best=-1,bi=-1;me.m.moves.forEach((id,i)=>{if((ACT.cd[id]||0)>0)return;const v=dmgCalc(me.m,f.m,mv(id),0).d;if(v>best){best=v;bi=i}});if(bi>=0&&ACT.pt>.5)actPress(bi)}}
 
 // ---------- 자동(AUTO) 끄기: 배틀 중에도 누르면 바로 꺼지고 직접 조작 ----------
-function autoActive(){return !!(AUTO.on||G.autoBattle)}
-function autoStop(){AUTO.on=0;AUTO.huntOnly=0;AUTO.hunt=null;AUTO.stopAfter=0;G.autoBattle=0;G.autoQuest=0;P.queue=null;try{save()}catch(e){}hud();toast('✋ 자동(AUTO) 꺼졌어요')}
+function autoActive(){return !!((AUTO.on&&!AUTO.guide)||G.autoBattle)}
+function autoStop(){AUTO.on=0;AUTO.guide=0;AUTO.gt=null;AUTO.huntOnly=0;AUTO.hunt=null;AUTO.stopAfter=0;G.autoBattle=0;G.autoQuest=0;P.queue=null;try{save()}catch(e){}hud();toast('✋ 자동(AUTO) 꺼졌어요')}
 function autoBtnB(){let b=document.getElementById('bAutoB');if(!b){b=document.createElement('button');b.id='bAutoB';document.body.appendChild(b);
     b.onclick=()=>{sfx('tap');if(autoActive()){autoStop();try{if(ACT.stick){ACT.stick.x=ACT.stick.y=0}}catch(e){};if(SCENE==='battle')toast('🎮 이제 직접 싸워요!')}else{G.autoBattle=1;AUTO.stopAfter=0;toast('▶ 이번 배틀부터 자동(AUTO)')}autoBtnB()}}
   b.textContent=!autoActive()?'▶ 자동(AUTO)':AUTO.stopAfter?'⏳ 이번 판까지 자동':'⏸ 자동(AUTO) 끄기';b.classList.toggle('on',autoActive()&&!AUTO.stopAfter)}
@@ -1464,7 +1478,7 @@ function navArea(a){if(canFly()){const T=[];for(const k in G.visit)T.push(+k);co
 async function flyTo(a){P.busy=1;P.mode='fly';await refreshSpr();toast('🕊 '+nm(flyMon())+'(을)를 타고 '+areaName(a)+'(으)로!');sfx('get');await fade(1);const A=genArea(a);const b=A.bld.find(b=>b.kind==='center'||b.kind==='home'||b.kind==='league');place(a,b?(b.out?b.out.x:b.door.x):A.res?A.spawn.x:A.GX,b?(b.out?b.out.y:b.door.y+1):A.res?A.spawn.y:A.H-2,0);P.mode='walk';await refreshSpr();await fade(0);P.busy=0}
 // ---------- 화면 윗부분 ----------
 function hud(){if(!G)return;const o=objective();bt('hTop').innerHTML=`<b>📍 ${areaName(G.a)}</b><span>🏅${G.badges} · 💰${G.money}</span>`;bt('hObj').innerHTML=`<span>🎯 ${o.t}</span>`;
-  bt('bAuto').classList.toggle('on',!!AUTO.on&&!AUTO.huntOnly);bt('bAuto').textContent=AUTO.on&&!AUTO.huntOnly?'⏸ 자동(AUTO) 끄기':'▶ 자동(AUTO)';autoBtnB();bt('bHunt').classList.toggle('on',!!AUTO.huntOnly);bt('bFly').style.display=canFly()?'':'none';bt('bFly').classList.toggle('on',P.mode==='fly');bt('bFast').classList.toggle('on',!!G.fast);bt('bOp').style.display=OPER.on?'':'none';
+  bt('bAuto').classList.toggle('on',!!AUTO.on&&!AUTO.huntOnly);bt('bAuto').textContent=AUTO.on&&AUTO.guide?'⏸ 길 안내 멈추기':AUTO.on&&!AUTO.huntOnly?'⏸ 자동(AUTO) 끄기':'▶ 자동(AUTO)';autoBtnB();bt('bHunt').classList.toggle('on',!!AUTO.huntOnly);bt('bFly').style.display=canFly()?'':'none';bt('bFly').classList.toggle('on',P.mode==='fly');bt('bFast').classList.toggle('on',!!G.fast);bt('bOp').style.display=OPER.on?'':'none';
   bt('hHunt').textContent=AUTO.hunt&&AUTO.hunt.n?'🧭 '+META[AUTO.hunt.n].name+' 찾는 중 · '+areaName(AUTO.hunt.a):AUTO.huntOnly?'🌿 자동 사냥 중 · '+areaName(AUTO.hunt?AUTO.hunt.a:G.a):'';}
 bt('bAuto').onclick=()=>{sfx('tap');if(AUTO.on&&!AUTO.huntOnly){autoStop()}else{AUTO.on=1;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1}hud()};
 bt('bHunt').onclick=()=>{sfx('tap');if(AUTO.huntOnly){AUTO.on=0;AUTO.huntOnly=0;AUTO.hunt=null;P.queue=null}else{if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}let a=G.a;if(isTown(a)||a===18)a=Math.max(1,Math.min(17,G.a<=2*G.badges?a+1:a-1));AUTO.on=1;AUTO.huntOnly=1;AUTO.hunt={a};toast('🌿 '+areaName(a)+'에서 자동 사냥! (체력이 낮으면 알아서 회복하러 가요)')}hud()};
@@ -1824,6 +1838,76 @@ function recolor(src,v){const w=src.width,h=src.height,c=document.createElement(
 function shName(m){const v=shcOf(m);return v?SHC[v].n+' ':''}
 function shinyUse(){const L=[...G.party,...G.box];openPanel('✨ 빛나는돌',`<p>포켓몬을 <b>이로치</b>로 바꾸거나, 이미 이로치면 <b>다른 색</b>으로 바꿔요.</p>${L.map((m,i)=>`<div class="row"><span>${shName(m)}${nm(m)} Lv.${m.lv}</span><button data-s="${i}">빛내기</button></div>`).join('')}`,menuOpen,p=>{
   p.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{const m=L[+b.dataset.s];G.bag.sstone--;const was=m.shc;m.sh=1;let v=rollShc();if(v===was)v=v%6+1;m.shc=v;save();closePanel(1);await refreshSpr();sfx('get');await say(['✨ '+nm(m)+'(이)가 <b>'+SHC[v].n+'</b>(으)로 빛나요!']);menuOpen()})})}
+
+// ===== 퀘스트 창 · 길 안내 선 · 미니맵 =====
+// 길 안내: 지금 할 일(메인 퀘스트)까지 바닥에 반짝이는 선 + 화살표 · 미니맵에도 같은 길
+const GUIDE={p:null,t:0,dest:null,label:''};
+function guideGoal(){if(!G||!G.party)return null;let g=null,hunt=null,lab='';
+  if(needHeal()){g=healGoal();lab='💗 회복하러'}else{const o=objective();lab=o.t;if(o.g)g=o.g;else if(o.hunt)hunt=o.hunt}
+  const A=curA();const ta=g?g.a:hunt?hunt.a:null;if(ta==null)return null;
+  if(ta!==G.a){const up=ta>G.a;if(A.res){const e=up?A.exN:A.exP;if(!e)return null;return{cells:e.cells,lab,kind:'exit',to:ta}}
+    return{cells:(up?[A.GX,A.GX+1].map(x=>[x,0]):[A.GX,A.GX+1].map(x=>[x,A.H-1])),lab,kind:'exit',to:ta}}
+  if(g){const b=A.bld.find(b=>b.kind===g.door);return b?{cells:[[b.door.x,b.door.y]],lab,kind:'door'}:null}
+  const T=[];for(let y=0;y<A.H;y++)for(let x=0;x<A.W;x++)if(A.M[y][x]===T_.TG)T.push([x,y]);if(!T.length)return null;
+  T.sort((a,b)=>Math.abs(a[0]-P.x)+Math.abs(a[1]-P.y)-Math.abs(b[0]-P.x)-Math.abs(b[1]-P.y));return{cells:T.slice(0,1),lab,kind:'grass'}}
+function guideUpd(){GUIDE.t=0;GUIDE.p=null;GUIDE.dest=null;if(!G||SCENE!=='over'||G.opt&&G.opt.guide===0)return;const q=guideGoal();if(!q)return;const A=curA();
+  if(q.cells.some(([x,y])=>x===P.x&&y===P.y)){GUIDE.dest=q;GUIDE.p=[];return}
+  const set=new Set(q.cells.map(c=>c[0]+','+c[1]));const p=bfs(A,P.x,P.y,(x,y)=>set.has(x+','+y),P.mode==='fly'?'fly':P.mode==='surf'?'surf':'walk')||bfs(A,P.x,P.y,(x,y)=>set.has(x+','+y),'walk');
+  GUIDE.p=p;GUIDE.dest=q;GUIDE.a=G.a}
+setInterval(()=>{try{guideUpd()}catch(e){}},450);
+function camOf(A){const [px,py]=lerpPos();const s=TS*DPR;let camX=px*s+s/2-cv.width/2,camY=py*s+s/2-cv.height/2-(VH*.06*DPR);
+  if(A.res){const mw=A.W*s,mh=A.H*s;camX=mw>cv.width?Math.max(0,Math.min(mw-cv.width,camX)):(mw-cv.width)/2;camY=mh>cv.height?Math.max(0,Math.min(mh-cv.height,camY)):(mh-cv.height)/2}return[camX,camY,s]}
+{const _d=drawOver;drawOver=function(dt){_d(dt);try{guideDraw()}catch(e){}try{miniDraw()}catch(e){}}}
+function guideDraw(){const p=GUIDE.p;if(!p||GUIDE.a!==G.a)return;const A=curA(),[camX,camY,s]=camOf(A);const [px,py]=lerpPos();
+  const pts=[[px,py],...p].map(([x,y])=>[x*s-camX+s/2,y*s-camY+s/2]);cx.save();cx.lineCap='round';cx.lineJoin='round';
+  if(pts.length>1){cx.beginPath();pts.forEach(([x,y],i)=>i?cx.lineTo(x,y):cx.moveTo(x,y));cx.strokeStyle='#1c255088';cx.lineWidth=s*.34;cx.stroke();
+    cx.strokeStyle='#ffe066';cx.lineWidth=s*.16;cx.setLineDash([s*.32,s*.26]);cx.lineDashOffset=-NOW*s*2.2;cx.stroke();cx.setLineDash([])}
+  // 끝: 통통 튀는 표시
+  const L=pts[pts.length-1],b=Math.abs(Math.sin(NOW*4))*s*.25,k=GUIDE.dest&&GUIDE.dest.kind;cx.font='900 '+(s*.8|0)+'px sans-serif';cx.textAlign='center';cx.textBaseline='bottom';
+  cx.fillStyle='#ffe06655';cx.beginPath();cx.ellipse(L[0],L[1]+s*.25,s*.5*(1+.15*Math.sin(NOW*6)),s*.2,0,0,7);cx.fill();
+  cx.fillText(k==='door'?'🚪':k==='grass'?'🌿':'➡️',L[0],L[1]-b);
+  // 화면 밖이면 가장자리 화살표
+  const W=cv.width,H=cv.height,m=s*.8;if(L[0]<0||L[1]<0||L[0]>W||L[1]>H){const cxp=W/2,cyp=H/2,a=Math.atan2(L[1]-cyp,L[0]-cxp);const ex=Math.max(m,Math.min(W-m,cxp+Math.cos(a)*W)),ey=Math.max(m*2.5,Math.min(H-m*3,cyp+Math.sin(a)*H));
+    cx.translate(ex,ey);cx.rotate(a);cx.fillStyle='#ffe066';cx.strokeStyle='#1c2550';cx.lineWidth=4;cx.beginPath();cx.moveTo(s*.5,0);cx.lineTo(-s*.3,-s*.35);cx.lineTo(-s*.15,0);cx.lineTo(-s*.3,s*.35);cx.closePath();cx.stroke();cx.fill()}
+  cx.restore()}
+// ---------- 미니맵 ----------
+const MINI={big:0};const MCOL={};
+function miniBase(A){if(A.mini&&A.mini.w===A.W)return A.mini.c;const c=document.createElement('canvas');c.width=A.W*4;c.height=A.H*4;const g=c.getContext('2d');
+  if(A.res&&A.cv&&A.cv.complete&&A.cv.naturalWidth){g.imageSmoothingEnabled=true;g.drawImage(A.cv,0,0,c.width,c.height)}else if(A.res)return null;
+  else{const C={[T_.TREE]:'#1f5e2a',[T_.G]:'#7cc86a',[T_.TG]:'#3f9e3c',[T_.WATER]:'#4a8ee0',[T_.DOOR]:'#ffcf4a'};for(let y=0;y<A.H;y++)for(let x=0;x<A.W;x++){g.fillStyle=C[A.M[y][x]]||'#8a7a5a';g.fillRect(x*4,y*4,4,4)}}
+  A.mini={w:A.W,c};return c}
+function miniDraw(){if(!G||SCENE!=='over'||document.body.classList.contains('inb'))return;let m=document.getElementById('mini');if(!m){m=document.createElement('canvas');m.id='mini';document.body.appendChild(m);m.onclick=()=>{MINI.big=!MINI.big;sfx('tap')}}
+  const A=curA(),base=miniBase(A);const big=MINI.big;const Wd=big?Math.min(VW*.62,VH*1.15):Math.min(VW*.24,140),k=Wd/A.W,Hd=Math.min(A.H*k,big?VH*.7:VH*.32);const dpr=DPR;
+  if(m.width!==Math.round(Wd*dpr)||m.height!==Math.round(Hd*dpr)){m.width=Math.round(Wd*dpr);m.height=Math.round(Hd*dpr);m.style.width=Wd+'px';m.style.height=Hd+'px'}m.classList.toggle('big',!!big);
+  const g=m.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#10162a';g.fillRect(0,0,Wd,Hd);
+  // 큰 지도면 전체, 작은 건 나를 가운데로
+  const [px,py]=lerpPos();let ox=0,oy=0;if(A.H*k>Hd){oy=Math.max(0,Math.min(A.H*k-Hd,py*k-Hd/2))}
+  if(base)g.drawImage(base,-ox,-oy,A.W*k,A.H*k);
+  // 건물
+  for(const b of A.bld){g.fillStyle=b.kind==='center'?'#ff5a7a':b.kind==='gym'?'#ffd23f':b.kind==='shop'?'#5ab0ff':'#ffffff';g.beginPath();g.arc((b.door.x+.5)*k-ox,(b.door.y+.5)*k-oy,Math.max(2.5,k*.9),0,7);g.fill()}
+  // 길
+  const p=GUIDE.p;if(p&&p.length&&GUIDE.a===G.a){g.strokeStyle='#ffe066';g.lineWidth=Math.max(1.5,k*.5);g.setLineDash([3,2]);g.beginPath();g.moveTo((px+.5)*k-ox,(py+.5)*k-oy);p.forEach(([x,y])=>g.lineTo((x+.5)*k-ox,(y+.5)*k-oy));g.stroke();g.setLineDash([]);
+    const L=p[p.length-1];g.fillStyle='#ffe066';g.font='900 '+Math.max(10,k*3|0)+'px sans-serif';g.textAlign='center';g.fillText('★',(L[0]+.5)*k-ox,(L[1]+.9)*k-oy)}
+  // 나
+  const bl=.6+.4*Math.sin(NOW*8);g.fillStyle='#fff';g.beginPath();g.arc((px+.5)*k-ox,(py+.5)*k-oy,Math.max(3.5,k*1.1)+bl,0,7);g.fill();g.fillStyle='#ff3b3b';g.beginPath();g.arc((px+.5)*k-ox,(py+.5)*k-oy,Math.max(2.5,k*.8),0,7);g.fill();
+  if(big){g.fillStyle='#000a';g.fillRect(0,0,Wd,20);g.fillStyle='#fff';g.font='800 12px sans-serif';g.textAlign='left';g.fillText('📍 '+areaName(G.a)+'   🔴 나  ★ 갈 곳  🩷 센터  🟡 체육관  🔵 상점',6,14)}}
+// ---------- 퀘스트 창 ----------
+function questOpen(){if(!G)return;const o=objective(),b=G.badges,c=Object.keys(G.dex.c).length;
+  const gyms=TOWNS.slice(1,9).map((t,i)=>`<li class="${i<b?'ok':i===b?'now':''}">${i<b?'✅':i===b?'👉':'⬜'} ${t} 체육관 · ${GYM[i]?TN[GYM[i].t]:''}</li>`).join('');
+  const guiding=AUTO.on&&AUTO.guide;
+  openPanel('📜 퀘스트',`<div class="qst"><div class="qm"><small>메인 퀘스트</small><b>${o.t}</b>${needHeal()?'<p class="qh">💗 포켓몬이 많이 다쳤어요 → 먼저 포켓몬센터!</p>':''}
+    <button class="main" id="qGo">${guiding?'⏸ 길 따라 걷기 멈추기':'🧭 길 따라 자동으로 걷기'}</button><small class="qs">바닥의 노란 선을 따라가면 돼요 · 배틀은 내가 해요</small>
+    <button id="qAuto">${AUTO.on&&!AUTO.guide?'⏸ 자동(AUTO) 끄기':'▶ 전부 자동(AUTO) · 배틀까지'}</button>
+    <label class="qg"><input type="checkbox" id="qLine" ${G.opt&&G.opt.guide===0?'':'checked'}> 바닥에 안내 선 보이기</label></div>
+    <div class="qm"><small>진행</small><b>🏅 배지 ${b} / 8${G.champ?' · 🏆 챔피언!':''}</b><ul>${gyms}<li class="${b>=8&&!G.champ?'now':G.champ?'ok':''}">${G.champ?'✅':b>=8?'👉':'⬜'} 포켓몬 리그 · 사천왕 · 챔피언 ${RIV()}</li></ul></div>
+    <div class="qm"><small>서브 퀘스트</small><b>📖 도감 ${c} / ${SPECIES.length}</b><div class="qbar"><i style="width:${c/SPECIES.length*100}%"></i></div><button id="qHunt">🌿 다음 도감 포켓몬 찾으러 가기</button></div></div>`,null,p=>{
+    p.querySelector('#qGo').onclick=()=>{if(guiding){autoStop()}else{AUTO.on=1;AUTO.guide=1;AUTO.huntOnly=0;AUTO.hunt=null;AUTO.gt=objective().t;G.autoQuest=0;toast('🧭 노란 선을 따라 걸어요! (배틀은 직접)')}closePanel();hud()};
+    p.querySelector('#qAuto').onclick=()=>{if(AUTO.on&&!AUTO.guide)autoStop();else{AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1}closePanel();hud()};
+    p.querySelector('#qLine').onchange=e=>{G.opt=G.opt||{};G.opt.guide=e.target.checked?1:0;save()};
+    p.querySelector('#qHunt').onclick=()=>{const nx=nextDexTarget();if(!nx){toast('찾을 포켓몬이 없어요');return}AUTO.on=1;AUTO.guide=1;AUTO.huntOnly=1;AUTO.hunt={a:nx.a,n:nx.n};toast('🌿 '+META[nx.n].name+' 찾으러 '+areaName(nx.a)+'(으)로!');closePanel();hud()}})}
+// 길 따라 걷기: 메인 퀘스트가 바뀌면(도착·클리어) 멈추고 알려 줘요
+setInterval(()=>{try{if(AUTO.on&&AUTO.guide&&!AUTO.huntOnly&&G){const t=objective().t;if(AUTO.gt&&t!==AUTO.gt){autoStop();toast('🎯 퀘스트 완료! 다음: '+t)}}}catch(e){}},700);
+(function(){const go=()=>{const h=document.getElementById('hObj');if(h){h.style.cursor='pointer';h.onclick=()=>{sfx('tap');questOpen()}}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
