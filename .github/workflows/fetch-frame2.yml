@@ -1,0 +1,19 @@
+name: fetch-frame2
+on:
+  push:
+    branches: [fetch-frame2]
+permissions:
+  contents: write
+jobs:
+  f:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          set -e
+          git clone --depth 1 -b fetch-frame2 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} r
+          cd r && mkdir -p inbox
+          curl -fsSL -o inbox/f4.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_120209_bbd867a3-68e0-4709-a2cb-41aaeda20796.png
+          curl -fsSL -o inbox/f5.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_120323_3342e24d-9a68-40a6-8bdc-ce5cc5a8dd3a.png
+          curl -fsSL -o inbox/f6.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_120402_47a2e402-7d12-4f86-b2b1-21316c8e6054.png
+          git config user.email noreply@anthropic.com; git config user.name Claude
+          git add inbox && git commit -m "inbox: frames2" && git push origin HEAD:fetch-frame2-out
