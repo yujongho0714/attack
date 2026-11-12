@@ -67,7 +67,13 @@ body.inb #bMenu:not(:empty){display:grid}body.inb #bMenu:not(:empty)~#bTx{bottom
 const UP=(()=>{let DB=null;const IDX='__index';
 function idb(){return DB||(DB=new Promise((res,rej)=>{const r=indexedDB.open('zm-hitlab',1);r.onupgradeneeded=()=>r.result.createObjectStore('m');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))}
 async function put(k,v){const d=await idb();return new Promise(r=>{const t=d.transaction('m','readwrite');t.objectStore('m').put(v,k);t.oncomplete=r;t.onerror=r})}
-async function get(k){try{const d=await idb();return new Promise(r=>{const q=d.transaction('m').objectStore('m').get(k);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
+// 포켓몬 어드벤처 사이트에 올려 둔 포켓몬·기술 이펙트 (출결 서버에 안 넣어도 됨)
+const HB='https://yujongho0714.github.io/attack/poke/';let HMETA=null;
+async function hmeta(){if(HMETA)return HMETA;try{HMETA=await (await fetch(HB+'poke_meta.json')).json()}catch(e){HMETA=null;return {}}return HMETA}
+function hname(n){const m=/^sc:(\d{4})$/.exec(n||'');return m&&HMETA&&HMETA[m[1]]?HMETA[m[1]].n:null}
+async function hostedPool(n,f){const M=await hmeta();let L=Object.keys(M);if(f)L=L.filter(d=>f(M[d],d));L.sort(()=>Math.random()-.5);return L.slice(0,n||40).map(d=>({n:'sc:'+d,k:'pmd',on:true,pk:'host',dex:+d,t:HB+'pk/portrait/'+d+'/Normal.png'}))}
+const HREC={};async function hostedRec(d){if(HREC[d])return HREC[d];const b=HB+'pk/sprite/'+d+'/';const meta=await (await fetch(b+'pmd.json')).json();const sheets={};await Promise.all(Object.keys(meta.anims).map(async st=>{try{const r=await fetch(b+meta.anims[st].f+'-Anim.png');if(r.ok)sheets[st]=await r.blob()}catch(e){}}));return HREC[d]={kind:'pmd',meta,sheets}}
+async function get(k){if(/^sc:\d{4}$/.test(k||''))return hostedRec(k.slice(3));try{const d=await idb();return new Promise(r=>{const q=d.transaction('m').objectStore('m').get(k);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
 async function del(k){const d=await idb();return new Promise(r=>{const t=d.transaction('m','readwrite');t.objectStore('m').delete(k);t.oncomplete=r})}
 async function index(){const L=await get(IDX);if(L)return L;// 예전 방식으로 넣은 것도 목록에
   try{const d=await idb();const ks=await new Promise(r=>{const q=d.transaction('m').objectStore('m').getAllKeys();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])});const out=[];for(const k of ks){if(k===IDX)continue;const v=await get(k);if(v)out.push({n:k,k:v.kind})}await put(IDX,out);return out}catch(e){return[]}}
@@ -276,7 +282,10 @@ function pmdObj(meta,cv){const g=new THREE.Group();const A0=meta.anims.idle;cons
     const a=Math.atan2(f.dot(r),f.dot(tc));const nr=((Math.round(a/(Math.PI/4))%8)+8)%8;if(nr!==row){row=nr;show()}};
   g.userData.pmd={ctrl,meta,bw:(bb.x1-bb.x0)*u,clone:()=>pmdObj(meta,cv),dbg:()=>({row,cur,fi,n:(meta.anims[cur]||{}).n,off:m.material.map.offset.toArray()})};show();return g}
 // 기술 이펙트 플립북 모음 (id → {meta, cv})
-let FXAC=null;async function fxaAll(){if(FXAC)return FXAC;FXAC={};try{for(const x of (await index()).filter(x=>x.k==='fxa')){try{const r=await get(x.n);const meta=typeof r.meta==='string'?JSON.parse(r.meta):r.meta;FXAC[meta.id.toLowerCase()]={meta,cv:await bmp(r.png)}}catch(e){}}}catch(e){}return FXAC}
+let FXAC=null;async function fxaAll(){if(FXAC)return FXAC;FXAC={};
+  try{const map=await (await fetch(HB+'fxmap.json')).json();const IM={};const ld=f=>IM[f]||(IM[f]=new Promise(r=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>r(i);i.onerror=()=>r(null);i.src=HB+'vfx/'+f+'.png'}));
+    await Promise.race([Promise.all(Object.keys(map).map(async id=>{const [f,c,r]=map[id];const im=await ld(f);if(im)FXAC[id]={meta:{id,n:c*r,cols:c,fps:20,host:1},cv:im}})),new Promise(r=>setTimeout(r,8000))])}catch(e){}
+  return FXAC}
 // 일반 게임용: 켠 캐릭터(3D·그림)를 미리 만들어 두고, 필요할 때 복제해서 적·상대로 써요
 async function templates(n,kinds){const L=await pick(kinds||['bed','glb','spr','pmd'],n||8);const T=[];for(const x of L){try{const rec=await get(x.n);const o=await build(rec);if(o)T.push({n:x.n,rec,o})}catch(e){}}return T}
 function spawnOf(T,H){const o=T.o.userData.pmd?T.o.userData.pmd.clone():(window.THREE&&THREE.SkeletonUtils&&T.rec.kind==='glb')?THREE.SkeletonUtils.clone(T.o):T.o.clone(true);const mats=[];
@@ -284,7 +293,7 @@ function spawnOf(T,H){const o=T.o.userData.pmd?T.o.userData.pmd.clone():(window.
   fitTo(o,H||1.6);const UA=animator(o,T.rec.anim);UA.set('walk');
   const play=(n,once)=>{if(/Walk|Run/i.test(n))UA.set('walk');else if(/Hit|Hurt|Damage/i.test(n))UA.play('hurt');else if(/Death|Die|Faint|Down/i.test(n))UA.set('faint');else if(/Attack|Bite|Throw|Punch|Kick|Slash/i.test(n))UA.play('attack');else UA.set('idle')};
   return{o,UA,mats,play,name:T.n}}
-return{index,get,remove,clearAll,importZip,importFiles,syncCloud,build,fitTo,pick,bmp,skinImgs,animator,setOn,active,templates,spawnOf,autoSync,parseCode,rbox,fxaAll,pmdObj}})();
+return{hostedPool,hostedRec,hmeta,hname,index,get,remove,clearAll,importZip,importFiles,syncCloud,build,fitTo,pick,bmp,skinImgs,animator,setOn,active,templates,spawnOf,autoSync,parseCode,rbox,fxaAll,pmdObj}})();
 </script>
 <script>// ===== 포켓몬 어드벤처 — 데이터 (타입·기술·공식) =====
 'use strict';
