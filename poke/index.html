@@ -210,7 +210,20 @@ body.inb #joyZ,body.inact #joyZ{display:none}
 @media (orientation:landscape){#side{gap:4px;grid-template-columns:repeat(3,auto)!important;top:calc(var(--vh,1vh)*17 + 40px)!important}#side button{padding:2px 0;font-size:10.5px;width:min(14vh,54px)!important;height:min(13vh,50px)!important}#side button b{font-size:17px;display:block}}
 @media (orientation:portrait){#side{display:grid;grid-template-columns:repeat(2,auto);gap:5px}#side button{width:56px;min-height:46px}}
 </style><style>.aCrit{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);font:italic 900 min(12vh,54px) system-ui,sans-serif;color:#ffe14a;-webkit-text-stroke:3px #5a2a00;paint-order:stroke fill;text-shadow:0 5px 0 #5a2a00,0 0 18px #ffb000;pointer-events:none;animation:acr .9s forwards;white-space:nowrap;z-index:5}
-@keyframes acr{0%{transform:translate(-50%,-50%) scale(2.6) rotate(-8deg);opacity:0}12%{transform:translate(-50%,-50%) scale(1) rotate(-8deg);opacity:1}20%{transform:translate(-50%,-50%) scale(1.15) rotate(-8deg)}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(1) rotate(-8deg);opacity:0}}</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
+@keyframes acr{0%{transform:translate(-50%,-50%) scale(2.6) rotate(-8deg);opacity:0}12%{transform:translate(-50%,-50%) scale(1) rotate(-8deg);opacity:1}20%{transform:translate(-50%,-50%) scale(1.15) rotate(-8deg)}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(1) rotate(-8deg);opacity:0}}</style><style>
+#catchOv{position:fixed;inset:0;z-index:58;background:#0a1024aa;display:flex;align-items:flex-end;justify-content:center;padding:10px;touch-action:none}
+#catchOv .cb{width:min(440px,100%);background:#fffdf0;border:4px solid #1c2550;border-radius:20px;padding:10px 12px;text-align:center;color:#1c2550;box-shadow:0 6px 0 #1c2550;margin-bottom:env(safe-area-inset-bottom)}
+#catchOv h3{margin:0;font:italic 900 22px system-ui}#catchOv p{margin:4px 0;font-weight:800}#catchOv p em{font-style:normal;color:#fff;font-size:12px;padding:1px 7px;border-radius:999px}
+#catchOv .sel{display:flex;align-items:center;justify-content:center;gap:10px;touch-action:none}#catchOv .ar{width:44px;height:44px;border-radius:50%;border:3px solid #1c2550;background:#ffd23f;font-weight:900;font-size:18px}
+#catchOv .cur{width:170px;display:flex;flex-direction:column;align-items:center}#catchOv .cur img.ic{width:56px;height:56px;image-rendering:pixelated}#catchOv .cur b{font-size:18px}#catchOv .cur small{opacity:.75}
+#catchOv .cur.sl{animation:csl .2s}#catchOv .cur.sr{animation:csr .2s}@keyframes csl{from{transform:translateX(40px);opacity:.3}}@keyframes csr{from{transform:translateX(-40px);opacity:.3}}
+#catchOv .dots{display:flex;gap:5px;justify-content:center;margin:4px}#catchOv .dots i{width:8px;height:8px;border-radius:50%;background:#1c255033}#catchOv .dots i.on{background:#1c2550}#catchOv .hint{display:block;opacity:.6;font-size:12px}
+#catchOv .bt{display:flex;gap:8px;margin-top:8px}#catchOv .bt button{flex:1;border:3px solid #1c2550;border-radius:14px;padding:12px;font-weight:900;font-size:18px;box-shadow:0 3px 0 #1c2550}#catchOv .yes{background:#ff6a6a;color:#fff}#catchOv .no{background:#fff;color:#1c2550}
+#catchOv .tbar{position:relative;height:42px;margin:12px 6px;border:4px solid #1c2550;border-radius:22px;background:#e8e4d0;overflow:hidden}
+#catchOv .tbar i{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%)}#catchOv .z2{width:40%;background:#9be7ff}#catchOv .z1{width:20%;background:#7dff8a}#catchOv .z0{width:8%;background:#ffd23f;box-shadow:0 0 12px #ffd23f}
+#catchOv .nd{position:absolute;top:-6px;bottom:-6px;width:6px;margin-left:-3px;background:#ff3b3b;border:2px solid #fff;border-radius:3px;box-shadow:0 0 6px #000a}#catchOv .tbar.stop{animation:tst .3s}@keyframes tst{50%{transform:scale(1.05)}}
+#catchOv .tres{min-height:52px}
+</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
@@ -1182,14 +1195,14 @@ function bindMenu(){bt('bMenu').querySelectorAll('button').forEach(b=>b.onclick=
   else if(a==='run'){if(BS.trainer){msg('트레이너와의 승부에서는 도망칠 수 없어!').then(menuMain)}else done({t:'run'})}})}
 function done(x){if(CHOOSE){const c=CHOOSE;CHOOSE=null;c(x)}}
 function aiAct(){const me=BS.me.m,f=BS.foe.m;
-  if(!BS.trainer&&wantCatch(f)){const S=stOf(f);const ball=G.bag.hyper>0?'hyper':G.bag.great>0?'great':G.bag.ball>0?'ball':null;if(ball){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.45&&est<f.hp-1&&BS.turn<4)return{t:'move',m:weak};return{t:'item',k:ball}}}
+  if(!BS.trainer&&wantCatch(f)){const S=stOf(f);const ball=BR().auto?autoBallFor(f):null;if(!ball&&BALLS().length&&!BS.asked){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.35&&est<f.hp-1)return{t:'move',m:weak}}if(ball){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.45&&est<f.hp-1&&BS.turn<4)return{t:'move',m:weak};return{t:'item',k:ball}}}
   const S=stOf(me);if(me.hp/S[0]<.25){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p&&BS.healUsed<2){BS.healUsed++;return{t:'item',k:p}}}
   return{t:'move',m:bestMove(me,f)}}
 function wantCatch(f){if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;return G.opt.catchNew&&!G.dex.c[META[f.n].dex]&&G.party.length+G.box.length<900}
 function choose(){return new Promise(r=>{if((AUTO.on&&!AUTO.guide)||G.autoBattle){setTimeout(()=>r(aiAct()),FAST()?250:600);return}CHOOSE=r;menuMain()})}
 async function sendMe(m,first){const S=await getSpr(sprKey(m));BS.me={m,S,st:'idle',t:0,in:0};bbox();await msg((first?'가랏! ':'돌아와! … 가랏! ')+'<b>'+nm(m)+'</b>!',FAST()?400:800,[m.n,'Determined'])}
 async function sendFoe(m){const S=await getSpr(sprKey(m));BS.foe={m,S,st:'idle',t:0,in:0};G.dex.s[META[m.n].dex]=1;bbox()}
-async function battle(o){if(o.trainer&&!o.scaled&&DIFF()>0)for(const f of o.foes){f.lv=Math.min(100,Math.round(f.lv*(1+DLV[DIFF()]*.75)));f.exp=expAt(f.lv);f.hp=stOf(f)[0]}SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
+async function battle(o){BS.asked=0;BS.catchK=1;if(o.trainer&&!o.scaled&&DIFF()>0)for(const f of o.foes){f.lv=Math.min(100,Math.round(f.lv*(1+DLV[DIFF()]*.75)));f.exp=expAt(f.lv);f.hp=stOf(f)[0]}SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
   BS.tt=0;BS.foes=o.foes;BS.marks=[];await flashIn();const foes=o.foes;let fi=0;await sendFoe(foes[0]);bt('bM').innerHTML='';
   await msg(o.trainer?'<b>'+o.trainer+'</b>(이)가 승부를 걸어왔다!':'앗! 야생 <b>'+nm(foes[0])+'</b>(이)가 나타났다!',FAST()?500:1000);
   if(o.trainer)await msg(o.trainer+'(은)는 <b>'+nm(foes[0])+'</b>(을)를 내보냈다!',FAST()?400:800);
@@ -1217,7 +1230,7 @@ function forcePick(){return new Promise(r=>{bt('bTx').innerHTML='다음 포켓�
 async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FAST()?300:600);const fp=side(0),mp=side(1);BS.ball={x:mp.x,y:mp.y,col:it.col};
   for(let i=0;i<=20;i++){const u=i/20;BS.ball.x=mp.x+(fp.x-mp.x)*u;BS.ball.y=mp.y-VW*.1+(fp.y-VW*.12-mp.y+VW*.1)*u-Math.sin(u*Math.PI)*VH*.18;BS.ball.rot=u*12;await sleep(18)}
   BS.foe.white=1;await sleep(160);BS.foe.hide=1;BS.foe.white=0;BS.flash=.15;for(let i=0;i<10;i++){BS.ball.y+=VH*.012;await sleep(16)}
-  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2));const sh=Math.pow(p,.25);
+  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarOf(f.n)]*(BS.catchK||1)*[1,.8,.65][DIFF()]);BS.catchK=1;const sh=Math.pow(p,.25);
   let n=0;for(;n<3;n++){await sleep(380);if(R()>sh)break;for(let k=0;k<8;k++){BS.ball.rot=Math.sin(k/8*6.28)*.5;await sleep(28)}BS.ball.rot=0;sfx('tap')}
   await sleep(300);if(n>=3&&R()<sh){sfx('get');await msg('신난다! <b>'+nm(f)+'</b>(을)를 잡았다!',1300,[f.n,'Happy']);BS.ball=null;return true}
   BS.ball=null;BS.foe.hide=0;BS.foe.in=.3;await msg(['안 돼! 포켓몬이 볼에서 나와 버렸다!','아쉽다! 조금만 더 하면 잡을 수 있었는데!','으앗! 잡은 줄 알았는데!'][Math.min(2,n)]);return false}
@@ -1306,7 +1319,7 @@ function actUI(on){let u=document.getElementById('actUI');if(!on){if(u)u.remove(
   u.querySelector('#aRoll').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();actRoll()});
   u.querySelectorAll('#aTop [data-k]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.k;
     if(k==='run')actEnd({t:'run'});else if(k==='menu')actEnd({t:'menu'});
-    else if(k==='ball'){const ball=G.bag.hyper>0?'hyper':G.bag.great>0?'great':G.bag.ball>0?'ball':null;if(!ball){toast('몬스터볼이 없어요');return}actEnd({t:'item',k:ball})}})}
+    else if(k==='ball'){if(!BALLS().length){toast('몬스터볼이 없어요');return}ACT.pause=1;BS.asked=0;catchFlow().then(a=>{ACT.pause=0;if(a&&ACT.on)actEnd(a)})}})}
 addEventListener('keydown',e=>{if(!ACT.on)return;ACT.keys[e.key.toLowerCase()]=1;const k=e.key.toLowerCase();const i='jkl;'.indexOf(k)>=0?'jkl;'.indexOf(k):'1234'.indexOf(k);if(i>=0){actPress(i);e.preventDefault()}if(k===' '||k==='shift'){actRoll();e.preventDefault()}});
 addEventListener('keyup',e=>{ACT.keys&&(ACT.keys[e.key.toLowerCase()]=0)});
 // ---------- 내 행동 ----------
@@ -1343,7 +1356,7 @@ async function actCast(mine,m,dir){const AB=mine?BS.me:BS.foe,DB=mine?BS.foe:BS.
   if(mine)ACT.busy=0;else ACT.fbusy=0;
   if(ACT.on&&def.hp<=0){if(mine){banner('K.O.!','#ff5a5a');await sleep(700);actEnd({t:'rt'})}else{await sleep(400);actDowned()}}}
 // ---------- 매 프레임 ----------
-function actUpdate(dt){if(!ACT.on)return;const fr=FX2.stop>0?0:dt;if(!fr)return;ACT.t+=fr;BS.tt=(BS.tt||0)+fr;ACT.swcd=Math.max(0,(ACT.swcd||0)-fr);try{arenaHud()}catch(e){}if(ACT.down)return;const me=BS.me,f=BS.foe,r=AR(),S=bsz();
+function actUpdate(dt){if(!ACT.on||ACT.pause)return;const fr=FX2.stop>0?0:dt;if(!fr)return;ACT.t+=fr;BS.tt=(BS.tt||0)+fr;ACT.swcd=Math.max(0,(ACT.swcd||0)-fr);try{arenaHud()}catch(e){}if(ACT.down)return;const me=BS.me,f=BS.foe,r=AR(),S=bsz();
   for(const k in ACT.cd)ACT.cd[k]=Math.max(0,ACT.cd[k]-fr);ACT.dcd=Math.max(0,ACT.dcd-fr);ACT.inv=Math.max(0,ACT.inv-fr);
   if(ACT.buf){ACT.buf.t-=fr;if(ACT.buf.t<=0)ACT.buf=null;else if(!ACT.busy&&ACT.roll<=0){const i=ACT.buf.i,dd=ACT.buf.dir;ACT.buf=null;actPress(i,dd)}}
   // 자동 전투: 내 포켓몬도 스스로 움직이고 · 피하고 · 기술 씀
@@ -1391,7 +1404,7 @@ function modeToggle(){G.mode=G.mode==='turn'?'adv':'turn';try{localStorage.setIt
 function actPilot(fr){const me=BS.me,f=BS.foe,ai=ACT.ai,st=ACT.stick;ACT.pt=(ACT.pt||0)+fr;
   // 잡기 · 회복은 턴제 자동과 같은 판단
   if(!ACT.busy&&ACT.pt>.8){const S=stOf(f.m);
-    if(!BS.trainer&&wantCatch(f.m)){const ball=G.bag.hyper>0?'hyper':G.bag.great>0?'great':G.bag.ball>0?'ball':null;if(ball&&(f.m.hp/S[0]<.5||ACT.t>7)){actEnd({t:'item',k:ball});return}}
+    if(!BS.trainer&&wantCatch(f.m)&&BR().auto){const ball=autoBallFor(f.m);if(ball&&(f.m.hp/S[0]<.35||ACT.t>9)){BS.catchK=1;actEnd({t:'item',k:ball});return}}
     const M=stOf(me.m);if(me.m.hp/M[0]<.25&&BS.healUsed<2){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p){BS.healUsed++;actEnd({t:'item',k:p});return}}}
   const dx=f.ax-me.ax,dy=f.ay-me.ay,d=Math.hypot(dx,dy)||1,want=VW*.26;
   if(ai.tel>0&&ai.tel<.32&&ACT.dcd<=0){st.x=-dy/d;st.y=dx/d;actRoll();return}
@@ -1535,8 +1548,8 @@ function chooseStarter(){return new Promise(async r=>{await say(['포켓몬 박�
   const wasA=AUTO.on;AUTO.on=0;try{hud()}catch(e){}// 자동이어도 첫 포켓몬은 내가 골라요
   openPanel('첫 포켓몬 고르기',`<div class="st3">${L.map(n=>`<button class="card" data-n="${encodeURIComponent(n)}"><img src="${THUMB[n]||''}"><b>${META[n].name}</b><small>${META[n].types.map(t=>TN[t]).join(' · ')}</small></button>`).join('')}</div>`,null,p=>p.querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>fin(decodeURIComponent(x.dataset.n))),1)})}
 // ---------- 야생 · 트레이너 ----------
-function wpick(T){const tot=T.reduce((a,b)=>a+b.w,0);let u=R()*tot;for(const e of T){u-=e.w;if(u<=0)return e.n}return T[0].n}
-async function wild(A,kind){const T=kind==='w'?A.enc.w:A.enc.g;if(!T||!T.length)return;let n=wpick(T);if(AUTO.hunt&&AUTO.hunt.a===G.a&&T.some(e=>e.n===AUTO.hunt.n)&&R()<.35)n=AUTO.hunt.n;const [lo,hi]=areaLv(G.a);
+function wpick(T){const W=T.map(e=>e.w*ENCW[rarOf(e.n)]);const tot=W.reduce((a,b)=>a+b,0);let u=R()*tot;for(let i=0;i<T.length;i++){u-=W[i];if(u<=0)return T[i].n}return T[0].n}
+async function wild(A,kind){const T=kind==='w'?A.enc.w:A.enc.g;if(!T||!T.length)return;let n=wpick(T);if(AUTO.hunt&&AUTO.hunt.a===G.a&&T.some(e=>e.n===AUTO.hunt.n)&&R()<.35*[1,.6,.35,.15,.1,.1,.1][rarOf(AUTO.hunt.n)])n=AUTO.hunt.n;const [lo,hi]=areaLv(G.a);
   const wm=mkMon(n,ri(lo,hi));if(R()<1/150){wm.sh=1;wm.shc=rollShc();toast('✨ 반짝! '+SHC[wm.shc].n+' 포켓몬이 나타났다!')}const r=await battle({foes:[wm],bg:A.th===THEME.town?'meadow':RTH[(G.a-1)/2]});if(r==='lose')await blackout()}
 async function trainerSpot(n){P.busy=1;sfx('enc');toast('❗');await sleep(400);P.busy=0;await say([n.name+': '+n.lines[0]]);
   const r=await battle({trainer:n.name,foes:n.team.map(t=>mkMon(t.n,t.lv)),money:Math.max(...n.team.map(t=>t.lv))*30,lose:pick(['으악, 졌다!','강하구나…!','다음엔 안 질 거야!']),bg:RTH[(G.a-1)/2]});
@@ -1606,14 +1619,14 @@ function menuOpen(){if(SCENE!=='over')return;const tw=Object.keys(G.visit||{}).m
   <h4>보관함 ${G.box.length}마리 (눌러서 데려오기)</h4><div class="boxg">${G.box.slice(0,300).map((m,i)=>`<button class="bx" data-b="${i}"><img src="${THUMB[m.n]||''}"><small>${nm(m)} ${m.lv}</small></button>`).join('')||'<small>아직 없어요</small>'}</div>
   <h4>가방</h4><div>${Object.keys(G.bag).filter(k=>G.bag[k]>0).map(k=>`<button class="it" data-it="${k}">${ITEMS[k].e} ${ITEMS[k].n} ×${G.bag[k]}</button>`).join('')}</div>
   ${canFly()?`<h4>🕊 날아가기</h4><div>${tw.map(a=>`<button class="it" data-fly="${a}">${areaName(a)}</button>`).join('')}</div>`:'<h4>🕊 날아가기</h4><small>비행 타입 포켓몬이 있으면 가 본 마을로 날아갈 수 있어요</small>'}
-  <h4>설정</h4><label><input type="checkbox" id="oC" ${G.opt.catchNew?'checked':''}> 자동일 때 새 포켓몬 잡기</label><label><input type="checkbox" id="oB" ${G.autoBattle?'checked':''}> 걸어 다닐 때도 전투는 자동</label><label><input type="checkbox" id="oP" ${SHOWPATH?'checked':''}> 자동 길 표시</label>
+  <h4>설정</h4><label><input type="checkbox" id="oC" ${G.opt.catchNew?'checked':''}> 자동일 때 새 포켓몬 잡기</label><label><input type="checkbox" id="oAB" ${BR().auto?'checked':''}> 자동일 때 몬스터볼 알아서 던지기 <small>(끄면 물어봐요)</small></label><div class="row"><span>슈퍼볼은</span><select id="oBG">${RAR.slice(0,4).map((x,i)=>`<option value="${i}" ${BR().great==i?'selected':''}>${x} 이상</option>`).join('')}</select></div><div class="row"><span>하이퍼볼은</span><select id="oBH">${RAR.slice(0,4).map((x,i)=>`<option value="${i}" ${BR().hyper==i?'selected':''}>${x} 이상</option>`).join('')}</select></div><label><input type="checkbox" id="oB" ${G.autoBattle?'checked':''}> 걸어 다닐 때도 전투는 자동</label><label><input type="checkbox" id="oP" ${SHOWPATH?'checked':''}> 자동 길 표시</label>
   <div style="margin-top:10px"><button class="it" id="oS">💾 저장</button><button class="it" id="oT">🏠 처음 화면</button></div>`,null,p=>{
     p.querySelector('#oF').onchange=e=>{const v=e.target.value;if(v===''){G.fol=null}else{const m=[...G.party,...G.box][+v];m.fid=m.fid||('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));G.fol=m.fid;toast('🐾 '+nm(m)+'(이)가 졸졸 따라와요!')}refreshSpr();save()};
     p.querySelectorAll('.mon').forEach(x=>x.onclick=()=>{const i=+x.dataset.i;if(i>0){const [m]=G.party.splice(i,1);G.party.unshift(m);refreshSpr();save();menuOpen()}});
     p.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{const i=+x.dataset.b;const m=G.box[i];if(G.party.length<6){G.box.splice(i,1);G.party.push(m)}else{const o=G.party.pop();G.box[i]=o;G.party.push(m)}save();menuOpen()});
     p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.heal||it.lv){const m=G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
     p.querySelectorAll('[data-fly]').forEach(x=>x.onclick=()=>{closePanel(1);flyTo(+x.dataset.fly)});
-    p.querySelector('#oC').onchange=e=>{G.opt.catchNew=e.target.checked;save()};p.querySelector('#oB').onchange=e=>{G.autoBattle=e.target.checked;save()};p.querySelector('#oP').onchange=e=>{SHOWPATH=e.target.checked};
+    p.querySelector('#oC').onchange=e=>{G.opt.catchNew=e.target.checked;save()};p.querySelector('#oAB').onchange=e=>{BR().auto=e.target.checked?1:0;save()};p.querySelector('#oBG').onchange=e=>{BR().great=+e.target.value;save()};p.querySelector('#oBH').onchange=e=>{BR().hyper=+e.target.value;save()};p.querySelector('#oB').onchange=e=>{G.autoBattle=e.target.checked;save()};p.querySelector('#oP').onchange=e=>{SHOWPATH=e.target.checked};
     p.querySelector('#oGift').onclick=()=>{closePanel(1);giftOpen()};p.querySelector('#oDiff').onclick=()=>{G.opt.diff=(DIFF()+1)%3;save();toast(['😊 쉬움: 예전처럼 빨리 커요','💪 보통: 레벨업이 느리고 관장·트레이너가 강해요','🔥 어려움: 진짜 실력자용!'][DIFF()]);closePanel(1);menuOpen()};p.querySelector('#oFuse').onclick=()=>{closePanel(1);fuseOpen()};p.querySelector('#oMe').onclick=()=>{closePanel(1);wardrobe()};p.querySelector('#oDsk').onclick=()=>{closePanel(1);dskinOpen()};p.querySelector('#oBgm').onclick=()=>{BGM.toggle();closePanel(1);menuOpen()};p.querySelector('#oMode').onclick=()=>{modeToggle();closePanel(1);menuOpen()};p.querySelector('#oS').onclick=()=>{save();toast('💾 저장했어요')};p.querySelector('#oT').onclick=()=>{save();closePanel(1);location.reload()}})}
 async function evolveAfterMenu(){closePanel(1);SCENE='battle';showBattleUI(1);BS.on=1;await evolveCheck();showBattleUI(0);BS.on=0;SCENE='over';refreshSpr();save()}
 // ---------- 도감 ----------
@@ -1623,7 +1636,7 @@ function dexOpen(f){if(SCENE!=='over')return;const c=Object.keys(G.dex.c).length
 function dexOne(n){const M=META[n],cc=G.dex.c[M.dex],L=LOC[n]||[];const evFrom=SPECIES.find(s=>(EVC[META[s].dex]||[]).some(e=>e[0]===M.dex));
   openPanel('📖 No.'+M.dex+' '+M.name,`<div class="d1"><img src="${THUMB[n]||''}"><div><div>${M.types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')}</div><small>체력 ${M.stats[0]} · 공격 ${M.stats[1]} · 방어 ${M.stats[2]} · 특공 ${M.stats[3]} · 특방 ${M.stats[4]} · 스피드 ${M.stats[5]}</small><div>${cc?'✅ 잡았어요':'❌ 아직 못 잡았어요'}</div><small>기술: ${(M.moves||[]).map(m=>m.name).join(', ')||'-'}</small></div></div>
   <h4>나오는 곳</h4>${L.length?L.map(a=>`<div class="row"><span>🌿 ${areaName(a)} <small>(Lv.${areaLv(a).join('~')}${genArea(a).enc.w.some(e=>e.n===n)&&!genArea(a).enc.g.some(e=>e.n===n)?' · 물 위':''})</small></span><button data-go="${a}">🧭 찾으러 가기</button></div>`).join(''):`<small>${evFrom?META[evFrom].name+'(을)를 키워서 진화시키면 얻을 수 있어요':'풀숲에서는 안 나와요 (진화로 얻거나 다른 세이브에서 나와요)'}</small>`}`,()=>dexOpen(),p=>{
-    p.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>{const a=+x.dataset.go;if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}if(a>2*G.badges+1){toast('아직 배지가 모자라서 갈 수 없어요 (배지 '+((a-1)/2)+'개 필요)');return}AUTO.hunt={a,n};AUTO.on=1;AUTO.huntOnly=1;closePanel(1);toast('🧭 '+M.name+' 찾으러 '+areaName(a)+'(으)로 출발!');hud()})})}
+    p.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>{const a=+x.dataset.go;if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}if(a>2*G.badges+1){toast('아직 배지가 모자라서 갈 수 없어요 (배지 '+((a-1)/2)+'개 필요)');return}closePanel(1);const go=()=>{AUTO.hunt={a,n};AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=1;toast('🧭 '+M.name+' 찾으러 '+areaName(a)+'에서 자동 사냥!');hud()};if(G.a!==a&&(G.visit||{})[a]&&SCENE==='over'){flyTo(a).then(go)}else go()})})}
 function buildLoc(){LOC={};for(let a=1;a<18;a+=2){const T=encTable(a);for(const e of T.g.concat(T.w)){(LOC[e.n]=LOC[e.n]||[]);if(!LOC[e.n].includes(a))LOC[e.n].push(a)}}}
 // ---------- 저장 ----------
 function save(){if(!G)return;G.x=P.x;G.y=P.y;G.dir=P.dir;G.t=Date.now();LS.set('pka-save:'+(G.name||'처음 기록'),G)}
@@ -2095,6 +2108,41 @@ function fuseShow(kind,r,mats,ok,res){return new Promise(done=>{rpoolInit();cons
   const fin=()=>{if(stopped)return;stopped=1;reel.style.transform=`translateY(${-(N-2)*H()}px)`;d.classList.add(ok?'okk':'nok');msg.innerHTML=ok?`🎉 <b>성공!</b> ${RAR[nx]} 카드!`:'💨 아쉽게 실패…';sk.textContent=ok?'카드 받기 ▶':'닫기';sk.onclick=()=>{d.remove();done()};try{sfx(ok?'badge':'faint')}catch(e){}if(ok)FX2&&0};
   const step=now=>{if(stopped)return;const u=Math.min(1,(now-t0)/T),e=1-Math.pow(1-u,3);const pos=e*(N-2);reel.style.transform=`translateY(${-pos*H()}px)`;const k=pos|0;if(k!==tick){tick=k;try{sfx('tap')}catch(_){}}if(u<1)requestAnimationFrame(step);else fin()};
   sk.onclick=fin;requestAnimationFrame(step)})}
+
+// ===== 포획: 등급별 출현·포획 확률 · 볼 고르기(스와이프·진동) · 타이밍(팡야처럼) · 자동일 때 볼 규칙 =====
+const rarOf=n=>{const M=META[n];if(!M)return 0;if(M.form)return FTIER[M.form]||4;return RARP[M.dex]||0};
+const ENCW=[1,.4,.14,.04,.02,.01,.005],CATW=[1,.55,.3,.12,.08,.05,.03];
+const BALLS=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]&&(G.bag[k]||0)>0);
+// 자동일 때 볼 규칙 (기본: 자동은 볼 안 씀)
+const BR=()=>{G.opt.br=G.opt.br||{auto:0,great:1,hyper:2};return G.opt.br};
+function autoBallFor(f){const r=rarOf(f.n),b=BR();if(!b.auto)return null;const can=k=>(G.bag[k]||0)>0;
+  if(can('hyper')&&r>=b.hyper)return'hyper';if(can('great')&&r>=b.great)return'great';if(can('ball'))return'ball';return null}
+function wantAsk(){const f=BS.foe&&BS.foe.m;if(!f||BS.trainer||BS.asked||f.hp<=0)return false;if(!BALLS().length)return false;if(f.hp/stOf(f)[0]>.35)return false;
+  if(autoActive()&&!wantCatch(f))return false;return true}
+// ---------- 볼 고르기 + 타이밍 ----------
+function catchFlow(){return new Promise(done=>{BS.asked=1;const f=BS.foe.m,r=rarOf(f.n),auto=autoActive();
+  if(auto&&BR().auto){const k=autoBallFor(f);BS.catchK=1;done(k?{t:'item',k}:null);return}
+  let L=BALLS(),i=Math.max(0,L.indexOf(r>=2&&L.includes('hyper')?'hyper':r>=1&&L.includes('great')?'great':'ball'));
+  const d=document.createElement('div');d.id='catchOv';const vib=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
+  const draw=()=>{const k=L[i],it=ITEMS[k];d.querySelector('.cur').innerHTML=`${it.e}<b>${it.n}</b><small>${G.bag[k]}개 · 잘 잡힘 ×${it.ball}</small>`;d.querySelectorAll('.dots i').forEach((x,j)=>x.classList.toggle('on',j===i))};
+  d.innerHTML=`<div class="cb"><h3>⚪ 몬스터볼 사용!</h3><p><b>${nm(f)}</b> <em style="background:${RARC[r]}">${RAR[r]}</em> 체력 ${Math.round(f.hp/stOf(f)[0]*100)}%</p>
+    <div class="sel"><button class="ar l">◀</button><div class="cur"></div><button class="ar r">▶</button></div><div class="dots">${L.map(()=>'<i></i>').join('')}</div><small class="hint">👈 밀어서 볼 바꾸기 👉</small>
+    <div class="bt"><button class="yes">🎯 사용한다</button><button class="no">✋ 안 한다</button></div></div>`;document.body.appendChild(d);draw();
+  const mv=s=>{if(L.length<2)return;i=(i+s+L.length)%L.length;vib(12);try{sfx('tap')}catch(e){}const c=d.querySelector('.cur');c.classList.remove('sl','sr');void c.offsetWidth;c.classList.add(s>0?'sl':'sr');draw()};
+  d.querySelector('.ar.l').onclick=()=>mv(-1);d.querySelector('.ar.r').onclick=()=>mv(1);
+  let sx=null;const sel=d.querySelector('.sel');sel.addEventListener('pointerdown',e=>{sx=e.clientX});sel.addEventListener('pointermove',e=>{if(sx==null)return;const dx=e.clientX-sx;if(Math.abs(dx)>40){mv(dx<0?1:-1);sx=e.clientX}});addEventListener('pointerup',()=>sx=null,{once:false});
+  let tm=auto?setTimeout(()=>no(),7000):0;const no=()=>{clearTimeout(tm);d.remove();BS.catchK=1;done(null)};d.querySelector('.no').onclick=no;
+  d.querySelector('.yes').onclick=()=>{clearTimeout(tm);const k=L[i];timing(d,r).then(m=>{BS.catchK=m;setTimeout(()=>{d.remove();done({t:'item',k})},650)})}})}
+// 팡야처럼: 왔다갔다 하는 바늘을 가운데에서 딱!
+function timing(d,r){return new Promise(res=>{const b=d.querySelector('.cb');b.innerHTML=`<h3>🎯 가운데에서 딱!</h3><div class="tbar"><i class="z2"></i><i class="z1"></i><i class="z0"></i><b class="nd"></b></div><p class="tres">화면을 눌러요!</p>`;
+  const bar=b.querySelector('.tbar'),nd=b.querySelector('.nd'),out=b.querySelector('.tres');const sp=1.25+r*.35;let t=0,last=performance.now(),go=1;
+  const loop=now=>{if(!go)return;t+=(now-last)/1000*sp;last=now;const u=(Math.sin(t*Math.PI)+1)/2;nd.style.left=(u*100)+'%';nd.dataset.u=u;requestAnimationFrame(loop)};requestAnimationFrame(loop);
+  const hit=e=>{e&&e.preventDefault();if(!go)return;go=0;const u=+nd.dataset.u,dd=Math.abs(u-.5);const [m,t2,c]=dd<.04?[2.2,'PERFECT!!','#ffd23f']:dd<.1?[1.5,'GREAT!','#7dff8a']:dd<.2?[1,'GOOD','#9be7ff']:[.45,'MISS…','#ff8a8a'];
+    out.innerHTML=`<b style="color:${c};font-size:28px">${t2}</b><br><small>잘 잡힘 ×${m}</small>`;bar.classList.add('stop');try{navigator.vibrate&&navigator.vibrate(dd<.04?[30,40,60]:20)}catch(_){}try{sfx(dd<.1?'get':'tap')}catch(_){}d.removeEventListener('pointerdown',hit);res(m)};
+  setTimeout(()=>d.addEventListener('pointerdown',hit),250);if(autoActive())setTimeout(()=>{if(go){nd.dataset.u=.5+(R()-.5)*.3;hit()}},2500)})}
+// ---------- 연결 ----------
+{const _c=choose;choose=async function(){if(wantAsk()){const a=await catchFlow();if(a)return a}return _c()}}
+{const _u=actUpdate;actUpdate=function(dt){_u(dt);if(ACT.on&&!ACT.pause&&!ACT.down&&!ACT.busy&&wantAsk()){ACT.pause=1;catchFlow().then(a=>{ACT.pause=0;if(a&&ACT.on)actEnd(a)})}}}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
