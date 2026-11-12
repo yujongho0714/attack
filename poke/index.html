@@ -1207,7 +1207,7 @@ function surfMon(){const m=G.party.find(m=>m.hp>0&&META[m.n].types.includes('WAT
 function flyMon(){return G.party.find(m=>m.hp>0&&META[m.n].types.includes('FLYING'))||G.party.find(m=>META[m.n].types.includes('DRAGON'))||G.party[0]}
 function folMon(){if(!G.fol)return null;return G.party.find(m=>m.fid===G.fol)||G.box.find(m=>m.fid===G.fol)||null}
 async function refreshSpr(){const L=folMon()||G.party[0];LEADS=L?await getSpr(sprKey(L)):null;const M=P.mode==='surf'?surfMon().m:P.mode==='fly'?flyMon():null;MOUNT=M?await getSpr(sprKey(M)):null}
-function drawOver(dt){const A=curA();const [px,py]=lerpPos();const s=TS*DPR;let camX=px*s+s/2-cv.width/2,camY=py*s+s/2-cv.height/2-(VH*.06*DPR);
+function drawOver(dt){cx.setTransform(1,0,0,1,0,0);cx.filter='none';cx.globalAlpha=1;const A=curA();const [px,py]=lerpPos();const s=TS*DPR;let camX=px*s+s/2-cv.width/2,camY=py*s+s/2-cv.height/2-(VH*.06*DPR);
   if(A.res){const mw=A.W*s,mh=A.H*s;camX=mw>cv.width?Math.max(0,Math.min(mw-cv.width,camX)):(mw-cv.width)/2;camY=mh>cv.height?Math.max(0,Math.min(mh-cv.height,camY)):(mh-cv.height)/2}
   cx.fillStyle=A.th.cave?'#2a2420':'#2e7d32';cx.fillRect(0,0,cv.width,cv.height);cx.imageSmoothingEnabled=false;if(!A.res||(A.cv.complete&&A.cv.naturalWidth))cx.drawImage(A.cv,-camX,-camY,A.W*s,A.H*s);
   // 물 반짝
@@ -1243,7 +1243,7 @@ function drawPerson(pal,dir,fr,X,Y,s,mark,scl){if(pal&&pal.cs){const im=chImg(pa
 const DIRK={ArrowDown:0,ArrowLeft:1,ArrowRight:2,ArrowUp:3,s:0,a:1,d:2,w:3};
 addEventListener('keydown',e=>{if(e.key in DIRK){KEY.dir=DIRK[e.key];userMove();e.preventDefault()}else if(e.key==='z'||e.key==='Enter'||e.key===' '){onA();e.preventDefault()}});
 addEventListener('keyup',e=>{if(e.key in DIRK&&KEY.dir===DIRK[e.key])KEY.dir=-1});
-function userMove(){if(AUTO.on){AUTO.on=0;AUTO.hunt=null;P.queue=null;hud();toast('✋ 자동 멈춤')}}
+function userMove(){if(AUTO.on){P.queue=null;if(!AUTO.manT||NOW-AUTO.manT>3)toast('직접 움직이는 중 · 손 떼면 자동 계속');AUTO.manT=NOW}}
 function onA(){if(DLG.on){DLG.next();return}if(SCENE!=='over'||P.busy||P.mv)return;const A=curA();const d=P.dir,X=P.x+[0,-1,1,0][d],Y=P.y+[1,0,0,-1][d];const np=A.npc.find(n=>n.x===X&&n.y===Y&&!n.gone);if(np){talk(np);return}if(A.M[Y]&&A.M[Y][X]===T_.SIGN){say([A.sign.t]);return}meSwing()}
 function updOver(dt){meTick(dt);if(P.mv){P.mv.t+=dt;if(P.mv.t>=P.mv.d){P.mv=null;afterStep()}}
   if(!P.mv&&!P.busy&&!DLG.on&&SCENE==='over'){if(KEY.dir>=0)tryStep(KEY.dir);else if(P.queue&&P.queue.length){const [x,y]=P.queue[0];const d=x<P.x?1:x>P.x?2:y<P.y?3:0;if(Math.abs(x-P.x)+Math.abs(y-P.y)!==1&&!(y<0||y>=curA().H||x<0||x>=curA().W)){P.queue=null}else{const ok=tryStep(d);if(ok)P.queue.shift();else{P.queue=null}}}
@@ -1437,14 +1437,14 @@ function actUI(on){let u=document.getElementById('actUI');if(!on){if(u)u.remove(
   document.body.appendChild(u);
   const Z=u.querySelector('#aStickZ'),K=u.querySelector('#aStick'),KI=K.querySelector('i'),st=ACT.stick,RAD=()=>Math.min(VW,VH)*.13;
   const pos=(e)=>({x:e.clientX,y:e.clientY});
-  Z.addEventListener('pointerdown',e=>{e.preventDefault();const p=pos(e);st.on=1;st.id=e.pointerId;st.cx=p.x;st.cy=p.y;st.x=st.y=0;K.style.left=p.x+'px';K.style.top=p.y+'px';K.classList.add('on');KI.style.transform='translate(-50%,-50%)';try{Z.setPointerCapture(e.pointerId)}catch(_){}});
+  Z.addEventListener('pointerdown',e=>{e.preventDefault();const p=pos(e);st.on=1;ACT.man=ACT.t;st.id=e.pointerId;st.cx=p.x;st.cy=p.y;st.x=st.y=0;K.style.left=p.x+'px';K.style.top=p.y+'px';K.classList.add('on');KI.style.transform='translate(-50%,-50%)';try{Z.setPointerCapture(e.pointerId)}catch(_){}});
   Z.addEventListener('pointermove',e=>{if(!st.on||e.pointerId!==st.id)return;const p=pos(e);let dx=p.x-st.cx,dy=p.y-st.cy;const L=Math.hypot(dx,dy),R0=RAD();
     // 손가락이 멀리 가면 조이스틱이 따라옴 (방향 바꾸기 쉬움)
     if(L>R0){st.cx+=dx/L*(L-R0);st.cy+=dy/L*(L-R0);K.style.left=st.cx+'px';K.style.top=st.cy+'px';dx=p.x-st.cx;dy=p.y-st.cy}
     const l2=Math.hypot(dx,dy),dz=R0*.12;st.x=l2<dz?0:dx/R0;st.y=l2<dz?0:dy/R0;KI.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`});
   const up=e=>{if(e.pointerId!==st.id)return;st.on=0;st.x=st.y=0;K.classList.remove('on')};Z.addEventListener('pointerup',up);Z.addEventListener('pointercancel',up);
   u.querySelectorAll('.ask').forEach(b=>{
-    b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const i=+b.dataset.i,id=BS.me.m.moves[i];if(!id)return;
+    b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();ACT.man=ACT.t;const i=+b.dataset.i,id=BS.me.m.moves[i];if(!id)return;
       if((ACT.cd[id]||0)>0){b.classList.remove('no');void b.offsetWidth;b.classList.add('no');return}
       ACT.aim={i,id,sx:e.clientX,sy:e.clientY,ux:0,uy:0,drag:0,cancel:0,pid:e.pointerId,btn:b};try{b.setPointerCapture(e.pointerId)}catch(_){}
       const A0=ACT.aim;clearTimeout(ACT.pvT);ACT.pvT=setTimeout(()=>{if(ACT.aim===A0&&!A0.drag){A0.cancel=1;A0.pv=1;skPreview(id,b)}},480)});
@@ -1474,7 +1474,8 @@ function actRoll(){if(!ACT.on||ACT.dcd>0||ACT.busy)return;const me=BS.me,f=BS.fo
 // ---------- 기술 쓰기 (턴제와 같은 연출) ----------
 async function actCast(mine,m,dir){const AB=mine?BS.me:BS.foe,DB=mine?BS.foe:BS.me,atk=AB.m,def=DB.m;if(mine)ACT.busy=1;else ACT.fbusy=1;
   try{callout(mine,m.name);AB.lastMv=m}catch(e){}const sh=shapeOf(m);let u=dir;if(!u){const dx=DB.ax-AB.ax,dy=DB.ay-AB.ay,L=Math.hypot(dx,dy)||1;u={x:dx/L,y:dy/L}}AB.row=dirRow(u.x,u.y);AB.vx=AB.vy=0;
-  const crit=R()<(mine?1/9:1/14),r=dmgCalc(atk,def,m,crit);const EM=[[.65,.8],[.85,1],[1,1.15]][DIFF()];let dmg=Math.floor(r.d*(0.85+R()*.15)*(mine?1:EM[BS.trainer?1:0]));if(r.e===0)dmg=0;if(OPER.on&&OPER.god&&!mine)dmg=0;if(OPER.on&&OPER.one&&mine)dmg=def.hp;
+  const crit=R()<(mine?1/9:1/14),r=dmgCalc(atk,def,m,crit);const EM=[[.65,.8],[.85,1],[1,1.15]][DIFF()];// 실시간 배틀은 기술을 계속 쓰니까 한 방 데미지를 낮춰서 오래 싸우게 (턴제는 그대로)
+  const AK=mine?.33:.45;let dmg=Math.max(1,Math.floor(r.d*AK*(0.85+R()*.15)*(mine?1:EM[BS.trainer?1:0])));if(r.e===0)dmg=0;if(OPER.on&&OPER.god&&!mine)dmg=0;if(OPER.on&&OPER.one&&mine)dmg=def.hp;
   const S=bsz();const pa={x:AB.ax,y:AB.ay};const Rg=rangeOf(sh),dT=Math.hypot(DB.ax-AB.ax,DB.ay-AB.ay);const reach=sh==='circle'?0:Math.min(Rg,dir?Rg:Math.max(S,dT));const pb=sh==='circle'?{x:pa.x,y:pa.y}:{x:pa.x+u.x*reach,y:pa.y+u.y*reach};ACT.last={sh,o:pa,u,t:.35,mine};let decided=null,got=0;const from=def.hp,to=Math.max(0,def.hp-dmg);
   if(!mine)ACT.cast++;
   const x={A:AB,B:DB,fa:{x:pa.x,y:pa.y},fb:{x:pb.x,y:pb.y},S,d:pb.x>pa.x?1:-1,a:{x:pa.x,y:pa.y-S*.6},b:{x:pb.x,y:pb.y-S*.55},
@@ -1498,7 +1499,8 @@ function actUpdate(dt){if(!ACT.on||ACT.pause)return;const fr=FX2.stop>0?0:dt;if(
   for(const k in ACT.cd)ACT.cd[k]=Math.max(0,ACT.cd[k]-fr);ACT.dcd=Math.max(0,ACT.dcd-fr);ACT.inv=Math.max(0,ACT.inv-fr);
   if(ACT.buf){ACT.buf.t-=fr;if(ACT.buf.t<=0)ACT.buf=null;else if(!ACT.busy&&ACT.roll<=0){const i=ACT.buf.i,dd=ACT.buf.dir;ACT.buf=null;actPress(i,dd)}}
   // 자동 전투: 내 포켓몬도 스스로 움직이고 · 피하고 · 기술 씀
-  if(actAuto())actPilot(fr);
+  // 자동이어도 내가 조이스틱·기술을 만지면 그동안은 내가 조종 → 손 떼고 1.5초 뒤 다시 자동
+  if(actAuto()){if(ACT.stick.on)ACT.man=ACT.t;if(ACT.t-(ACT.man??-9)>1.5)actPilot(fr);else if(!ACT.stick.on){ACT.stick.x=ACT.stick.y=0}}
   // 나
   const spd=(B)=>VW*.3*(.85+Math.min(1,stOf(B.m)[5]/220)*.4);
   if(ACT.roll>0){ACT.roll-=fr;const v=spd(me)*2.7;me.ax+=ACT.rdx*v*fr;me.ay+=ACT.rdy*v*fr;me.alpha=.55;me.rot=(1-ACT.roll/.28)*Math.PI*2*(ACT.rdx>=0?1:-1);if(ACT.roll<=0){me.trail=0;me.alpha=1;me.rot=0}}
@@ -1562,7 +1564,7 @@ const TYO=['NORMAL','FIGHTING','FLYING','POISON','GROUND','ROCK','BUG','GHOST','
 const TYI=['NORMAL','FIGHTING','FLYING','POISON','GROUND','ROCK','BUG','GHOST','STEEL','FIRE','WATER','GRASS','ELECTRIC','PSYCHIC','ICE','DRAGON','DARK','FAIRY'];
 function tyLab(t){const i=Math.max(0,TYO.indexOf(t));return `background-position:0 ${-i*100/19}%`}
 function tyIco(t){const i=Math.max(0,TYI.indexOf(t));return `background-position:${(i%6)*20}% ${Math.floor(i/6)*50}%`}
-function skPreview(id,b){const v=mv(id),f=BS.foe&&BS.foe.m,e=f?eff(v.type,META[f.n].types):1,sh=shapeOf(v),me=BS.me.m,stab=META[me.n].types.includes(v.type);let est=0;try{est=f?dmgCalc(me,f,v,0).d:0}catch(_){}
+function skPreview(id,b){const v=mv(id),f=BS.foe&&BS.foe.m,e=f?eff(v.type,META[f.n].types):1,sh=shapeOf(v),me=BS.me.m,stab=META[me.n].types.includes(v.type);let est=0;try{est=f?Math.round(dmgCalc(me,f,v,0).d*.33):0}catch(_){}
   const d=document.createElement('div');d.className='skPv';const r=b.getBoundingClientRect();
   d.innerHTML=`<div class="pvH"><i class="tyi" style="${tyIco(v.type)}"></i><b>${v.name}</b><u class="tyl" style="${tyLab(v.type)}"></u></div>
    <div class="pvG"><span>위력</span><b>${v.pw||'-'}</b><span>종류</span><b>${v.ph?'물리':'특수'}</b><span>모양</span><b>${{line:'일자로 쭉',cone:'부채꼴',circle:'내 주변 원',melee:'가까이 한 방'}[sh]||sh}</b><span>쿨타임</span><b>${cdOf(v).toFixed(1)}초</b></div>
@@ -1736,7 +1738,7 @@ function objective(){if(!G.party.length)return{t:'🧪 연구소에서 첫 포�
 function nextDexTarget(){let best=null;for(const n of SPECIES){const d=META[n].dex;if(G.dex.c[d])continue;const L=LOC[n];if(!L||!L.length)continue;for(const a of L){const dd=Math.abs(a-G.a);if(!best||dd<best.d)best={n,a,d:dd}}}return best}
 function needHeal(){if(!G.party.length)return false;const A=alive();if(!A.length)return true;const S=G.party.reduce((s,m)=>s+m.hp/stOf(m)[0],0)/G.party.length;return S<.45||A[0].hp/stOf(A[0])[0]<.2&&!['potion','spotion','hpotion'].some(k=>G.bag[k]>0)}
 function healGoal(){let best=null;for(let a=0;a<18;a+=2){if(a/2>G.badges+1)continue;const d=Math.abs(a-G.a);if(!best||d<best.d)best={a,d}}return{a:best.a,door:best.a===0?'home':'center'}}
-function autoThink(){if(SCENE!=='over'||P.busy||DLG.on||PANEL)return;let g=null,hunt=null;
+function autoThink(){if(SCENE!=='over'||P.busy||DLG.on||PANEL)return;if(KEY.dir>=0){AUTO.manT=NOW;return}if(AUTO.manT&&NOW-AUTO.manT<1.2)return;let g=null,hunt=null;
   if(needHeal())g=healGoal();else if(AUTO.hunt)hunt=AUTO.hunt;else{const o=objective();if(o.g)g=o.g;else if(o.hunt){hunt=o.hunt;if(!AUTO.hunt&&o.hunt.n&&!AUTO.dexSet){}}else{AUTO.on=0;hud();return}}
   if(hunt&&!g){if(G.a!==hunt.a){navArea(hunt.a);return}const A=curA();const water=hunt.n&&A.enc&&!A.enc.g.some(e=>e.n===hunt.n)&&A.enc.w.some(e=>e.n===hunt.n);
     const tiles=[];for(let y=0;y<A.H;y++)for(let x=0;x<A.W;x++)if(water?A.M[y][x]===T_.WATER:A.M[y][x]===T_.TG)tiles.push([x,y]);if(!tiles.length){AUTO.on=0;hud();toast('여기는 풀숲이 없어요');return}
@@ -2409,7 +2411,7 @@ function worldOpen(sel){if(!G)return;if(sel!=null)WM.sel=sel;if(WM.sel==null)WM.
   openPanel('월드맵',`<div class="wm"><div class="wmap"><img src="ui/worldmap.webp" alt=""><svg viewBox="0 0 100 62.5" preserveAspectRatio="none">${path}</svg>${nodes}</div>
     ${v?`<div class="wnav"><b>목표</b><span>${navLabel()}</span><button id="wNx">목표 지우기</button></div>`:''}
     <div id="wInfo">${worldInfo(WM.sel)}</div>
-    <div class="wsr"><h4>포켓몬 찾기</h4><input id="wQ" placeholder="이름으로 검색 (예: 피카츄)" value="${WM.q.replace(/"/g,'')}"><div class="wch">${['전체',...RAR.slice(0,4)].map((t,i)=>`<button data-r="${i-1}" class="${WM.r===i-1?'on':''}">${t}</button>`).join('')}<button id="wMiss" class="${WM.miss?'on':''}">못 잡은 것만</button></div><div id="wRes"></div></div></div>`,null,p=>{
+    <div class="wsr"><h4>포켓몬 찾기</h4><input id="wQ" placeholder="이름으로 검색 (예: 피카츄)" value="${WM.q.replace(/"/g,'')}"><div class="wch">${['전체',...RAR].map((t,i)=>`<button data-r="${i-1}" class="${WM.r===i-1?'on':''}">${t}</button>`).join('')}<button id="wMiss" class="${WM.miss?'on':''}">못 잡은 것만</button></div><div id="wRes"></div></div></div>`,null,p=>{
     const q=s=>p.querySelector(s);
     p.querySelectorAll('.wnd').forEach(b=>b.onclick=()=>{sfx('tap');WM.sel=+b.dataset.a;p.querySelectorAll('.wnd').forEach(x=>x.classList.toggle('sel',x===b));q('#wInfo').innerHTML=worldInfo(WM.sel);bindInfo(p)});
     if(q('#wNx'))q('#wNx').onclick=()=>{navClear('목표를 지웠어요');worldOpen()};
@@ -2432,12 +2434,16 @@ function bindInfo(p){p.querySelectorAll('#wInfo [data-go]').forEach(b=>b.onclick
   if(k==='fly'){navSet(a,n,null);flyTo(a);return}
   if(k==='walk'){navSet(a,n,null);if(AUTO.on)autoStop();return}
   navSet(a,n,'auto')})}
-function worldSearch(){const q=WM.q.trim();let L=SPECIES.filter(n=>{const M=META[n];if(q&&!M.name.includes(q))return false;if(WM.r>=0&&rarOf(n)!==WM.r)return false;if(WM.miss&&G.dex.c[M.dex])return false;return true});
+const ownN=n=>[...G.party,...G.box].some(m=>m.n===n);
+const FHOW={mega:'메가스톤',gmax:'다이맥스 밴드',emax:'다이맥스 밴드',primal:'원시의 구슬'};
+function worldSearch(){const q=WM.q.trim();const FK=Object.keys(META).filter(k=>META[k].form&&FTIER[META[k].form]);
+  const pool=WM.r>=4||(q&&WM.r<0)?SPECIES.concat(FK):SPECIES;
+  let L=pool.filter(n=>{const M=META[n];if(q&&!M.name.includes(q))return false;if(WM.r>=0&&rarOf(n)!==WM.r)return false;if(WM.miss&&(M.form?ownN(n):G.dex.c[M.dex]))return false;return true});
   if(!q&&WM.r<0&&!WM.miss)L=L.filter(n=>(LOC[n]||[]).length&&!G.dex.c[META[n].dex]);
-  L.sort((a,b)=>((LOC[b]||[]).length>0)-((LOC[a]||[]).length>0)||META[a].dex-META[b].dex);const tot=L.length;L=L.slice(0,60);
+  L.sort((a,b)=>((LOC[b]||[]).length>0)-((LOC[a]||[]).length>0)||rarOf(b)-rarOf(a)||META[a].dex-META[b].dex);const tot=L.length;L=L.slice(0,60);
   if(!L.length)return'<small>찾는 포켓몬이 없어요</small>';
-  return (q||WM.r>=0||WM.miss?'':'<small>아직 못 잡은 포켓몬 (나오는 곳 있음)</small>')+L.map(n=>{const M=META[n],c=G.dex.c[M.dex],A=LOC[n]||[];const ok=A.filter(areaOpen);
-    return `<button class="wsi${WM.hl===n?' on':''}" data-n="${encodeURIComponent(n)}"><img src="${THUMB[n]||''}"><span><b>${M.name}</b>${RARS(n)}${c?'<small class="ok">잡음</small>':''}<small>${A.length?A.map(a=>`<i class="${areaOpen(a)?'':'lk'}">${areaName(a)}</i>`).join(' '):rarOf(n)>=3?'야생에선 안 나와요 · 카드팩·합성':'진화나 카드팩으로 얻어요'}</small></span>${A.length?`<em>${ok.length?'갈 수 있음':'배지 '+Math.min(...A.map(areaNeed))+'개 필요'}</em>`:''}</button>`}).join('')+(tot>60?`<small>그 외 ${tot-60}마리 · 이름으로 검색해 보세요</small>`:'')}
+  return (q||WM.r>=0||WM.miss?'':'<small>아직 못 잡은 포켓몬 (나오는 곳 있음)</small>')+L.map(n=>{const M=META[n],c=M.form?ownN(n):G.dex.c[M.dex],A=LOC[n]||[];const ok=A.filter(areaOpen);const base=M.form?SPECIES.find(x=>META[x].dex===M.dex&&!META[x].form):null;
+    return `<button class="wsi${WM.hl===n?' on':''}" data-n="${encodeURIComponent(n)}"><img src="${THUMB[n]||''}"><span><b>${M.name}</b>${RARS(n)}${c?'<small class="ok">잡음</small>':''}<small>${A.length?A.map(a=>`<i class="${areaOpen(a)?'':'lk'}">${areaName(a)}</i>`).join(' '):M.form?(base?META[base].name+'에게 '+FHOW[M.form]+' 사용 · ':'')+RAR[rarOf(n)]+' 카드팩 · 합성으로 얻어요':rarOf(n)>=3?'야생에선 안 나와요 · 카드팩·합성':'진화나 카드팩으로 얻어요'}</small></span>${A.length?`<em>${ok.length?'갈 수 있음':'배지 '+Math.min(...A.map(areaNeed))+'개 필요'}</em>`:''}</button>`}).join('')+(tot>60?`<small>그 외 ${tot-60}마리 · 이름으로 검색해 보세요</small>`:'')}
 (function(){const go=()=>{const b=document.getElementById('bWorld');if(b)b.onclick=()=>{sfx('tap');if(SCENE!=='over')return;WM.sel=G.a;worldOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
