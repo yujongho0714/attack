@@ -207,7 +207,7 @@ body.inb #mini{display:none}
 #joyZ.on #joyB{opacity:1}
 body.inb #joyZ,body.inact #joyZ{display:none}
 #side button{min-height:0}
-@media (orientation:landscape){#side{gap:4px;grid-template-columns:repeat(3,auto)!important;top:calc(var(--vh,1vh)*17 + 40px)!important}#side button{padding:2px 0;font-size:10.5px;width:min(14vh,54px)!important;height:min(13vh,50px)!important}#side button b{font-size:17px;display:block}}
+@media (orientation:landscape){#side{gap:4px;grid-template-columns:repeat(4,auto)!important;top:calc(var(--vh,1vh)*17 + 40px)!important}#side button{padding:2px 0;font-size:10.5px;width:min(14vh,54px)!important;height:min(13vh,50px)!important}#side button b{font-size:17px;display:block}}
 @media (orientation:portrait){#side{display:grid;grid-template-columns:repeat(2,auto);gap:5px}#side button{width:56px;min-height:46px}}
 </style><style>.aCrit{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);font:italic 900 min(12vh,54px) system-ui,sans-serif;color:#ffe14a;-webkit-text-stroke:3px #5a2a00;paint-order:stroke fill;text-shadow:0 5px 0 #5a2a00,0 0 18px #ffb000;pointer-events:none;animation:acr .9s forwards;white-space:nowrap;z-index:5}
 @keyframes acr{0%{transform:translate(-50%,-50%) scale(2.6) rotate(-8deg);opacity:0}12%{transform:translate(-50%,-50%) scale(1) rotate(-8deg);opacity:1}20%{transform:translate(-50%,-50%) scale(1.15) rotate(-8deg)}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(1) rotate(-8deg);opacity:0}}</style><style>
@@ -328,11 +328,23 @@ small.lkx{color:#c03030;font-weight:800;margin:0 6px}
 .panel .wch button.on,.panel .wsi.on{background:linear-gradient(#3a4a8a,#1c2550)!important;color:#fff!important}
 .wsr h4{display:inline-block;margin:4px 0;padding:3px 12px;border-radius:10px;background:#1c2550;color:#ffe066}
 .wnd.lk .wth{filter:saturate(.6) brightness(.62)!important}
+#wPop{position:fixed;inset:0;z-index:60;background:#0008;display:flex;align-items:center;justify-content:center;padding:12px;animation:wpin .18s}
+@keyframes wpin{from{opacity:0}}
+.wpc{position:relative;width:min(560px,100%);max-height:88vh;overflow:auto;border-radius:16px;background:#fff;border:4px solid var(--c);box-shadow:0 0 0 3px #1c2550,0 0 30px var(--c);padding:0 0 10px;animation:wpup .22s cubic-bezier(.2,1.4,.5,1)}
+@keyframes wpup{from{transform:scale(.85)}}
+.wpimg{display:block;width:100%;height:90px;object-fit:cover;image-rendering:pixelated;filter:saturate(1.1)}
+.wpc .wi{border:0;border-radius:0}.panel .wpc .wpx{position:absolute;right:8px;top:8px;z-index:2;padding:4px 12px!important}
+.wtown{margin:6px 0;padding:8px 10px;border-radius:10px;background:#f5f7ff;border-left:5px solid var(--c,#1c2550)}.wtown p{margin:0 0 4px;font-weight:800}.wtown ul{margin:0 0 6px 18px;padding:0}.wtown li{margin:1px 0}
+.wsp{display:inline-block;background:#1c2550;color:#ffe066;border-radius:8px;padding:1px 10px;margin:4px 0}
+.wgoods{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.wgoods span{display:flex;align-items:center;gap:4px;background:#fff;border:2px solid #e0b040;border-radius:10px;padding:3px 8px}.wgoods small{color:#a04000;font-weight:800}
+.wtown small{display:block}.wnt{color:#2a6a3a;font-weight:800}
+#bHeal{position:relative}#bHeal.need{animation:hpul 1.2s infinite}#bHeal .nb{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#ff3b3b;color:#fff;font:900 11px/18px sans-serif;text-align:center;font-style:normal}
+@keyframes hpul{50%{box-shadow:0 0 0 3px #ff5a7a,0 0 12px #ff5a7a}}
 </style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
-<div id="side"><button id="bBag"><img class="sic" src="ui/ic_bag.webp" alt=""><span>가방</span></button><button id="bShop"><img class="sic" src="ui/ic_shop.webp" alt=""><span>상점</span></button><button id="bFuse"><img class="sic" src="ui/ic_fuse.webp" alt=""><span>합성</span></button><button id="bGiftS"><img class="sic" src="ui/ic_gift.webp" alt=""><span>선물</span></button><button id="bTeam"><img class="sic" src="ui/ic_star.webp" alt=""><span>편성</span></button><button id="bHunt"><img class="sic" src="ui/ic_hunt.webp" alt=""><span>자동사냥</span></button><button id="bWorld"><img class="sic" src="ui/ic_map.webp" alt=""><span>월드맵</span></button><button id="bDex"><img class="sic" src="ui/ic_dex.webp" alt=""><span>도감</span></button><button id="bMenu2"><img class="sic" src="ui/ic_menu.webp" alt=""><span>메뉴</span></button><button id="bFly"><img class="sic" src="ui/ic_fly.webp" alt=""><span>날기</span></button><button id="bFast"><img class="sic" src="ui/ic_fast.webp" alt=""><span>빠르게</span></button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
+<div id="side"><button id="bBag"><img class="sic" src="ui/ic_bag.webp" alt=""><span>가방</span></button><button id="bShop"><img class="sic" src="ui/ic_shop.webp" alt=""><span>상점</span></button><button id="bFuse"><img class="sic" src="ui/ic_fuse.webp" alt=""><span>합성</span></button><button id="bGiftS"><img class="sic" src="ui/ic_gift.webp" alt=""><span>선물</span></button><button id="bTeam"><img class="sic" src="ui/ic_star.webp" alt=""><span>편성</span></button><button id="bHunt"><img class="sic" src="ui/ic_hunt.webp" alt=""><span>자동사냥</span></button><button id="bHeal"><img class="sic" src="items/HYPERPOTION.png" alt="" style="image-rendering:pixelated"><span>치료</span></button><button id="bWorld"><img class="sic" src="ui/ic_map.webp" alt=""><span>월드맵</span></button><button id="bDex"><img class="sic" src="ui/ic_dex.webp" alt=""><span>도감</span></button><button id="bMenu2"><img class="sic" src="ui/ic_menu.webp" alt=""><span>메뉴</span></button><button id="bFly"><img class="sic" src="ui/ic_fly.webp" alt=""><span>날기</span></button><button id="bFast"><img class="sic" src="ui/ic_fast.webp" alt=""><span>빠르게</span></button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
 <div id="pad" style="display:none"><button data-d="3">▲</button><button data-d="1">◀</button><button data-d="2">▶</button><button data-d="0">▼</button></div><div id="joyZ"><div id="joyB"><i id="joyK"></i></div></div><button id="bA">A<br><small>조사</small></button>
 <div id="bF"></div><div id="bM"></div><div id="bMenu"></div><div id="bTx"></div>
 <div id="dlg"></div><div id="toasts"></div><div id="fade"></div>
@@ -1777,7 +1789,7 @@ function menuOpen(){if(SCENE!=='over')return;const tw=Object.keys(G.visit||{}).m
     p.querySelector('#oF').onchange=e=>{const v=e.target.value;if(v===''){G.fol=null}else{const m=[...G.party,...G.box][+v];m.fid=m.fid||('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));G.fol=m.fid;toast('🐾 '+nm(m)+'(이)가 졸졸 따라와요!')}refreshSpr();save()};
     p.querySelectorAll('.mon').forEach(x=>x.onclick=()=>{const i=+x.dataset.i;if(i>0){const [m]=G.party.splice(i,1);G.party.unshift(m);refreshSpr();save();menuOpen()}});
     p.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{const i=+x.dataset.b;const m=G.box[i];if(G.party.length<6){G.box.splice(i,1);G.party.push(m)}else{const o=G.party.pop();G.box[i]=o;G.party.push(m)}save();menuOpen()});
-    p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.heal||it.lv){const m=G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
+    p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.heal||it.lv){const m=G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
     p.querySelectorAll('[data-fly]').forEach(x=>x.onclick=()=>{closePanel(1);flyTo(+x.dataset.fly)});
     p.querySelector('#oC').onchange=e=>{G.opt.catchNew=e.target.checked;save()};p.querySelector('#oAB').onchange=e=>{BR().auto=e.target.checked?1:0;save()};p.querySelector('#oBG').onchange=e=>{BR().great=+e.target.value;save()};p.querySelector('#oBH').onchange=e=>{BR().hyper=+e.target.value;save()};p.querySelector('#oB').onchange=e=>{G.autoBattle=e.target.checked;save()};p.querySelector('#oP').onchange=e=>{SHOWPATH=e.target.checked};
     p.querySelector('#oGift').onclick=()=>{closePanel(1);giftOpen()};p.querySelector('#oName').onclick=()=>{closePanel(1);nameOpen()};p.querySelector('#oFont').onclick=()=>{closePanel(1);fontOpen()};p.querySelector('#oDiff').onclick=()=>{G.opt.diff=(DIFF()+1)%3;save();toast(['쉬움: 빨리 크지만 보상은 기본','보통: 상금 ×1.6 · 희귀 포켓몬 ×1.6 · 이로치 1/90 · 이기면 가끔 카드팩','어려움: 상금 ×2.4 · 희귀 포켓몬 ×2.5 · 이로치 1/50 · 카드팩 자주'][DIFF()]);closePanel(1);menuOpen()};p.querySelector('#oFuse').onclick=()=>{closePanel(1);fuseOpen()};p.querySelector('#oMe').onclick=()=>{closePanel(1);wardrobe()};p.querySelector('#oDsk').onclick=()=>{closePanel(1);dskinOpen()};p.querySelector('#oBgm').onclick=()=>{BGM.toggle();closePanel(1);menuOpen()};p.querySelector('#oMode').onclick=()=>{modeToggle();closePanel(1);menuOpen()};p.querySelector('#oS').onclick=()=>{save();toast('💾 저장했어요')};p.querySelector('#oT').onclick=()=>{save();closePanel(1);location.reload()}})}
@@ -2413,23 +2425,24 @@ function worldOpen(sel){if(!G)return;if(sel!=null)WM.sel=sel;if(WM.sel==null)WM.
     <div id="wInfo">${worldInfo(WM.sel)}</div>
     <div class="wsr"><h4>포켓몬 찾기</h4><input id="wQ" placeholder="이름으로 검색 (예: 피카츄)" value="${WM.q.replace(/"/g,'')}"><div class="wch">${['전체',...RAR].map((t,i)=>`<button data-r="${i-1}" class="${WM.r===i-1?'on':''}">${t}</button>`).join('')}<button id="wMiss" class="${WM.miss?'on':''}">못 잡은 것만</button></div><div id="wRes"></div></div></div>`,null,p=>{
     const q=s=>p.querySelector(s);
-    p.querySelectorAll('.wnd').forEach(b=>b.onclick=()=>{sfx('tap');WM.sel=+b.dataset.a;p.querySelectorAll('.wnd').forEach(x=>x.classList.toggle('sel',x===b));q('#wInfo').innerHTML=worldInfo(WM.sel);bindInfo(p)});
+    p.querySelectorAll('.wnd').forEach(b=>b.onclick=()=>{sfx('tap');WM.sel=+b.dataset.a;p.querySelectorAll('.wnd').forEach(x=>x.classList.toggle('sel',x===b));q('#wInfo').innerHTML=worldInfo(WM.sel);bindInfo(q('#wInfo'));worldPop(p,WM.sel)});
     if(q('#wNx'))q('#wNx').onclick=()=>{navClear('목표를 지웠어요');worldOpen()};
     const res=()=>{q('#wRes').innerHTML=worldSearch();q('#wRes').querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>{sfx('tap');const n=decodeURIComponent(x.dataset.n);WM.hl=WM.hl===n?null:n;const L=LOC[n]||[];if(L.length)WM.sel=L.slice().sort((a,b)=>(areaOpen(b)-areaOpen(a))||Math.abs(a-G.a)-Math.abs(b-G.a))[0];WM.pk=n;worldOpen()})};
     q('#wQ').oninput=e=>{WM.q=e.target.value;res()};
     p.querySelectorAll('[data-r]').forEach(x=>x.onclick=()=>{WM.r=+x.dataset.r;p.querySelectorAll('[data-r]').forEach(y=>y.classList.toggle('on',y===x));res()});
     q('#wMiss').onclick=()=>{WM.miss=!WM.miss;q('#wMiss').classList.toggle('on',!!WM.miss);res()};
-    res();bindInfo(p)})}
+    res();bindInfo(q('#wInfo'))})}
 function worldInfo(a){const open=areaOpen(a),E=encAt(a),lv=areaLv(a),pk=WM.pk&&(LOC[WM.pk]||[]).includes(a)?WM.pk:null;
   const mons=[...E.g.map(e=>[e.n,0]),...E.w.filter(e=>!E.g.some(g=>g.n===e.n)).map(e=>[e.n,1])];
   const can=canFly()&&G.visit&&G.visit[a]&&G.a!==a;
   let h=`<div class="wi"><div class="wih"><b>${areaName(a)}</b><small>${isTown(a)?(a>0?'체육관 '+TN[GYM[a/2-1].t]+' 타입':'출발 마을'):a===18?'사천왕 · 챔피언':'야생 Lv.'+lv.join('~')}</small>${G.a===a?'<em>지금 여기</em>':''}</div>`;
+  h+=townHtml(a);
   if(!open){const st=navSteps(a);h+=`<div class="wlk"><b>아직 못 가요 · 배지 ${areaNeed(a)}개 필요 (지금 ${G.badges}개)</b><ol>${st.map(s=>`<li>${s.t} <small>추천 Lv.${s.lv}</small></li>`).join('')}</ol><small>위 순서대로 깨면 길이 열려요. 목표로 정하면 노란 선이 다음 할 일로 안내해요.</small></div>`}
   if(mons.length)h+=`<div class="wmons">${mons.map(([n,w])=>{const M=META[n],c=G.dex.c[M.dex],s=G.dex.s[M.dex];return `<div class="wmo${c?' c':''}${n===pk?' pk':''}"><img src="${THUMB[n]||''}" style="${c||s?'':'filter:brightness(0) opacity(.45)'}"><b>${M.name}</b>${RARS(n)}${w?'<small>물 위</small>':''}${c?'<small class="ok">잡음</small>':''}</div>`}).join('')}</div>`;
   else if(!isTown(a)&&a!==18)h+='<small>이 길에는 야생 포켓몬이 없어요</small>';
   const tn=pk?META[pk].name+' ':'';
   h+=`<div class="wbt"><button class="main" data-go="auto">${pk?tn+'잡으러 ':'여기로 '}자동 이동</button><button data-go="walk">길 안내만 (노란 선)</button>${can?'<button data-go="fly">바로 날아가기</button>':''}</div></div>`;return h}
-function bindInfo(p){p.querySelectorAll('#wInfo [data-go]').forEach(b=>b.onclick=()=>{const a=WM.sel,k=b.dataset.go,n=WM.pk&&(LOC[WM.pk]||[]).includes(a)?WM.pk:null;if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}
+function bindInfo(p){p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const a=WM.sel,k=b.dataset.go,n=WM.pk&&(LOC[WM.pk]||[]).includes(a)?WM.pk:null;if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}
   if(SCENE!=='over'){toast('밖에서만 할 수 있어요');return}closePanel(1);
   if(k==='fly'){navSet(a,n,null);flyTo(a);return}
   if(k==='walk'){navSet(a,n,null);if(AUTO.on)autoStop();return}
@@ -2445,6 +2458,48 @@ function worldSearch(){const q=WM.q.trim();const FK=Object.keys(META).filter(k=>
   return (q||WM.r>=0||WM.miss?'':'<small>아직 못 잡은 포켓몬 (나오는 곳 있음)</small>')+L.map(n=>{const M=META[n],c=M.form?ownN(n):G.dex.c[M.dex],A=LOC[n]||[];const ok=A.filter(areaOpen);const base=M.form?SPECIES.find(x=>META[x].dex===M.dex&&!META[x].form):null;
     return `<button class="wsi${WM.hl===n?' on':''}" data-n="${encodeURIComponent(n)}"><img src="${THUMB[n]||''}"><span><b>${M.name}</b>${RARS(n)}${c?'<small class="ok">잡음</small>':''}<small>${A.length?A.map(a=>`<i class="${areaOpen(a)?'':'lk'}">${areaName(a)}</i>`).join(' '):M.form?(base?META[base].name+'에게 '+FHOW[M.form]+' 사용 · ':'')+RAR[rarOf(n)]+' 카드팩 · 합성으로 얻어요':rarOf(n)>=3?'야생에선 안 나와요 · 카드팩·합성':'진화나 카드팩으로 얻어요'}</small></span>${A.length?`<em>${ok.length?'갈 수 있음':'배지 '+Math.min(...A.map(areaNeed))+'개 필요'}</em>`:''}</button>`}).join('')+(tot>60?`<small>그 외 ${tot-60}마리 · 이름으로 검색해 보세요</small>`:'')}
 (function(){const go=()=>{const b=document.getElementById('bWorld');if(b)b.onclick=()=>{sfx('tap');if(SCENE!=='over')return;WM.sel=G.a;worldOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+function worldPop(p,a){let d=p.querySelector('#wPop');if(d)d.remove();d=document.createElement('div');d.id='wPop';d.innerHTML=`<div class="wpc" style="--c:${areaCol(a)}"><button class="wpx">닫기</button><img class="wpimg" src="ui/wm/a${String(a).padStart(2,'0')}.webp" alt="">${worldInfo(a)}</div>`;
+  p.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('.wpx').onclick=()=>{sfx('tap');d.remove()};bindInfo(d)}
+
+// ===== 마을 특색 · 특산품 · 치료하러 가기 =====
+// 체육관 마을마다: 그 타입 부적(가지고만 있어도 그 타입 기술 위력 +10%) + 그 마을에서만 싼 물건
+const TOWNF=[
+ {d:'모험이 시작되는 조용한 마을',f:['우리 집 · 엄마가 무료로 회복','오박사 연구소'],sale:{potion:.7}},
+ {d:'바위산 아래 돌의 도시 · 박물관이 있어요',f:['포켓몬센터','상점','박물관 거리'],sale:{ball:.8}},
+ {d:'맑은 물이 흐르는 다리의 도시',f:['포켓몬센터','상점','물 위 포켓몬 많음'],sale:{great:.8}},
+ {d:'큰 배가 들어오는 항구 도시',f:['포켓몬센터','항구 시장 · 몬스터볼 제일 쌈'],sale:{ball:.7,potion:.85}},
+ {d:'제일 큰 백화점이 있는 도시',f:['포켓몬센터','백화점 · 회복약 할인'],sale:{potion:.8,spotion:.8,hpotion:.8}},
+ {d:'희귀한 포켓몬이 사는 사파리 도시',f:['포켓몬센터','사파리 상점 · 하이퍼볼 할인'],sale:{hyper:.8}},
+ {d:'높은 빌딩이 가득한 대도시',f:['포켓몬센터','실프 회사 · 이상한사탕 판매 (여기서만)'],sale:{},only:{candy:3000}},
+ {d:'불타는 화산섬 · 포켓몬 연구소',f:['포켓몬센터','연구소 상점 · 고급상처약 할인'],sale:{hpotion:.7}},
+ {d:'리그로 가는 마지막 도시',f:['포켓몬센터','준비물 가게 · 볼 전부 할인'],sale:{ball:.85,great:.85,hyper:.85}}];
+// 타입 부적 아이템
+for(const g of GYM){const k='ch_'+g.t;ITEMS[k]={n:TN[g.t]+'의 부적',e:`<i class="tyi ic" style="${tyIco(g.t)}"></i>`,charm:g.t,tp:4000+GYM.indexOf(g)*1500}}
+const hasCharm=t=>(G.bag['ch_'+t]||0)>0;
+{const _dc=dmgCalc;dmgCalc=function(a,d,m,c){const r=_dc(a,d,m,c);try{if(G.party.includes(a)&&hasCharm(m.type))r.d=Math.floor(r.d*1.1)}catch(e){}return r}}
+const townIdx=a=>isTown(a)?a/2:-1;
+function townGoods(a){const k=townIdx(a);if(k<0)return[];const T=TOWNF[k],L=[];
+  if(k>0){const t=GYM[k-1].t,ck='ch_'+t;L.push({k:ck,p:ITEMS[ck].tp,tag:'부적',one:1})}
+  for(const i in T.sale)if(ITEMS[i]&&ITEMS[i].p)L.push({k:i,p:Math.round(ITEMS[i].p*T.sale[i]/10)*10,tag:Math.round((1-T.sale[i])*100)+'% 할인'});
+  for(const i in T.only||{})L.push({k:i,p:T.only[i],tag:'여기서만'});return L}
+function townHtml(a){const k=townIdx(a);if(k<0)return'';const T=TOWNF[k],G2=townGoods(a);
+  return `<div class="wtown"><p>${T.d}</p><ul>${T.f.map(x=>`<li>${x}</li>`).join('')}${k>0?`<li>체육관 · ${GYM[k-1].n} (${TN[GYM[k-1].t]} 타입)</li>`:''}</ul>
+  ${G2.length?`<b class="wsp">특산품</b><div class="wgoods">${G2.map(g=>`<span>${ITEMS[g.k].e}<b>${ITEMS[g.k].n}</b><small>${g.p}원 · ${g.tag}</small></span>`).join('')}</div>${k>0?`<small>${TN[GYM[k-1].t]}의 부적: 가방에 있기만 해도 ${TN[GYM[k-1].t]} 타입 기술 위력 +10%</small>`:''}<small class="wnt">${G.a===a?'이 마을 상점(또는 포켓몬센터)에서 살 수 있어요':'이 마을 상점에 가야 살 수 있어요'}</small>`:''}</div>`}
+function townShop(a,more){return new Promise(r=>{const L=townGoods(a);
+  openPanel(areaName(a)+' 특산품 · '+G.money+'원',`<div class="wtown"><p>${TOWNF[townIdx(a)].d}</p></div>${L.map(g=>{const own=G.bag[g.k]||0,lock=g.one&&own>0;return `<div class="row"><span>${ITEMS[g.k].e} <b>${ITEMS[g.k].n}</b> <small>${g.p}원 · ${g.tag} · 가진 것 ${own}</small></span><span>${lock?'<small class="ok">가지고 있어요</small>':`<button data-tb="${g.k}" data-n="1">1개</button>${g.one?'':`<button data-tb="${g.k}" data-n="5">5개</button>`}`}</span></div>`}).join('')}<div class="wbt"><button class="main" id="tMore">다른 물건도 보기</button></div>`,r,p=>{
+    p.querySelectorAll('[data-tb]').forEach(x=>x.onclick=()=>{const g=L.find(g=>g.k===x.dataset.tb),n=+x.dataset.n,c=g.p*n;if(G.money<c){toast('돈이 모자라요');return}G.money-=c;addItem(g.k,n);sfx('get');toast(ITEMS[g.k].n+' ×'+n+' 샀어요');save();closePanel(1);townShop(a,more).then(r)});
+    p.querySelector('#tMore').onclick=()=>{closePanel(1);more().then(r)}})})}
+{const _s=shop;shop=function(fc,all){if(!all&&SCENE==='over'&&townGoods(G.a).length)return townShop(G.a,()=>_s(fc,all));return _s(fc,all)}}
+// ---------- 치료하러 가기 ----------
+const hurt=()=>G&&G.party.filter(m=>m.hp<stOf(m)[0]);
+function healGo(){if(!G||!G.party.length)return;if(SCENE!=='over'){toast('배틀이 끝나면 갈 수 있어요');return}const H=hurt();if(!H.length){toast('모두 건강해요!');return}
+  AUTO.healGo=1;AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;AUTO.gt=null;const g=healGoal();toast((H.filter(m=>m.hp<=0).length?'쓰러진 '+H.filter(m=>m.hp<=0).length+'마리 · ':'')+areaName(g.a)+' '+(g.door==='home'?'우리 집':'포켓몬센터')+'(으)로 치료하러 가요');hud();guideUpd()}
+{const _o=objective;objective=function(){if(AUTO.healGo&&G&&G.party.length){const g=healGoal();return{t:'치료하러 가기 · '+areaName(g.a)+' '+(g.door==='home'?'우리 집':'포켓몬센터'),g}}return _o()}}
+{const _n=needHeal;needHeal=function(){return AUTO.healGo?true:_n()}}
+setInterval(()=>{try{if(AUTO.healGo&&G&&!hurt().length){AUTO.healGo=0;if(AUTO.on)autoStop();toast('치료 끝! 모두 건강해졌어요');hud()}
+  const b=document.getElementById('bHeal');if(b&&G){const n=G.party.filter(m=>m.hp<=0).length,h=hurt().length;let e=b.querySelector('.nb');if(!e){e=document.createElement('em');e.className='nb';b.appendChild(e)}e.textContent=n||'';e.style.display=n?'':'none';b.classList.toggle('on',!!AUTO.healGo);b.classList.toggle('need',h>0)}}catch(e){}},600);
+(function(){const go=()=>{const b=document.getElementById('bHeal');if(b)b.onclick=()=>{sfx('tap');if(AUTO.healGo){AUTO.healGo=0;autoStop();return}healGo()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+{const _as=autoStop;autoStop=function(){AUTO.healGo=0;return _as.apply(this,arguments)}}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
