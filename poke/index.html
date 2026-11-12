@@ -340,6 +340,16 @@ small.lkx{color:#c03030;font-weight:800;margin:0 6px}
 .wtown small{display:block}.wnt{color:#2a6a3a;font-weight:800}
 #bHeal{position:relative}#bHeal.need{animation:hpul 1.2s infinite}#bHeal .nb{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#ff3b3b;color:#fff;font:900 11px/18px sans-serif;text-align:center;font-style:normal}
 @keyframes hpul{50%{box-shadow:0 0 0 3px #ff5a7a,0 0 12px #ff5a7a}}
+#itInfo{position:fixed;inset:0;z-index:70;background:#0009;display:flex;align-items:center;justify-content:center;padding:12px;animation:wpin .15s}
+.iic{width:min(460px,100%);max-height:86vh;overflow:auto;background:url(ui/panel.webp) center/cover,#fffaf0;border:4px solid #c8a24a;border-radius:16px;box-shadow:0 0 0 3px #1c2550,0 10px 30px #000a;padding:12px;animation:wpup .2s cubic-bezier(.2,1.4,.5,1)}
+.iih{display:flex;align-items:center;gap:10px;background:#1c2550;color:#fff;border-radius:12px;padding:8px 12px}.iih .ic,.iih img,.iih .tyi{width:44px!important;height:44px!important;image-rendering:pixelated}.iih b{display:block;font-size:19px;color:#ffe066}.iih small{opacity:.8}
+.iis{margin:10px 2px 6px;font-size:16px;font-weight:900;color:#1c2550}
+.iic dl{margin:0;background:#fff;border-radius:12px;padding:6px 10px;border:2px solid #e6dcc0}.iic dt{margin-top:6px;font-weight:900;color:#a05a00;font-size:12px}.iic dd{margin:1px 0 4px;font-weight:700;line-height:1.35}
+.iiw{margin-top:8px;padding:8px;border-radius:10px;background:#e8f8ea;border:2px solid #8fd09a}.iiw b{font-size:12px;color:#1c6a30}.iiw div{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.iiw span{display:flex;align-items:center;gap:3px;background:#fff;border-radius:8px;padding:2px 6px;font-weight:800;font-size:12px}.iiw img{width:26px;height:26px;object-fit:contain}
+.iiw.no{background:#fff0f0;border-color:#e8a0a0;font-weight:800;color:#a03030}
+.iip{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;padding:6px 10px;border:3px solid #1c2550;border-radius:12px;background:#fff;text-align:left}.iip img{width:44px;height:44px;object-fit:contain}.iip span{flex:1;position:relative;padding-bottom:7px}.iip small{display:block}.iip i{position:absolute;left:0;bottom:0;height:5px;border-radius:3px;background:#3be06a}
+small.itd{display:block;color:#5a4a20;font-weight:700;font-size:11px}
+.panel .row{cursor:pointer}
 </style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
@@ -1700,7 +1710,7 @@ async function enterBld(b){P.busy=1;await fade(.6);await fade(0);P.busy=0;const 
   hud()}
 function healAll(){for(const m of G.party)m.hp=stOf(m)[0]}
 function shopList(all){return Object.keys(ITEMS).filter(k=>ITEMS[k].p&&(all||(ITEMS[k].b||0)<=G.badges))}
-function shop(fromCenter,all){return new Promise(r=>{const L=shopList(all);openPanel('🛒 '+(all?'어디서나 상점':fromCenter?'포켓몬센터 상점':'프렌들리숍')+' · 💰 '+G.money+'원',L.map(k=>`<div class="row"><span>${ITEMS[k].e} <b>${ITEMS[k].n}</b> <small>${ITEMS[k].p}원 · 가진 것 ${G.bag[k]||0}</small></span><span><button data-b="${k}" data-n="1">1개</button><button data-b="${k}" data-n="5">5개</button></span></div>`).join(''),r,p=>{
+function shop(fromCenter,all){return new Promise(r=>{const L=shopList(all);openPanel('🛒 '+(all?'어디서나 상점':fromCenter?'포켓몬센터 상점':'프렌들리숍')+' · 💰 '+G.money+'원',L.map(k=>`<div class="row"><span>${ITEMS[k].e} <b>${ITEMS[k].n}</b>${itShort(k)} <small>${ITEMS[k].p}원 · 가진 것 ${G.bag[k]||0}</small></span><span><button data-b="${k}" data-n="1">1개</button><button data-b="${k}" data-n="5">5개</button></span></div>`).join(''),r,p=>{
   p.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{const k=x.dataset.b,n=+x.dataset.n,c=ITEMS[k].p*n;if(G.money<c){toast('돈이 모자라요');return}G.money-=c;addItem(k,n);sfx('get');toast(ITEMS[k].n+' ×'+n+' 샀어요');shop0()})});const shop0=()=>{closePanel(1);shop(fromCenter,all).then(r)}})}
 function autoBuy(){const balls=(G.bag.ball||0)+(G.bag.great||0)+(G.bag.hyper||0);const bk=G.badges>=5?'hyper':G.badges>=2?'great':'ball';const pk=G.badges>=6?'hpotion':G.badges>=3?'spotion':'potion';
   let n=0;while(balls+n<10&&G.money-ITEMS[bk].p>=600){G.money-=ITEMS[bk].p;addItem(bk,1);n++}let q=0;while((G.bag[pk]||0)<4&&G.money-ITEMS[pk].p>=600){G.money-=ITEMS[pk].p;addItem(pk,1);q++}if(n||q)toast('🛒 '+(n?ITEMS[bk].n+' ×'+n+' ':'')+(q?ITEMS[pk].n+' ×'+q:'')+' 샀어요')}
@@ -1789,7 +1799,7 @@ function menuOpen(){if(SCENE!=='over')return;const tw=Object.keys(G.visit||{}).m
     p.querySelector('#oF').onchange=e=>{const v=e.target.value;if(v===''){G.fol=null}else{const m=[...G.party,...G.box][+v];m.fid=m.fid||('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));G.fol=m.fid;toast('🐾 '+nm(m)+'(이)가 졸졸 따라와요!')}refreshSpr();save()};
     p.querySelectorAll('.mon').forEach(x=>x.onclick=()=>{const i=+x.dataset.i;if(i>0){const [m]=G.party.splice(i,1);G.party.unshift(m);refreshSpr();save();menuOpen()}});
     p.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{const i=+x.dataset.b;const m=G.box[i];if(G.party.length<6){G.box.splice(i,1);G.party.push(m)}else{const o=G.party.pop();G.box[i]=o;G.party.push(m)}save();menuOpen()});
-    p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.heal||it.lv){const m=G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
+    p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.heal||it.lv){const m=(typeof ITPICK!=='undefined'&&ITPICK)||G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();menuOpen()}});
     p.querySelectorAll('[data-fly]').forEach(x=>x.onclick=()=>{closePanel(1);flyTo(+x.dataset.fly)});
     p.querySelector('#oC').onchange=e=>{G.opt.catchNew=e.target.checked;save()};p.querySelector('#oAB').onchange=e=>{BR().auto=e.target.checked?1:0;save()};p.querySelector('#oBG').onchange=e=>{BR().great=+e.target.value;save()};p.querySelector('#oBH').onchange=e=>{BR().hyper=+e.target.value;save()};p.querySelector('#oB').onchange=e=>{G.autoBattle=e.target.checked;save()};p.querySelector('#oP').onchange=e=>{SHOWPATH=e.target.checked};
     p.querySelector('#oGift').onclick=()=>{closePanel(1);giftOpen()};p.querySelector('#oName').onclick=()=>{closePanel(1);nameOpen()};p.querySelector('#oFont').onclick=()=>{closePanel(1);fontOpen()};p.querySelector('#oDiff').onclick=()=>{G.opt.diff=(DIFF()+1)%3;save();toast(['쉬움: 빨리 크지만 보상은 기본','보통: 상금 ×1.6 · 희귀 포켓몬 ×1.6 · 이로치 1/90 · 이기면 가끔 카드팩','어려움: 상금 ×2.4 · 희귀 포켓몬 ×2.5 · 이로치 1/50 · 카드팩 자주'][DIFF()]);closePanel(1);menuOpen()};p.querySelector('#oFuse').onclick=()=>{closePanel(1);fuseOpen()};p.querySelector('#oMe').onclick=()=>{closePanel(1);wardrobe()};p.querySelector('#oDsk').onclick=()=>{closePanel(1);dskinOpen()};p.querySelector('#oBgm').onclick=()=>{BGM.toggle();closePanel(1);menuOpen()};p.querySelector('#oMode').onclick=()=>{modeToggle();closePanel(1);menuOpen()};p.querySelector('#oS').onclick=()=>{save();toast('💾 저장했어요')};p.querySelector('#oT').onclick=()=>{save();closePanel(1);location.reload()}})}
@@ -2486,7 +2496,7 @@ function townHtml(a){const k=townIdx(a);if(k<0)return'';const T=TOWNF[k],G2=town
   return `<div class="wtown"><p>${T.d}</p><ul>${T.f.map(x=>`<li>${x}</li>`).join('')}${k>0?`<li>체육관 · ${GYM[k-1].n} (${TN[GYM[k-1].t]} 타입)</li>`:''}</ul>
   ${G2.length?`<b class="wsp">특산품</b><div class="wgoods">${G2.map(g=>`<span>${ITEMS[g.k].e}<b>${ITEMS[g.k].n}</b><small>${g.p}원 · ${g.tag}</small></span>`).join('')}</div>${k>0?`<small>${TN[GYM[k-1].t]}의 부적: 가방에 있기만 해도 ${TN[GYM[k-1].t]} 타입 기술 위력 +10%</small>`:''}<small class="wnt">${G.a===a?'이 마을 상점(또는 포켓몬센터)에서 살 수 있어요':'이 마을 상점에 가야 살 수 있어요'}</small>`:''}</div>`}
 function townShop(a,more){return new Promise(r=>{const L=townGoods(a);
-  openPanel(areaName(a)+' 특산품 · '+G.money+'원',`<div class="wtown"><p>${TOWNF[townIdx(a)].d}</p></div>${L.map(g=>{const own=G.bag[g.k]||0,lock=g.one&&own>0;return `<div class="row"><span>${ITEMS[g.k].e} <b>${ITEMS[g.k].n}</b> <small>${g.p}원 · ${g.tag} · 가진 것 ${own}</small></span><span>${lock?'<small class="ok">가지고 있어요</small>':`<button data-tb="${g.k}" data-n="1">1개</button>${g.one?'':`<button data-tb="${g.k}" data-n="5">5개</button>`}`}</span></div>`}).join('')}<div class="wbt"><button class="main" id="tMore">다른 물건도 보기</button></div>`,r,p=>{
+  openPanel(areaName(a)+' 특산품 · '+G.money+'원',`<div class="wtown"><p>${TOWNF[townIdx(a)].d}</p></div>${L.map(g=>{const own=G.bag[g.k]||0,lock=g.one&&own>0;return `<div class="row"><span>${ITEMS[g.k].e} <b>${ITEMS[g.k].n}</b>${itShort(g.k)} <small>${g.p}원 · ${g.tag} · 가진 것 ${own}</small></span><span>${lock?'<small class="ok">가지고 있어요</small>':`<button data-tb="${g.k}" data-n="1">1개</button>${g.one?'':`<button data-tb="${g.k}" data-n="5">5개</button>`}`}</span></div>`}).join('')}<div class="wbt"><button class="main" id="tMore">다른 물건도 보기</button></div>`,r,p=>{
     p.querySelectorAll('[data-tb]').forEach(x=>x.onclick=()=>{const g=L.find(g=>g.k===x.dataset.tb),n=+x.dataset.n,c=g.p*n;if(G.money<c){toast('돈이 모자라요');return}G.money-=c;addItem(g.k,n);sfx('get');toast(ITEMS[g.k].n+' ×'+n+' 샀어요');save();closePanel(1);townShop(a,more).then(r)});
     p.querySelector('#tMore').onclick=()=>{closePanel(1);more().then(r)}})})}
 {const _s=shop;shop=function(fc,all){if(!all&&SCENE==='over'&&townGoods(G.a).length)return townShop(G.a,()=>_s(fc,all));return _s(fc,all)}}
@@ -2500,6 +2510,42 @@ setInterval(()=>{try{if(AUTO.healGo&&G&&!hurt().length){AUTO.healGo=0;if(AUTO.on
   const b=document.getElementById('bHeal');if(b&&G){const n=G.party.filter(m=>m.hp<=0).length,h=hurt().length;let e=b.querySelector('.nb');if(!e){e=document.createElement('em');e.className='nb';b.appendChild(e)}e.textContent=n||'';e.style.display=n?'':'none';b.classList.toggle('on',!!AUTO.healGo);b.classList.toggle('need',h>0)}}catch(e){}},600);
 (function(){const go=()=>{const b=document.getElementById('bHeal');if(b)b.onclick=()=>{sfx('tap');if(AUTO.healGo){AUTO.healGo=0;autoStop();return}healGo()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 {const _as=autoStop;autoStop=function(){AUTO.healGo=0;return _as.apply(this,arguments)}}
+
+// ===== 아이템 설명: 뭐에 쓰고 · 뭐가 좋고 · 누가 쓰면 · 쓰면 어떻게 되는지 =====
+const ITD={
+ ball:{s:'야생 포켓몬을 잡는 기본 볼',use:'야생 포켓몬과 싸울 때 던져요 (트레이너의 포켓몬은 못 잡아요)',good:'제일 싸서 많이 사 두기 좋아요 · 잡히는 정도 ×1',who:'일반 · 희귀 등급 포켓몬',tip:'체력을 빨간색(35% 이하)까지 줄이고 던지면 잘 잡혀요. 가운데 타이밍을 딱 맞추면 더 잘 잡혀요.'},
+ great:{s:'몬스터볼보다 1.5배 잘 잡히는 볼',use:'야생 포켓몬에게 던져요',good:'잡히는 정도 ×1.5 · 배지 2개부터 상점에서 팔아요',who:'희귀 · 영웅 등급 포켓몬',tip:'설정에서 "영웅 이상일 때만 슈퍼볼" 처럼 아껴 쓰게 정할 수 있어요.'},
+ hyper:{s:'아주 잘 잡히는 고급 볼',use:'야생 포켓몬에게 던져요',good:'잡히는 정도 ×2.2 · 배지 5개부터 팔아요',who:'영웅 · 전설 등급 포켓몬',tip:'전설은 원래 잘 안 잡혀요. 하이퍼볼 + 타이밍 맞추기가 제일 좋아요.'},
+ master:{s:'무조건 잡히는 최고의 볼',use:'야생 포켓몬에게 던져요',good:'던지면 100% 잡혀요',who:'정말 갖고 싶은 전설 포켓몬',tip:'아주 귀해요. 아껴 두세요!'},
+ potion:{s:'체력 20 회복',use:'다친 포켓몬 1마리에게 써요 (배틀 중에도 가능)',good:'싸고 언제든 쓸 수 있어요',who:'조금 다친 포켓몬 · 레벨 낮은 포켓몬',tip:'쓰러진(체력 0) 포켓몬은 상처약으로 못 살려요 → 포켓몬센터나 "치료" 버튼!'},
+ spotion:{s:'체력 60 회복',use:'다친 포켓몬 1마리에게 써요',good:'상처약 3개보다 효과가 커요 · 배지 3개부터',who:'레벨 20~40 포켓몬',tip:'자동(AUTO) 배틀에서도 체력이 적으면 알아서 써요.'},
+ hpotion:{s:'체력 150 회복',use:'많이 다친 포켓몬 1마리에게 써요',good:'거의 다 회복돼요 · 배지 6개부터',who:'레벨 높은 포켓몬 · 관장 · 사천왕전',tip:'관장과 싸우기 전에 꼭 몇 개 챙겨요.'},
+ candy:{s:'먹으면 레벨이 1 올라요',use:'포켓몬 1마리에게 먹여요',good:'싸우지 않아도 바로 레벨업 · 능력치도 같이 올라요',who:'진화 직전인 포켓몬 · 새로 잡은 약한 포켓몬',tip:'진화 레벨이 되면 바로 진화할 수 있어요. 노랑시티에서만 팔아요.'},
+ mstone:{s:'메가진화 시키는 돌',use:'메가진화 할 수 있는 포켓몬에게 써요',good:'계속 메가 모습으로 바뀌어요 · 공격·방어·특공·특방·스피드 +20 · 등급이 신화가 돼요 (능력치 +16%)',who:'리자몽 · 후딘 · 갸라도스 같은 메가진화 포켓몬',form:'mega'},
+ porb:{s:'원시회귀 시키는 구슬',use:'원시회귀 할 수 있는 포켓몬에게 써요',good:'능력치가 1.2배 · 등급이 유일이 돼요 (능력치 +25%)',who:'그란돈 · 가이오가',form:'primal'},
+ dmax:{s:'거다이맥스 시키는 밴드',use:'거다이맥스 할 수 있는 포켓몬에게 써요',good:'체력 1.5배 · 나머지 능력치 1.12배 · 등급이 환상이 돼요 (능력치 +20%)',who:'리자몽 · 피카츄 · 잠만보 같은 거다이맥스 포켓몬',form:'gmax'},
+ sstone:{s:'포켓몬을 반짝이는 색으로',use:'아무 포켓몬 1마리에게 써요',good:'이로치(특별한 색)가 돼요 · 이미 이로치면 다른 색으로',who:'제일 아끼는 포켓몬',tip:'능력치는 그대로예요. 모습만 특별해져요.'}};
+function itD(k){const it=ITEMS[k]||{};if(ITD[k])return ITD[k];
+  if(it.charm){const t=TN[it.charm];return{s:t+' 타입 기술 위력 +10%',use:'쓸 필요 없어요. 가방에 있기만 하면 돼요',good:'내 포켓몬이 '+t+' 타입 기술을 쓰면 데미지 1.1배',who:t+' 타입 기술을 가진 모든 포켓몬',tip:'1개만 있으면 충분해요. '+(TOWNS[GYM.findIndex(g=>g.t===it.charm)+1]||'')+'에서 팔아요.'}}
+  return{s:it.n||k,use:'',good:'',who:''}}
+const itShort=k=>`<small class="itd">${itD(k).s}</small>`;
+function itCanUse(k){const it=ITEMS[k],L=[...G.party,...G.box];
+  if(it.form)return L.filter(m=>formsOf(m).some(f=>f.k===it.form||(it.form==='gmax'&&f.k==='emax')));
+  if(it.heal)return G.party.filter(m=>m.hp>0&&m.hp<stOf(m)[0]);
+  if(it.lv)return G.party.slice();return null}
+function itemInfo(k,onUse){const it=ITEMS[k],D=itD(k),can=itCanUse(k);
+  let mine='';if(can){mine=can.length?`<div class="iiw"><b>지금 쓸 수 있는 내 포켓몬</b><div>${can.slice(0,8).map(m=>`<span><img src="${THUMB[m.n]||''}">${nm(m)}</span>`).join('')}${can.length>8?` 외 ${can.length-8}마리`:''}</div></div>`:`<div class="iiw no">${it.form?'내 포켓몬 중에는 쓸 수 있는 애가 없어요':it.heal?'다친 포켓몬이 없어요 (쓰러진 포켓몬은 포켓몬센터로)':'쓸 포켓몬이 없어요'}</div>`}
+  const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>가진 것 ${G.bag[k]||0}개</small></div></div>
+   <p class="iis">${D.s}</p><dl>${D.use?`<dt>어디에 써요?</dt><dd>${D.use}</dd>`:''}${D.good?`<dt>뭐가 좋아요?</dt><dd>${D.good}</dd>`:''}${D.who?`<dt>누구한테 좋아요?</dt><dd>${D.who}</dd>`:''}${D.tip?`<dt>꿀팁</dt><dd>${D.tip}</dd>`:''}</dl>${mine}
+   <div class="wbt">${onUse&&!it.charm&&!it.ball?`<button class="main" id="iiU">사용하기</button>`:''}<button id="iiX">닫기</button></div></div>`;
+  document.body.appendChild(d);const x=()=>d.remove();d.onclick=e=>{if(e.target===d)x()};d.querySelector('#iiX').onclick=()=>{sfx('tap');x()};const u=d.querySelector('#iiU');if(u)u.onclick=()=>{x();onUse()}}
+// 가방에서 아이템을 누르면 먼저 설명 → "사용하기"를 눌러야 써요
+let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];itemInfo(k,()=>{const go=m=>{ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
+let ITPICK=null;
+function itPick(L,it,go){const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>누구에게 쓸까요?</small></div></div>${L.map((m,i)=>{const S=stOf(m);return `<button class="iip" data-i="${i}"><img src="${THUMB[m.n]||''}"><span><b>${nm(m)}</b> Lv.${m.lv}<small>체력 ${m.hp}/${S[0]}</small><i style="width:${m.hp/S[0]*100}%"></i></span></button>`}).join('')}<div class="wbt"><button id="iiX">취소</button></div></div>`;
+  document.body.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('#iiX').onclick=()=>d.remove();d.querySelectorAll('.iip').forEach(b=>b.onclick=()=>{d.remove();go(L[+b.dataset.i])})}
+// 상점 · 특산품 줄을 누르면 설명
+document.addEventListener('click',e=>{const r=e.target.closest&&e.target.closest('.panel .row');if(!r||e.target.closest('button'))return;const b=r.querySelector('[data-b],[data-tb]');if(!b)return;itemInfo(b.dataset.b||b.dataset.tb)});
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
