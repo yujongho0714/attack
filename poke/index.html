@@ -81,7 +81,7 @@ body.inact #bTx,body.inact #bMenu{display:none!important}
  #title .tb{grid-column:2;grid-row:1 / span 6;width:100%;max-height:calc(100vh - 24px);overflow-y:auto;padding:4px}
  #title button,#title label{padding:9px;font-size:16px}#tMode button{padding:6px 4px;font-size:15px}}
 #tFull{border:3px solid #fff;border-radius:14px;background:#2c3050;color:#fff;font-weight:900;font-size:16px;padding:10px 14px;box-shadow:0 4px 0 #0006}</style><style>
-body.inact #bF,body.inact #bM,body.inact #bAutoB{display:none!important}
+body.inact #bF,body.inact #bM{display:none!important}body.inact #bAutoB{top:calc(min(15vh,62px) + env(safe-area-inset-top))!important;font-size:min(3.2vh,13px);padding:4px 10px;z-index:3}
 #aHud{position:absolute;left:0;right:0;top:0;display:flex;align-items:flex-start;gap:6px;padding:calc(4px + env(safe-area-inset-top)) calc(6px + env(safe-area-inset-right)) 0 calc(6px + env(safe-area-inset-left));pointer-events:none;color:#fff;font-weight:900;font-family:system-ui,sans-serif}
 #aHud .hs{flex:1;max-width:42%;display:flex;align-items:center;gap:6px;min-width:0;background:linear-gradient(#1b2236f2,#11172af2);border:2px solid #39425e;border-radius:10px;padding:4px 8px 4px 4px;clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);box-shadow:0 3px 0 #0007}
 #aHud .foe{flex-direction:row-reverse;padding:4px 4px 4px 8px;clip-path:polygon(0 0,100% 0,100% 100%,14px 100%);margin-left:auto}
@@ -1051,7 +1051,7 @@ function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.up
   if(CAM&&STADOK()){cx.drawImage(STAD,0,0,BW,BH);arenaMarks()}else if(im.complete&&im.naturalWidth){const k=Math.max(BW/im.naturalWidth,BH/im.naturalHeight)*1.05;cx.drawImage(im,(BW-im.naturalWidth*k)/2,(BH-im.naturalHeight*k)/2,im.naturalWidth*k,im.naturalHeight*k);cx.fillStyle='rgba(10,8,20,.18)';cx.fillRect(-30,-30,BW+60,BH+60)}
   else{const g=cx.createLinearGradient(0,0,0,VH);g.addColorStop(0,th.g2);g.addColorStop(1,th.g);cx.fillStyle=g;cx.fillRect(-30,-30,VW+60,VH+60)}
   VFX.drawGround(cx);actDrawUnder();
-  const L=[[BS.foe,0],[BS.me,1]].filter(x=>x[0]);if(ACT.on&&BS.me.ay<BS.foe.ay)L.reverse();else if(!ACT.on&&BS.me&&BS.foe&&BS.me.lift>BS.foe.lift)L.reverse();
+  const L=[[BS.foe,0],[BS.me,1]].filter(x=>x[0]);if(ACT.on&&BS.me&&BS.foe&&BS.me.ay<BS.foe.ay)L.reverse();else if(!ACT.on&&BS.me&&BS.foe&&BS.me.lift>BS.foe.lift)L.reverse();
   for(const [B,mine] of L){if(!B.S)continue;B.t+=fr;const p=side(mine);if(B.in!=null&&B.in<1)B.in=Math.min(1,B.in+dt*2.5);const k=B.in==null?1:B.in;const sc=bsc(B.S,mine)*k*(B.sc||1);
     const gx=p.x+(B.ox||0),gy=p.y+(B.oy||0),y=gy-(B.lift||0);let A=B.S.meta.anims[B.st]||B.S.meta.anims.idle;
     if(B.st!=='idle'&&B.st!=='faint'&&B.t*60>animLen(A)){B.st='idle';B.t=0;A=B.S.meta.anims.idle}
@@ -1280,13 +1280,13 @@ function actUpdate(dt){if(!ACT.on)return;const fr=FX2.stop>0?0:dt;if(!fr)return;
   document.querySelectorAll('#aSk .ask').forEach(b=>{const id=me.m.moves[+b.dataset.i],c=ACT.cd[id]||0,mx=cdOf(mv(id));b.style.setProperty('--cd',(c/mx*100).toFixed(1)+'%');b.querySelector('.cdv').textContent=c>0?c.toFixed(1):'';b.classList.toggle('rdy',c<=0)});
   const rb=document.getElementById('aRoll');rb&&rb.classList.toggle('cool',ACT.dcd>0)}
 // 상대가 기술 쓰기 직전 경고 (빨간 원 · 느낌표) — 그림은 배틀 그리기에서 불러요
-function actDrawUnder(){if(!ACT.on)return;const me=BS.me,f=BS.foe,S=bsz(),ai=ACT.ai;
+function actDrawUnder(){if(!ACT.on||!BS.me||!BS.foe)return;const me=BS.me,f=BS.foe,S=bsz(),ai=ACT.ai;
   if(ai.tel>0&&ai.m&&ai.u){const k=1-ai.tel/(BS.trainer?.6:.8);drawShape(shapeOf(ai.m),{x:f.ax,y:f.ay},ai.u,'#ff2020',.35+.25*k,k)}
   const A=ACT.aim;if(A&&A.drag){const m=mv(A.id);drawShape(shapeOf(m),{x:me.ax,y:me.ay},{x:A.ux,y:A.uy},A.cancel?'#888':'#5ab8ff',A.cancel?.15:.35)}
   else if(A){const m=mv(A.id),dx=f.ax-me.ax,dy=f.ay-me.ay,L=Math.hypot(dx,dy)||1;drawShape(shapeOf(m),{x:me.ax,y:me.ay},{x:dx/L,y:dy/L},'#ffffff',.16)}
   // 내 발밑 표시
   cx.save();cx.strokeStyle=ACT.inv>0?'#9be7ff':'#ffe14a';cx.globalAlpha=.8;cx.lineWidth=3;cx.beginPath();cx.ellipse(me.ax,me.ay+2,S*.55,S*.2,0,0,7);cx.stroke();cx.restore()}
-function actDrawOver(){if(!ACT.on)return;const f=BS.foe,S=bsz(),ai=ACT.ai;if(ai.tel>0){cx.save();cx.fillStyle='#ff3b3b';cx.strokeStyle='#fff';cx.lineWidth=4;cx.font='900 '+(S*.9|0)+'px sans-serif';cx.textAlign='center';const y=f.ay-S*2.1-Math.abs(Math.sin(ACT.t*14))*6;cx.strokeText('!',f.ax,y);cx.fillText('!',f.ax,y);cx.restore()}}
+function actDrawOver(){if(!ACT.on||!BS.me||!BS.foe)return;const f=BS.foe,S=bsz(),ai=ACT.ai;if(ai.tel>0){cx.save();cx.fillStyle='#ff3b3b';cx.strokeStyle='#fff';cx.lineWidth=4;cx.font='900 '+(S*.9|0)+'px sans-serif';cx.textAlign='center';const y=f.ay-S*2.1-Math.abs(Math.sin(ACT.t*14))*6;cx.strokeText('!',f.ax,y);cx.fillText('!',f.ax,y);cx.restore()}}
 
 // ---------- 모드 고르기 ----------
 function modePick(){let m='adv';try{m=localStorage.getItem('pka-mode')||'adv'}catch(e){}return m}
@@ -1306,11 +1306,11 @@ function actPilot(fr){const me=BS.me,f=BS.foe,ai=ACT.ai,st=ACT.stick;ACT.pt=(ACT
   const ap=Math.max(-1,Math.min(1,(d-want)/want));st.x=dx/d*ap*1.2+(-dy/d)*Math.sin(ACT.t*1.1)*.5;st.y=dy/d*ap*1.2+(dx/d)*Math.sin(ACT.t*1.1)*.5;const L=Math.hypot(st.x,st.y);if(L>1){st.x/=L;st.y/=L}
   if(!ACT.busy&&ACT.roll<=0){let best=-1,bi=-1;me.m.moves.forEach((id,i)=>{if((ACT.cd[id]||0)>0)return;const v=dmgCalc(me.m,f.m,mv(id),0).d;if(v>best){best=v;bi=i}});if(bi>=0&&ACT.pt>.5)actPress(bi)}}
 
-// ---------- 자동(AUTO) 끄기: 배틀 중에 끄면 그 판은 자동으로 끝내고, 다음부터 멈춤 ----------
+// ---------- 자동(AUTO) 끄기: 배틀 중에도 누르면 바로 꺼지고 직접 조작 ----------
 function autoActive(){return !!(AUTO.on||G.autoBattle)}
 function autoStop(){AUTO.on=0;AUTO.huntOnly=0;AUTO.hunt=null;AUTO.stopAfter=0;G.autoBattle=0;G.autoQuest=0;P.queue=null;try{save()}catch(e){}hud();toast('✋ 자동(AUTO) 꺼졌어요')}
 function autoBtnB(){let b=document.getElementById('bAutoB');if(!b){b=document.createElement('button');b.id='bAutoB';document.body.appendChild(b);
-    b.onclick=()=>{sfx('tap');if(autoActive()){if(SCENE==='battle'){AUTO.stopAfter=AUTO.stopAfter?0:1;toast(AUTO.stopAfter?'⏳ 이번 판까지만 자동으로 하고 멈출게요':'▶ 자동(AUTO) 계속')}else autoStop()}else{G.autoBattle=1;AUTO.stopAfter=0;toast('▶ 이번 배틀부터 자동(AUTO)')}autoBtnB()}}
+    b.onclick=()=>{sfx('tap');if(autoActive()){autoStop();try{if(ACT.stick){ACT.stick.x=ACT.stick.y=0}}catch(e){};if(SCENE==='battle')toast('🎮 이제 직접 싸워요!')}else{G.autoBattle=1;AUTO.stopAfter=0;toast('▶ 이번 배틀부터 자동(AUTO)')}autoBtnB()}}
   b.textContent=!autoActive()?'▶ 자동(AUTO)':AUTO.stopAfter?'⏳ 이번 판까지 자동':'⏸ 자동(AUTO) 끄기';b.classList.toggle('on',autoActive()&&!AUTO.stopAfter)}
 setInterval(()=>{try{if(SCENE==='battle')autoBtnB()}catch(e){}},400);
 
@@ -1404,9 +1404,9 @@ function autoBuy(){const balls=(G.bag.ball||0)+(G.bag.great||0)+(G.bag.hyper||0)
 function starters(){let L=[[1,4,7],[152,155,158],[252,255,258],[387,390,393],[495,498,501]].map(r=>r.map(d=>BYDEX[d])).find(r=>r.every(Boolean));
   if(!L){const low=SPECIES.filter(s=>bst(META[s].stats)<=340);L=['GRASS','FIRE','WATER'].map(t=>low.find(s=>META[s].types.includes(t))).filter(Boolean);while(L.length<3)L.push(pick(low.length?low:SPECIES))}return L}
 function chooseStarter(){return new Promise(async r=>{await say(['포켓몬 박사: 기다리고 있었단다! 이 세 마리 중 하나를 골라 보렴.']);const L=starters();
-  const fin=async n=>{closePanel(1);const m=mkMon(n,6);G.party.push(m);G.dex.s[META[n].dex]=1;G.dex.c[META[n].dex]=1;const rv=L.find(x=>x!==n&&eff(META[x].types[0],META[n].types)>=2)||L.find(x=>x!==n);G.rival={n:rv};
+  const fin=async n=>{closePanel(1);if(wasA){AUTO.on=wasA;try{hud()}catch(e){}}const m=mkMon(n,6);G.party.push(m);G.dex.s[META[n].dex]=1;G.dex.c[META[n].dex]=1;const rv=L.find(x=>x!==n&&eff(META[x].types[0],META[n].types)>=2)||L.find(x=>x!==n);G.rival={n:rv};
     addItem('ball',5);addItem('potion',3);await refreshSpr();sfx('get');await say(['<b>'+nm(m)+'</b>(을)를 받았다!','포켓몬 박사: 몬스터볼 5개와 상처약 3개도 가져가렴.','라이벌 '+RIV()+': 나는 <b>'+META[rv].name+'</b>(으)로 할래! 누가 먼저 챔피언이 되는지 시합이야!','🎯 이제 북쪽 1번 도로로 나가 보자! 화면 위 「▶ 자동」을 누르면 알아서 진행돼요.']);save();hud();r()};
-  if(AUTO.on){fin(L[0]);return}
+  const wasA=AUTO.on;AUTO.on=0;try{hud()}catch(e){}// 자동이어도 첫 포켓몬은 내가 골라요
   openPanel('첫 포켓몬 고르기',`<div class="st3">${L.map(n=>`<button class="card" data-n="${encodeURIComponent(n)}"><img src="${THUMB[n]||''}"><b>${META[n].name}</b><small>${META[n].types.map(t=>TN[t]).join(' · ')}</small></button>`).join('')}</div>`,null,p=>p.querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>fin(decodeURIComponent(x.dataset.n))),1)})}
 // ---------- 야생 · 트레이너 ----------
 function wpick(T){const tot=T.reduce((a,b)=>a+b.w,0);let u=R()*tot;for(const e of T){u-=e.w;if(u<=0)return e.n}return T[0].n}
