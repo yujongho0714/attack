@@ -382,11 +382,19 @@ small.itd{display:block;color:#5a4a20;font-weight:700;font-size:11px}
 #bAct small{font-size:10px;font-weight:800}#bAct b{font-size:16px}body.inb #bAct{display:none!important}
 .dgrid{max-width:calc((100vh - 170px) * 1.4)}.mgwin img,.smon img{width:min(120px,20vh);height:min(120px,20vh)}
 @media (orientation:landscape){.saf{display:grid!important;grid-template-columns:auto 1fr;text-align:left}.saf .sinfo,.saf .mgt{grid-column:1/3}.saf .smon{grid-row:2/4}.sact{grid-template-columns:1fr 1fr}.mgb>div{padding:10px;gap:6px}}
+.hhint{margin:0 0 6px;font-weight:700;color:#5a4a20}
+.hrow{display:flex;align-items:center;gap:8px;margin:6px 0;padding:8px;border-radius:12px;background:#fff;border:2px solid #d8deea}.hrow .tyi{width:40px;height:40px}.hrow span{flex:1}.hrow small{display:block}
+.hrow.ok{border-color:#e0b040;background:#fff9e0}.hrow.now{border-color:#3a8ee8;box-shadow:0 0 0 2px #3a8ee855}.hrow.lk{opacity:.7}
+.hcard{margin:8px 0;padding:10px 12px;border-radius:14px;background:#fff;border:2px solid #d8deea;border-left:6px solid #1c2550}.hcard>b{font-size:16px;color:#1c2550}.hcard p{margin:4px 0 6px;line-height:1.4}.hst{float:right;color:#a05a00;font-weight:900}
+.hmg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}.hmg span{display:flex;flex-direction:column;gap:3px;padding:8px;border-radius:10px;background:#fff7d8;border:2px solid #e0b040}.hmg span button{align-self:flex-start}
+.htown{display:flex;gap:10px;margin:8px 0;padding:8px;border-radius:14px;background:#fff;border:3px solid var(--c);box-shadow:0 0 10px var(--c)}.htown>img{width:88px;height:88px;border-radius:12px;object-fit:cover;flex:none;image-rendering:pixelated}.htown>div{flex:1}.htown b{font-size:16px}.htown small{display:block}.htown ul{margin:4px 0;padding-left:18px}.htown em{font-style:normal;background:#ff3b3b;color:#fff;border-radius:6px;padding:0 6px;margin-left:6px;font-size:11px}
+.htown.lk{filter:saturate(.5);opacity:.85}
+.panel .tabs button.on{background:linear-gradient(#3a4a8a,#1c2550)!important;color:#fff!important}
 </style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
-<div id="side"><button id="bBag"><img class="sic" src="ui/ic_bag.webp" alt=""><span>가방</span></button><button id="bShop"><img class="sic" src="ui/ic_shop.webp" alt=""><span>상점</span></button><button id="bFuse"><img class="sic" src="ui/ic_fuse.webp" alt=""><span>합성</span></button><button id="bGiftS"><img class="sic" src="ui/ic_gift.webp" alt=""><span>선물</span></button><button id="bTeam"><img class="sic" src="ui/ic_star.webp" alt=""><span>편성</span></button><button id="bHunt"><img class="sic" src="ui/ic_hunt.webp" alt=""><span>자동사냥</span></button><button id="bHeal"><img class="sic" src="items/HYPERPOTION.png" alt="" style="image-rendering:pixelated"><span>치료</span></button><button id="bWorld"><img class="sic" src="ui/ic_map.webp" alt=""><span>월드맵</span></button><button id="bDex"><img class="sic" src="ui/ic_dex.webp" alt=""><span>도감</span></button><button id="bMenu2"><img class="sic" src="ui/ic_menu.webp" alt=""><span>메뉴</span></button><button id="bFly"><img class="sic" src="ui/ic_fly.webp" alt=""><span>날기</span></button><button id="bFast"><img class="sic" src="ui/ic_fast.webp" alt=""><span>빠르게</span></button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
+<div id="side"><button id="bHub"><img class="sic" src="ui/ic_quest.webp" alt=""><span>컨텐츠</span></button><button id="bBadge"><img class="sic" src="ui/ic_badge.webp" alt=""><span>배지</span></button><button id="bBag"><img class="sic" src="ui/ic_bag.webp" alt=""><span>가방</span></button><button id="bShop"><img class="sic" src="ui/ic_shop.webp" alt=""><span>상점</span></button><button id="bFuse"><img class="sic" src="ui/ic_fuse.webp" alt=""><span>합성</span></button><button id="bGiftS"><img class="sic" src="ui/ic_gift.webp" alt=""><span>선물</span></button><button id="bTeam"><img class="sic" src="ui/ic_star.webp" alt=""><span>편성</span></button><button id="bHunt"><img class="sic" src="ui/ic_hunt.webp" alt=""><span>자동사냥</span></button><button id="bHeal"><img class="sic" src="items/HYPERPOTION.png" alt="" style="image-rendering:pixelated"><span>치료</span></button><button id="bWorld"><img class="sic" src="ui/ic_map.webp" alt=""><span>월드맵</span></button><button id="bDex"><img class="sic" src="ui/ic_dex.webp" alt=""><span>도감</span></button><button id="bMenu2"><img class="sic" src="ui/ic_menu.webp" alt=""><span>메뉴</span></button><button id="bFly"><img class="sic" src="ui/ic_fly.webp" alt=""><span>날기</span></button><button id="bFast"><img class="sic" src="ui/ic_fast.webp" alt=""><span>빠르게</span></button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
 <div id="pad" style="display:none"><button data-d="3">▲</button><button data-d="1">◀</button><button data-d="2">▶</button><button data-d="0">▼</button></div><div id="joyZ"><div id="joyB"><i id="joyK"></i></div></div><button id="bA">A<br><small>조사</small></button>
 <div id="bF"></div><div id="bM"></div><div id="bMenu"></div><div id="bTx"></div>
 <div id="dlg"></div><div id="toasts"></div><div id="fade"></div>
@@ -1222,6 +1230,7 @@ function resFixSave(){if(!RESOK||!G)return;if(G.mapv===2)return;G.mapv=2;const A
   const H=genArea(G.heal&&G.heal.a!=null?G.heal.a:0),hc=H.bld.find(b=>b.kind==='center')||H.bld.find(b=>b.kind==='home');G.heal=hc?{a:H.a,x:hc.out.x,y:hc.out.y}:{a:0,x:genArea(0).spawn.x,y:genArea(0).spawn.y}}
 
 // ===== 걸어 다니기 · 화면 그리기 · 조작 =====
+const EVB={n:0};// 이벤트(체육관·리그·라이벌·탑) 진행 중엔 걷기·자동 이동 잠금
 const cv=document.getElementById('cv'),cx=cv.getContext('2d');let VW=0,VH=0,DPR=1,TS=32;
 function resize(){DPR=Math.min(2,devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=VW*DPR;cv.height=VH*DPR;cv.style.width=VW+'px';cv.style.height=VH+'px';TS=Math.max(26,Math.floor(Math.min(VW/11,VH/15)))}
 addEventListener('resize',resize);resize();
@@ -1300,7 +1309,7 @@ addEventListener('keyup',e=>{if(e.key in DIRK&&KEY.dir===DIRK[e.key])KEY.dir=-1}
 function userMove(){if(AUTO.on){P.queue=null;if(!AUTO.manT||NOW-AUTO.manT>3)toast('직접 움직이는 중 · 손 떼면 자동 계속');AUTO.manT=NOW}}
 function onA(){if(DLG.on){DLG.next();return}if(SCENE!=='over'||P.busy||P.mv)return;const A=curA();const d=P.dir,X=P.x+[0,-1,1,0][d],Y=P.y+[1,0,0,-1][d];const np=A.npc.find(n=>n.x===X&&n.y===Y&&!n.gone);if(np){talk(np);return}if(A.M[Y]&&A.M[Y][X]===T_.SIGN){say([A.sign.t]);return}meSwing()}
 function updOver(dt){meTick(dt);if(P.mv){P.mv.t+=dt;if(P.mv.t>=P.mv.d){P.mv=null;afterStep()}}
-  if(!P.mv&&!P.busy&&!DLG.on&&SCENE==='over'){if(KEY.dir>=0)tryStep(KEY.dir);else if(P.queue&&P.queue.length){const [x,y]=P.queue[0];const d=x<P.x?1:x>P.x?2:y<P.y?3:0;if(Math.abs(x-P.x)+Math.abs(y-P.y)!==1&&!(y<0||y>=curA().H||x<0||x>=curA().W)){P.queue=null}else{const ok=tryStep(d);if(ok)P.queue.shift();else{P.queue=null}}}
+  if(!P.mv&&!P.busy&&!EVB.n&&!DLG.on&&SCENE==='over'&&!document.getElementById('trScene')){if(KEY.dir>=0)tryStep(KEY.dir);else if(P.queue&&P.queue.length){const [x,y]=P.queue[0];const d=x<P.x?1:x>P.x?2:y<P.y?3:0;if(Math.abs(x-P.x)+Math.abs(y-P.y)!==1&&!(y<0||y>=curA().H||x<0||x>=curA().W)){P.queue=null}else{const ok=tryStep(d);if(ok)P.queue.shift();else{P.queue=null}}}
     else if(AUTO.on)autoThink()}}
 
 // ===== 포켓몬 · 배틀 =====
@@ -1792,7 +1801,7 @@ function objective(){if(!G.party.length)return{t:'🧪 연구소에서 첫 포�
 function nextDexTarget(){let best=null;for(const n of SPECIES){const d=META[n].dex;if(G.dex.c[d])continue;const L=LOC[n];if(!L||!L.length)continue;for(const a of L){const dd=Math.abs(a-G.a);if(!best||dd<best.d)best={n,a,d:dd}}}return best}
 function needHeal(){if(!G.party.length)return false;const A=alive();if(!A.length)return true;const S=G.party.reduce((s,m)=>s+m.hp/stOf(m)[0],0)/G.party.length;return S<.45||A[0].hp/stOf(A[0])[0]<.2&&!['potion','spotion','hpotion'].some(k=>G.bag[k]>0)}
 function healGoal(){let best=null;for(let a=0;a<18;a+=2){if(a/2>G.badges+1)continue;const d=Math.abs(a-G.a);if(!best||d<best.d)best={a,d}}return{a:best.a,door:best.a===0?'home':'center'}}
-function autoThink(){if(SCENE!=='over'||P.busy||DLG.on||PANEL)return;if(KEY.dir>=0){AUTO.manT=NOW;return}if(AUTO.manT&&NOW-AUTO.manT<1.2)return;let g=null,hunt=null;
+function autoThink(){if(SCENE!=='over'||P.busy||EVB.n||DLG.on||PANEL)return;if(KEY.dir>=0){AUTO.manT=NOW;return}if(AUTO.manT&&NOW-AUTO.manT<1.2)return;let g=null,hunt=null;
   if(needHeal())g=healGoal();else if(AUTO.hunt)hunt=AUTO.hunt;else{const o=objective();if(o.g)g=o.g;else if(o.hunt){hunt=o.hunt;if(!AUTO.hunt&&o.hunt.n&&!AUTO.dexSet){}}else{AUTO.on=0;hud();return}}
   if(hunt&&!g){if(G.a!==hunt.a){navArea(hunt.a);return}const A=curA();const water=hunt.n&&A.enc&&!A.enc.g.some(e=>e.n===hunt.n)&&A.enc.w.some(e=>e.n===hunt.n);
     const tiles=[];for(let y=0;y<A.H;y++)for(let x=0;x<A.W;x++)if(water?A.M[y][x]===T_.WATER:A.M[y][x]===T_.TG)tiles.push([x,y]);if(!tiles.length){AUTO.on=0;hud();toast('여기는 풀숲이 없어요');return}
@@ -2542,6 +2551,13 @@ setInterval(()=>{try{if(AUTO.healGo&&G&&!hurt().length){AUTO.healGo=0;if(AUTO.on
   const b=document.getElementById('bHeal');if(b&&G){const n=G.party.filter(m=>m.hp<=0).length,h=hurt().length;let e=b.querySelector('.nb');if(!e){e=document.createElement('em');e.className='nb';b.appendChild(e)}e.textContent=n||'';e.style.display=n?'':'none';b.classList.toggle('on',!!AUTO.healGo);b.classList.toggle('need',h>0)}}catch(e){}},600);
 (function(){const go=()=>{const b=document.getElementById('bHeal');if(b)b.onclick=()=>{sfx('tap');if(AUTO.healGo){AUTO.healGo=0;autoStop();return}healGo()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 {const _as=autoStop;autoStop=function(){AUTO.healGo=0;return _as.apply(this,arguments)}}
+// 체육관·리그·라이벌·트레이너 이벤트 사이(배틀과 배틀 사이)에 자동 이동이 끼어들지 않게
+const evWrap=f=>async function(){EVB.n++;try{return await f.apply(this,arguments)}finally{EVB.n=Math.max(0,EVB.n-1)}};
+gym=evWrap(gym);league=evWrap(league);areaEvent=evWrap(areaEvent);trainerSpot=evWrap(trainerSpot);rematch=evWrap(rematch);trainerScene=evWrap(trainerScene);
+// 배틀 멈춤 방지: 위치가 깨지면(화면 밖·NaN) 경기장 안으로 되돌리고, 기술 쓰는 중 상태가 4초 넘게 안 풀리면 풀어 줘요
+{const _au=actUpdate;actUpdate=function(dt){_au(dt);try{if(!ACT.on)return;const r=AR();for(const B of [BS.me,BS.foe]){if(!B)continue;if(!isFinite(B.ax)||!isFinite(B.ay)){B.ax=(r.x0+r.x1)/2+(B===BS.me?-1:1)*(r.x1-r.x0)*.2;B.ay=(r.y0+r.y1)/2}B.ax=Math.max(r.x0,Math.min(r.x1,B.ax));B.ay=Math.max(r.y0,Math.min(r.y1,B.ay))}
+  ACT.bz=ACT.busy?(ACT.bz||0)+dt:0;if(ACT.bz>4){ACT.busy=0;ACT.bz=0}ACT.fz=ACT.fbusy?(ACT.fz||0)+dt:0;if(ACT.fz>4){ACT.fbusy=0;ACT.fz=0}
+  if(ACT.pause&&!DLG.on&&!PANEL&&!document.querySelector('#catchOv,#tmBar,.tmg')){ACT.pz=(ACT.pz||0)+dt;if(ACT.pz>6){ACT.pause=0;ACT.pz=0}}else ACT.pz=0}catch(e){}}}
 
 // ===== 마을 놀거리: 블루시티 낚시 · 회색시티 화석 발굴 · 연분홍시티 사파리존 · 노랑시티 격투 탑 =====
 const MGS={4:{k:'fish',n:'낚시',d:'타이밍 맞춰 낚싯대를 당기면 물 포켓몬이나 아이템이 나와요'},2:{k:'fossil',n:'화석 발굴',d:'바위를 두드려 화석을 캐면 화석 포켓몬으로 복원해 줘요 (하루 1번 무료)'},
@@ -2655,6 +2671,41 @@ function itPick(L,it,go){const d=document.createElement('div');d.id='itInfo';d.i
   document.body.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('#iiX').onclick=()=>d.remove();d.querySelectorAll('.iip').forEach(b=>b.onclick=()=>{d.remove();go(L[+b.dataset.i])})}
 // 상점 · 특산품 줄을 누르면 설명
 document.addEventListener('click',e=>{const r=e.target.closest&&e.target.closest('.panel .row');if(!r||e.target.closest('button'))return;const b=r.querySelector('[data-b],[data-tb]');if(!b)return;itemInfo(b.dataset.b||b.dataset.tb)});
+
+// ===== 사이드메뉴: 배지 · 컨텐츠 (뭐가 있는지 · 마을별로 바로 가기) =====
+function badgeOpen(){if(!G)return;const rows=GYM.map((g,i)=>{const got=i<G.badges,now=i===G.badges,a=2*(i+1),rm=G.rematch&&G.rematch[i]===dayKey();
+  return `<div class="hrow ${got?'ok':now?'now':'lk'}"><i class="tyi" style="${tyIco(g.t)}"></i><span><b>${TOWNS[i+1]} · ${g.n}</b><small>${TN[g.t]} 타입 · ${got?'배지 획득'+(rm?' · 오늘 재대결 완료':' · 재대결 가능 (하루 1번)'):now?'지금 도전할 차례 · 추천 Lv.'+(gymAce(i)-1):'배지 '+i+'개 모으면 도전'}</small></span>
+  <button data-lc="${i}">관장 보기</button>${got||now?`<button data-gg="${a}">${now?'도전하러 가기':'가기'}</button>`:''}</div>`}).join('');
+  openPanel('배지 · 관장',`<p class="hhint">배지를 누르면 관장과 파트너 포켓몬을 볼 수 있어요. 이긴 관장은 하루 한 번 재대결! (상대 레벨이 내 레벨을 따라와요)</p>${badgeCase()}${rows}`,null,p=>{
+    p.querySelectorAll('[data-lc]').forEach(b=>b.onclick=()=>{sfx('tap');leaderCard(+b.dataset.lc)});
+    p.querySelectorAll('[data-gg]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.gg,null,'auto')})})}
+// 컨텐츠 목록
+const HUB=[
+ {k:'story',n:'스토리 · 체육관 8곳 · 포켓몬 리그',d:'마을마다 있는 체육관 관장을 이기고 배지 8개를 모은 뒤, 포켓몬 리그에서 사천왕과 챔피언에게 도전해요.',st:()=>'배지 '+G.badges+'/8'+(G.champ?' · 챔피언!':''),go:[['퀘스트 보기',()=>questOpen()],['배지 보기',()=>badgeOpen()]]},
+ {k:'mg',n:'마을 놀거리',d:'블루시티 낚시 · 회색시티 화석 발굴 · 연분홍시티 사파리존 · 노랑시티 격투 탑. 그 마을에 가면 화면 아래에 버튼이 생겨요.',st:()=>{const t=(G.mg&&G.mg.tw)||{};return '격투 탑 최고 '+(t.best||0)+'층'},list:1},
+ {k:'shop',n:'마을 특산품',d:'마을마다 그 마을에서만 싸게 파는 물건과 체육관 타입 부적(그 타입 기술 위력 +10%)이 있어요. 노랑시티는 이상한사탕을 팔아요.',st:()=>'',town:1},
+ {k:'rm',n:'관장 재대결',d:'이긴 관장과 하루 한 번 다시 싸워요. 상대 레벨이 내 레벨보다 높게 맞춰지고, 돈과 카드팩을 받아요.',st:()=>{const n=GYM.filter((g,i)=>i<G.badges&&!(G.rematch&&G.rematch[i]===dayKey())).length;return '오늘 가능 '+n+'명'},go:[['배지 · 관장 보기',()=>badgeOpen()]]},
+ {k:'card',n:'카드팩 · 합성',d:'매일 접속하면 카드팩 1장(포켓몬·기술 번갈아), 7일마다 포켓몬팩 5장 + 기술팩 5장! 퀘스트를 깨도 받아요. 중복 카드 2장으로 합성하면 10% 확률로 다음 등급!',st:()=>'중복 카드 '+((G.dupes||[]).length)+'장',go:[['합성하러 가기',()=>fuseOpen()],['선물함',()=>giftOpen()]]},
+ {k:'dex',n:'도감 · 포켓몬 찾기',d:'못 잡은 포켓몬을 눌러 "잡으러 자동 이동". 월드맵에서 이름이나 등급(일반~유일)으로 검색해 나오는 곳을 찾아요.',st:()=>'잡음 '+Object.keys(G.dex.c).length+'/'+SPECIES.length,go:[['도감 열기',()=>dexOpen()],['월드맵 검색',()=>{WM.sel=G.a;worldOpen()}]]},
+ {k:'team',n:'편성 · 보관함',d:'최대 6마리가 함께 싸워요. 나머지는 보관함에서 "출전하기"로 바꿔 넣을 수 있어요.',st:()=>'파티 '+G.party.length+'/6 · 보관함 '+G.box.length,go:[['편성 열기',()=>teamOpen()]]},
+ {k:'wild',n:'자동 사냥 · 희귀 포켓몬',d:'높은 등급일수록 잘 안 나오고 잘 안 잡혀요. 어려움 난이도는 희귀 포켓몬·이로치가 더 잘 나오고 상금도 많아요.',st:()=>['쉬움','보통','어려움'][DIFF()]+' 난이도',go:[['월드맵',()=>{WM.sel=G.a;worldOpen()}]]}];
+function hubOpen(tab){if(!G)return;tab=tab||HUB.tab||'c';HUB.tab=tab;
+  const town=a=>{const k=a/2,g=a>0?GYM[k-1]:null,mg=MGS[a],open=areaOpen(a),vis=G.visit&&G.visit[a];const goods=townGoods(a).map(x=>ITEMS[x.k].n).join(', ');
+    return `<div class="htown ${open?'':'lk'}" style="--c:${areaCol(a)}"><img src="ui/wm/a${String(a).padStart(2,'0')}.webp" alt=""><div><b>${areaName(a)}</b>${G.a===a?'<em>지금 여기</em>':''}<small>${TOWNF[k].d}</small>
+      <ul>${g?`<li>체육관 · ${g.n} (${TN[g.t]}) ${k<=G.badges?'· 배지 획득':''}</li>`:''}${mg?`<li>놀거리 · <b>${mg.n}</b></li>`:''}${goods?`<li>특산품 · ${goods}</li>`:''}</ul>
+      <div class="wbt">${!open?`<small class="lkx">배지 ${areaNeed(a)}개 필요</small><button data-hn="${a}">먼저 할 일 안내</button>`:G.a===a?(mg?`<button class="main" data-hm="${a}">${mg.n} 하기</button>`:''):`<button class="main" data-hg="${a}">${mg?mg.n+' 하러 가기':'자동 이동'}</button>${vis&&canFly()?`<button data-hf="${a}">날아가기</button>`:''}`}</div></div></div>`};
+  const towns=[0,2,4,6,8,10,12,14,16].map(town).join('');
+  const cont=HUB.map(h=>`<div class="hcard"><b>${h.n}</b><small class="hst">${h.st()}</small><p>${h.d}</p>${h.list?`<div class="hmg">${Object.keys(MGS).map(a=>`<span><b>${areaName(+a)} · ${MGS[a].n}</b><small>${MGS[a].d}</small>${G.a===+a?`<button class="main" data-hm="${a}">지금 하기</button>`:areaOpen(+a)?`<button data-hg="${a}">가서 하기</button>`:`<small class="lkx">배지 ${areaNeed(+a)}개 필요</small>`}</span>`).join('')}</div>`:''}${h.town?'<button data-tab="t">마을별로 보기</button>':''}${h.go?`<div class="wbt">${h.go.map((g,i)=>`<button data-hb="${h.k}:${i}">${g[0]}</button>`).join('')}</div>`:''}</div>`).join('');
+  openPanel('컨텐츠',`<div class="tabs"><button data-tab="c" class="${tab==='c'?'on':''}">컨텐츠별</button><button data-tab="t" class="${tab==='t'?'on':''}">마을별</button></div>${tab==='c'?cont:towns}`,null,p=>{
+    p.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{sfx('tap');hubOpen(b.dataset.tab)});
+    p.querySelectorAll('[data-hb]').forEach(b=>b.onclick=()=>{sfx('tap');const [k,i]=b.dataset.hb.split(':');const h=HUB.find(x=>x.k===k);closePanel(1);h.go[+i][1]()});
+    p.querySelectorAll('[data-hg]').forEach(b=>b.onclick=()=>{sfx('tap');const a=+b.dataset.hg;closePanel(1);if(MGS[a])G.navMg=a;navSet(a,null,'auto')});
+    p.querySelectorAll('[data-hf]').forEach(b=>b.onclick=()=>{sfx('tap');const a=+b.dataset.hf;closePanel(1);if(MGS[a])G.navMg=a;flyTo(a)});
+    p.querySelectorAll('[data-hm]').forEach(b=>b.onclick=()=>{sfx('tap');mgStart(+b.dataset.hm)});
+    p.querySelectorAll('[data-hn]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.hn,null,'walk')})})}
+// 놀거리 하러 간 마을에 도착하면 바로 시작
+setInterval(()=>{try{if(G&&G.navMg!=null&&G.a===G.navMg&&SCENE==='over'&&!P.busy&&!P.mv&&!EVB.n&&!DLG.on&&!PANEL){const a=G.navMg;G.navMg=null;mgStart(a)}}catch(e){}},700);
+(function(){const go=()=>{const b=document.getElementById('bBadge');if(b)b.onclick=()=>{sfx('tap');badgeOpen()};const c=document.getElementById('bHub');if(c)c.onclick=()=>{sfx('tap');hubOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
