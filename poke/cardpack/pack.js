@@ -8,13 +8,13 @@ const CardPack=(()=>{
   const S={tap:r=>tone(300+r*120,.08,'square',.06),tear:()=>noise(.35,.25),
     rev:r=>{const N=[[523,659,784],[523,659,784,1046],[392,523,659,784,1046],[262,392,523,659,784,1046,1318]][r];N.forEach((f,i)=>tone(f,.25+(i==N.length-1?.5:0),'triangle',.1,i*.09))},
     zap:()=>tone(80+Math.random()*60,.15,'sawtooth',.08),boom:()=>{noise(.8,.35);tone(55,.8,'sine',.3)}};
-  function loadImg(u){return new Promise(r=>{if(!u)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=u})}
+  function loadImg(u,ms){return new Promise(r=>{if(!u)return r(null);const i=new Image();let d=0;const ok=v=>{if(!d){d=1;r(v)}};i.onload=()=>ok(i);i.onerror=()=>ok(null);i.src=u;setTimeout(()=>ok(i.complete&&i.naturalWidth?i:null),ms||1200)})}
   function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
   function bolt(c,x1,y1,x2,y2,w){c.beginPath();c.moveTo(x1,y1);const n=8;for(let i=1;i<n;i++){const t=i/n;c.lineTo(x1+(x2-x1)*t+(Math.random()-.5)*40,y1+(y2-y1)*t+(Math.random()-.5)*40)}c.lineTo(x2,y2);c.lineWidth=w;c.stroke()}
 
   async function open(o){
     o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const R=Math.max(0,Math.min(3,o.rar|0));
-    const [pk,art]=await Promise.all([loadImg(o.base+'pk'+R+'.webp'),loadImg(o.img)]);
+    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>art=v):null;const pk=await loadImg(o.base+'pk'+R+'.webp',800);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
