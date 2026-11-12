@@ -1,0 +1,24 @@
+name: fetch-badge
+on:
+  push:
+    branches: [fetch-badge]
+permissions:
+  contents: write
+jobs:
+  f:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          set -e
+          git clone --depth 1 -b fetch-badge https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} r
+          cd r && mkdir -p inbox
+          curl -fsSL -o inbox/b0.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_114608_f83ad087-2f8e-4684-ba53-9257ddfb73bc.png
+          curl -fsSL -o inbox/b1.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_114608_ded0281d-2799-46af-aadf-a158db940daa.png
+          curl -fsSL -o inbox/b2.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_114608_b4ec512e-54f0-49d8-932e-c7f573ec28e9.png
+          curl -fsSL -o inbox/b3.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_114608_939d91b6-1009-4243-93da-73217f77b45d.png
+          curl -fsSL -o inbox/b4.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_114608_cf3b7215-06d0-4560-b0d7-ede2a5880ad4.png
+          curl -fsSL -o inbox/b5.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_114608_934844a2-930c-4f52-b3c2-866e976e060d.png
+          curl -fsSL -o inbox/b6.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_114639_2639b221-a66c-4847-b9cf-544b1ba1489a.png
+          curl -fsSL -o inbox/b7.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261112_114608_b9299682-492c-42c7-92a9-aa700c800b57.png
+          git config user.email noreply@anthropic.com; git config user.name Claude
+          git add inbox && git commit -m "inbox: badges" && git push origin HEAD:fetch-badge-out
