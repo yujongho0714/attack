@@ -50,7 +50,7 @@ const CardPack=(()=>{
         if(frm){c.shadowBlur=0;c.drawImage(frm,-w*.07,-h*.055,w*1.14,h*1.11)}
         // 이름 (프레임 위에 띠로)
         c.fillStyle='rgba(20,22,40,.82)';rr(c,w*.12,h*.065,w*.76,h*.075,h*.03);c.fill();c.fillStyle='#fff';c.font=`900 ${w*.085}px sans-serif`;c.textAlign='left';c.textBaseline='middle';c.fillText(o.name,w*.16,h*.103,R>=4?w*.46:w*.5);
-        c.textAlign='right';c.fillStyle=R>=4?COL[R]:R>=3?'#ffd060':R>=2?'#e0a0ff':R>=1?'#8fd0ff':'#ccc';c.font=`900 ${w*.065}px sans-serif`;c.fillText(R>=4?['🔥','🌌','👑'][R-4]+'★'+(R+1):'★'.repeat(R+1),w*.85,h*.103,w*.22);
+        c.textAlign='right';c.fillStyle=R>=4?COL[R]:R>=3?'#ffd060':R>=2?'#e0a0ff':R>=1?'#8fd0ff':'#ccc';c.font=`900 ${w*.065}px sans-serif`;c.fillText(R>=4?'★'+(R+1):'★'.repeat(R+1),w*.85,h*.103,w*.22);
         c.restore()}
       function frame(now){
         if(closed)return;const e=now-pt;c.save();
