@@ -1270,7 +1270,7 @@ const canSurf=()=>hasType('WATER'),canFly=()=>hasType('FLYING')||G.party.some(m=
 // 길 찾기 (BFS) — 여러 목표 중 가장 가까운 곳
 function bfs(A,sx,sy,goal,mode){const W=A.W,H=A.H,prev=new Int32Array(W*H).fill(-1),Q=[sy*W+sx];prev[sy*W+sx]=sy*W+sx;
   while(Q.length){const i=Q.shift(),x=i%W,y=(i/W)|0;if(goal(x,y)&&!(x===sx&&y===sy&&Q.length===0&&false)){if(!(x===sx&&y===sy)||goal.self){const p=[];let j=i;while(j!==sy*W+sx){p.push([j%W,(j/W)|0]);j=prev[j]}return p.reverse()}}
-    for(const [dx,dy] of [[0,-1],[1,0],[-1,0],[0,1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=W||Y>=H)continue;const k=Y*W+X;if(prev[k]>=0)continue;if(!canGo(A,X,Y,mode)&&!goal(X,Y))continue;prev[k]=i;Q.push(k)}}return null}
+    for(const [dx,dy] of [[0,-1],[1,0],[-1,0],[0,1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=W||Y>=H)continue;const k=Y*W+X;if(prev[k]>=0)continue;if(!canGo(A,X,Y,mode)&&!goal(X,Y))continue;if(A.wAt&&A.wAt[X+','+Y]&&!goal(X,Y))continue;prev[k]=i;Q.push(k)}}return null}
 
 // ===== 상위 지역 (챔피언 이후 · 배 타고 가는 섬들) =====
 // 19 얼음 해협 · 20 얼음꽃마을 · 21 어둠의 숲 · 22 그림자시티 · 23 황금 협곡 · 24 황금시티 · 25 용의 길 · 26 용의 성채
