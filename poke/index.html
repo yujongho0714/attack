@@ -1878,7 +1878,7 @@ function chooseStarter(){return new Promise(async r=>{await say(['포켓몬 박�
   openPanel('첫 포켓몬 고르기',`<div class="st3">${L.map(n=>`<button class="card" data-n="${encodeURIComponent(n)}"><img src="${THUMB[n]||''}"><b>${META[n].name}</b><small>${META[n].types.map(t=>TN[t]).join(' · ')}</small></button>`).join('')}</div>`,null,p=>p.querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>fin(decodeURIComponent(x.dataset.n))),1)})}
 // ---------- 야생 · 트레이너 ----------
 function wpick(T){const W=T.map(e=>{const r=rarOf(e.n);return e.w*ENCW[r]*(r?DRARE[DIFF()]:1)});const tot=W.reduce((a,b)=>a+b,0);let u=R()*tot;for(let i=0;i<T.length;i++){u-=W[i];if(u<=0)return T[i].n}return T[0].n}
-async function wild(A,kind){const T=kind==='w'?A.enc.w:A.enc.g;if(!T||!T.length)return;let n=wpick(T);if(AUTO.hunt&&AUTO.hunt.a===G.a&&T.some(e=>e.n===AUTO.hunt.n)&&R()<.35*[1,.6,.35,.15,.1,.1,.1][rarOf(AUTO.hunt.n)])n=AUTO.hunt.n;const [lo,hi]=areaLv(G.a);
+async function wild(A,kind){const T=kind==='w'?A.enc.w:A.enc.g;if(!T||!T.length)return;let n=wpick(T);try{if(typeof wxSpecial==='function'){const sp=wxSpecial(A,kind,T);if(sp)n=sp}}catch(e){}try{if(typeof rarCapOk==='function'&&!rarCapOk(n)){const L=T.filter(e=>rarCapOk(e.n));if(L.length)n=wpick(L)}}catch(e){}if(AUTO.hunt&&AUTO.hunt.a===G.a&&T.some(e=>e.n===AUTO.hunt.n)&&R()<.35*[1,.6,.35,.15,.1,.1,.1][rarOf(AUTO.hunt.n)])n=AUTO.hunt.n;const [lo,hi]=areaLv(G.a);
   const wm=mkMon(n,ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc();toast('✨ 반짝! '+SHC[wm.shc].n+' 포켓몬이 나타났다!')}const r=await battle({foes:[wm],bg:A.th===THEME.town?'meadow':RTH[(G.a-1)/2]});P.grace=ri(4,7);if(r==='lose')await blackout()}
 async function trainerSpot(n){P.busy=1;sfx('enc');toast('❗');await sleep(400);P.busy=0;await say([n.name+': '+n.lines[0]]);
   const r=await battle({trainer:n.name,foes:n.team.map(t=>mkMon(t.n,t.lv)),money:Math.max(...n.team.map(t=>t.lv))*30,lose:pick(['으악, 졌다!','강하구나…!','다음엔 안 질 거야!']),bg:RTH[(G.a-1)/2]});
@@ -3750,6 +3750,91 @@ try{const h=HUB.find(x=>x.k==='prefix');if(h){h.d+=' 내 캐릭터도 접두사�
 @keyframes pxPulse{50%{filter:brightness(1.15)}}
 @keyframes pxRb5{0%,100%{box-shadow:0 0 0 4px #14c8b8,0 0 0 7px #1c2550,0 0 20px #14c8b8}33%{box-shadow:0 0 0 4px #4aa8ff,0 0 0 7px #1c2550,0 0 20px #4aa8ff}66%{box-shadow:0 0 0 4px #9cf06a,0 0 0 7px #1c2550,0 0 20px #9cf06a}}
 @keyframes pxRb6{0%,100%{box-shadow:0 0 0 4px #ff2aa0,0 0 0 7px #ffd23f,0 0 0 10px #1c2550,0 0 26px #ff2aa0}25%{box-shadow:0 0 0 4px #ffb020,0 0 0 7px #ff2aa0,0 0 0 10px #1c2550,0 0 30px #ffb020}50%{box-shadow:0 0 0 4px #14c8b8,0 0 0 7px #ffd23f,0 0 0 10px #1c2550,0 0 26px #14c8b8}75%{box-shadow:0 0 0 4px #c070ff,0 0 0 7px #ff2aa0,0 0 0 10px #1c2550,0 0 30px #c070ff}}`;document.head.appendChild(c)})();
+
+// ===== 아이템 설명 미리 보기: 아이템이 보이는 곳 어디서나 누르면 설명 (data-iv) =====
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-iv]');if(!b||!G)return;const k=b.dataset.iv;if(!ITEMS[k])return;e.stopPropagation();sfx('tap');itemInfo(k)},true);
+// 포케스탑 결과 · 월드맵 특산품 · 마을 정보에 data-iv 달기
+new MutationObserver(()=>{try{document.querySelectorAll('.psOut span:not([data-iv]),.wgoods span:not([data-iv])').forEach(sp=>{const t=(sp.querySelector('b')||{}).textContent;const k=Object.keys(ITEMS).find(k=>ITEMS[k].n===t);if(k){sp.dataset.iv=k;sp.style.cursor='pointer';sp.title='눌러서 설명 보기'}})}catch(e){}}).observe(document.body,{childList:true,subtree:true});
+
+// ===== 날씨 · 밤낮: 지역마다 3시간마다 날씨가 바뀌어요 · 밤(저녁 8시~아침 6시)과 날씨에만 나오는 포켓몬 =====
+const WXK=[[null,50,'맑음'],['rain',15,'비'],['sun',13,'쨍쨍'],['snow',7,'눈'],['sand',8,'모래바람'],['fog',7,'안개']];
+const WXT={rain:['WATER','ELECTRIC'],sun:['FIRE','GRASS'],snow:['ICE'],sand:['ROCK','GROUND','STEEL'],fog:['PSYCHIC','FAIRY'],night:['GHOST','DARK']};
+const kstH=()=>+new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul',hour:'numeric',hour12:false})%24;
+const kNight=()=>{const h=kstH();return h>=20||h<6};
+function areaWx(a){if(!G||isTown(a))return null;const d=new Date(Date.now()+9*3600e3),blk=d.getUTCFullYear()*10000+(d.getUTCMonth()+1)*100+d.getUTCDate()+'-'+Math.floor(d.getUTCHours()/3);
+  let h=2166136261;for(const c of blk+':'+a+':'+(G.seed||0)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}h^=h>>>13;h=Math.imul(h,0x5bd1e995);h^=h>>>15;h>>>=0;let u=(h%1000)/10;for(const [k,w] of WXK){u-=w;if(u<0)return k}return null}
+const wxName=k=>(WXK.find(x=>x[0]===k)||WXK[0])[2];
+// 그 날씨 · 밤에만 나오는 포켓몬 (평소 이 지역 목록에 없는 같은 수준 포켓몬) · 25%
+function wxPool(a,key){const T=WXT[key];if(!T)return[];const enc=(curA()&&curA().enc)||{g:[],w:[]};const have=new Set([...enc.g,...enc.w].map(e=>e.n));const B=[...enc.g,...enc.w].map(e=>bst(META[e.n].stats));if(!B.length)return[];
+  const lo=Math.min(...B)-30,hi=Math.max(...B)+30;return SPECIES.filter(s=>{const M=META[s];if(!M||M.form||have.has(s))return false;const b=bst(M.stats);return b>=lo&&b<=hi&&b<580&&M.types.some(t=>T.includes(t))})}
+function wxSpecial(A,kind,T){if(isTown(G.a)||kind==='w'&&false)return null;const keys=[];const w=areaWx(G.a);if(w)keys.push(w);if(kNight())keys.push('night');if(!keys.length||R()>.25)return null;
+  const key=keys[ri(0,keys.length-1)],L=wxPool(G.a,key);if(!L.length)return null;const n=L[ri(0,L.length-1)];G.wxSeen=G.wxSeen||{};const nw=!G.wxSeen[n];G.wxSeen[n]=1;
+  setTimeout(()=>toast((key==='night'?'밤에만':wxName(key)+' 올 때만')+' 나오는 포켓몬! '+META[n].name+(nw?' (처음 봤어요)':'')),300);return n}
+// 야생 배틀 날씨 = 그 지역 날씨
+{const _b=battle;battle=function(o){try{if(o&&!o.trainer&&!o.wb&&o.wx===undefined&&G&&!isTown(G.a)){const w=areaWx(G.a);o.wx=w||null}}catch(e){}return _b.apply(this,arguments)}}
+// 화면 왼쪽 위(미니맵 아래)에 지금 날씨 · 밤낮
+function wxBadge(){let b=document.getElementById('wxBadge');if(!b){b=document.createElement('div');b.id='wxBadge';document.body.appendChild(b)}if(!G||SCENE!=='over'){b.style.display='none';return}
+  const w=areaWx(G.a),n=kNight();const t=(isTown(G.a)?'마을':wxName(w))+' · '+(n?'밤':'낮');const ex=[];if(w&&WXT[w])ex.push(WXT[w].map(x=>TN[x]).join('·'));if(n)ex.push('고스트·악');
+  b.className='wx-'+(w||'clear')+(n?' night':'');b.innerHTML=`<i></i><b>${t}</b>${ex.length&&!isTown(G.a)?`<small>${ex.join(' · ')} 포켓몬 더 나옴</small>`:''}`;b.style.display=''}
+setInterval(()=>{try{wxBadge()}catch(e){}},2000);
+try{HUB.push({k:'wx',n:'날씨 · 밤낮 포켓몬',d:'길마다 3시간마다 날씨가 바뀌어요 (맑음 · 비 · 쨍쨍 · 눈 · 모래바람 · 안개). 저녁 8시~아침 6시는 밤! 비 올 때는 물·전기, 쨍쨍할 때는 불·풀, 눈에는 얼음, 모래바람엔 바위·땅·강철, 안개엔 에스퍼·페어리, 밤에는 고스트·악 타입 포켓몬이 평소에 안 나오던 것까지 나와요. 야생 배틀 날씨도 그 길 날씨예요.',st:()=>G?(isTown(G.a)?'마을':wxName(areaWx(G.a)))+' · '+(kNight()?'밤':'낮'):''})}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`
+#wxBadge{position:fixed;z-index:5;left:calc(8px + env(safe-area-inset-left));top:calc(196px + env(safe-area-inset-top));display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;max-width:180px;padding:4px 8px;background:#1c2550e6;color:#fff;font:700 12px 'Galmuri11',sans-serif;box-shadow:0 0 0 2px #ffd23f}
+#wxBadge small{flex-basis:100%;font-weight:400;font-size:10px;color:#ffe9a0}#wxBadge i{width:12px;height:12px;background:#ffd23f;box-shadow:0 0 6px #ffd23f}
+#wxBadge.wx-rain i{background:#4aa8ff;box-shadow:0 0 6px #4aa8ff}#wxBadge.wx-sun i{background:#ff8a1a}#wxBadge.wx-snow i{background:#e6f6ff}#wxBadge.wx-sand i{background:#c8a24a}#wxBadge.wx-fog i{background:#b0b8c8}#wxBadge.night{background:#0a0f2ae6;box-shadow:0 0 0 2px #8a7aff}
+body.inb #wxBadge{display:none!important}@media (orientation:landscape){#wxBadge{top:calc(180px + env(safe-area-inset-top))}}`;document.head.appendChild(c)})();
+
+// ===== 신화 · 환상 · 유일 포켓몬은 어려움 난이도부터 (야생 · 카드팩 · 합성) =====
+const rarCapOk=n=>{try{return DIFF()>=2||rarOf(n)<4}catch(e){return true}};
+{const _ri=rollItem;rollItem=function(kind,rar){if(kind==='P'&&DIFF()<2&&rar!=null&&rar>=4)rar=3;let g=_ri.call(this,kind,rar);for(let i=0;i<6&&kind==='P'&&DIFF()<2&&g&&g.rar>=4;i++)g=_ri.call(this,kind,3);return g}}
+try{const h=HUB.find(x=>x.k==='card');if(h)h.d+=' 신화 · 환상 · 유일 포켓몬은 어려움 난이도부터 나와요.'}catch(e){}
+
+// ===== 난이도 클리어 연출: 챔피언이 되면 새 장이 열리듯 멋지게 + 전설 포켓몬 하나 고르기 =====
+const CLRN=['쉬움','보통','어려움','지옥','나이트메어'];
+function clrKey(){return DIFF()+'-'+(G.rebirth||0)}
+setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over'||DLG.on||PANEL||document.getElementById('clrOv'))return;G.clr=G.clr||{};const k=clrKey();if(G.clr[k])return;G.clr[k]=1;save();clearScene(DIFF())}catch(e){}},2500);
+async function clearScene(d){const nx=d<4?CLRN[d+1]:null;const o=document.createElement('div');o.id='clrOv';
+  o.innerHTML=`<div class="clrbg"></div><div class="clrray"></div><i class="clrbar t"></i><i class="clrbar b"></i><div class="clrp"></div>
+   <div class="clrc"><small class="clr1">${CLRN[d]} 난이도</small><h1 class="clr2">CHAMPION</h1><p class="clr3">${esc(G.name||'')}, 챔피언이 됐어요!</p>
+   <div class="clr4"><span>${nx?'새로운 장이 열렸어요':'모든 난이도를 정복했어요'}</span><b>${nx?'CHAPTER '+(d+2)+' · '+nx:'LEGEND OF '+esc(G.name||'')}</b></div>
+   <div class="clr5"><p>상으로 <b>전설 포켓몬 하나</b>를 직접 고를 수 있어요!</p><button class="pxbig" id="clrPick">전설 포켓몬 고르기</button></div></div>`;
+  document.body.appendChild(o);const P=o.querySelector('.clrp');for(let i=0;i<46;i++){const s=document.createElement('i');s.style.left=R()*100+'%';s.style.animationDelay=(R()*4)+'s';s.style.animationDuration=(3+R()*3)+'s';P.appendChild(s)}
+  try{sfx('badge')}catch(e){}requestAnimationFrame(()=>o.classList.add('on'));
+  await new Promise(r=>o.querySelector('#clrPick').onclick=()=>{sfx('tap');r()});
+  const got=await legendPick();o.classList.add('out');await sleep(500);o.remove();
+  if(nx)await say(['새 난이도 <b>'+nx+'</b>에 도전할 수 있어요!','「환생」하면 포켓몬 · 아이템 · 장비는 그대로, 스토리는 처음부터. 더 강한 포켓몬과 더 좋은 접두사가 나와요!']);
+  if(nx&&typeof rebirthOpen==='function'){const go=await new Promise(r=>{itAsk(nx+' 난이도로 환생할까요?','지금 바로 하지 않아도 돼요. 나중에 메뉴 → 환생에서 할 수 있어요.',()=>r(1));setTimeout(()=>{const n=document.querySelector('#gAsk #gaN');if(n)n.addEventListener('click',()=>r(0))},50)});if(go)rebirthOpen()}}
+function legendPick(){return new Promise(done=>{const L=SPECIES.filter(s=>META[s]&&!META[s].form&&rarOf(s)===3).sort((a,b)=>META[a].dex-META[b].dex);
+  const o=document.createElement('div');o.id='lgOv';o.innerHTML=`<div class="lgw"><div class="lgt">전설 포켓몬 고르기 · ${L.length}마리 중 하나</div><p class="lgh">한 마리만 고를 수 있어요. 잘 보고 골라요! (레벨은 내 제일 센 포켓몬 정도로 와요)</p>
+   <input class="lgs" placeholder="이름으로 찾기"><div class="lgg">${L.map(s=>`<button class="lgc" data-n="${encodeURIComponent(s)}"><img src="${THUMB[s]||''}" alt="" loading="lazy"><b>${META[s].name}</b><small>${META[s].types.map(t=>TN[t]).join('·')}</small></button>`).join('')}</div></div>`;
+  document.body.appendChild(o);const inp=o.querySelector('.lgs');inp.oninput=()=>{const q=inp.value.trim();o.querySelectorAll('.lgc').forEach(b=>{b.style.display=!q||b.textContent.includes(q)?'':'none'})};
+  o.querySelectorAll('.lgc').forEach(b=>b.onclick=()=>{const n=decodeURIComponent(b.dataset.n);sfx('tap');itAsk('<b>'+META[n].name+'</b>(으)로 할까요?','고르면 바꿀 수 없어요.',async()=>{const lv=Math.max(30,Math.min(100,(typeof topLv==='function'?topLv():30)));const m=mkMon(n,lv);m.gift=1;
+    const M=META[n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m)}else if(G.party.length<6)G.party.push(m);else G.box.push(m);save();try{refreshSpr()}catch(e){}o.remove();
+    try{await CardPack.open({rar:3,sh:0,kind:'P',name:M.name,img:faceUrl(n,'Joyous')})}catch(e){}sfx('badge');toast(M.name+'(이)가 동료가 됐어요!');done(n)})})})}
+(function(){const c=document.createElement('style');c.textContent=`
+#clrOv{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:'Galmuri11',sans-serif;color:#fff;opacity:0;transition:opacity .8s}#clrOv.on{opacity:1}#clrOv.out{opacity:0}
+.clrbg{position:absolute;inset:-5%;background:#0a1024 url(arena/title2.webp) center/cover;filter:brightness(.45) saturate(1.3);animation:clrZoom 14s ease-out forwards}
+@keyframes clrZoom{from{transform:scale(1.18)}to{transform:scale(1)}}
+.clrray{position:absolute;left:50%;top:42%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;background:repeating-conic-gradient(#ffd23f30 0 6deg,transparent 6deg 18deg);animation:clrSpin 30s linear infinite;mix-blend-mode:screen;opacity:0;transition:opacity 2s 1.2s}#clrOv.on .clrray{opacity:1}
+@keyframes clrSpin{to{transform:rotate(360deg)}}
+.clrbar{position:absolute;left:0;right:0;height:13vh;background:#000;transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}.clrbar.t{top:0;transform:translateY(-100%)}.clrbar.b{bottom:0;transform:translateY(100%)}#clrOv.on .clrbar{transform:none}
+.clrp i{position:absolute;bottom:-10px;width:6px;height:6px;background:#ffe680;box-shadow:0 0 10px #ffd23f;animation:clrUp linear infinite}@keyframes clrUp{to{transform:translateY(-110vh) translateX(30px);opacity:0}}
+.clrc{position:relative;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 16px}
+.clrc>*{opacity:0;transform:translateY(20px);transition:opacity .8s,transform .8s}#clrOv.on .clrc>*{opacity:1;transform:none}
+#clrOv.on .clr1{transition-delay:.8s}#clrOv.on .clr2{transition-delay:1.3s}#clrOv.on .clr3{transition-delay:2s}#clrOv.on .clr4{transition-delay:2.8s}#clrOv.on .clr5{transition-delay:3.8s}
+.clr1{font-size:16px;letter-spacing:.4em;color:#ffe9a0}
+.clr2{margin:0;font:900 clamp(44px,13vw,110px)/1 'Galmuri11',sans-serif;background:linear-gradient(#fffbe0,#ffd23f 50%,#ff8a1a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:3px #1c2550;paint-order:stroke fill;filter:drop-shadow(0 6px 0 #1c2550) drop-shadow(0 0 30px #ffd23f88);letter-spacing:.05em}
+.clr3{margin:0;font-size:20px;text-shadow:2px 2px 0 #1c2550}
+.clr4{display:flex;flex-direction:column;gap:4px;padding:10px 26px;background:#1c2550cc;box-shadow:0 0 0 3px #ffd23f,0 0 30px #ffd23f66}.clr4 span{font-size:14px;color:#ffe9a0}.clr4 b{font-size:clamp(20px,5vw,34px);color:#fff;letter-spacing:.08em}
+.clr5 p{margin:0 0 8px;font-size:16px;text-shadow:2px 2px 0 #1c2550}.clr5 b{color:#ffd23f}
+.pxbig{font:700 22px 'Galmuri11',sans-serif;border:0;padding:14px 26px;color:#1c2550;background:linear-gradient(#ffe680 0 50%,#ffc21f 50%);box-shadow:0 4px 0 #1c2550,0 -4px 0 #1c2550,4px 0 0 #1c2550,-4px 0 0 #1c2550,0 10px 0 #0006;animation:pxglow 1.4s ease-in-out infinite;cursor:pointer}.pxbig:active{transform:translateY(4px)}
+#lgOv{position:fixed;inset:0;z-index:130;background:#0a1024e6;display:flex;align-items:center;justify-content:center;padding:10px}
+.lgw{width:min(860px,96vw);max-height:94vh;display:flex;flex-direction:column;background:#fff8e6;box-shadow:0 0 0 4px #ffb020,0 0 0 8px #1c2550,0 0 40px #ffb02088;font-family:'Galmuri11',sans-serif;color:#1c2550}
+.lgt{background:linear-gradient(#2c3a80,#1c2550);color:#ffd23f;padding:10px 14px;font-size:18px;font-weight:700}.lgh{margin:8px 14px 4px;font-size:13px;color:#4a5070}
+.lgs{margin:4px 14px 8px;font:700 16px 'Galmuri11',sans-serif;border:0;padding:10px;box-shadow:0 0 0 3px #1c2550;background:#fff}
+.lgg{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;padding:6px 14px 14px}
+.lgc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:0;background:#fffaf0;font-family:inherit;color:#1c2550;cursor:pointer;box-shadow:0 0 0 3px #ffb020,0 4px 0 3px #1c2550}.lgc:active{transform:translateY(3px)}
+.lgc img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated}.lgc b{font-size:14px}.lgc small{font-size:11px;color:#6b7280}`;document.head.appendChild(c)})();
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
