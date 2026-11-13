@@ -3791,7 +3791,7 @@ async function sfAuto(c){const sf=gSF(c);if(sf.none||sf.b||sf.s>=15)return;close
 
 // ===== 카드팩 가방 · 히든 포탈 · 스탯 부적 =====
 // 카드팩은 받자마자 열리지 않고 가방에 쌓여요. 1장 · 10장 · 원하는 만큼 골라서 열고, 한 장씩 손가락으로 잘라요.
-const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅~전설 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'}};
+const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅~전설 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'},P4:{n:'신화 카드팩',img:'cardpack/pk3.webp',f:'hue-rotate(300deg) saturate(1.6)'},P5:{n:'환상 카드팩',img:'cardpack/pk3.webp',f:'hue-rotate(140deg) saturate(1.6)'},P6:{n:'유일 카드팩',img:'cardpack/pk3.webp',f:'hue-rotate(260deg) saturate(2) brightness(1.15)'}};
 function packAdd(list,why){G.packs=G.packs||{};const c={};for(const k0 of list){const k=PKT[k0]?k0:k0[0];G.packs[k]=(G.packs[k]||0)+1;c[k]=(c[k]||0)+1}save();
   toast((why?why+' · ':'')+Object.keys(c).map(k=>PKT[k].n+' '+c[k]+'장').join(', ')+' 가방에 넣었어요');sfx('get');packBadge()}
 function packBadge(){const b=document.getElementById('bPack');if(!b||!G)return;const n=Object.values(G.packs||{}).reduce((a,b)=>a+b,0);let e=b.querySelector('.nb');if(!e){e=document.createElement('em');e.className='nb';b.appendChild(e)}e.textContent=n>99?'99+':n||'';e.style.display=n?'':'none'}
@@ -3804,7 +3804,7 @@ function packOpenUI(sel){if(!G)return;G.packs=G.packs||{};const ks=Object.keys(P
   openPanel('카드팩 가방',`<div id="pkB"></div>`,null,draw)}
 let PKSTOP=0;
 async function packRun(k,n){PKSTOP=0;const kind=k[0],rar=k.length>1?+k.slice(1):null;const bk=document.createElement('div');bk.id='pkBack';document.body.appendChild(bk);const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
-  let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;await grant(rollItem(kind,k==='P2'?(R()<.1?3:2):rar),PKT[k].n);done++}}finally{st.remove();bk.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
+  let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;window.PKNOCAP=rar!=null&&rar>=4;try{await grant(rollItem(kind,k==='P2'?(R()<.1?3:2):rar),PKT[k].n)}finally{window.PKNOCAP=0};done++}}finally{st.remove();bk.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
 (function(){const go=()=>{const b=document.getElementById('bPack');if(b)b.onclick=()=>{sfx('tap');packOpenUI()};packBadge()};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // ---------- 스탯 부적 (히든 포탈에서만) · 먹이면 그 포켓몬만 영구 강화 · 먹이기 한도는 타입 부적과 같이 ----------
 const STC=[['sc_atk',[1,2,3,4],'공격력','%'],['sc_hp',[1,2,3,4],'체력','%'],['sc_def',[1,2,3,4],'방어력','%'],['sc_crt',[1],'크리티컬 확률','%'],['sc_cdm',[1],'크리티컬 데미지','%']];
@@ -4121,7 +4121,7 @@ body.inb #wxBadge{display:none!important}@media (orientation:landscape){#wxBadge
 // (야생 · 알 · 보상) · 카드팩과 합성은 어느 난이도든 운 좋으면 신화까지
 const RCAP=[3,3,4,5,6];const rarCap=()=>{try{return RCAP[Math.min(4,DIFF())]}catch(e){return 3}};
 const rarCapOk=n=>{try{return rarOf(n)<=rarCap()}catch(e){return true}};
-{const _ri=rollItem;rollItem=function(kind,rar){if(kind!=='P')return _ri.apply(this,arguments);const cap=Math.max(4,rarCap());if(rar!=null&&rar>cap)rar=cap;let g=_ri.call(this,kind,rar);for(let i=0;i<6&&g&&g.rar>cap;i++)g=_ri.call(this,kind,cap);return g}}
+{const _ri=rollItem;rollItem=function(kind,rar){if(kind!=='P'||window.PKNOCAP)return _ri.apply(this,arguments);const cap=Math.max(4,rarCap());if(rar!=null&&rar>cap)rar=cap;let g=_ri.call(this,kind,rar);for(let i=0;i<6&&g&&g.rar>cap;i++)g=_ri.call(this,kind,cap);return g}}
 try{const h=HUB.find(x=>x.k==='card');if(h)h.d+=' 난이도마다 한 등급씩 열려요: 쉬움·보통 전설까지 · 어려움 신화 · 지옥 환상 · 나이트메어 유일. 카드팩·합성은 어느 난이도든 운 좋으면 신화까지!'}catch(e){}
 
 // ===== 난이도 클리어 연출: 챔피언이 되면 새 장이 열리듯 멋지게 + 전설 포켓몬 하나 고르기 =====
@@ -4673,7 +4673,7 @@ const ODTABS={
    return odDiff()+`<h4>포켓몬 카드팩</h4>${odRows(P.map((p,i)=>[RAR[i],p,RARC[i]]).filter((x,i)=>i<=cap))}<p class="hhint">신화 = 메가진화 · 환상 = 거다이맥스 · 유일 = 원시회귀 · 무한다이맥스. 같은 등급 안에서는 어떤 포켓몬이든 똑같은 확률이에요.${cap<6?' 더 높은 등급은 더 어려운 난이도에서 열려요.':''}</p>
    <h4>기술 카드팩</h4>${odRows(M.map((p,i)=>[RAR[i],p,RARC[i]]).filter((x,i)=>i<=3))}
    <h4>영웅~전설 카드팩</h4>${odRows([[RAR[2],.9,RARC[2]],[RAR[3],.1,RARC[3]]])}
-   <h4>전설 카드팩</h4>${odRows([[RAR[3],1,RARC[3]]])}
+   <h4>전설 카드팩</h4>${odRows([[RAR[3],1,RARC[3]]])}<h4>신화 · 환상 · 유일 카드팩</h4>${odRows([4,5,6].map(i=>[RAR[i]+' 카드팩 → '+RAR[i],1,RARC[i]]))}<p class="hhint">운영자 선물로만 받아요. 난이도와 상관없이 그 등급이 나와요.</p>
    <p class="hhint">이미 가진 카드가 나오면 몬스터볼 5개 + 합성 재료가 돼요.</p>`}],
  fuse:['합성',()=>`<p class="odnow">같은 등급 영혼(또는 중복 카드) <b>2개</b>를 합치면</p>${odRows(RAR.slice(0,PMAX).map((n,i)=>[n+' → '+RAR[i+1],(window.FUSEP||.1),RARC[i+1]]))}
    <p class="hhint">실패(90%)하면 재료 2개는 사라지고 몬스터볼 2개를 받아요. 성공하면 위 등급 포켓몬 중 하나가 똑같은 확률로 나와요. 기술 카드는 전설까지 합성돼요. 일괄 합성도 한 번 한 번 똑같은 확률이에요.</p>`],
@@ -4748,10 +4748,10 @@ async function gmRecv(){if(GMBUSY||!G||!G.name||!navigator.onLine)return;const c
 setInterval(()=>{try{if(G&&SCENE==='over'&&!DLG.on&&!PANEL)gmRecv()}catch(e){}},60000);setTimeout(()=>{try{gmRecv()}catch(e){}},15000);
 // ---------- 운영자 선물 창 (관장님 GM: 누구에게나 · 나에게 · 운영자 임명 / 임명된 운영자: 나에게 골드 · 포켓몬) ----------
 const GMF={to:'',all:0,self:0,tab:'m',sel:null,q:'',lv:50,sh:0,px:0,n:1,names:null,opn:'',opw:'',ops:null};
-async function gmOpen(){if(!isGM()&&!isOp()){toast('운영자만 쓸 수 있어요');return}if(!isGM()){GMF.self=1;if(!['m','g'].includes(GMF.tab))GMF.tab='m'}
+async function gmOpen(){if(!isGM()&&!isOp()){toast('운영자만 쓸 수 있어요');return}if(!isGM()){GMF.self=1;if(!['m','p','g'].includes(GMF.tab))GMF.tab='m'}
   if(isGM()&&!GMF.names){GMF.names=[];try{const L=await rankFetch('dex');GMF.names=[...new Set((L||[]).map(x=>rkSplit(x.name).name.trim()).filter(n=>n&&!isGMName(n)))].slice(0,60)}catch(e){}}gmDraw()}
 const gmTarget=()=>GMF.self?'나':GMF.all?'모두':GMF.to.trim();
-function gmDraw(){const F=GMF,gm=isGM();let list='';const q=F.q.trim();const TB=gm?[['m','포켓몬'],['i','아이템'],['p','카드팩'],['g','돈'],['op','운영자 임명']]:[['m','포켓몬'],['g','돈']];
+function gmDraw(){const F=GMF,gm=isGM();let list='';const q=F.q.trim();const TB=gm?[['m','포켓몬'],['i','아이템'],['p','카드팩'],['g','돈'],['op','운영자 임명']]:[['m','포켓몬'],['p','카드팩'],['g','돈']];
   const tabs=`<div class="tabs">${TB.map(([k,n])=>`<button data-tb="${k}" class="${F.tab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(F.tab==='op'){opDraw(tabs);return}
   if(F.tab==='m'){const ALL=SPECIES.concat(Object.keys(META).filter(k=>META[k].form&&META[k].base)).filter(s=>META[s]);const L=ALL.filter(s=>(F.rf==null||rarOf(s)===F.rf)&&(!q||META[s].name.includes(q))).sort((a,b)=>F.rf==null?0:META[a].dex-META[b].dex).slice(0,60);list=`<div class="gmg">${L.map(s=>`<button class="gmc${F.sel===s?' on':''}" data-s="${encodeURIComponent(s)}"><img src="${THUMB[s]||''}" alt="" loading="lazy"><b>${META[s].name}</b><small style="color:${RARC[rarOf(s)]}">${RAR[rarOf(s)]}</small></button>`).join('')}</div>`}
@@ -4793,7 +4793,7 @@ async function opDraw(tabs){const F=GMF;if(F.ops===null){F.ops=await opList()||[
     p.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{F.tab=b.dataset.tb;F.sel=null;F.q='';F.n=F.tab==='g'?0:1;gmDraw()});
     const n=p.querySelector('#opN');n.oninput=()=>F.opn=n.value;
     p.querySelector('#opGo').onclick=()=>{const num=opNorm(F.opn),pw='-';if(num.length<10||!num.startsWith('01')){toast('번호를 다시 확인해 주세요');return}if(num===GMNUM){toast('관장님 번호예요');return}
-      itAsk(fmt(num)+'을(를) 운영자로 임명할까요?','그 번호로 게임하면 이름 앞에 [GM]이 붙고, 나에게 골드 · 포켓몬을 줄 수 있어요. 랭킹에는 안 올라가요.',async()=>{if(await opSet(num,pw,1)){sfx('badge');toast('운영자로 임명했어요');F.opn='';F.opw='';F.ops=null;gmDraw()}else toast('임명 실패 · 인터넷을 확인해 주세요')})};
+      itAsk(fmt(num)+'을(를) 운영자로 임명할까요?','그 번호로 게임하면 이름 앞에 [GM]이 붙고, 나에게 골드 · 포켓몬 · 카드팩을 줄 수 있어요. 랭킹에는 안 올라가요.',async()=>{if(await opSet(num,pw,1)){sfx('badge');toast('운영자로 임명했어요');F.opn='';F.opw='';F.ops=null;gmDraw()}else toast('임명 실패 · 인터넷을 확인해 주세요')})};
     p.querySelectorAll('[data-off]').forEach(b=>b.onclick=()=>{const num=b.dataset.off;itAsk(fmt(num)+' 운영자를 해제할까요?','해제하면 그 번호는 운영자 도구를 못 써요.',async()=>{if(await opSet(num,'',0)){toast('해제했어요');F.ops=null;gmDraw()}else toast('해제 실패 · 인터넷을 확인해 주세요')})})})}
 // ---------- 내가 임명된 운영자인지 (번호 + 비밀번호 한 번) ----------
 let OPREC=null,OPOK=false,OPASK=0,OPCHK=0;
@@ -4826,6 +4826,8 @@ setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&(isGM()|
 .panel button.gmc.on,.panel .gmo button.on,.panel .gmto button.on,.panel .gmnm button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}
 .opl{display:flex;flex-direction:column;gap:6px;margin:4px}.opr{display:flex;align-items:center;gap:10px;background:#fffaf0;padding:8px 10px;box-shadow:0 0 0 2px #1c2550}.opr small{flex:1;color:#5a6080}#opN,#opW{font:700 18px 'Galmuri11',sans-serif;flex:1;min-width:0;color:#1c2550;background:#fffdf4;border:0;border-radius:0;padding:8px 12px;outline:0;box-shadow:0 0 0 3px #1c2550,0 0 0 6px #ffd23f}.gmo{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 4px}.gmo b{min-width:56px;text-align:center;font-size:18px}.gmo span{font-weight:700}#gmPx{font:700 14px 'Galmuri11',sans-serif;padding:8px;border:0;box-shadow:0 0 0 3px #1c2550;background:#fffdf4;max-width:100%}
 #gmBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(200px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px 'Galmuri11',sans-serif;color:#ffd23f;background:#c0304a;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#gmBtn img{width:26px;height:26px}`;document.head.appendChild(c)})();
+// 신화 · 환상 · 유일 카드팩 그림 색
+(function(){const st=()=>{try{document.querySelectorAll('img').forEach(i=>{if(i.dataset.pkf)return;const k=Object.keys(PKT).find(k=>PKT[k].f&&i.closest&&(i.closest('[data-pk="'+k+'"]')||i.closest('[data-s="'+k+'"]')));if(k){i.style.filter=PKT[k].f;i.dataset.pkf=1}})}catch(e){}};setInterval(st,700)})();
 
 // ===== 포켓몬 분해 · 잠금 =====
 // 받은 포켓몬은 분해해서 영혼으로 바꿔야 합성에 써요 · 분해하면 그 포켓몬의 영혼 10개
