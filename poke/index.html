@@ -3498,7 +3498,7 @@ async function hpEnter(){if(!HPOPEN||SCENE!=='over')return;const s=hpS();if(s.n>
   const pool=SPECIES.filter(k=>!META[k].form&&rarOf(k)>=2);const n=pool[ri(0,pool.length-1)];const lv=Math.min(100,Math.max(10,topLv()+3));const g=mkMon(n,lv);g.hpx=2.5;g.hp=stOf(g)[0];
   try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','히든 포탈의 수호자',['히든 포탈 깊은 곳에서 '+META[n].name+'(이)가 나타났다!','이기면 특별한 스탯 부적과 카드팩을 얻을 수 있어!'])}catch(e){}
   const r=await battle({scaled:1,trainer:'히든 포탈의 수호자',foes:[g],money:lv*30,lose:'…',bg:'ruins'});
-  if(r==='win'){const k=stcRoll();addItem(k,1);sfx('badge');packAdd(['P','M'],'히든 포탈');await say(['히든 포탈 클리어! (오늘 '+s.n+'/'+HP_MAX+')','<b>'+ITEMS[k].n+'</b>을(를) 얻었다! 가방에서 포켓몬에게 먹여요.','포켓몬 카드팩 1장 · 기술 카드팩 1장은 카드팩 가방에 넣었어요.'])}
+  if(r==='win'){const k=stcRoll();addItem(k,1);if(R()<.3){addItem('pxsc',1);toast('접두사 주문서도 얻었어요!')}sfx('badge');packAdd(['P','M'],'히든 포탈');await say(['히든 포탈 클리어! (오늘 '+s.n+'/'+HP_MAX+')','<b>'+ITEMS[k].n+'</b>을(를) 얻었다! 가방에서 포켓몬에게 먹여요.','포켓몬 카드팩 1장 · 기술 카드팩 1장은 카드팩 가방에 넣었어요.'])}
   else if(r==='lose')await blackout()}
 try{HUB.push({k:'portal',n:'히든 포탈 (하루 5번)',d:'자동 사냥 중 야생 포켓몬을 이기면 가끔 히든 포탈이 열려요. 수호자를 이기면 스탯 부적(공격력·체력·방어력 +1~4%, 크리티컬 확률·데미지 +1%) 1개 + 포켓몬팩 1 + 기술팩 1!',st:()=>'오늘 '+hpS().n+'/'+HP_MAX,go:[['카드팩 가방',()=>packOpenUI()]]})}catch(e){}
 
@@ -3703,7 +3703,7 @@ function meLabelEnt(ents,px,py,s,camX,camY){if(!G)return;const p=mePx();const na
 
 // ===== 접두사 바꾸기: 접두사 주문서 1개 또는 골드 (포켓몬 5,000원 · 내 캐릭터 10,000원) =====
 ITEMS.pxsc={n:'접두사 주문서',e:'<img class="ic" src="ui/star.webp" style="filter:hue-rotate(200deg) saturate(1.6)">'};
-try{ITD.pxsc={s:'포켓몬이나 내 캐릭터의 접두사를 새로 뽑아요 (공짜)',use:'편성 카드 또는 장비 창의 「접두사 바꾸기」에서 자동으로 써요',good:'골드 없이 다시 뽑을 수 있어요',who:'더 좋은 접두사를 원하는 친구',tip:'포케스탑 · 히든 포탈에서 가끔 나와요'}}catch(e){}
+try{ITD.pxsc={s:'포켓몬이나 내 캐릭터의 접두사를 새로 뽑아요 (공짜)',use:'편성 카드 또는 장비 창의 「접두사 바꾸기」에서 자동으로 써요',good:'골드 없이 다시 뽑을 수 있어요',who:'더 좋은 접두사를 원하는 친구',tip:'포케스탑(4%) · 히든 포탈(30%) · 월드보스 주간 보상에서 나와요'}}catch(e){}
 {const _pl=psLoot;psLoot=function(){const L=_pl.apply(this,arguments);if(R()<.04)L.pxsc=(L.pxsc||0)+1;return L}}
 const PXCOST={mon:5000,me:10000};
 function pxReroll(target){return new Promise(done=>{const me=target==='me',m=me?null:target,cur=me?mePx():pxOf(m),cost=me?PXCOST.me:PXCOST.mon,sc=G.bag.pxsc||0;
@@ -3715,7 +3715,10 @@ function pxReroll(target){return new Promise(done=>{const me=target==='me',m=me?
     for(let i=0;i<14;i++){const q=PX[ri(0,PX.length-1)];box.style.setProperty('--pc',PXC[q.g]);box.innerHTML=`<u>${PXG[q.g]}</u><b>${q.n}</b><small>…</small>`;sfx('tap');await sleep(60+i*12)}
     if(me)G.mepx=nx;else m.px=nx;save();const q=PX[nx];box.style.setProperty('--pc',PXC[q.g]);box.className='pxcur pxf'+q.g;box.innerHTML=`<u>${PXG[q.g]}</u><b>${q.n}</b><small>${pxTxt(q)}</small>`;sfx(q.g>=3?'badge':'get');toast('새 접두사: ['+PXG[q.g]+'] '+q.n);
     setTimeout(()=>{o.remove();done();if(!me)try{teamOpen()}catch(e){}},1400)};
-  o.querySelector('#pxS').onclick=()=>go('s');o.querySelector('#pxG').onclick=()=>go('g')})}
+  const ask=how=>{sfx('tap');itAsk('정말 접두사를 바꿀까요?','지금 접두사 <b style="color:'+PXC[cur.g]+'">['+PXG[cur.g]+'] '+cur.n+'</b>은(는) 사라지고 되돌릴 수 없어요. '+(how==='s'?'접두사 주문서 1개':cost.toLocaleString()+'원')+'를 써요.',()=>go(how))};
+  o.querySelector('#pxS').onclick=()=>ask('s');o.querySelector('#pxG').onclick=()=>ask('g')})}
+// 접두사 주문서: 포케스탑 4% · 히든 포탈 30% · 월드보스 주간 보상 (TOP 10은 3장, 나머지 1장)
+{const _wp=wbPayout;wbPayout=async function(){const o=G.wb&&G.wb.last;const r=await _wp.apply(this,arguments);try{if(o&&G.wb.paid[o.wk]&&!o.pxsc){o.pxsc=1;const top=WBC.list&&WBC.list.findIndex(x=>x.id===G.pid)>=0&&WBC.list.findIndex(x=>x.id===G.pid)<10;addItem('pxsc',top?3:1);save();toast('월드보스 보상 · 접두사 주문서 '+(top?3:1)+'장')}}catch(e){}return r}}
 // 편성 카드: 접두사 등급 프레임 + 바꾸기 버튼
 {const _to2=teamOpen;teamOpen=function(){_to2.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');
   const put=(cards,L)=>cards.forEach((c,i)=>{const m=L[i],x=pxOf(m);if(!x)return;c.classList.add('pxf'+x.g);const g=c.querySelector('.pxg');if(g&&!g.querySelector('.pxrb')){const b=document.createElement('button');b.className='pxrb';b.textContent='접두사 바꾸기';b.onclick=e=>{e.stopPropagation();sfx('tap');pxReroll(m)};g.appendChild(b)}});
