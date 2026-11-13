@@ -12,10 +12,6 @@ jobs:
           set -e
           git clone --depth 1 -b fetch-ui https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} r
           cd r && mkdir -p inbox
-          curl -fsSL -o inbox/cube1.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_021855_85bafc5c-307e-419a-9ddd-dc4156c893af.png
-          curl -fsSL -o inbox/cube2.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_021803_df3adb48-8655-4d8e-9173-a08a63d2d8b7.png
-          curl -fsSL -o inbox/star.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_021803_3f69ae25-cfa1-4a45-b0df-ea20b9fcf083.png
-          curl -fsSL -o inbox/sfbg.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_021803_52f24a20-44e4-4cf9-9f0b-9e9387bf727b.png
-          curl -fsSL -o inbox/wbbg.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_021803_dd7e4634-54cd-4e5a-8dd5-a22146528365.png
+          curl -fsSL -o inbox/title_bg.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_032024_53ae3009-8012-4bb8-83b3-ff05662f712e.png
           git config user.email noreply@anthropic.com; git config user.name Claude
           git add inbox && git commit -m "inbox: gear ui" && git push -f origin HEAD:fetch-ui-out
