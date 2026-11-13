@@ -12,6 +12,6 @@ jobs:
           set -e
           git clone --depth 1 -b fetch-ui https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} r
           cd r && mkdir -p inbox
-          curl -fsSL -o inbox/rankic.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_070252_48472963-766b-45b7-8532-8f01d1aa327a.png
+          curl -fsSL -o inbox/podium.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_071001_099c4718-fc0c-4579-bd1b-d353daefb344.png
           git config user.email noreply@anthropic.com; git config user.name Claude
           git add inbox && git commit -m "inbox: gear ui" && git push -f origin HEAD:fetch-ui-out
