@@ -1422,12 +1422,12 @@ function updOver(dt){meTick(dt);if(P.mv){P.mv.t+=dt;if(P.mv.t>=P.mv.d){P.mv=null
     else if(AUTO.on)autoThink()}}
 
 // ===== 포켓몬 · 배틀 =====
-const nm=m=>m.nick||(META[m.n]&&META[m.n].name)||m.n;
+let nm=m=>m.nick||(META[m.n]&&META[m.n].name)||m.n;
 function mkMon(n,lv){const M=META[n];const iv=[0,0,0,0,0,0].map(()=>ri(0,31));const m={n,lv,exp:expAt(lv),iv,moves:[],uid:Date.now().toString(36)+ri(0,1e6)};
   for(const [l,id] of learnset(M))if(l<=lv){m.moves.push(id);if(m.moves.length>4)m.moves.shift()}m.hp=stOf(m)[0];askEvo(M.dex);return m}
 // 등급 보너스: 일반 0% · 희귀 +4% · 영웅 +8% · 전설 +12% · 신화 +16% · 환상 +20% · 유일 +25% (체력은 절반만)
 const RSTAT=[0,.04,.08,.12,.16,.20,.25];const rstat=n=>{try{return RSTAT[rarOf(n)]||0}catch(e){return 0}};
-const stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=rstat(m.n)+(m.lb||0)*.04;if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.st){const t=m.st;if(t.hp)s[0]=Math.round(s[0]*(1+t.hp/100));if(t.atk){s[1]=Math.round(s[1]*(1+t.atk/100));s[3]=Math.round(s[3]*(1+t.atk/100))}if(t.def){s[2]=Math.round(s[2]*(1+t.def/100));s[4]=Math.round(s[4]*(1+t.def/100))}}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}return s};
+let stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=rstat(m.n)+(m.lb||0)*.04;if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.st){const t=m.st;if(t.hp)s[0]=Math.round(s[0]*(1+t.hp/100));if(t.atk){s[1]=Math.round(s[1]*(1+t.atk/100));s[3]=Math.round(s[3]*(1+t.atk/100))}if(t.def){s[2]=Math.round(s[2]*(1+t.def/100));s[4]=Math.round(s[4]*(1+t.def/100))}}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}return s};
 const alive=()=>G.party.filter(m=>m.hp>0);
 const BS={on:0,me:null,foe:null,fx:[],bg:'meadow',ball:null};const bt=id=>document.getElementById(id);
 function boxHtml(m,mine){const S=stOf(m),r=Math.max(0,m.hp/S[0]);const col=r>.5?'#3be06a':r>.2?'#ffc83a':'#ff4a3a';const M=META[m.n];const ex=mine?(m.exp-expAt(m.lv))/Math.max(1,expAt(m.lv+1)-expAt(m.lv)):0;
@@ -3290,7 +3290,7 @@ try{const h=HUB.find(x=>x.k==='team');if(h)h.d+=' 체육관 · 리그 · 재대�
 {const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(teamDrag,30)}}
 function teamDrag(){const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelector('.tg');if(!tg)return;const cards=[...tg.querySelectorAll('.tm.p')];if(cards.length<2)return;
   cards.forEach((c,i)=>{c.dataset.pi=i;const f=c.querySelector('.tmf');if(f&&!f.querySelector('.tno'))f.insertAdjacentHTML('beforeend',`<span class="tno">${i+1}</span>`)});
-  if(!p.querySelector('.tdh')){const h=p.querySelector('.pb h4');if(h)h.insertAdjacentHTML('afterend','<p class="hhint tdh">포켓몬을 <b>꾹 누른 채로 끌면</b> 출전 다른 카드 위에 놓으면 서로 자리가 바뀌어요 · 1번이 제일 먼저 나가요</p>')}
+  if(!p.querySelector('.tdh')){const h=p.querySelector('.pb h4');if(h)h.insertAdjacentHTML('afterend','<p class="hhint tdh">포켓몬을 <b>꾹 누른 채로 끌어서</b> 다른 카드 위에 놓으면 서로 자리가 바뀌어요 · 1번이 제일 먼저 나가요</p>')}
   const pb=p.querySelector('.pb');let st=null;
   const stopTouch=e=>{if(st&&st.on)e.preventDefault()};document.addEventListener('touchmove',stopTouch,{passive:false});
   const end=()=>{if(!st)return;clearTimeout(st.tm);const s=st;st=null;cards.forEach(c=>c.classList.remove('tdo'));if(s.gh)s.gh.remove();dimOff();s.el.classList.remove('tpress');if(s.el)s.el.classList.remove('tdg');if(pb)pb.style.overflow='';
@@ -3312,7 +3312,7 @@ function teamDrag(){const p=document.querySelector('.panel');if(!p)return;const 
 // ---------- 공용: 카드들을 꾹 눌러 끌어서 순서 바꾸기 (추천 편성 · 월드보스 편성) · 놓으면 화면에서 바로 자리 이동 ----------
 function domDrag(box,sel){if(!box)return;const P=box.closest('.panel');let st=null;const cards=()=>[...box.querySelectorAll(sel)];
   const renum=()=>cards().forEach((c,i)=>{const n=c.querySelector('.rno');if(n)n.textContent=i+1});
-  if(P&&!P.querySelector('.tdh2')){box.insertAdjacentHTML('beforebegin','<p class="hhint tdh2">카드를 <b>꾹 누른 채로 끌면</b> 다른 카드 위에 놓으면 서로 자리가 바뀌어요 · 1번이 제일 먼저 나가요</p>')}
+  if(P&&!P.querySelector('.tdh2')){box.insertAdjacentHTML('beforebegin','<p class="hhint tdh2">카드를 <b>꾹 누른 채로 끌어서</b> 다른 카드 위에 놓으면 서로 자리가 바뀌어요 · 1번이 제일 먼저 나가요</p>')}
   const stopTouch=e=>{if(st&&st.on)e.preventDefault()};document.addEventListener('touchmove',stopTouch,{passive:false});
   box.addEventListener('pointerdown',e=>{const c=e.target.closest(sel);if(!c||e.target.closest('button'))return;c.classList.add('tpress');st={el:c,x:e.clientX,y:e.clientY,on:0,to:null};
     st.tm=setTimeout(()=>{if(!st)return;st.on=1;sfx('tap');try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}c.classList.add('tdg');c.classList.remove('tpress');dimOn();const r=c.getBoundingClientRect(),g=c.cloneNode(true);g.classList.remove('tdg');g.classList.add('tgh');g.style.pointerEvents='none';g.style.width=r.width+'px';g.style.height=r.height+'px';st.ox=st.x-r.left;st.oy=st.y-r.top;g.style.left=(st.x-st.ox)+'px';g.style.top=(st.y-st.oy)+'px';document.body.appendChild(g);st.gh=g},280)});
@@ -3647,6 +3647,47 @@ setInterval(()=>{try{if(G&&SCENE==='over'){const n=giftAutoClaim();if(n)toast('�
 {const _ro=rankOpen;rankOpen=async function(b){const r=await _ro.apply(this,arguments);if((b||G.rkTab)==='wb'){const t=setInterval(()=>{const l=document.querySelector('.panel .rkl');if(!l)return;clearInterval(t);const L=WBC.list||[];const gm=L.filter(x=>isGMName(x.name));if(!gm.length||l.querySelector('.rkgm'))return;
   l.insertAdjacentHTML('beforeend',gm.map(x=>`<div class="rkr rkgm"><b class="rkn">GM</b><span class="rkp"><i></i></span><span class="rkm">[GM] ${esc(rkSplit(x.name).name.replace(/^\[GM\]/,'')||'유종호')} <small>운영자 도움</small></span><em>${x.dmg.toLocaleString()}</em></div>`).join(''))},300);setTimeout(()=>clearInterval(t),8000)}return r}}
 (function(){const c=document.createElement('style');c.textContent=`.rkr.rkgm{background:linear-gradient(90deg,#ffd6e0,#fffaf0 60%)}.rkr.rkgm .rkn{font-size:14px;color:#c0304a}`;document.head.appendChild(c)})();
+
+// ===== 접두사: 내 포켓몬마다 하나씩 (100가지 · 노말~유일 7등급) · 능력치 보너스 =====
+// 등급 확률: 노말 55% · 희귀 25% · 영웅 12% · 전설 5% · 신화 2% · 환상 0.8% · 유일 0.2%
+const PXG=['노말','희귀','영웅','전설','신화','환상','유일'],PXC=['#8a9aa0','#4aa8ff','#c070ff','#ffb020','#ff3b6b','#14c8b8','#ff2aa0'],PXW=[550,250,120,50,20,8,2],PXM=[1,1.6,2.3,3.2,4.3,5.6,7.5],PXB=3;
+const PXS={hp:'체력',atk:'공격',def:'방어',spa:'특수공격',spd:'특수방어',spe:'스피드',crt:'크리티컬 확률',cdm:'크리티컬 데미지'};
+const PXRAW=[
+ [0,'튼튼한','hp'],[0,'날쌘','spe'],[0,'힘센','atk'],[0,'단단한','def'],[0,'영리한','spa'],[0,'차분한','spd'],[0,'씩씩한','atk hp.5'],[0,'부지런한','spe hp.5'],[0,'꼼꼼한','def spd.5'],[0,'명랑한','spa spe.5'],
+ [0,'수줍은','spd def.5'],[0,'용감한','atk def.5'],[0,'개구쟁이','spe atk.5'],[0,'느긋한','hp def.5'],[0,'성실한','hp spd.5'],[0,'까칠한','atk crt.5'],[0,'조용한','spa spd.5'],[0,'활발한','spe spa.5'],[0,'끈질긴','hp1.2'],[0,'재빠른','spe1.2'],
+ [0,'묵직한','def1.2'],[0,'날카로운','crt'],[0,'반짝이는','spa cdm.5'],[0,'든든한','def hp.5'],[0,'똑똑한','spa1.2'],[0,'쌩쌩한','hp spe.5'],[0,'거친','atk1.2'],[0,'침착한','spd1.2'],[0,'싱싱한','hp.6 spe.6'],[0,'귀여운','spd.6 spe.6'],
+ [1,'용맹한','atk def.5'],[1,'강철같은','def1.2'],[1,'바람같은','spe1.2'],[1,'불굴의','hp def.5'],[1,'현명한','spa spd.5'],[1,'냉정한','spd crt.5'],[1,'사나운','atk crt.5'],[1,'날렵한','spe crt.5'],[1,'굳건한','def spd.5'],[1,'신속한','spe atk.5'],
+ [1,'예리한','crt cdm.5'],[1,'맹렬한','atk1.3'],[1,'견고한','hp def.6'],[1,'총명한','spa1.3'],[1,'질풍의','spe spa.5'],[1,'철벽의','def spd.6'],[1,'열정적인','atk spa.5'],[1,'노련한','crt hp.5'],[1,'우직한','hp1.3'],[1,'대담한','atk spe.5'],
+ [1,'기민한','spe crt.6'],[1,'패기있는','atk hp.6'],
+ [2,'영웅의','atk hp.5 def.5'],[2,'맹수의','atk crt.6'],[2,'폭풍의','spe spa.6'],[2,'강철의','def hp.6'],[2,'수호자의','def spd hp.5'],[2,'현자의','spa spd.6'],[2,'질주하는','spe1.3 atk.4'],[2,'불꽃같은','atk spa.6'],[2,'얼음같은','spa def.6'],[2,'번개같은','spe crt.6'],
+ [2,'대지의','hp def.6'],[2,'바다의','hp spa.6'],[2,'하늘의','spe spd.6'],[2,'그림자의','crt cdm.6'],[2,'빛나는','spa cdm.6'],[2,'투사의','atk def.6'],[2,'사냥꾼의','crt atk.6'],[2,'기사의','def atk.6'],
+ [3,'전설의','atk spa.5 hp.5'],[3,'용사의','atk hp.6 crt.4'],[3,'정복자의','atk1.2 cdm.6'],[3,'불멸의','hp1.2 def.6'],[3,'천둥신의','spe spa.6 crt.4'],[3,'태양의','spa atk.6'],[3,'달빛의','spd spa.6'],[3,'별빛의','crt cdm.8'],[3,'폭군의','atk1.3 def.4'],[3,'대현자의','spa1.3 spd.4'],
+ [3,'성기사의','def spd.6 hp.6'],[3,'광전사의','atk cdm.8'],
+ [4,'신화의','atk spa hp.5'],[4,'신성한','hp def spd.5'],[4,'천상의','spe spa.7 crt.4'],[4,'심연의','atk cdm.7 crt.4'],[4,'고대의','hp def.7 atk.4'],[4,'운명의','crt cdm spe.4'],[4,'무한한','hp atk.5 spa.5'],[4,'초월한','spa spe.6 spd.5'],
+ [5,'환상의','atk spa spe.5'],[5,'꿈꾸는','spa spd hp.5'],[5,'무지개빛','crt cdm atk.5'],[5,'은하의','spa spe crt.5'],[5,'시간의','spe1.3 atk.6'],[5,'공간의','def spd hp.6'],
+ [6,'유일한','atk spa hp spe.5'],[6,'창조신의','hp def spd atk.5'],[6,'절대자의','atk crt cdm'],[6,'전지전능한','atk spa spe crt.5 cdm.5']];
+const PX=PXRAW.map(([g,n,s],i)=>{const e={};for(const t of s.split(' ')){const m=t.match(/^([a-z]+)([\d.]*)$/);e[m[1]]=+(PXB*(m[2]?+m[2]:1)*PXM[g]).toFixed(1)}return{i,g,n,e}});
+function pxRoll(){let u=R()*PXW.reduce((a,b)=>a+b,0),g=0;for(;g<PXW.length;g++){u-=PXW[g];if(u<0)break}g=Math.min(g,6);const L=PX.filter(p=>p.g===g);return L[ri(0,L.length-1)].i}
+const pxOf=m=>m&&m.px!=null?PX[m.px]:null;
+const pxTxt=p=>Object.keys(p.e).map(k=>PXS[k]+' +'+p.e[k]+'%').join(' · ');
+// 내 포켓몬에게 접두사 주기 (새로 들어온 포켓몬도 몇 초 안에)
+function pxAssign(){if(!G)return 0;let n=0;for(const m of [...G.party,...G.box])if(m.px==null){m.px=pxRoll();n++;if(PX[m.px].g>=3)toast(nm(m)+' · 「'+PXG[PX[m.px].g]+'」 접두사! '+pxTxt(PX[m.px]))}if(n)save();return n}
+setInterval(()=>{try{pxAssign()}catch(e){}},2500);
+// 능력치 반영 (체력 · 공격 · 방어 · 특공 · 특방 · 스피드)
+{const _s=stOf;const IX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};stOf=function(m){const S=_s(m);const p=pxOf(m);if(!p)return S;const o=S.slice?S.slice():S;for(const k in p.e)if(IX[k]!=null)o[IX[k]]=Math.round(o[IX[k]]*(1+p.e[k]/100));return o}}
+// 크리티컬
+{const _dc=dmgCalc;dmgCalc=function(a,d,mv0,crit){const r=_dc.apply(this,arguments);try{const p=pxOf(a);if(p&&r&&r.d>0){if(crit&&p.e.cdm)r.d=Math.round(r.d*(1+p.e.cdm/100));else if(!crit&&p.e.crt&&R()<p.e.crt/100)r.d=Math.round(r.d*1.5*(1+(p.e.cdm||0)/100))}}catch(e){}return r}}
+// 이름 앞에 접두사
+{const _nm=nm;nm=function(m){const p=pxOf(m);return p?p.n+' '+_nm(m):_nm(m)}}
+// 편성 카드에 접두사 등급 · 효과
+{const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');const put=(cards,L)=>cards.forEach((c,i)=>{const m=L[i],x=pxOf(m);if(!x||c.querySelector('.pxg'))return;const ti=c.querySelector('.ti');if(ti)ti.insertAdjacentHTML('beforeend',`<small class="pxg" style="--pc:${PXC[x.g]}"><u>${PXG[x.g]}</u> ${pxTxt(x)}</small>`)});
+  if(tg[0])put([...tg[0].querySelectorAll('.tm.p')],G.party);if(tg[1])put([...tg[1].querySelectorAll('.tm.b')],G.box)},60)}}
+function pxBook(){const body=PXG.map((g,i)=>`<h4 style="color:${PXC[i]}">${g} · ${(PXW[i]/10).toFixed(1)}%</h4><div class="pxbk">${PX.filter(p=>p.g===i).map(p=>`<span style="--pc:${PXC[i]}"><b>${p.n}</b><small>${pxTxt(p)}</small></span>`).join('')}</div>`).join('');
+  openPanel('접두사 도감 · 100가지',`<p class="hhint">내 포켓몬은 들어올 때 접두사가 하나씩 붙어요. 등급이 높을수록 능력치가 많이 올라가요. 이름 앞에 보여요 (예: 「용맹한 파이리」).</p>${body}`)}
+try{HUB.push({k:'prefix',n:'접두사 (100가지)',d:'내 포켓몬마다 접두사가 하나씩 붙어요. 노말 · 희귀 · 영웅 · 전설 · 신화 · 환상 · 유일 7등급, 등급이 높을수록 체력 · 공격 · 스피드 · 크리티컬 같은 능력치가 더 올라가요.',st:()=>{const c=[0,0,0,0,0,0,0];[...G.party,...G.box].forEach(m=>{const p=pxOf(m);if(p)c[p.g]++});return c.map((n,i)=>n?PXG[i]+' '+n:'').filter(Boolean).join(' · ')||'아직 없음'},go:[['접두사 도감',()=>pxBook()]]})}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`
+.pxg{display:block;font-size:11px;line-height:1.3;color:#2c3050;margin-top:2px}.pxg u{text-decoration:none;background:var(--pc);color:#fff;padding:0 5px;margin-right:4px;font-weight:700}
+.pxbk{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:4px}.pxbk span{background:#fffaf0;padding:6px 8px;box-shadow:inset 4px 0 0 var(--pc),0 2px 0 #1c2550,0 -2px 0 #1c2550,2px 0 0 #1c2550,-2px 0 0 #1c2550}.pxbk b{display:block;color:var(--pc);font-size:15px}.pxbk small{font-size:12px;color:#4a5070}`;document.head.appendChild(c)})();
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
