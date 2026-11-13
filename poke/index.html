@@ -3264,6 +3264,20 @@ function podium(L,val){const T=L.slice(0,3);const ord=[1,0,2].filter(i=>T[i]);co
 .crown{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:44px;height:28px;background:linear-gradient(#ffe680,#ffb020);clip-path:polygon(0 100%,0 25%,25% 60%,50% 0,75% 60%,100% 25%,100% 100%);filter:drop-shadow(0 2px 0 #1c2550);animation:crownB 1.6s ease-in-out infinite}
 @keyframes crownB{50%{transform:translateX(-50%) translateY(-4px)}}
 .pdc.me .pdb{outline:3px dashed #ff2aa0;outline-offset:2px}`;document.head.appendChild(c)})();
+// ===== 순위 휘장: 1~3위 금·은·동 왕관 · 4~10위 금 훈장 · 11~20위 금메달 · 21~30위 은메달 · 31~40위 동메달 =====
+const rkIco=i=>i<3?'rk_crown'+(i+1):i<10?'rk_order':i<20?'rk_med1':i<30?'rk_med2':i<40?'rk_med3':null;
+const rkTier=i=>i<3?'c'+(i+1):i<10?'o':i<20?'m1':i<30?'m2':i<40?'m3':'';
+{const _ro=rankOpen;rankOpen=async function(){const r=await _ro.apply(this,arguments);const fix=()=>{const p=document.querySelector('.panel');if(!p)return;
+  p.querySelectorAll('.rkr:not(.rkgm)').forEach(row=>{if(row.dataset.ic)return;const n=row.querySelector('.rkn');const i=+(n&&n.textContent)-1;if(!(i>=0))return;row.dataset.ic=1;const ic=rkIco(i);if(ic){n.innerHTML=`<img class="rkic" src="ui/${ic}.webp" alt=""><span>${i+1}</span>`;row.classList.add('rt-'+rkTier(i))}});
+  p.querySelectorAll('.pdc').forEach((c,k)=>{if(c.dataset.ic)return;c.dataset.ic=1;const i=c.classList.contains('p1')?0:c.classList.contains('p2')?1:2;const f=c.querySelector('.pdf');const old=f.querySelector('.crown');if(old)old.remove();f.insertAdjacentHTML('afterbegin',`<img class="pdcr" src="ui/rk_crown${i+1}.webp" alt="">`)})};
+  for(const t of [100,400,900,1600,3000])setTimeout(fix,t);return r}}
+(function(){const c=document.createElement('style');c.textContent=`
+.rkn{display:flex;flex-direction:column;align-items:center;gap:0}.rkic{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 0 #1c255066)}.rkn{position:relative}.rkn span{position:absolute;right:-4px;bottom:-4px;min-width:18px;padding:1px 4px;font-size:11px;line-height:1.2;background:#1c2550;color:#ffd23f;text-align:center}
+.rkr{grid-template-columns:46px 52px 1fr auto!important}
+.rkr.rt-o{background:linear-gradient(90deg,#fff0b8,#fffaf0 55%)!important;box-shadow:0 0 0 3px #e0a010,0 0 0 6px #1c2550,0 0 12px #ffd23f88!important;margin:4px 2px}
+.rkr.rt-m1{box-shadow:0 0 0 3px #e0a010,0 0 0 5px #1c2550!important}.rkr.rt-m2{box-shadow:0 0 0 3px #a8b4c8,0 0 0 5px #1c2550!important}.rkr.rt-m3{box-shadow:0 0 0 3px #c07838,0 0 0 5px #1c2550!important}
+.pdcr{position:absolute;top:-46px;left:50%;width:64px;height:64px;object-fit:contain;transform:translateX(-50%);filter:drop-shadow(0 3px 0 #1c255088);animation:crownB2 1.6s ease-in-out infinite;z-index:2}
+.p1 .pdcr{width:80px;height:80px;top:-58px}@keyframes crownB2{50%{transform:translateX(-50%) translateY(-5px) rotate(-3deg)}}`;document.head.appendChild(c)})();
 
 // ===== 추천 편성: 상대 타입에 맞춰 내 포켓몬(파티+보관함) 중 제일 좋은 6마리 =====
 // 점수 = 레벨 · 공격(특공) · 체력 × 가진 기술로 상대에게 줄 수 있는 최고 상성(자속 보너스 포함) × 상대 기술 상성으로 받는 피해
