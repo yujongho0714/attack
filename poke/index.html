@@ -3223,7 +3223,7 @@ async function gearOpen(tab,sel){if(!G)return;tab=tab||'eq';await dressPack();
     <div class="gsf"><div class="gsfh">${eq[c]?gTh(eq[c],64,80):''}<div><b>${ME_KO[c]} 강화 ★${sf.s} / ${SFMAX}</b><small>지금 끼고 있는 장비만 강화돼요. 장비마다 강화 단계가 따로예요 (다른 장비를 강화하려면 먼저 장착해요)</small><div class="stars">${Array.from({length:SFMAX},(_,i)=>`<img src="ui/star.webp" class="${i<sf.s?'on':''}${i>=15?' hi':''}">`).join('')}</div><small>옵션 효과 ×${sfMul(sf.s).toFixed(2)} → 다음 ×${sfMul(sf.s+1).toFixed(2)}</small></div></div>${(()=>{const ek=eq[c];if(!ek)return '<p class="hhint">이 부위에 장착한 장비가 없어요. 장착하면 강화 효과가 들어가요.</p>';const it=gItem(ek),m0=sf.b?0:sfMul(sf.s),nx=sf.s<SFMAX,m1=sfMul(sf.s+1);
       return `<div class="gsft"><b>강화하면 이렇게 바뀌어요 · ${esc((meItem(ek)||{}).n||ek)}</b><table><tr><th>옵션</th><th>기본</th><th>지금 ★${sf.s}</th>${nx?`<th>성공하면 ★${sf.s+1}</th>`:''}</tr>${it.o.map(([k,v])=>`<tr><td>${goN(k)}</td><td>+${v}%</td><td>+${r1(v*m0)}%</td>${nx?`<td class="gup">+${r1(v*m1)}% <small>(+${r1(v*m1-v*m0)})</small></td>`:''}</tr>`).join('')}</table><small>이 장비에만 ★${sf.s}가 들어가요${sf.b?' · 지금은 파괴돼서 효과가 0이에요':''}</small></div>`})()}
     ${sf.b?`<p class="wbpd">장비가 파괴됐어요! 복구하면 ★${sf.s}로 다시 쓸 수 있어요.</p><div class="wbt"><button class="main" id="gFix" ${G.money>=GFIX?'':'disabled'}>복구하기 · ${GFIX.toLocaleString()}원</button></div>`:sf.s>=SFMAX?'<p class="wbpd">최고 강화예요!</p>':`<div class="gsfr"><span class="ok">성공 <b>${Math.round(r.ok*100)}%</b></span><span>실패 <b>${Math.round(r.fail*100)}%</b>${r.drop?' (★-1)':''}</span>${r.br?`<span class="br">파괴 <b>${(r.br*100).toFixed(0)}%</b></span>`:''}</div>
-    <div class="wbt"><button class="main" id="gSf" ${G.money>=cost?'':'disabled'}>강화하기 · ${cost.toLocaleString()}원</button></div><p class="hhint">가진 돈 ${G.money.toLocaleString()}원 · 15강부터는 파괴될 수 있어요 (파괴되면 골드로 복구)</p>`}</div>`}
+    <div class="wbt"><button class="main" id="gSf" ${G.money>=cost&&!sf.none?'':'disabled'}>강화하기 (스타캐치) · ${cost.toLocaleString()}원</button>${sf.s<15&&!sf.none?`<button id="gSfA" ${G.money>=cost?'':'disabled'}>자동 강화 (★15 전까지 · 안 터져요)</button>`:''}</div><p class="hhint">가진 돈 ${G.money.toLocaleString()}원 · 15강부터는 파괴될 수 있어요 (파괴되면 골드로 복구)</p>`}</div>`}
   if(tab==='cube'){const c=sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])||'weapon';const k=eq[c];const it=k?gItem(k):null;
     body=`<div class="wch">${ME_CATS.filter(x=>eq[x]).map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]}</button>`).join('')}</div>${it?`<div class="gcube" style="--gc:${GGC[it.g]}">${gTh(k,64,80)}<div><b>${esc((meItem(k)||{}).n||k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><ul class="gco">${gOpts(it)}</ul></div></div>
      <div class="wbt"><button class="main cub" data-cu="cube" ${(G.bag.cube||0)>0?'':'disabled'}><img src="ui/cube1.webp">수상한 큐브<small>${G.bag.cube||0}개</small></button><button class="main cub" data-cu="cube2" ${(G.bag.cube2||0)>0?'':'disabled'}><img src="ui/cube2.webp">명장의 큐브<small>${G.bag.cube2||0}개</small></button></div><p class="hhint">큐브는 상점 · 월드보스 · 격투 탑 · 출석에서 얻어요. 수상한 큐브는 에픽까지, 명장의 큐브는 레전드리까지 올라가요.</p>`:'<small>장착한 장비가 없어요</small>'}`}
@@ -3233,9 +3233,19 @@ async function gearOpen(tab,sel){if(!G)return;tab=tab||'eq';await dressPack();
     p.querySelectorAll('[data-gd]').forEach(b=>b.onclick=()=>{const k=b.dataset.gd,c=k.split(':')[0];if(G.me.eq[c]===k)return;sfx('tap');
       itAsk('<b>'+esc((meItem(k)||{}).n||k)+'</b>을(를) 버릴까요?','휴지통으로 가요. 사이드메뉴 「휴지통」에서 언제든 되살릴 수 있어요.',()=>{gTrash(k);gearOpen('bag',c)})});
     p.querySelectorAll('[data-ge]').forEach(b=>b.onclick=async()=>{const k=b.dataset.ge,c=k.split(':')[0];G.me.eq[c]=k;save();try{await meBuild()}catch(e){}sfx('get');gearOpen('bag',c)});
-    const sfb=p.querySelector('#gSf');if(sfb)sfb.onclick=()=>sfTry(sel||'weapon');const fx=p.querySelector('#gFix');if(fx)fx.onclick=()=>{const sf=gSF(sel||'weapon');if(G.money<GFIX)return;G.money-=GFIX;sf.b=0;save();sfx('badge');toast('복구했어요! ★'+sf.s);gearOpen('sf',sel||'weapon')};
+    const sfb=p.querySelector('#gSf');if(sfb)sfb.onclick=()=>sfTry(sel||'weapon');const sfa=p.querySelector('#gSfA');if(sfa)sfa.onclick=()=>sfAuto(sel||'weapon');const fx=p.querySelector('#gFix');if(fx)fx.onclick=()=>{const sf=gSF(sel||'weapon');if(G.money<GFIX)return;G.money-=GFIX;sf.b=0;save();sfx('badge');toast('복구했어요! ★'+sf.s);gearOpen('sf',sel||'weapon')};
     p.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>cubeUse(b.dataset.cu,sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])))})}
-async function sfTry(c){const sf=gSF(c),cost=sfCost(sf.s);if(sf.none||sf.b||sf.s>=SFMAX||G.money<cost)return;G.money-=cost;const r=sfRate(sf.s),u=R();
+// 스타캐치: 별이 왔다갔다 · 가운데 칸에서 딱 멈추면 성공 확률 ×1.1
+function starCatch(s){return new Promise(res=>{const o=document.createElement('div');o.id='scOv';const w=Math.max(10,22-s*.5);
+  o.innerHTML=`<div class="scb"><b>스타캐치!</b><small>별이 가운데 노란 칸에 올 때 화면을 눌러요 · 성공하면 강화 확률이 올라가요</small><div class="sct"><i class="scz" style="left:${50-w/2}%;width:${w}%"></i><img class="scs" src="ui/star.webp"></div><button id="scGo">멈추기!</button></div>`;
+  document.body.appendChild(o);const S=o.querySelector('.scs');let t=0,last=performance.now(),done=0,raf;const sp=1.1+s*.07;
+  const pos=()=>{const u=(t*sp)%2;return u<1?u:2-u};
+  const loop=n=>{t+=(n-last)/1000;last=n;S.style.left=(pos()*100)+'%';if(t>6)stop();else raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
+  const stop=()=>{if(done)return;done=1;cancelAnimationFrame(raf);const p=pos()*100,hit=Math.abs(p-50)<=w/2;o.classList.add(hit?'hit':'miss');o.querySelector('#scGo').textContent=hit?'스타캐치 성공! 확률 ×1.1':'아쉬워요… 그냥 강화해요';sfx(hit?'get':'tap');setTimeout(()=>{o.remove();res(hit)},650)};
+  o.addEventListener('pointerdown',e=>{e.preventDefault();stop()})})}
+async function sfTry(c,auto){const sf=gSF(c),cost=sfCost(sf.s);if(sf.none||sf.b||sf.s>=SFMAX||G.money<cost)return null;
+  let hit=false;if(!auto)hit=await starCatch(sf.s);G.money-=cost;const r=Object.assign({},sfRate(sf.s));if(hit){const ok2=Math.min(.99,r.ok*1.1);r.fail=Math.max(0,r.fail-(ok2-r.ok));r.ok=ok2}const u=R();
+  if(auto){let res;if(u<r.ok){sf.s++;res='ok'}else if(u<r.ok+r.br){sf.b=1;sf.s=Math.min(sf.s,12);res='br'}else{if(r.drop)sf.s=Math.max(0,sf.s-1);res='fail'}save();return res}
   const ov=document.createElement('div');ov.id='sfOv';ov.innerHTML=`<div class="sfb"><img class="sfst" src="ui/star.webp"><div class="sfs">★${sf.s} → ★${sf.s+1}</div><div class="sfr"></div></div>`;document.body.appendChild(ov);sfx('tap');await sleep(900);
   let res;if(u<r.ok){sf.s++;res='ok'}else if(u<r.ok+r.br){sf.b=1;sf.s=Math.min(sf.s,12);res='br'}else{if(r.drop)sf.s=Math.max(0,sf.s-1);res='fail'}save();
   const t=ov.querySelector('.sfr');ov.classList.add(res);t.textContent=res==='ok'?'강화 성공! ★'+sf.s:res==='br'?'장비가 파괴됐어요… (골드로 복구 가능)':'강화 실패'+(r.drop?' · ★'+sf.s:'');sfx(res==='ok'?'badge':'tap');try{navigator.vibrate&&navigator.vibrate(res==='ok'?[30,30,60]:res==='br'?[200]:60)}catch(e){}
@@ -3275,6 +3285,21 @@ li s{opacity:.55}.gup{color:#1f9d4a}
 .gsft th{font-size:12px;color:#6b7280;text-align:left;padding:3px 6px;border-bottom:2px solid #e3e6ef}.gsft td{padding:5px 6px;border-bottom:1px solid #eef0f5;font-weight:700}.gsft td small{font-weight:400;color:#1f9d4a}
 #gAsk{position:fixed;inset:0;z-index:95;background:#0008;display:flex;align-items:center;justify-content:center}.gak{width:min(360px,90vw);background:#fffdf0;border:3px solid #2c3050;border-radius:16px;padding:16px;text-align:center;color:#2c3050}.gak p{font-size:17px;margin:0 0 6px}.gak small{display:block;margin-bottom:10px;color:#6b7280}`;document.head.appendChild(c)})();
 try{HUB.push({k:'trash',n:'휴지통',d:'장비 → 아이템에서 안 쓰는 장비를 「버리기」하면 휴지통으로 가요. 휴지통에서 되살리거나 완전히 지울 수 있어요.',st:()=>(G.gtrash||[]).length+'개',go:[['휴지통 열기',()=>trashOpen()]]})}catch(e){}
+
+// 자동 강화: 파괴가 없는 ★15 전까지 (실패해도 단계가 안 내려가요) · 돈이 모자라면 멈춰요
+let SFSTOP=0;
+async function sfAuto(c){const sf=gSF(c);if(sf.none||sf.b||sf.s>=15)return;closePanel(1);SFSTOP=0;const o=document.createElement('div');o.id='sfAuto';document.body.appendChild(o);let ok=0,no=0,spent=0;
+  const draw=()=>{o.innerHTML=`<div class="sfb"><img class="sfst" src="ui/star.webp"><div class="sfs">자동 강화 ★${sf.s}</div><small>성공 ${ok} · 실패 ${no} · 쓴 돈 ${spent.toLocaleString()}원 · 가진 돈 ${G.money.toLocaleString()}원</small><button id="sfAX">그만하기</button></div>`;o.querySelector('#sfAX').onclick=()=>{SFSTOP=1}};draw();
+  while(!SFSTOP&&sf.s<15&&!sf.b&&G.money>=sfCost(sf.s)){const cst=sfCost(sf.s);const r=await sfTry(c,true);if(!r)break;spent+=cst;if(r==='ok'){ok++;sfx('get')}else{no++;sfx('tap')}draw();await sleep(280)}
+  o.remove();sfx('badge');toast(sf.s>=15?'★15 도착! 여기부터는 파괴될 수 있어서 직접 강화해요':G.money<sfCost(sf.s)?'돈이 모자라서 멈췄어요 · ★'+sf.s:'자동 강화를 멈췄어요 · ★'+sf.s);gearOpen('sf',c)}
+(function(){const c=document.createElement('style');c.textContent=`
+#scOv,#sfAuto{position:fixed;inset:0;z-index:90;background:#000b;display:flex;align-items:center;justify-content:center}
+.scb{width:min(460px,92vw);background:#16233a;border:3px solid #ffd23f;border-radius:18px;padding:16px;color:#fff;text-align:center;display:flex;flex-direction:column;gap:10px}.scb b{font-size:20px;color:#ffd23f}.scb small{opacity:.85}
+.sct{position:relative;height:46px;border-radius:23px;background:#0b1222;border:2px solid #ffffff40;overflow:visible}.scz{position:absolute;top:0;bottom:0;background:linear-gradient(#ffe066,#f0b020);border-radius:8px;box-shadow:0 0 14px #ffd23f}
+.scs{position:absolute;top:50%;width:46px;height:46px;transform:translate(-50%,-50%);filter:drop-shadow(0 0 6px #fff)}
+#scGo{font-size:20px;font-weight:900;padding:12px;border-radius:14px;border:3px solid #2c3050;background:#ffd23f;color:#2c3050}
+#scOv.hit .scb{border-color:#3ad66a;box-shadow:0 0 30px #3ad66a}#scOv.miss .scb{border-color:#888}
+#sfAuto .sfb{display:flex;flex-direction:column;align-items:center;gap:8px;background:#16233a;border:3px solid #ffd23f;border-radius:18px;padding:16px;color:#fff;width:min(380px,90vw)}#sfAuto .sfb small{opacity:.85;text-align:center}#sfAX{font-size:17px;font-weight:900;padding:10px 18px;border-radius:12px;border:3px solid #2c3050;background:#fff;color:#2c3050}`;document.head.appendChild(c)})();
 
 // ===== 카드팩 가방 · 히든 포탈 · 스탯 부적 =====
 // 카드팩은 받자마자 열리지 않고 가방에 쌓여요. 1장 · 10장 · 원하는 만큼 골라서 열고, 한 장씩 손가락으로 잘라요.
