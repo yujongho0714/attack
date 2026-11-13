@@ -13,7 +13,7 @@ const CardPack=(()=>{
   function bolt(c,x1,y1,x2,y2,w){c.beginPath();c.moveTo(x1,y1);const n=8;for(let i=1;i<n;i++){const t=i/n;c.lineTo(x1+(x2-x1)*t+(Math.random()-.5)*40,y1+(y2-y1)*t+(Math.random()-.5)*40)}c.lineTo(x2,y2);c.lineWidth=w;c.stroke()}
 
   async function open(o){
-    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(6,o.rar|0)),PR=RF;let R=PR;while(R>0&&Math.random()<.3)R--;let CS=RF;while(CS>0&&Math.random()<.3)CS--;
+    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(6,o.rar|0)),PR=RF;let R=0;let CS=RF;
     let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=(await loadImg(o.base+'pk'+t+'.webp',800))||(t>3?await loadImg(o.base+'pk3.webp',800):null);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>frmI[t]=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
@@ -63,7 +63,7 @@ const CardPack=(()=>{
         // 배경
         const dark=ph==='pillar'||(R>=3&&ph==='tear');const bg=c.createRadialGradient(W/2,H*.48,10,W/2,H*.48,Math.max(W,H)*.8);bg.addColorStop(0,dark?'#2a1a00':C2+'cc');bg.addColorStop(1,'#05050c');c.fillStyle=bg;c.fillRect(-30,-30,W+60,H+60);
         const ph_=Math.min(W*.62,H*.5)/280,pw=210*ph_,phh=280*ph_;PWs=pw;
-        if(ph==='in'||ph==='idle'||ph==='swipe'||ph==='upk'){if(ph==='in'&&e>600)setPh(R<PR?'upk':NEED?'idle':'swipe');if(ph==='upk'&&e>850){setR(R+1);upFx();setPh(R<PR?'upk':NEED?'idle':'swipe')}const k=ph==='in'?Math.min(1,e/600):1;const ease=1-Math.pow(1-k,3);
+        if(ph==='in'||ph==='idle'||ph==='swipe'||ph==='upk'){if(ph==='in'&&e>600)setPh(R<PR?'upk':NEED?'idle':'swipe');if(ph==='upk'&&e>(R>=3?700:560)){setR(R>=4?PR:R+1);upFx();setPh(R<PR?'upk':NEED?'idle':'swipe')}const k=ph==='in'?Math.min(1,e/600):1;const ease=1-Math.pow(1-k,3);
           const y=H*.48+(1-ease)*H*.6+Math.sin(now/400)*6;const rot=Math.sin(now/600)*.05+(taps?(Math.random()-.5)*.04*taps:0);
           c.save();c.translate(W/2,y);c.rotate(rot);c.shadowColor=C;c.shadowBlur=20+taps*15+R*8;if(pk)c.drawImage(pk,-pw/2,-phh/2,pw,phh);else{c.fillStyle=C;c.fillRect(-pw/2,-phh/2,pw,phh)}c.restore();
           if(taps&&R>=2){c.strokeStyle='rgba(255,255,255,'+(.5+taps*.15)+')';c.lineWidth=2;c.beginPath();for(let i=0;i<taps*3;i++){const a=i*2.4;c.moveTo(W/2,H*.48);c.lineTo(W/2+Math.cos(a)*pw*.45,H*.48+Math.sin(a)*phh*.4)}c.stroke()}
