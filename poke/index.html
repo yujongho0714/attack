@@ -2233,7 +2233,7 @@ async function gbApply(link){if(!G)return false;
   giftOpen();return true}
 // 선물 가방의 포켓몬 전부 꺼내기 (6마리 넘으면 보관함)
 async function giftAllMons(){const L=(G.gifts||[]).filter(g=>g.kind==='P');if(!L.length){toast('꺼낼 포켓몬이 없어요');return}let toBox=0;
-  for(const g of L){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else{G.box.push(m);toBox++}}
+  for(const g of L){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else{G.box.push(m);toBox++}}
   G.gifts=G.gifts.filter(g=>g.kind!=='P');save();refreshSpr();sfx('lv');closePanel(1);await say(['🎉 포켓몬 '+L.length+'마리가 동료가 됐어요!'+(toBox?' ('+toBox+'마리는 보관함으로 갔어요)':'')]);giftOpen()}
 // 카메라로 QR 찍기 (안드로이드 크롬)
 async function qrScan(){if(!('BarcodeDetector' in window)){await say(['이 폰은 게임 안에서 QR을 못 읽어요.<br><b>폰 카메라 앱</b>으로 출석 앱 QR을 찍고, 뜨는 링크를 누르세요!']);return}
@@ -2246,6 +2246,12 @@ async function qrScan(){if(!('BarcodeDetector' in window)){await say(['이 폰�
 try{const U=new URLSearchParams(location.search),q=U.get('gb');if(q)LS.set('pka-gb-pending',q);if(q||U.get('me'))history.replaceState(null,'',location.pathname)}catch(e){}
 async function gbPending(){const q=LS.get('pka-gb-pending','');if(!q||!G)return;if(await gbApply(q))LS.set('pka-gb-pending','')}
 {const _st3=start;start=function(...a){const r=_st3.apply(this,a);setTimeout(()=>gbPending(),1500);return r}}
+
+// ===== 출석 뽑기 「신화」: 메가진화 포켓몬 · 번호 1100+ 은 메가 목록(FORMS 순서 · 출석 앱과 같음) =====
+const MEGAL=(()=>{const L=[];try{for(const d of Object.keys(FORMS).map(Number).sort((a,b)=>a-b))for(const [p,k] of FORMS[d])if(k==='mega')L.push(['sc:'+p,d])}catch(e){}return L})();
+const megaFix=g=>{if(g&&g.kind==='P'&&g.id>=1100){const e=MEGAL[g.id-1100];if(e){g.f=e[0];g.id=e[1];g.rar=4}}return g};
+{const _d=decP8;decP8=function(){return megaFix(_d.apply(this,arguments))}}
+{const _g=giftDecode;giftDecode=async function(){return megaFix(await _g.apply(this,arguments))}}
 
 // ===== 배경음악 (레조넌스 BGM) · 마을/길/물/하늘/배틀마다 바뀜 · 메뉴에서 켜고 끄기 =====
 const BGM=(()=>{const TOWN=['pallet','pewter','cerulean','vermilion','celadon','lavender','lavender','cinnabar','pewter','indigo'];
@@ -2986,7 +2992,7 @@ function xferOpen(){openPanel('QR 옮기기',`<div class="hcard"><b>받기 (카�
   <div class="hcard"><b>보내기 (다른 폰으로 내 기록 전부)</b><p>캐릭터 · 포켓몬 전부 · 기술 · 가방 · 돈 · 배지 · 도감까지 그대로 옮겨요. 받는 폰에서 「카메라로 QR 찍기」로 이 화면을 비추면 돼요.</p><div class="wbt"><button id="xE">내 기록 QR 보여 주기</button></div></div>`,null,p=>{p.querySelector('#xS').onclick=()=>{closePanel(1);xferScan()};p.querySelector('#xE').onclick=()=>{closePanel(1);xferSend()}})}
 (function(){const go=()=>{const b=document.getElementById('bQr');if(b)b.onclick=()=>{sfx('tap');xferOpen()};const t=document.getElementById('tQr');if(t)t.onclick=()=>{sfx('tap');xferScan()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // 출석 앱 QR로 온 포켓몬은 선물 가방에 쌓아 두지 않고 바로 동료로 (기술 카드는 가방에서 가르칠 포켓몬 골라요)
-{const _ga=gbApply;gbApply=async function(link){const before=(G&&G.gifts||[]).length;const r=await _ga(link);try{if(G&&(G.gifts||[]).some(g=>g.kind==='P')){const L=G.gifts.filter(g=>g.kind==='P');let box=0;for(const g of L){const n=BYDEX[g.id];if(!n)continue;const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(!G.party.length)G.party.push(m);else{G.box.push(m);box++}}
+{const _ga=gbApply;gbApply=async function(link){const before=(G&&G.gifts||[]).length;const r=await _ga(link);try{if(G&&(G.gifts||[]).some(g=>g.kind==='P')){const L=G.gifts.filter(g=>g.kind==='P');let box=0;for(const g of L){const n=BYDEX[g.id];if(!n)continue;const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(!G.party.length)G.party.push(m);else{G.box.push(m);box++}}
   G.gifts=G.gifts.filter(g=>g.kind!=='P');save();try{refreshSpr()}catch(e){}closePanel(1);toast('포켓몬 '+L.length+'마리가 보관함에 들어갔어요 · 편성에서 「출전하기」로 데려가요')}}catch(e){}return r}}
 // ===== 앨범(사진)에서 QR 가져오기 · QR 해독기(jsQR)는 필요할 때만 불러와요 =====
 let JSQRP=null;const jsqrLoad=()=>JSQRP||(JSQRP=new Promise((ok,no)=>{if(typeof jsQR!=='undefined')return ok();const s=document.createElement('script');s.src='lib/jsQR.js';s.onload=()=>ok();s.onerror=no;document.head.appendChild(s)}));
