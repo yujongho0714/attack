@@ -2242,9 +2242,9 @@ async function qrScan(){if(!('BarcodeDetector' in window)){await say(['이 폰�
   const v=ov.querySelector('video');const stop=()=>{try{st&&st.getTracks().forEach(t=>t.stop())}catch(e){}ov.remove()};ov.querySelector('button').onclick=stop;
   try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});v.srcObject=st;await v.play()}catch(e){stop();toast('카메라를 쓸 수 없어요');return}
   const det=new BarcodeDetector({formats:['qr_code']});let done=0;
-  (async function tick(){if(done||!document.body.contains(ov))return;try{const r=await det.detect(v);const t=r&&r[0]&&r[0].rawValue;if(t&&/gb=|me=|\.[0-9A-Z]{8}$/i.test(t)){done=1;stop();sfx('get');await gbApply(t);return}}catch(e){}setTimeout(tick,200)})()}
+  (async function tick(){if(done||!document.body.contains(ov))return;try{const r=await det.detect(v);const t=r&&r[0]&&r[0].rawValue;if(t&&/gb=|me=|dj=|\.[0-9A-Z]{8}$/i.test(t)){done=1;stop();sfx('get');await gbApply(t);return}}catch(e){}setTimeout(tick,200)})()}
 // 링크로 들어오면(폰 카메라로 찍음) 기억했다가 게임 시작 후 받기
-try{const U=new URLSearchParams(location.search),q=U.get('gb');if(q)LS.set('pka-gb-pending',q);if(q||U.get('me'))history.replaceState(null,'',location.pathname)}catch(e){}
+try{const U=new URLSearchParams(location.search),q=U.get('gb'),dj=U.get('dj');if(q)LS.set('pka-gb-pending',q);if(dj)LS.set('pka-dj-pending','dj='+dj+'&bn='+encodeURIComponent(U.get('bn')||''));if(q||dj||U.get('me'))history.replaceState(null,'',location.pathname)}catch(e){}
 async function gbPending(){const q=LS.get('pka-gb-pending','');if(!q||!G)return;if(await gbApply(q))LS.set('pka-gb-pending','')}
 {const _st3=start;start=function(...a){const r=_st3.apply(this,a);setTimeout(()=>gbPending(),1500);return r}}
 
@@ -2984,7 +2984,7 @@ async function xferScan(){if(!('BarcodeDetector' in window)){await (G?say(['이 
       if(/^PKX1\|/.test(t)){const [,a,b,id,c]=t.split('|');if(set!==id){set=id;got={};n=+b;bar.innerHTML=Array.from({length:n},()=>'<i></i>').join('')}if(!got[a]){got[a]=c;try{navigator.vibrate&&navigator.vibrate(20)}catch(e){}bar.children[+a-1]&&bar.children[+a-1].classList.add('on');msg.textContent=Object.keys(got).length+' / '+n+'장 받았어요'}
         if(Object.keys(got).length===n){done=1;xfClose();sfx('get');await xferApply(Array.from({length:n},(_,i)=>got[i+1]).join(''));return}}
       else if(/^PK[TB]1\|/.test(t)){done=1;xfClose();sfx('get');if(!G)return;await (t[2]==='T'?tradeApply(t):pvpApply(t));return}
-      else if(/gb=|me=|\.[0-9A-Z]{8}$/i.test(t)){done=1;xfClose();sfx('get');if(!G){alert('출석 앱 QR은 게임을 시작한 다음에 찍어 주세요 (이름 넣고 새로 시작 또는 이어하기)');return}await gbApply(t);return}}}catch(e){}setTimeout(tick,150)})()}
+      else if(/gb=|me=|dj=|\.[0-9A-Z]{8}$/i.test(t)){done=1;xfClose();sfx('get');if(!G){alert('출석 앱 QR은 게임을 시작한 다음에 찍어 주세요 (이름 넣고 새로 시작 또는 이어하기)');return}await gbApply(t);return}}}catch(e){}setTimeout(tick,150)})()}
 async function xferApply(b){let d;try{d=JSON.parse(await unzipStr(ub64u(b)))}catch(e){toast('QR을 읽다가 실패했어요. 다시 해 주세요');return}if(!d||d.k!=='pka'||!d.g){toast('포켓몬 기록 QR이 아니에요');return}
   const g=d.g,name=(d.name||g.name||'옮긴 기록').slice(0,8),exist=!!LS.get('pka-save:'+name,null);
   const ok=confirm(name+'의 기록을 이 폰으로 가져올까요?\n포켓몬 '+((g.party||[]).length+(g.box||[]).length)+'마리 · 배지 '+(g.badges||0)+'개 · 돈 '+(g.money||0)+'원'+(exist?'\n\n이 폰에 같은 이름 기록이 있어요. 덮어써요!':''));if(!ok)return;
@@ -3003,7 +3003,7 @@ async function qrFromSource(src,w,h){// src: ImageBitmap/video/canvas
   await jsqrLoad();const out=[];for(const M of [1600,1000,700,1400]){const k=Math.min(1,M/Math.max(w,h)),W=Math.round(w*k),H=Math.round(h*k);const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(src,0,0,W,H);
     const d=g.getImageData(0,0,W,H);const r=jsQR(d.data,W,H,{inversionAttempts:'attemptBoth'});if(r&&r.data){out.push(r.data);break}}return out}
 async function qrHandle(texts){const parts={};let n=0,id=null,att=null;
-  for(const t of texts){if(/^PK[TB]1\|/.test(t)&&G){sfx('get');await (t[2]==='T'?tradeApply(t):pvpApply(t));return}if(/^PKX1\|/.test(t)){const [,a,b,i,c]=t.split('|');if(id&&id!==i)continue;id=i;n=+b;parts[a]=c}else if(/gb=|me=|\.[0-9A-Z]{8}$/i.test(t))att=t}
+  for(const t of texts){if(/^PK[TB]1\|/.test(t)&&G){sfx('get');await (t[2]==='T'?tradeApply(t):pvpApply(t));return}if(/^PKX1\|/.test(t)){const [,a,b,i,c]=t.split('|');if(id&&id!==i)continue;id=i;n=+b;parts[a]=c}else if(/gb=|me=|dj=|\.[0-9A-Z]{8}$/i.test(t))att=t}
   if(att){if(!G){alert('출석 앱 QR은 게임을 시작한 다음에 가져와 주세요 (이름 넣고 새로 시작 또는 이어하기)');return}sfx('get');await gbApply(att);return}
   if(id){const have=Object.keys(parts).length;if(have<n){const miss=Array.from({length:n},(_,i)=>i+1).filter(i=>!parts[i]);alert('QR '+n+'장 중 '+have+'장만 있어요.\n빠진 번호: '+miss.join(', ')+'\n보내는 폰 화면을 캡처할 때 번호가 바뀔 때마다 한 장씩 찍어 주세요. (카메라로 바로 찍는 게 더 쉬워요)');return}
     sfx('get');await xferApply(Array.from({length:n},(_,i)=>parts[i+1]).join(''));return}
@@ -3021,7 +3021,7 @@ function xferAlbum(){const inp=document.createElement('input');inp.type='file';i
   (async function tick(){if(done||!document.body.contains(o))return;try{const W=v.videoWidth,H=v.videoHeight;if(W){const k=Math.min(1,900/Math.max(W,H));c.width=W*k|0;c.height=H*k|0;g.drawImage(v,0,0,c.width,c.height);const r=jsQR(g.getImageData(0,0,c.width,c.height).data,c.width,c.height);const t=r&&r.data||'';
       if(/^PKX1\|/.test(t)){const [,a,b,id,cc]=t.split('|');if(set!==id){set=id;got={};n=+b;bar.innerHTML=Array.from({length:n},()=>'<i></i>').join('')}if(!got[a]){got[a]=cc;bar.children[+a-1]&&bar.children[+a-1].classList.add('on');msg.textContent=Object.keys(got).length+' / '+n+'장 받았어요'}
         if(Object.keys(got).length===n){done=1;xfClose();sfx('get');await xferApply(Array.from({length:n},(_,i)=>got[i+1]).join(''));return}}
-      else if(t&&/gb=|me=|\.[0-9A-Z]{8}$/i.test(t)){done=1;xfClose();await qrHandle([t]);return}}}catch(e){}setTimeout(tick,180)})()}}
+      else if(t&&/gb=|me=|dj=|\.[0-9A-Z]{8}$/i.test(t)){done=1;xfClose();await qrHandle([t]);return}}}catch(e){}setTimeout(tick,180)})()}}
 // 메뉴에 「앨범에서 QR 가져오기」 추가
 {const _xo=xferOpen;xferOpen=function(){_xo();setTimeout(()=>{const p=document.querySelector('.panel');const b=p&&p.querySelector('#xS');if(!b||p.querySelector('#xA'))return;const a=document.createElement('button');a.id='xA';a.textContent='앨범에서 QR 가져오기';a.onclick=()=>{closePanel(1);xferAlbum()};b.parentNode.appendChild(a);
   const t=b.closest('.hcard').querySelector('p');if(t)t.insertAdjacentHTML('beforeend','<br><small>출석 앱 QR을 미리 사진(캡처)으로 저장해 뒀다면 「앨범에서 QR 가져오기」로 골라요.</small>')},30)}}
@@ -4296,6 +4296,37 @@ async function wbSweep(){const w=wbS(),day=dayKey();if(!(w.best>0)){toast('이�
 {const _wo=wbOpen;wbOpen=async function(){const r=await _wo.apply(this,arguments);const add=()=>{const f=document.getElementById('wbF');if(!f||document.getElementById('wbSw'))return false;const w=wbS(),left=WB_TRY-(w.tries[dayKey()]||0);
   const b=document.createElement('button');b.id='wbSw';b.className='main';b.disabled=!(w.best>0&&left>0);b.textContent=w.best>0?'소탕 (최고 '+w.best.toLocaleString()+')':'소탕 (한 번 싸우면 열려요)';b.onclick=()=>{sfx('tap');wbSweep()};f.after(b);return true};
   for(const t of [50,300,800,1500])setTimeout(add,t);return r}}
+
+// ===== 도장 미션 연동: 출석 앱 QR에 붙은 계급 레벨 · 연속 출석 · 띠로 게임 보상 =====
+// dj=L<레벨>S<연속>B<띠코드>.<확인 8글자>&bn=<띠 이름>  (내 번호로 도장 → 고칠 수 없어요)
+// 처음 연동: 환영 카드팩(희귀) · 계급 10레벨마다 카드팩 · 연속 출석 7/14/30/60/100일 영웅 카드팩 · 새 띠로 승급: 희귀 카드팩 + 접두사 주문서
+const DJMS=[7,14,30,60,100];
+function jHash(s){let h=0;for(const ch of String(s)){h=(Math.imul(h,31)+ch.charCodeAt(0))|0}return h}
+function djBc(b){return b?(Math.abs(jHash(b))%46656).toString(36).toUpperCase():'0'}
+function djS(){G.dj=G.dj||{lv:0,st:0,b:'',bs:{},ms:{},t:0};G.dj.bs=G.dj.bs||{};G.dj.ms=G.dj.ms||{};return G.dj}
+async function djApply(link){if(!G)return false;const s0=String(link||'');const m=/dj=(L(\d+)S(\d+)B([0-9A-Z]+))\.([0-9A-Z]{8})/i.exec(s0);if(!m)return false;
+  if(!G.num)await askNum();if(await gbMac(G.num,'DJ'+m[1])!==m[5].toUpperCase()){toast('도장 미션: 내 번호로 만든 QR이 아니에요');return false}
+  const lv=+m[2],st=+m[3],bc=m[4].toUpperCase();let bn='';try{const b=/bn=([^&]*)/.exec(s0);bn=b?decodeURIComponent(b[1].replace(/\+/g,' ')):''}catch(e){}if(djBc(bn)!==bc)bn='';
+  const D=djS(),first=!D.t,lines=[],packs=[];let sc=0;
+  if(first){packs.push('P2');lines.push('도장 미션 <b>첫 연동</b>! 환영 선물로 <b>희귀 카드팩</b>을 받았어요')}
+  else{const k=Math.floor(lv/10)-Math.floor(D.lv/10);if(k>0){for(let i=0;i<k;i++)packs.push('P');lines.push('계급이 <b>Lv.'+lv+'</b>까지 올랐어요! 10레벨마다 카드팩 → <b>카드팩 '+k+'장</b>')}}
+  for(const n of DJMS)if(st>=n&&!D.ms[n]){D.ms[n]=1;packs.push('P3');lines.push('연속 출석 <b>'+n+'일</b> 달성! <b>영웅 카드팩</b>')}
+  if(bc!=='0'&&!D.bs[bc]){if(!first&&Object.keys(D.bs).length){packs.push('P2');sc++;lines.push('<b>승급 축하해요!</b> '+(bn?'<b>'+esc(bn)+'</b>(이)가 됐어요! ':'새 띠가 됐어요! ')+'<b>희귀 카드팩 + 접두사 주문서</b>')}D.bs[bc]=bn||1}
+  D.lv=Math.max(D.lv,lv);D.st=st;if(bc!=='0'){D.b=bn||D.b;D.bc=bc}D.t=Date.now();
+  if(packs.length)packAdd(packs,'도장 미션');if(sc)addItem('pxsc',sc);save();
+  if(lines.length){try{sfx('badge')}catch(e){}await say(lines.concat(['카드팩은 메뉴 → 카드팩에서 열어요. 다음 보상: '+djNext()]))}else toast('도장 미션 연동했어요 · 새 보상은 아직 없어요 ('+djNext()+')');
+  return true}
+function djNext(){const D=djS();const n=DJMS.find(x=>!D.ms[x]);return '계급 Lv.'+(Math.floor(D.lv/10)*10+10)+(n?' · 연속 출석 '+n+'일':'')+' · 승급'}
+{const _ga=gbApply;gbApply=async function(link){const L=String(link||'');let ok=false;if(/dj=/i.test(L))ok=await djApply(L);if(!/gb=|me=/i.test(L))return ok;return _ga.apply(this,arguments)}}
+setInterval(async()=>{try{if(!G||SCENE!=='over'||DLG.on||PANEL)return;const q=LS.get('pka-dj-pending','');if(!q)return;LS.set('pka-dj-pending','');await djApply(q)}catch(e){}},2000);
+function djOpen(){const D=djS();openPanel('도장 미션 연동',`<p class="hhint">출석 앱 → <b>QR로 한 번에 받기</b>를 찍으면 도장 기록이 게임에 들어와요. 출석 · 계급 · 승급을 열심히 하면 게임 보상!</p>
+  <div class="djg"><div><small>계급</small><b>${D.t?'Lv.'+D.lv:'-'}</b></div><div><small>연속 출석</small><b>${D.t?D.st+'일':'-'}</b></div><div><small>띠</small><b>${D.t?esc(D.b||'-'):'-'}</b></div></div>
+  <p class="hhint">${D.t?'마지막 연동 '+new Date(D.t).toLocaleDateString('ko-KR'):'아직 연동 안 했어요 · 처음 연동하면 <b>희귀 카드팩</b>!'}</p>
+  <div class="djr"><p><b>계급 10레벨마다</b> 카드팩 1장 · 다음 Lv.${Math.floor(D.lv/10)*10+10}</p>${DJMS.map(n=>`<p class="${D.ms[n]?'ok':''}"><b>연속 출석 ${n}일</b> 영웅 카드팩 ${D.ms[n]?'(받음)':''}</p>`).join('')}<p><b>새 띠로 승급</b> 희귀 카드팩 + 접두사 주문서</p></div>`)}
+try{HUB.push({k:'dojo',n:'도장 미션 연동',d:'출석 앱 QR을 찍으면 도장 기록(계급 · 연속 출석 · 띠)이 들어와요. 처음 연동하면 희귀 카드팩, 계급 10레벨마다 카드팩, 연속 출석 7 · 14 · 30 · 60 · 100일엔 영웅 카드팩, 승급하면 희귀 카드팩 + 접두사 주문서!',st:()=>{const D=djS();return D.t?'계급 Lv.'+D.lv+' · 연속 '+D.st+'일':'아직 연동 전'},go:[['도장 기록 보기',()=>djOpen()],['QR 찍기',()=>{try{qrScan()}catch(e){}}]]})}catch(e){}
+try{HUBIC.dojo='ic_badge'}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`.djg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 4px}.djg div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;background:#fffaf0;box-shadow:0 3px 0 #1c2550,0 -3px 0 #1c2550,3px 0 0 #1c2550,-3px 0 0 #1c2550}.djg small{font-size:12px;color:#6b7280}.djg b{font-size:18px;color:#1c2550}
+.djr{display:flex;flex-direction:column;gap:6px;margin:6px 4px}.djr p{margin:0;padding:8px 10px;background:#eef2ff;font-size:14px}.djr p.ok{background:#dcfce7;color:#166534}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
