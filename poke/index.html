@@ -3245,8 +3245,8 @@ async function rankOpen(b){if(!G)return;b=b||G.rkTab||'dex';G.rkTab=b;
 try{const h=HUB.find(x=>x.k==='rank');if(h){h.d='획득 수 · 진행도 · 월드보스 · 격투 탑 랭킹. 이름 왼쪽에 친구들의 대표 포켓몬이 나와요. 사이드메뉴 「랭킹」에서 바로 볼 수 있어요.';h.go=[['랭킹 보기',()=>rankOpen()]]}}catch(e){}
 
 // ===== 1 · 2 · 3위 시상대 (특별한 프레임 · 왕관 · 메달) =====
-function podium(L,val){const T=L.slice(0,3);const ord=[1,0,2].filter(i=>T[i]);const md=['1ST','2ND','3RD'];
-  return `<div class="pod">${ord.map(i=>{const x=T[i],r=rkSplit(x.name),me=x.id===G.pid;return `<div class="pdc p${i+1}${me?' me':''}"><div class="pdf">${i===0?'<i class="crown"></i>':''}<span class="pdi">${r.rep&&THUMB[r.rep]?`<img src="${THUMB[r.rep]}" alt="">`:'<i></i>'}</span><u>${md[i]}</u></div><b>${esc(r.name)}${me?' <small>나</small>':''}</b><em>${val(x)}</em><div class="pdb">${i+1}</div></div>`}).join('')}</div>`}
+let podium=function(L,val){const T=L.slice(0,3);const ord=[1,0,2].filter(i=>T[i]);const md=['1ST','2ND','3RD'];
+  return `<div class="pod">${ord.map(i=>{const x=T[i],r=rkSplit(x.name),me=x.id===G.pid;return `<div class="pdc p${i+1}${me?' me':''}"><div class="pdf">${i===0?'<i class="crown"></i>':''}<span class="pdi">${r.rep&&THUMB[r.rep]?`<img src="${THUMB[r.rep]}" alt="">`:'<i></i>'}</span><u>${md[i]}</u></div><b>${esc(r.name)}${me?' <small>나</small>':''}</b><em>${val(x)}</em><div class="pdb">${i+1}</div></div>`}).join('')}</div>`};
 (function(){const c=document.createElement('style');c.textContent=`
 .pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:14px 4px 6px;font-family:'Galmuri11',sans-serif;color:#1c2550}
 .pdc{flex:1;max-width:220px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
@@ -3272,12 +3272,29 @@ const rkTier=i=>i<3?'c'+(i+1):i<10?'o':i<20?'m1':i<30?'m2':i<40?'m3':'';
   p.querySelectorAll('.pdc').forEach((c,k)=>{if(c.dataset.ic)return;c.dataset.ic=1;const i=c.classList.contains('p1')?0:c.classList.contains('p2')?1:2;const f=c.querySelector('.pdf');const old=f.querySelector('.crown');if(old)old.remove();f.insertAdjacentHTML('afterbegin',`<img class="pdcr" src="ui/rk_crown${i+1}.webp" alt="">`)})};
   for(const t of [100,400,900,1600,3000])setTimeout(fix,t);return r}}
 (function(){const c=document.createElement('style');c.textContent=`
-.rkn{display:flex;flex-direction:column;align-items:center;gap:0}.rkic{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 0 #1c255066)}.rkn{position:relative}.rkn span{position:absolute;right:-4px;bottom:-4px;min-width:18px;padding:1px 4px;font-size:11px;line-height:1.2;background:#1c2550;color:#ffd23f;text-align:center}
+.rkn{display:flex;flex-direction:column;align-items:center;gap:0}.rkic{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 0 #1c255066)}.rkn{position:relative;width:46px;height:46px;justify-content:center}.rkic{width:46px!important;height:46px!important}.rkn span{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);font:900 17px 'Galmuri11',sans-serif;color:#fff;-webkit-text-stroke:3px #1c2550;paint-order:stroke fill;line-height:1;pointer-events:none}.rt-m1 .rkn span,.rt-m2 .rkn span,.rt-m3 .rkn span{top:62%}
 .rkr{grid-template-columns:46px 52px 1fr auto!important}
 .rkr.rt-o{background:linear-gradient(90deg,#fff0b8,#fffaf0 55%)!important;box-shadow:0 0 0 3px #e0a010,0 0 0 6px #1c2550,0 0 12px #ffd23f88!important;margin:4px 2px}
 .rkr.rt-m1{box-shadow:0 0 0 3px #e0a010,0 0 0 5px #1c2550!important}.rkr.rt-m2{box-shadow:0 0 0 3px #a8b4c8,0 0 0 5px #1c2550!important}.rkr.rt-m3{box-shadow:0 0 0 3px #c07838,0 0 0 5px #1c2550!important}
 .pdcr{position:absolute;top:-46px;left:50%;width:64px;height:64px;object-fit:contain;transform:translateX(-50%);filter:drop-shadow(0 3px 0 #1c255088);animation:crownB2 1.6s ease-in-out infinite;z-index:2}
 .p1 .pdcr{width:80px;height:80px;top:-58px}@keyframes crownB2{50%{transform:translateX(-50%) translateY(-5px) rotate(-3deg)}}`;document.head.appendChild(c)})();
+
+// ===== 시상대를 힉스필드 그림으로 (금 · 은 · 동 단상 + 레드카펫) =====
+// 그림 안 블록 위치(%) : 은 x19 top43 · 금 x50 top17 · 동 x82 top46 · 숫자판 은(18,62) 금(50,38) 동(83,66)
+const PODP=[{x:50,t:17,nx:50,ny:39},{x:19.2,t:43,nx:18.5,ny:62},{x:82,t:46,nx:83,ny:66}];
+podium=function(L,val){const T=L.slice(0,3);return `<div class="pod2">${T.map((x,i)=>{const r=rkSplit(x.name),me=x.id===G.pid,P=PODP[i];return `<div class="pc pc${i+1}${me?' me':''}" style="left:${P.x}%;bottom:${100-P.t}%"><img class="pcr" src="ui/rk_crown${i+1}.webp" alt=""><span class="pci">${r.rep&&THUMB[r.rep]?`<img src="${THUMB[r.rep]}" alt="">`:'<i></i>'}</span><b>${esc(r.name)}${me?' <small>나</small>':''}</b><em>${val(x)}</em></div><div class="pn pn${i+1}" style="left:${P.nx}%;top:${P.ny}%">${i+1}</div>`}).join('')}</div>`};
+(function(){const c=document.createElement('style');c.textContent=`
+.pod2{position:relative;width:min(620px,100%);aspect-ratio:1032/672;margin:150px auto 8px;background:url(ui/podium.webp) center/100% 100%;box-shadow:0 0 0 3px #1c2550,0 10px 24px #0006;font-family:'Galmuri11',sans-serif}
+.pc{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;width:30%;text-align:center;padding-bottom:4px}
+.pcr{width:54px;height:54px;object-fit:contain;margin-bottom:-14px;z-index:2;filter:drop-shadow(0 3px 0 #1c255088);animation:crownB3 1.6s ease-in-out infinite}.pc1 .pcr{width:70px;height:70px;margin-bottom:-18px}@keyframes crownB3{50%{transform:translateY(-5px) rotate(-3deg)}}
+.pci{width:72px;height:72px;display:grid;place-items:center;background:#fffaf0;box-shadow:0 0 0 3px #c8d2e0,0 0 0 6px #1c2550,0 6px 14px #0008}.pci img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated}.pci i{width:34px;height:34px;background:#c8d0e0}
+.pc1 .pci{width:90px;height:90px;box-shadow:0 0 0 4px #ffb020,0 0 0 8px #1c2550,0 0 26px #ffd23f;animation:podGold 2.4s ease-in-out infinite}.pc1 .pci img{width:80px;height:80px}.pc3 .pci{box-shadow:0 0 0 3px #d08848,0 0 0 6px #1c2550,0 6px 14px #0008}
+.pc b{margin-top:6px;max-width:100%;padding:2px 8px;background:#1c2550e6;color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-shadow:0 0 0 2px #ffd23f}.pc b small{background:#ff2aa0;color:#fff;padding:0 4px;font-size:10px}
+.pc em{font-style:normal;font-weight:700;font-size:13px;color:#fff;text-shadow:0 0 4px #000,2px 2px 0 #1c2550}.pc em small{display:block;font-size:10px}
+.pn{position:absolute;transform:translate(-50%,-50%);width:13%;aspect-ratio:1;display:grid;place-items:center;border-radius:50%;font:900 clamp(20px,5vw,34px)/1 'Galmuri11',sans-serif;color:#fff;-webkit-text-stroke:3px #1c2550;paint-order:stroke fill}
+.pn1{background:radial-gradient(circle at 35% 30%,#fff6c0,#ffc21f 55%,#b07800);box-shadow:0 0 0 4px #7a5200,0 0 18px #ffd23f}.pn2{background:radial-gradient(circle at 35% 30%,#ffffff,#c8d2e0 55%,#7a8aa0);box-shadow:0 0 0 4px #4a5870}.pn3{background:radial-gradient(circle at 35% 30%,#ffd8b0,#d08848 55%,#7a4018);box-shadow:0 0 0 4px #5a2e10}
+.pc.me .pci{outline:3px dashed #ff2aa0;outline-offset:4px}
+@media (max-width:520px){.pci{width:54px;height:54px}.pci img{width:48px;height:48px}.pc1 .pci{width:66px;height:66px}.pc1 .pci img{width:58px;height:58px}.pod2{margin-top:120px}}`;document.head.appendChild(c)})();
 
 // ===== 추천 편성: 상대 타입에 맞춰 내 포켓몬(파티+보관함) 중 제일 좋은 6마리 =====
 // 점수 = 레벨 · 공격(특공) · 체력 × 가진 기술로 상대에게 줄 수 있는 최고 상성(자속 보너스 포함) × 상대 기술 상성으로 받는 피해
