@@ -5039,7 +5039,9 @@ bxAll=function(){const L=bxAllList();if(!L.length){toast('분해할 중복 포�
     p.querySelector('#bxGo').onclick=()=>{const S=L.filter(m=>on.has(m));if(!S.length)return;itAsk(S.length+'마리를 정말 분해할까요?','되돌릴 수 없어요. 영혼 '+S.length*BXSOUL+'개를 받아요.'+bxWarn(S),()=>{const k=bxDo(S);sfx('badge');toast(k+'마리 분해 · 영혼 +'+k*BXSOUL);teamOpen()})}})};draw()};
 
 // ===== 패배 가이드: 졌을 때 이길 방법 추천 (레벨업 사냥터 · 상성 좋은 포켓몬 · 잡으러 가기 · 장비 강화) =====
-{const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{if(r==='lose'&&o&&!o.wb&&!o.pvp&&(o.foes||[]).length){const F=o.foes.map(f=>({n:f.n,lv:f.lv}));const t=setInterval(()=>{if(SCENE==='over'&&!DLG.on&&!PANEL&&!P.busy){clearInterval(t);if(AUTO.on)autoStop();lossGuide(F,o)}},700);setTimeout(()=>clearInterval(t),30000)}}catch(e){}return r}}
+const lgKey=o=>o&&o.trainer?'t:'+String(o.trainer.n||o.trainer.name||o.trainer).slice(0,30):'wild';
+{const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{if(r==='win'&&G.lossG&&G.lossG.key===lgKey(o)){G.lossG=null;save();setTimeout(()=>toast('이겼어요! 이길 방법 가이드를 마쳤어요'),800)}
+  if(r==='lose'&&o&&!o.wb&&!o.pvp&&(o.foes||[]).length){const F=o.foes.map(f=>({n:f.n,lv:f.lv}));G.lossG={key:lgKey(o),F,t:Date.now()};save();const t=setInterval(()=>{if(SCENE==='over'&&!DLG.on&&!PANEL&&!P.busy){clearInterval(t);if(AUTO.on)autoStop();lossGuide(F,o)}},700);setTimeout(()=>clearInterval(t),30000)}}catch(e){}return r}}
 function lgRoutes(myLv){const out=[];for(let a=1;a<NA;a+=2){if(a===18||!areaOpen(a))continue;let lv;try{lv=areaLv(a)}catch(e){continue}let T;try{T=encTable(a)}catch(e){continue}const mons=[...new Set(T.g.concat(T.w).map(e=>e.n))].filter(n=>META[n]);
   const bs=n=>(META[n].s||[]).reduce((p,q)=>p+q,0);const best=mons.sort((x,y)=>bs(y)-bs(x)).slice(0,3);out.push({a,lv,best,score:-Math.abs(lv[0]-(myLv-2))})}return out.sort((x,y)=>y.score-x.score).slice(0,3).sort((x,y)=>x.lv[0]-y.lv[0])}
 function lossGuide(F,o){const ace=F.slice().sort((a,b)=>b.lv-a.lv)[0],AT=META[ace.n].types,foeLv=Math.max(...F.map(f=>f.lv));const my=[...G.party,...G.box],top=Math.max(1,...G.party.map(m=>m.lv));
@@ -5048,12 +5050,14 @@ function lossGuide(F,o){const ace=F.slice().sort((a,b)=>b.lv-a.lv)[0],AT=META[ac
   const catchL=[];for(const n of SPECIES){const M=META[n];if(!M||!M.s||!M.types||!M.types.some(t=>good.includes(t)))continue;const L=(LOC[n]||[]).filter(a=>areaOpen(a));if(!L.length)continue;catchL.push({n,a:L.sort((x,y)=>Math.abs(x-G.a)-Math.abs(y-G.a))[0],s:M.s.reduce((p,q)=>p+q,0)})}
   catchL.sort((a,b)=>b.s-a.s);const catchTop=catchL.slice(0,4);const R=lgRoutes(top);const gap=foeLv-top;
   openPanel('이길 방법 찾기',`<div class="lgh"><img src="${THUMB[ace.n]||''}" alt=""><div><b>${esc(META[ace.n].name)} Lv.${ace.lv}</b><small>${AT.map(t=>TN[t]).join(' · ')} 타입 · 상대 ${F.length}마리</small><p>${gap>0?`상대가 내 제일 센 포켓몬(Lv.${top})보다 <b>${gap}레벨</b> 높아요.`:`레벨은 비슷해요. <b>상성</b>을 맞추면 이길 수 있어요!`}</p></div></div>
+   <div class="lgb lgauto"><button data-auto="q" class="main">퀘스트 자동사냥</button><button data-auto="h">그냥 자동사냥 (지금 이곳)</button></div>
    <h4>1. 상성 좋은 타입</h4><p class="hhint">${good.length?good.map(t=>`<span class="lgt" style="background:${TCOL[t]}">${TN[t]}</span>`).join(' ')+' 기술이 효과가 굉장해요':'특별히 센 타입이 없어요. 레벨을 올려요'}</p>
    ${mine.length?`<div class="lgl">${mine.map(m=>`<div class="lgr"><img src="${THUMB[m.n]||''}" alt=""><span><b>${esc(nm(m))}</b><small>보관함 · Lv.${m.lv} · ${META[m.n].types.map(t=>TN[t]).join('·')}</small></span></div>`).join('')}</div>`:''}
    <div class="wbt"><button id="lgRec" class="main">상성 맞춰 추천 편성</button></div>
    <h4>2. 레벨 올리기 · 자동 사냥 추천</h4><div class="lgl">${R.map(x=>`<div class="lgr"><span><b>${esc(areaName(x.a))}</b><small>야생 Lv.${x.lv[0]}~${x.lv[1]} · 좋은 포켓몬: ${x.best.map(n=>META[n].name).join(', ')}</small></span><button data-hunt="${x.a}">여기서 자동 사냥</button></div>`).join('')}</div>
    ${catchTop.length?`<h4>3. 잡으면 좋은 포켓몬</h4><div class="lgl">${catchTop.map(x=>`<div class="lgr"><img src="${THUMB[x.n]||''}" alt=""><span><b>${esc(META[x.n].name)}</b><small>${META[x.n].types.map(t=>TN[t]).join('·')} · ${esc(areaName(x.a))}${G.dex.c[META[x.n].dex]?' · 잡아 봤어요':''}</small></span><button data-catch="${x.n}" data-a="${x.a}">잡으러 가기</button></div>`).join('')}</div>`:''}
    <h4>${catchTop.length?4:3}. 더 강해지기</h4><div class="lgb"><button data-go="gear">장비 강화</button><button data-go="team">편성 보기</button><button data-go="shop">회복약 사기</button><button data-go="px">접두사</button></div>`,null,p=>{
+   p.querySelectorAll('[data-auto]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);if(b.dataset.auto==='q'){if(G.nav)G.nav=null;AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1;hud();toast('퀘스트 자동사냥을 시작해요')}else{if(AUTO.on)autoStop();setTimeout(()=>{try{bt('bHunt').click()}catch(e){}},100)}});
    p.querySelector('#lgRec').onclick=()=>{sfx('tap');closePanel(1);try{recOpen('상성 맞춰 추천 편성',AT)}catch(e){teamOpen()}};
    p.querySelectorAll('[data-hunt]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.hunt,null,'auto')});
    p.querySelectorAll('[data-catch]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.a,b.dataset.catch,'auto')});
@@ -5067,6 +5071,14 @@ function lossGuide(F,o){const ace=F.slice().sort((a,b)=>b.lv-a.lv)[0],AT=META[ac
 .lgt{display:inline-block;color:#fff;padding:2px 8px;font-weight:700;text-shadow:1px 1px 0 #0006}
 .lgl{display:flex;flex-direction:column;gap:6px;margin:0 4px}.lgr{display:flex;align-items:center;gap:10px;background:#fffaf0;padding:7px 10px;box-shadow:0 0 0 2px #1c2550}.lgr img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated}.lgr span{flex:1;display:flex;flex-direction:column}.lgr small{font-size:12px;color:#5a6080}
 .lgb{display:flex;flex-wrap:wrap;gap:8px;margin:0 4px}`;document.head.appendChild(c)})();
+
+// 이길 때까지 「이길 방법」 버튼이 왼쪽에 계속 있어요
+setInterval(()=>{try{let b=document.getElementById('lgBtn');const on=G&&G.lossG&&SCENE==='over'&&!document.body.classList.contains('inb');if(!on){if(b)b.style.display='none';return}
+  if(!b){b=document.createElement('button');b.id='lgBtn';b.onclick=()=>{sfx('tap');const L=G.lossG;if(L)lossGuide(L.F,{})};document.body.appendChild(b)}const L=G.lossG,ace=L.F.slice().sort((a,c)=>c.lv-a.lv)[0];
+  const h=`<img src="${THUMB[ace.n]||''}" alt=""><span><b>이길 방법</b><small>${META[ace.n]?META[ace.n].name:''} Lv.${ace.lv}</small></span>`;if(b.dataset.h!==h){b.dataset.h=h;b.innerHTML=h}b.style.display=''}catch(e){}},800);
+(function(){const c=document.createElement('style');c.textContent=`#lgBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(320px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;padding:5px 10px 5px 6px;border:0;cursor:pointer;font-family:'Galmuri11',sans-serif;color:#fff;background:#c0304a;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f;animation:pxglow 1.4s ease-in-out infinite}
+#lgBtn img{width:34px;height:34px;object-fit:contain;image-rendering:pixelated;background:#fff3}#lgBtn span{display:flex;flex-direction:column;align-items:flex-start}#lgBtn b{font-size:14px;color:#ffd23f}#lgBtn small{font-size:11px}
+.lgauto{margin-bottom:6px}@media (max-height:520px){#lgBtn{bottom:auto;top:calc(150px + env(safe-area-inset-top));left:auto;right:calc(8px + env(safe-area-inset-right))}}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
