@@ -1190,7 +1190,7 @@ const GYM=[{t:'ROCK',n:'관장 돌쇠',c:'#a08848'},{t:'WATER',n:'관장 물결'
  {t:'POISON',n:'관장 보라',c:'#9040a0'},{t:'PSYCHIC',n:'관장 미르',c:'#e85888'},{t:'FIRE',n:'관장 화로',c:'#e86020'},{t:'GROUND',n:'관장 대지',c:'#b89048'}];
 const ELITE=[{t:'ICE',n:'사천왕 칸나',lv:57},{t:'FIGHTING',n:'사천왕 시바',lv:58},{t:'GHOST',n:'사천왕 국화',lv:59},{t:'DRAGON',n:'사천왕 목호',lv:61}];
 // 난이도: 0 쉬움 · 1 보통(기본) · 2 어려움
-const DIFF=()=>G&&G.opt&&G.opt.diff!=null?G.opt.diff:1;const DLV=[0,.18,.32,.5,.75],DEXP=[1,.55,.4,.3,.22],DDMG=[1,1.15,1.3,1.5,1.8];const DNAME=['쉬움','보통','어려움','지옥','나이트메어'],DCOL=['#9be89b','#ffd060','#ff8a8a','#c05aff','#3a0a2a'];
+const DIFF=()=>G&&G.opt&&G.opt.diff!=null?G.opt.diff:1;const DLV=[0,.18,.38,.62,.9],DEXP=[1,.55,.4,.3,.22],DDMG=[1,1.15,1.35,1.6,2.0];const DBST=[0,25,55,90,130];const DNAME=['쉬움','보통','어려움','지옥','나이트메어'],DCOL=['#9be89b','#ffd060','#ff8a8a','#c05aff','#3a0a2a'];
 // 어려울수록 보상: 상금 · 희귀 포켓몬 · 이로치 · 승리 카드팩
 const DMONEY=[1,1.6,2.4,3.5,5],DRARE=[1,1.6,2.5,3.5,5],DSHINY=[150,90,50,35,20],DPACK=[0,.08,.2,.3,.45];
 const gymAce=k=>Math.round((12+6*k)*(1+DLV[DIFF()]));// k=0..7
@@ -1198,8 +1198,8 @@ const NA=27;const isTown=a=>a%2===0&&a!==18&&a<NA;const townOf=a=>a/2;const area
 const AREAS={};
 function areaLv(a){const k=(a-1)/2;if(k===0)return[2,5];const lo=Math.round((3+6*k)*(1+DLV[DIFF()]*.8));return[lo,lo+5]}
 // ---------- 지역에 나오는 포켓몬 정하기 (세이브마다 같게) ----------
-function encTable(a){const k=(a-1)/2,r=rng(G.seed*13+a*101);const maxB=330+38*k+DIFF()*25,minB=Math.max(170,maxB-240);const bias=RBIAS[k];
-  const all=SPECIES.filter(s=>{const b=bst(META[s].stats);return b>=minB&&b<=maxB&&(b<580||k===8)});
+function encTable(a){const k=(a-1)/2,r=rng(G.seed*13+a*101);const maxB=330+38*k+DBST[DIFF()],minB=Math.max(170+DIFF()*30,maxB-240);const bias=RBIAS[k];
+  const all=SPECIES.filter(s=>{const b=bst(META[s].stats);return b>=minB&&b<=maxB&&(b<580||k===8||DIFF()>=3)});
   const pickW=(L,n,wt)=>{const out=[];const W=L.map(s=>META[s].types.some(t=>wt.includes(t))?4:1);for(let i=0;i<n&&L.length;i++){let tot=W.reduce((a,b)=>a+b,0),u=r()*tot,j=0;for(;j<L.length;j++){u-=W[j];if(u<=0)break}j=Math.min(j,L.length-1);out.push(L[j]);L=L.filter((_,q)=>q!==j);W.splice(j,1)}return out};
   let L=all.length>=8?all:SPECIES.slice();const g=pickW(L.slice(),10,bias).map((n,i)=>({n,w:i<4?10:i<7?6:i<9?3:1}));
   const wl=SPECIES.filter(s=>META[s].types.includes('WATER')&&bst(META[s].stats)<=maxB+20&&bst(META[s].stats)>=minB-40);const w=pickW(wl.length?wl:L.slice(),4,['WATER']).map((n,i)=>({n,w:i<2?8:3}));
@@ -3521,7 +3521,7 @@ function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax();
       say(['<b>'+G.rebirth+'번째 환생!</b> '+DNAME[d]+' 난이도로 처음부터 시작해요.','부적 먹이기 한도 +'+G.rebirth+' · 경험치 +'+G.rebirth*5+'%. 다시 회색시티 체육관부터!'])})})}
 try{HUB.push({k:'diff',n:'난이도 · 환생',d:'쉬움 · 보통 · 어려움 · 지옥 · 나이트메어. 높을수록 상대가 세고 더 높은 등급 포켓몬이 나오지만 보상이 커요. 챔피언이 되면 환생해서 더 높은 난이도로 처음부터!',st:()=>DNAME[DIFF()]+(G.rebirth?' · 환생 '+G.rebirth:''),go:[['난이도 · 환생',()=>diffOpen()]]})}catch(e){}
 // 트레이너도 난이도가 높을수록 더 강한(높은 등급) 포켓몬을 써요
-{const _tt=typeTeam;typeTeam=function(t,maxB,n,lvs,seed){return _tt(t,maxB+DIFF()*30,n,lvs,seed)}}
+{const _tt=typeTeam;typeTeam=function(t,maxB,n,lvs,seed){return _tt(t,maxB+[0,30,65,100,140][DIFF()],n,lvs,seed)}}
 
 // ===== 포케스탑: 길가에 가끔 생겨요 · 가까이 가서 원판을 손가락으로 돌리면 볼 · 상처약 · 열매가 나와요 =====
 // 열매: 오랭열매(체력 +30) · 시트러스열매(체력 +80) · 라즈열매(가지고 있으면 볼 던질 때 자동으로 먼저 줘서 잡기 쉬워짐)
@@ -3694,8 +3694,8 @@ try{HUB.push({k:'prefix',n:'접두사 (100가지)',d:'내 포켓몬마다 접두
 
 // ===== 내 캐릭터 접두사: 머리 위에 [접두사] + 이름 · 효과는 내 모든 포켓몬에게 절반만큼 =====
 function mePx(){if(!G)return null;if(G.mepx==null){G.mepx=pxRoll();save()}return PX[G.mepx]}
-{const _s2=stOf;const IX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};stOf=function(m){const S=_s2(m);if(!m||m.px==null||!G)return S;const p=mePx();if(!p)return S;const o=S.slice?S.slice():S;for(const k in p.e)if(IX[k]!=null)o[IX[k]]=Math.round(o[IX[k]]*(1+p.e[k]/200));return o}}
-{const _dc2=dmgCalc;dmgCalc=function(a,d,mv0,crit){const r=_dc2.apply(this,arguments);try{if(a&&a.px!=null&&G){const p=mePx();if(p&&r&&r.d>0){if(crit&&p.e.cdm)r.d=Math.round(r.d*(1+p.e.cdm/200));else if(!crit&&p.e.crt&&R()<p.e.crt/200)r.d=Math.round(r.d*1.5)}}}catch(e){}return r}}
+{const _s2=stOf;const IX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};stOf=function(m){const S=_s2(m);if(!m||m.px==null||!G||!(G.party.includes(m)||G.box.includes(m)))return S;const p=mePx();if(!p)return S;const o=S.slice?S.slice():S;for(const k in p.e)if(IX[k]!=null)o[IX[k]]=Math.round(o[IX[k]]*(1+p.e[k]/200));return o}}
+{const _dc2=dmgCalc;dmgCalc=function(a,d,mv0,crit){const r=_dc2.apply(this,arguments);try{if(a&&a.px!=null&&G&&(G.party.includes(a)||G.box.includes(a))){const p=mePx();if(p&&r&&r.d>0){if(crit&&p.e.cdm)r.d=Math.round(r.d*(1+p.e.cdm/200));else if(!crit&&p.e.crt&&R()<p.e.crt/200)r.d=Math.round(r.d*1.5)}}}catch(e){}return r}}
 function meLabelEnt(ents,px,py,s,camX,camY){if(!G)return;const p=mePx();const name=(typeof isGM==='function'&&isGM()?'[GM] ':'')+(G.name||'');ents.push({y:py+.02,f:()=>{const X=px*s-camX+s/2,Y=py*s-camY-s*.08;cx.save();cx.textAlign='center';cx.textBaseline='bottom';
   const f1=Math.max(9,Math.round(s*.3)),f2=Math.max(10,Math.round(s*.36));cx.lineJoin='round';
   cx.font=`700 ${f2}px Galmuri11, sans-serif`;cx.lineWidth=Math.max(3,s*.12);cx.strokeStyle='#1c2550';cx.fillStyle='#fff';cx.strokeText(name,X,Y);cx.fillText(name,X,Y);
@@ -3751,6 +3751,11 @@ try{const h=HUB.find(x=>x.k==='prefix');if(h){h.d+=' 내 캐릭터도 접두사�
 @keyframes pxRb5{0%,100%{box-shadow:0 0 0 4px #14c8b8,0 0 0 7px #1c2550,0 0 20px #14c8b8}33%{box-shadow:0 0 0 4px #4aa8ff,0 0 0 7px #1c2550,0 0 20px #4aa8ff}66%{box-shadow:0 0 0 4px #9cf06a,0 0 0 7px #1c2550,0 0 20px #9cf06a}}
 @keyframes pxRb6{0%,100%{box-shadow:0 0 0 4px #ff2aa0,0 0 0 7px #ffd23f,0 0 0 10px #1c2550,0 0 26px #ff2aa0}25%{box-shadow:0 0 0 4px #ffb020,0 0 0 7px #ff2aa0,0 0 0 10px #1c2550,0 0 30px #ffb020}50%{box-shadow:0 0 0 4px #14c8b8,0 0 0 7px #ffd23f,0 0 0 10px #1c2550,0 0 26px #14c8b8}75%{box-shadow:0 0 0 4px #c070ff,0 0 0 7px #ff2aa0,0 0 0 10px #1c2550,0 0 30px #c070ff}}`;document.head.appendChild(c)})();
 
+// ===== 야생에서 접두사 달린 포켓몬이 나와요 (난이도가 높을수록 자주 · 잡으면 그 접두사 그대로!) =====
+const PXWILD=[.08,.12,.16,.2,.25];
+{const _b=battle;battle=function(o){try{if(o&&!o.trainer&&!o.wb&&o.foes)for(const f of o.foes){if(f.px==null&&R()<PXWILD[Math.min(4,DIFF())]){f.px=pxRoll();f.hp=stOf(f)[0];const p=PX[f.px];if(p.g>=1)setTimeout(()=>toast('접두사 포켓몬 등장! ['+PXG[p.g]+'] '+p.n+' '+META[f.n].name+' · 잡으면 접두사 그대로!'),400)}}}catch(e){}return _b.apply(this,arguments)}}
+try{const h=HUB.find(x=>x.k==='prefix');if(h)h.d+=' 야생에서도 가끔 접두사 달린 포켓몬이 나와요 (난이도가 높을수록 자주). 잡으면 그 접두사가 그대로 와요!'}catch(e){}
+
 // ===== 아이템 설명 미리 보기: 아이템이 보이는 곳 어디서나 누르면 설명 (data-iv) =====
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-iv]');if(!b||!G)return;const k=b.dataset.iv;if(!ITEMS[k])return;e.stopPropagation();sfx('tap');itemInfo(k)},true);
 // 포케스탑 결과 · 월드맵 특산품 · 마을 정보에 data-iv 달기
@@ -3784,10 +3789,12 @@ try{HUB.push({k:'wx',n:'날씨 · 밤낮 포켓몬',d:'길마다 3시간마다 �
 #wxBadge.wx-rain i{background:#4aa8ff;box-shadow:0 0 6px #4aa8ff}#wxBadge.wx-sun i{background:#ff8a1a}#wxBadge.wx-snow i{background:#e6f6ff}#wxBadge.wx-sand i{background:#c8a24a}#wxBadge.wx-fog i{background:#b0b8c8}#wxBadge.night{background:#0a0f2ae6;box-shadow:0 0 0 2px #8a7aff}
 body.inb #wxBadge{display:none!important}@media (orientation:landscape){#wxBadge{top:calc(180px + env(safe-area-inset-top))}}`;document.head.appendChild(c)})();
 
-// ===== 신화 · 환상 · 유일 포켓몬은 어려움 난이도부터 (야생 · 카드팩 · 합성) =====
-const rarCapOk=n=>{try{return DIFF()>=2||rarOf(n)<4}catch(e){return true}};
-{const _ri=rollItem;rollItem=function(kind,rar){if(kind==='P'&&DIFF()<2&&rar!=null&&rar>=4)rar=3;let g=_ri.call(this,kind,rar);for(let i=0;i<6&&kind==='P'&&DIFF()<2&&g&&g.rar>=4;i++)g=_ri.call(this,kind,3);return g}}
-try{const h=HUB.find(x=>x.k==='card');if(h)h.d+=' 신화 · 환상 · 유일 포켓몬은 어려움 난이도부터 나와요.'}catch(e){}
+// ===== 난이도마다 한 등급씩 열려요: 쉬움·보통 전설까지 · 어려움 신화 · 지옥 환상 · 나이트메어 유일 =====
+// (야생 · 알 · 보상) · 카드팩과 합성은 어느 난이도든 운 좋으면 신화까지
+const RCAP=[3,3,4,5,6];const rarCap=()=>{try{return RCAP[Math.min(4,DIFF())]}catch(e){return 3}};
+const rarCapOk=n=>{try{return rarOf(n)<=rarCap()}catch(e){return true}};
+{const _ri=rollItem;rollItem=function(kind,rar){if(kind!=='P')return _ri.apply(this,arguments);const cap=Math.max(4,rarCap());if(rar!=null&&rar>cap)rar=cap;let g=_ri.call(this,kind,rar);for(let i=0;i<6&&g&&g.rar>cap;i++)g=_ri.call(this,kind,cap);return g}}
+try{const h=HUB.find(x=>x.k==='card');if(h)h.d+=' 난이도마다 한 등급씩 열려요: 쉬움·보통 전설까지 · 어려움 신화 · 지옥 환상 · 나이트메어 유일. 카드팩·합성은 어느 난이도든 운 좋으면 신화까지!'}catch(e){}
 
 // ===== 난이도 클리어 연출: 챔피언이 되면 새 장이 열리듯 멋지게 + 전설 포켓몬 하나 고르기 =====
 const CLRN=['쉬움','보통','어려움','지옥','나이트메어'];
@@ -3835,6 +3842,49 @@ function legendPick(){return new Promise(done=>{const L=SPECIES.filter(s=>META[s
 .lgg{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;padding:6px 14px 14px}
 .lgc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:0;background:#fffaf0;font-family:inherit;color:#1c2550;cursor:pointer;box-shadow:0 0 0 3px #ffb020,0 4px 0 3px #1c2550}.lgc:active{transform:translateY(3px)}
 .lgc img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated}.lgc b{font-size:14px}.lgc small{font-size:11px;color:#6b7280}`;document.head.appendChild(c)})();
+
+// ===== 알 부화: 포켓몬 알을 얻으면 부화기(3칸)에 들어가고, 걸을수록 부화해요 =====
+// 알은 포케스탑(6%) · 히든 포탈(25%)에서 · 부화기에 넣을 때 등급이 정해져요 (일반 50 · 희귀 32 · 영웅 14 · 전설 4 · 어려움부터 신화 1)
+// 필요한 걸음: 일반 150 · 희귀 300 · 영웅 600 · 전설 1200 · 신화 2000
+const EGGW=[50,32,14,4,1],EGGN=[150,300,600,1200,2000],EGGC=['#e8e4d8','#bfe0ff','#e6c8ff','#ffe08a','#ffb0c0'],EGG_SLOT=3;
+ITEMS.egg={n:'포켓몬 알',e:'<i class="ic eggic" style="--ec:#f3eee0"></i>'};
+try{ITD.egg={s:'걸으면 부화하는 포켓몬 알',use:'가지고 있으면 부화기(3칸)에 저절로 들어가요. 걸을수록 부화해요 (자동 사냥으로 걸어도 돼요)',good:'안 잡아 본 포켓몬이 잘 나와요',who:'도감을 채우고 싶은 친구',tip:'부화기에 들어갈 때 등급이 정해져요. 좋은 알일수록 오래 걸어야 해요'}}catch(e){}
+function eggS(){G.inc=G.inc||[];return G.inc}
+function eggFill(){if(!G)return;const I=eggS();while(I.length<EGG_SLOT&&(G.bag.egg||0)>0){G.bag.egg--;const W=EGGW.slice(0,Math.min(5,rarCap()+1));let u=R()*W.reduce((a,b)=>a+b,0),r=0;for(;r<W.length;r++){u-=W[r];if(u<0)break}r=Math.min(r,W.length-1);I.push({r,st:0,need:EGGN[r]});save();toast('알을 부화기에 넣었어요 · '+RAR[r]+' 알 (걸음 '+EGGN[r]+')')}}
+let EGPOS=null;
+setInterval(()=>{try{if(!G||SCENE!=='over')return;eggFill();const k=G.a+':'+P.x+','+P.y;if(EGPOS&&EGPOS!==k){const I=eggS();for(const e of I)e.st=Math.min(e.need,e.st+1);if(I.length&&(I[0].st%25===0))save()}EGPOS=k;
+  const done=eggS().findIndex(e=>e.st>=e.need);if(done>=0&&!P.busy&&!DLG.on&&!PANEL&&!document.getElementById('egOv')&&!EVB.n&&!(AUTO.on&&BS.on))eggHatch(done);eggHud()}catch(e){}},150);
+async function eggHatch(i){const I=eggS(),e=I[i];if(!e)return;I.splice(i,1);save();
+  // 안 잡아 본 포켓몬을 먼저 (6번 안에)
+  let g=null;for(let t=0;t<6;t++){g=rollItem('P',e.r);if(!G.dex.c[g.id])break}const n=g.f&&META[g.f]?g.f:BYDEX[g.id];if(!n)return;
+  const o=document.createElement('div');o.id='egOv';o.innerHTML=`<div class="egw"><div class="egg big" style="--ec:${EGGC[e.r]}"><i></i></div><p>어라…? 알이 움직여요!</p></div>`;document.body.appendChild(o);sfx('tap');
+  const eg=o.querySelector('.egg');for(let k=0;k<3;k++){eg.classList.add('wob');await sleep(650);eg.classList.remove('wob');await sleep(250);sfx('tap')}eg.classList.add('crack');await sleep(500);o.remove();
+  const lv=Math.max(5,Math.min(100,(typeof topLv==='function'?topLv():10)-8));const m=mkMon(BYDEX[g.id],lv);if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(R()<.03)m.sh=1;m.egg=1;
+  const M=META[m.n],nw=!G.dex.c[M.dex];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
+  try{await CardPack.open({rar:rarOf(m.n),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}
+  if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m)}else{if(G.party.length<6)G.party.push(m);else G.box.push(m);toast('알에서 '+M.name+'(이)가 태어났어요!'+(nw?' (도감 새로 등록)':''))}save();try{refreshSpr()}catch(e){}}
+function eggHud(){let b=document.getElementById('egHud');const I=G?eggS():[];if(!G||SCENE!=='over'||!I.length){if(b)b.style.display='none';return}
+  if(!b){b=document.createElement('button');b.id='egHud';b.onclick=()=>{sfx('tap');eggOpen()};document.body.appendChild(b)}b.style.display='';
+  const h=I.map(e=>`<span><i class="egg" style="--ec:${EGGC[e.r]}"><i></i></i><u><em style="width:${e.st/e.need*100}%"></em></u></span>`).join('');if(b.dataset.h!==h){b.dataset.h=h;b.innerHTML=h+'<small>알</small>'}}
+function eggOpen(){const I=eggS();openPanel('알 부화기 · '+I.length+'/'+EGG_SLOT,`<p class="hhint">걸을수록 부화해요 (자동 사냥으로 걸어도 돼요). 부화기는 3칸이고, 가방에 알이 더 있으면 자리가 나는 대로 들어가요. 가방의 알 ${G.bag.egg||0}개.</p>
+  <div class="egl">${I.map(e=>`<div class="egr"><i class="egg" style="--ec:${EGGC[e.r]}"><i></i></i><span><b style="color:${RARC[e.r]}">${RAR[e.r]} 알</b><small>${e.st} / ${e.need} 걸음 · 남은 걸음 ${e.need-e.st}</small><u><em style="width:${e.st/e.need*100}%"></em></u></span></div>`).join('')||'<p class="hhint">부화기가 비어 있어요. 포케스탑 · 히든 포탈에서 알을 얻어요!</p>'}</div>`)}
+// 알 얻는 곳
+{const _pl=psLoot;psLoot=function(){const L=_pl.apply(this,arguments);if(R()<.06)L.egg=(L.egg||0)+1;return L}}
+{const _h=hpEnter;hpEnter=async function(){const n0=G&&G.hp?G.hp.n:0;const r=await _h.apply(this,arguments);try{if(G&&G.hp&&G.hp.n>n0&&R()<.25&&BS.lastRes==='win'){addItem('egg',1);toast('포켓몬 알도 얻었어요!')}}catch(e){}return r}}
+{const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{BS.lastRes=r}catch(e){}return r}}
+try{HUB.push({k:'egg',n:'알 부화',d:'포케스탑 · 히든 포탈에서 포켓몬 알을 얻어요. 부화기(3칸)에 들어가면 등급이 정해지고, 걸을수록 부화해요. 안 잡아 본 포켓몬이 잘 나와요! 일반 150 · 희귀 300 · 영웅 600 · 전설 1200 · 신화 2000 걸음 (신화 알은 어려움부터).',st:()=>'부화기 '+eggS().length+'/'+EGG_SLOT+' · 가방 '+(G.bag.egg||0)+'개',go:[['알 부화기',()=>eggOpen()]]})}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`
+.egg{display:inline-block;position:relative;width:18px;height:22px;border-radius:50% 50% 46% 46%/60% 60% 40% 40%;background:radial-gradient(circle at 35% 30%,#fff 0 18%,var(--ec) 19%);box-shadow:inset -3px -3px 0 #0002,0 0 0 2px #1c2550}
+.egg>i{position:absolute;width:5px;height:5px;left:9px;top:12px;background:#1c255033;border-radius:50%;box-shadow:-5px -5px 0 0 #1c255026}
+.egg.big{width:110px;height:136px;box-shadow:inset -12px -12px 0 #0002,0 0 0 5px #1c2550,0 0 40px #fff8}.egg.big>i{width:22px;height:22px;left:56px;top:70px;box-shadow:-28px -30px 0 0 #1c255026}
+.eggic{width:22px;height:26px;border-radius:50% 50% 46% 46%/60% 60% 40% 40%;background:radial-gradient(circle at 35% 30%,#fff 0 18%,var(--ec) 19%);box-shadow:inset -3px -3px 0 #0002,0 0 0 2px #1c2550;display:inline-block}
+.egg.wob{animation:egWob .6s ease-in-out}@keyframes egWob{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+.egg.crack{animation:egPop .5s ease-in forwards}@keyframes egPop{60%{transform:scale(1.25);filter:brightness(2)}100%{transform:scale(1.6);opacity:0;filter:brightness(4)}}
+#egOv{position:fixed;inset:0;z-index:110;background:#0a1024d0;display:flex;align-items:center;justify-content:center}.egw{display:flex;flex-direction:column;align-items:center;gap:20px;color:#fff;font:700 20px 'Galmuri11',sans-serif;text-shadow:2px 2px 0 #1c2550}
+#egHud{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));top:calc(240px + env(safe-area-inset-top));display:flex;align-items:center;gap:6px;padding:5px 8px;border:0;background:#1c2550e6;box-shadow:0 0 0 2px #ffd23f;cursor:pointer}
+#egHud span{display:flex;flex-direction:column;align-items:center;gap:2px}#egHud u,.egr u{display:block;width:22px;height:4px;background:#ffffff40}#egHud u em,.egr u em{display:block;height:100%;background:#7cf06a}
+#egHud small{color:#fff;font:700 11px 'Galmuri11',sans-serif}body.inb #egHud{display:none!important}@media (orientation:landscape){#egHud{top:calc(222px + env(safe-area-inset-top))}}
+.egl{display:flex;flex-direction:column;gap:10px;margin:6px 4px}.egr{display:flex;align-items:center;gap:12px;background:#fffaf0;padding:10px 12px;box-shadow:0 3px 0 #1c2550,0 -3px 0 #1c2550,3px 0 0 #1c2550,-3px 0 0 #1c2550}.egr .egg{width:30px;height:36px}.egr span{flex:1;display:flex;flex-direction:column;gap:3px}.egr u{width:100%;height:8px;background:#1c255022}`;document.head.appendChild(c)})();
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
