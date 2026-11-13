@@ -2983,6 +2983,7 @@ async function xferScan(){if(!('BarcodeDetector' in window)){await (G?say(['이 
   (async function tick(){if(done||!document.body.contains(o))return;try{const r=await det.detect(v);for(const x of r||[]){const t=x.rawValue||'';
       if(/^PKX1\|/.test(t)){const [,a,b,id,c]=t.split('|');if(set!==id){set=id;got={};n=+b;bar.innerHTML=Array.from({length:n},()=>'<i></i>').join('')}if(!got[a]){got[a]=c;try{navigator.vibrate&&navigator.vibrate(20)}catch(e){}bar.children[+a-1]&&bar.children[+a-1].classList.add('on');msg.textContent=Object.keys(got).length+' / '+n+'장 받았어요'}
         if(Object.keys(got).length===n){done=1;xfClose();sfx('get');await xferApply(Array.from({length:n},(_,i)=>got[i+1]).join(''));return}}
+      else if(/^PK[TB]1\|/.test(t)){done=1;xfClose();sfx('get');if(!G)return;await (t[2]==='T'?tradeApply(t):pvpApply(t));return}
       else if(/gb=|me=|\.[0-9A-Z]{8}$/i.test(t)){done=1;xfClose();sfx('get');if(!G){alert('출석 앱 QR은 게임을 시작한 다음에 찍어 주세요 (이름 넣고 새로 시작 또는 이어하기)');return}await gbApply(t);return}}}catch(e){}setTimeout(tick,150)})()}
 async function xferApply(b){let d;try{d=JSON.parse(await unzipStr(ub64u(b)))}catch(e){toast('QR을 읽다가 실패했어요. 다시 해 주세요');return}if(!d||d.k!=='pka'||!d.g){toast('포켓몬 기록 QR이 아니에요');return}
   const g=d.g,name=(d.name||g.name||'옮긴 기록').slice(0,8),exist=!!LS.get('pka-save:'+name,null);
@@ -3002,7 +3003,7 @@ async function qrFromSource(src,w,h){// src: ImageBitmap/video/canvas
   await jsqrLoad();const out=[];for(const M of [1600,1000,700,1400]){const k=Math.min(1,M/Math.max(w,h)),W=Math.round(w*k),H=Math.round(h*k);const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(src,0,0,W,H);
     const d=g.getImageData(0,0,W,H);const r=jsQR(d.data,W,H,{inversionAttempts:'attemptBoth'});if(r&&r.data){out.push(r.data);break}}return out}
 async function qrHandle(texts){const parts={};let n=0,id=null,att=null;
-  for(const t of texts){if(/^PKX1\|/.test(t)){const [,a,b,i,c]=t.split('|');if(id&&id!==i)continue;id=i;n=+b;parts[a]=c}else if(/gb=|me=|\.[0-9A-Z]{8}$/i.test(t))att=t}
+  for(const t of texts){if(/^PK[TB]1\|/.test(t)&&G){sfx('get');await (t[2]==='T'?tradeApply(t):pvpApply(t));return}if(/^PKX1\|/.test(t)){const [,a,b,i,c]=t.split('|');if(id&&id!==i)continue;id=i;n=+b;parts[a]=c}else if(/gb=|me=|\.[0-9A-Z]{8}$/i.test(t))att=t}
   if(att){if(!G){alert('출석 앱 QR은 게임을 시작한 다음에 가져와 주세요 (이름 넣고 새로 시작 또는 이어하기)');return}sfx('get');await gbApply(att);return}
   if(id){const have=Object.keys(parts).length;if(have<n){const miss=Array.from({length:n},(_,i)=>i+1).filter(i=>!parts[i]);alert('QR '+n+'장 중 '+have+'장만 있어요.\n빠진 번호: '+miss.join(', ')+'\n보내는 폰 화면을 캡처할 때 번호가 바뀔 때마다 한 장씩 찍어 주세요. (카메라로 바로 찍는 게 더 쉬워요)');return}
     sfx('get');await xferApply(Array.from({length:n},(_,i)=>parts[i+1]).join(''));return}
@@ -4231,6 +4232,55 @@ setInterval(()=>{try{let b=document.getElementById('rewBar');const L=G&&SCENE===
 #rewBar button{font:700 13px 'Galmuri11',sans-serif;border:0;padding:5px 10px;color:#1c2550;background:linear-gradient(#ffe680 0 50%,#ffc21f 50%);box-shadow:0 2px 0 #1c2550,0 -2px 0 #1c2550,2px 0 0 #1c2550,-2px 0 0 #1c2550;cursor:pointer}#rewBar button:active{transform:translateY(2px)}
 @keyframes rewB{50%{box-shadow:0 0 0 3px #fff3a0,0 0 0 6px #1c2550,0 0 22px #ff5a4a}}
 body.inb #rewBar{display:none!important}@media (orientation:landscape){#rewBar{top:calc(82px + env(safe-area-inset-top))}}`;document.head.appendChild(c)})();
+
+// ===== 포켓몬 교환: 친구에게 QR로 포켓몬 보내기 (보내면 내 쪽에서는 사라져요 · 같은 QR은 한 번만 받아요) =====
+const monPack=m=>({n:m.n,lv:m.lv,exp:m.exp,iv:m.iv,moves:m.moves,px:m.px,sh:m.sh?1:0,nick:m.nick,lb:m.lb||0});
+function monUnpack(d){const m=mkMon(d.n,d.lv);if(d.exp!=null)m.exp=d.exp;if(d.iv)m.iv=d.iv;if(d.moves&&d.moves.length)m.moves=d.moves;if(d.px!=null)m.px=d.px;if(d.sh)m.sh=1;if(d.nick)m.nick=d.nick;if(d.lb)m.lb=d.lb;m.hp=stOf(m)[0];return m}
+async function qrPack(tag,obj){return tag+'|'+b64u(await zipStr(JSON.stringify(obj)))}
+async function qrUnpack(t){return JSON.parse(await unzipStr(ub64u(t.slice(5))))}
+function qrShow(title,txt,lines,btns){xfClose();const o=document.createElement('div');o.id='xfOv';o.innerHTML=`<div class="xfq"></div><div class="xfs"><b>${title}</b>${lines}<div class="wbt">${btns.map((b,i)=>`<button data-qb="${i}" class="${b[2]||''}">${b[0]}</button>`).join('')}</div></div>`;document.body.appendChild(o);
+  o.querySelector('.xfq').appendChild(qrCanvas(txt));o.querySelectorAll('[data-qb]').forEach(x=>x.onclick=()=>{sfx('tap');btns[+x.dataset.qb][1]()});try{noSleep&&noSleep()}catch(e){}return o}
+function tradeOpen(){if(!G)return;const all=[...G.party.map((m,i)=>({m,w:'p',i})),...G.box.map((m,i)=>({m,w:'b',i}))];
+  openPanel('포켓몬 교환 · 친구에게 보내기',`<p class="hhint">보낼 포켓몬을 골라요. QR이 뜨면 친구가 자기 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 비추면 받아요. <b>보내면 내 쪽에서는 사라져요.</b> (같은 QR은 한 번만 받을 수 있어요)</p>
+   <div class="wbt"><button class="main" id="trScan">친구가 보낸 QR 받기 (카메라)</button></div>
+   <div class="trg">${all.map((x,k)=>`<button class="trc" data-k="${k}" ${x.w==='p'&&G.party.length<=1?'disabled':''}><img src="${THUMB[x.m.n]||''}" alt=""><b>${nm(x.m)}</b><small>Lv.${x.m.lv}${x.w==='p'?' · 출전 중':''}</small></button>`).join('')}</div>`,null,p=>{
+    p.querySelector('#trScan').onclick=()=>{closePanel(1);xferScan()};
+    p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const x=all[+b.dataset.k];sfx('tap');itAsk('<b>'+nm(x.m)+'</b>을(를) 친구에게 보낼까요?','보내면 내 쪽에서는 사라져요. QR 화면에서 「보내기 취소」를 누르면 되돌릴 수 있어요.',()=>tradeSend(x.m))})})}
+async function tradeSend(m){if(typeof qrcode==='undefined'||typeof CompressionStream==='undefined'){toast('이 폰에서는 QR 보내기를 못 해요 (크롬 최신 버전 필요)');return}
+  const tok=Date.now().toString(36)+Math.random().toString(36).slice(2,7);const txt=await qrPack('PKT1',{k:'pkt',t:tok,from:(G.name||'').slice(0,8),m:monPack(m)});
+  const wasP=G.party.includes(m);G.party=G.party.filter(x=>x!==m);G.box=G.box.filter(x=>x!==m);G.trOut=G.trOut||[];G.trOut.push({t:tok,d:Date.now(),n:m.n});save();try{refreshSpr()}catch(e){}closePanel(1);
+  qrShow(nm(m)+' 보내기',txt,`<p>친구 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 이 화면을 비춰요.</p>`,[['친구가 받았어요 (닫기)',()=>{xfClose();toast(nm(m)+'을(를) 친구에게 보냈어요!')},'main'],['보내기 취소 (되돌리기)',()=>{(wasP&&G.party.length<6?G.party:G.box).push(m);G.trOut=(G.trOut||[]).filter(x=>x.t!==tok);save();try{refreshSpr()}catch(e){}xfClose();toast(nm(m)+'을(를) 되돌렸어요')}]])}
+async function tradeApply(t){let d;try{d=await qrUnpack(t)}catch(e){toast('교환 QR을 읽다가 실패했어요');return}if(!d||d.k!=='pkt'||!d.m||!META[d.m.n]){toast('교환 QR이 아니에요');return}
+  G.usedT=G.usedT||{};if(G.usedT[d.t]){toast('이미 받은 포켓몬이에요 (같은 QR은 한 번만)');return}if((G.trOut||[]).some(x=>x.t===d.t)){toast('내가 보낸 QR이에요');return}
+  const m=monUnpack(d.m);m.from=d.from||'친구';G.usedT[d.t]=1;const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
+  if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m);save();return}G.box.push(m);save();try{refreshSpr()}catch(e){}
+  try{await CardPack.open({rar:rarOf(m.n),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)');try{spAdd(5)}catch(e){}}
+
+// ===== 친구 대전: 내 팀 QR을 보여 주고, 친구 팀 QR을 찍으면 그 팀과 배틀 · 이기면 승리 +1 (같은 친구는 하루 3번까지) =====
+async function pvpMine(){if(!G)return;if(typeof qrcode==='undefined'||typeof CompressionStream==='undefined'){toast('이 폰에서는 QR을 못 만들어요');return}
+  const txt=await qrPack('PKB1',{k:'pkb',id:G.pid,name:(typeof rkName==='function'?rkName():G.name||'').slice(0,12),t:Date.now(),team:G.party.map(monPack)});
+  qrShow('내 팀 QR · 친구 대전',txt,`<p>친구가 자기 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 비추면 내 팀과 대전해요.</p><p><small>${G.party.map(m=>nm(m)+' Lv.'+m.lv).join(' · ')}</small></p>`,[['닫기',()=>xfClose(),'main']])}
+async function pvpApply(t){let d;try{d=await qrUnpack(t)}catch(e){toast('대전 QR을 읽다가 실패했어요');return}if(!d||d.k!=='pkb'||!d.team||!d.team.length){toast('대전 QR이 아니에요');return}
+  if(d.id===G.pid){toast('내 팀 QR이에요. 친구 QR을 찍어 주세요');return}if(SCENE!=='over'){toast('배틀이 끝나면 할 수 있어요');return}
+  const nmF=(typeof rkSplit==='function'?rkSplit(d.name).name:d.name)||'친구';G.pvpD=G.pvpD||{};if(G.pvpD.day!==dayKey())G.pvpD={day:dayKey(),c:{}};const cnt=G.pvpD.c[d.id]||0;
+  const ok=await new Promise(r=>itAsk('<b>'+esc(nmF)+'</b>의 팀과 대전할까요?',d.team.map(x=>(META[x.n]?META[x.n].name:'?')+' Lv.'+x.lv).join(' · ')+(cnt>=3?'<br><b style="color:#c0392b">오늘 이 친구에게는 3번 이겨서 승리 기록은 안 올라가요 (연습 대전)</b>':''),()=>r(1)))||0;if(!ok)return;
+  const foes=d.team.slice(0,6).filter(x=>META[x.n]).map(monUnpack);const keep=[...G.party,...G.box].map(m=>[m,m.hp]);[...G.party].forEach(m=>m.hp=stOf(m)[0]);
+  let r;try{r=await battle({scaled:1,trainer:'친구 '+nmF,foes,noMoney:1,pvp:1,lose:'좋은 승부였어!',bg:'stadium'})}finally{for(const [m,h] of keep)m.hp=h;save()}
+  if(r==='win'){if(cnt<3){G.pvpD.c[d.id]=cnt+1;G.pvpW=(G.pvpW||0)+1;save();try{spAdd(10)}catch(e){}try{if(navigator.onLine&&wbCfg())rankPush('pvp')}catch(e){}await say(['<b>'+esc(nmF)+'</b>의 팀을 이겼어요! 친구 대전 '+G.pvpW+'승','랭킹 → 친구 대전에서 볼 수 있어요.'])}else await say(['연습 대전 승리! (오늘 이 친구 승리 기록은 다 채웠어요)'])}
+  else await say(['아쉽게 졌어요… 포켓몬 체력은 원래대로 돌아왔어요. 다시 도전해 봐요!'])}
+// 친구 대전에서 지면 블랙아웃(돈 잃기) 없이
+{const _bo=blackout;blackout=async function(){if(BS&&BS.pvpLast)return;return _bo.apply(this,arguments)}}
+{const _b=battle;battle=async function(o){BS.pvpLast=!!(o&&o.pvp);try{return await _b.apply(this,arguments)}finally{setTimeout(()=>{BS.pvpLast=false},50)}}}
+// 랭킹에 친구 대전
+try{RKB.pvp={n:'친구 대전',k:()=>'pvp',v:()=>G.pvpW||0,u:'승',d:'친구 팀 QR을 찍고 대전해서 이긴 횟수 (같은 친구는 하루 3번까지)'};RKT.push(['pvp','친구 대전'])}catch(e){}
+// QR 옮기기 창 · 컨텐츠에 추가
+{const _xo=xferOpen;xferOpen=function(){_xo.apply(this,arguments);try{const pb=document.querySelector('.panel .pb');if(pb&&!pb.querySelector('#trBox'))pb.insertAdjacentHTML('beforeend',`<div class="hcard" id="trBox"><b>포켓몬 교환 · 친구 대전</b><p>친구에게 포켓몬을 QR로 보내거나, 내 팀 QR로 친구와 대전해요. 받을 때는 위의 「카메라로 QR 찍기」로 찍으면 돼요.</p><div class="wbt"><button class="main" id="trGo">포켓몬 보내기</button><button id="pvGo">내 팀 QR (대전)</button></div></div>`);
+  const a=document.getElementById('trGo');if(a)a.onclick=()=>{sfx('tap');closePanel(1);tradeOpen()};const b=document.getElementById('pvGo');if(b)b.onclick=()=>{sfx('tap');closePanel(1);pvpMine()}}catch(e){}}}
+try{HUB.push({k:'trade',n:'포켓몬 교환',d:'친구에게 포켓몬을 QR로 보내요. 받는 친구는 QR 옮기기 → 카메라로 QR 찍기. 보내면 내 쪽에서는 사라지고, 같은 QR은 한 번만 받아요.',st:()=>'',go:[['포켓몬 보내기',()=>tradeOpen()],['친구 QR 받기',()=>xferScan()]]});
+  HUB.push({k:'pvp',n:'친구 대전',d:'내 팀 QR을 친구에게 보여 주고, 친구 팀 QR을 찍으면 그 팀과 배틀! 이기면 친구 대전 1승 (같은 친구는 하루 3번까지) · 랭킹에도 올라가요. 져도 돈을 잃지 않고 체력은 원래대로.',st:()=>'친구 대전 '+(G.pvpW||0)+'승',go:[['내 팀 QR',()=>pvpMine()],['친구 팀 QR 찍기',()=>xferScan()]]});HUBIC.trade='ic_gift';HUBIC.pvp='ic_rank'}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`
+.trg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:8px 4px}
+.trc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px!important;font-family:'Galmuri11',sans-serif}.trc img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated}.trc b{font-size:13px}.trc small{font-size:11px;opacity:.75}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
