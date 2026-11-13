@@ -1499,7 +1499,7 @@ function bindMenu(){bt('bMenu').querySelectorAll('button').forEach(b=>b.onclick=
   else if(a==='run'){if(BS.trainer){msg('트레이너와의 승부에서는 도망칠 수 없어!').then(menuMain)}else done({t:'run'})}})}
 function done(x){if(CHOOSE){const c=CHOOSE;CHOOSE=null;c(x)}}
 function aiAct(){const me=BS.me.m,f=BS.foe.m;
-  if(!BS.trainer&&wantCatch(f)){const S=stOf(f);const ball=BR().auto?autoBallFor(f):null;if(!ball&&BALLS().length&&!BS.asked){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.35&&est<f.hp-1)return{t:'move',m:weak}}if(ball){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.45&&est<f.hp-1&&BS.turn<4)return{t:'move',m:weak};return{t:'item',k:ball}}}
+  if(!BS.trainer&&wantCatch(f)){const S=stOf(f);const ball=BR().auto?autoBallFor(f):null;if(!ball&&BALLS().length&&!BS.asked){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.35&&est<f.hp-1)return{t:'move',m:weak}}if(ball){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.35&&est<f.hp-1&&!(BS.turn>=8&&f.hp/S[0]<.6))return{t:'move',m:weak};return{t:'item',k:ball}}}
   const S=stOf(me);if(me.hp/S[0]<.25){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p&&BS.healUsed<2){BS.healUsed++;return{t:'item',k:p}}}
   return{t:'move',m:bestMove(me,f)}}
 function wantCatch(f){if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;try{BR()}catch(e){}if(G.party.length+G.box.length>=900)return false;if(G.opt.catchNew===false)return false;return !G.dex.c[META[f.n].dex]||(typeof rarOf==='function'&&rarOf(f.n)>=2)||!!f.shiny}
@@ -1719,7 +1719,7 @@ function modeToggle(){G.mode=G.mode==='turn'?'adv':'turn';try{localStorage.setIt
 function actPilot(fr){const me=BS.me,f=BS.foe,ai=ACT.ai,st=ACT.stick;ACT.pt=(ACT.pt||0)+fr;
   // 잡기 · 회복은 턴제 자동과 같은 판단
   if(!ACT.busy&&ACT.pt>.8){const S=stOf(f.m);
-    if(!BS.trainer&&wantCatch(f.m)&&BR().auto){const ball=autoBallFor(f.m);if(ball&&(f.m.hp/S[0]<.35||ACT.t>9)){BS.catchK=1;actEnd({t:'item',k:ball});return}}
+    if(!BS.trainer&&wantCatch(f.m)&&BR().auto){const ball=autoBallFor(f.m);if(ball&&(f.m.hp/S[0]<.3||(ACT.t>25&&f.m.hp/S[0]<.55))){BS.catchK=1;actEnd({t:'item',k:ball});return}}
     const M=stOf(me.m);if(me.m.hp/M[0]<.25&&BS.healUsed<2){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p){BS.healUsed++;actEnd({t:'item',k:p});return}}}
   const dx=f.ax-me.ax,dy=f.ay-me.ay,d=Math.hypot(dx,dy)||1,want=VW*.26;
   if(ai.tel>0&&ai.tel<.32&&ACT.dcd<=0){st.x=-dy/d;st.y=dx/d;actRoll();return}
@@ -2462,7 +2462,7 @@ const rarOf=n=>{const M=META[n];if(!M)return 0;if(M.form)return FTIER[M.form]||4
 const ENCW=[1,.4,.14,.04,.02,.01,.005],CATW=[1,.55,.3,.12,.08,.05,.03];
 const BALLS=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]&&(G.bag[k]||0)>0);
 // 자동일 때 볼 규칙 (기본: 자동은 볼 안 씀)
-const BR=()=>{G.opt.br=G.opt.br||{auto:1,great:1,hyper:2};if(!G.opt.acV){G.opt.acV=1;G.opt.br.auto=1;G.opt.catchNew=true}return G.opt.br};
+const BR=()=>{G.opt.br=G.opt.br||{auto:1,great:2,hyper:3};if(!G.opt.acV){G.opt.acV=1;G.opt.br.auto=1;G.opt.catchNew=true}if(G.opt.acV<2){G.opt.acV=2;G.opt.br.great=Math.max(2,G.opt.br.great||0);G.opt.br.hyper=Math.max(3,G.opt.br.hyper||0)}return G.opt.br};// 슈퍼볼은 영웅부터 · 하이퍼볼은 전설부터
 function autoBallFor(f){const r=rarOf(f.n),b=BR();if(!b.auto)return null;const can=k=>(G.bag[k]||0)>0;
   if(can('hyper')&&r>=b.hyper)return'hyper';if(can('great')&&r>=b.great)return'great';if(can('ball'))return'ball';return null}
 function wantAsk(){const f=BS.foe&&BS.foe.m;if(!f||BS.trainer||BS.asked||f.hp<=0)return false;if(!BALLS().length)return false;if(f.hp/stOf(f)[0]>.35)return false;
