@@ -4281,6 +4281,11 @@ try{HUB.push({k:'trade',n:'포켓몬 교환',d:'친구에게 포켓몬을 QR로 
 (function(){const c=document.createElement('style');c.textContent=`
 .trg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:8px 4px}
 .trc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px!important;font-family:'Galmuri11',sans-serif}.trc img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated}.trc b{font-size:13px}.trc small{font-size:11px;opacity:.75}`;document.head.appendChild(c)})();
+// 친구 대전은 양쪽 모두 자동으로만 싸워요 (내 포켓몬도 직접 조종 안 함)
+{const _b=battle;battle=async function(o){if(!(o&&o.pvp))return _b.apply(this,arguments);const prev=G.autoBattle;G.autoBattle=1;BS.pvpAuto=1;try{return await _b.apply(this,arguments)}finally{G.autoBattle=prev;BS.pvpAuto=0}}}
+{const _u=actUpdate;actUpdate=function(dt){if(BS.pvpAuto){G.autoBattle=1;try{ACT.man=0}catch(e){}}return _u.apply(this,arguments)}}
+setInterval(()=>{try{const b=document.getElementById('bAutoB');if(b)b.style.visibility=BS.pvpAuto?'hidden':''}catch(e){}},300);
+try{const h=HUB.find(x=>x.k==='pvp');if(h)h.d+=' 친구 대전은 내 포켓몬도 자동으로만 싸워요 (편성과 접두사가 실력!).'}catch(e){}
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
