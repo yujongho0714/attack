@@ -419,6 +419,8 @@ small.itd{display:block;color:#5a4a20;font-weight:700;font-size:11px}
 .wbcd{display:flex;gap:6px;margin-top:6px}.wbcd span{flex:1;display:flex;flex-direction:column;align-items:center;background:#0006;border-radius:10px;padding:4px 2px;border:1px solid #fff3}.wbcd b{font-size:20px!important;color:#fff!important;display:block;font-variant-numeric:tabular-nums}.wbcd small{font-size:10px}
 #wbHud{position:fixed;top:calc(64px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:30;width:min(520px,70vw);background:#10162ae6;color:#fff;border:2px solid #ff5a3a;border-radius:12px;padding:5px 10px;text-align:center;font:700 12px var(--ff,sans-serif);pointer-events:none;box-shadow:0 0 14px #ff5a3a88}
 #wbHud>b{font-size:14px;color:#ffe066}.wbhb{height:10px;border-radius:5px;background:#0008;margin:3px 0;overflow:hidden}.wbhb i{display:block;height:100%;background:linear-gradient(90deg,#ff3b3b,#ffb03b);transition:width .3s}#wbHud span b{color:#ffe066}
+.wbrk{float:right;font-size:11px!important;padding:3px 10px!important}.wbr em small{font-weight:700;color:#a05a00}
+.rtg{font-style:normal;color:#fff;border-radius:5px;padding:0 6px;font-size:11px}.mgrec{border:3px solid #1c2550;border-radius:12px;background:#fff;font-weight:900;padding:8px 14px;color:#1c2550}
 </style><script src="lib/pixelfx.js" defer></script><script src="lib/qrcode.js" defer></script></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
@@ -2687,7 +2689,7 @@ const TWWK=[[10,'포켓몬팩 3장',[{multi:['P','P','P']}]],[20,'포켓몬팩 3
 function twWeek(T){const wk=typeof wbWeek==='function'?wbWeek():dayKey();if(T.wk!==wk){T.wk=wk;T.f=1;T.wb=0;T.got={}}}
 function towerOpen(){const S=mgS();S.tw=S.tw||{f:1,best:0};const T=S.tw;twWeek(T);const B=mgOpen('노랑시티 격투 탑','stages/gym_psychic.webp');const lv=twLv(T.f);
   B.innerHTML=`<div class="twr"><div class="twf"><small>지금</small><b>${T.f}층</b><small>이번 주 최고 ${T.wb||0}층 · 역대 ${T.best}층</small></div><p class="mgt">층마다 트레이너가 기다려요. 이기면 다음 층!<br><small>5층마다 회복 + 카드팩 · 지면 1층부터 · <b>매주 월요일 1층부터 다시</b></small></p><div class="twk">${TWWK.map(([f,t])=>`<span class="${(T.got||{})[f]?'on':''}"><b>${f}층</b>${t}${(T.got||{})[f]?' · 받음':''}</span>`).join('')}</div>
-   <div class="twn">다음 상대: Lv.${lv} · ${twCnt(T.f)}마리</div><button class="main mgbig" id="tGo">${T.f}층 도전!</button></div>`;
+   <div class="twn">다음 상대: Lv.${lv} · ${twCnt(T.f)}마리</div><button class="main mgbig" id="tGo">${T.f}층 도전!</button><div class="wbt"><button id="tRk">랭킹 등록하기 (이번 주 최고 ${T.wb||0}층)</button><button id="tRv">랭킹 보기</button></div></div>`;B.querySelector('#tRk').onclick=()=>{try{rankPush('tower')}catch(e){}};B.querySelector('#tRv').onclick=()=>{mgClose();try{rankOpen('tower')}catch(e){}};
   B.querySelector('#tGo').onclick=async()=>{if(!G.party.some(m=>m.hp>0)){toast('먼저 치료하고 와요');return}const [spr,name]=pick(TWR);const f=T.f,lv=twLv(f),n=twCnt(f);
     const L=SPECIES.filter(s=>!META[s].form&&bst(META[s].stats)<=360+f*14&&bst(META[s].stats)>=260+f*8);const foes=Array.from({length:n},()=>mkMon(pick(L.length>4?L:SPECIES),lv+ri(-1,1)));mgClose();
     try{await trainerScene(spr,name+' ('+f+'층)',[pick(['격투 탑에 온 걸 환영해!','여기까지 오다니 제법인데?','내 포켓몬이 더 강해!','한 층 한 층이 시험이야!'])])}catch(e){}
@@ -3008,7 +3010,7 @@ try{TOWNF[9]={d:'',f:[],sale:{}};TOWNF.push(
 // ===== 월드보스: 매주 전설 포켓몬 · 모두의 데미지를 합쳐서 쓰러뜨리기 · 랭킹 · 처치 완료 → 포획 시도 5번 =====
 // 서버: 출결 Firebase(Firestore) pokeBoss/{주}/players/{기기id} = {name, dmg, t} · 연결 코드가 없으면 내 폰 기록만
 const WBCODE='';// 출결 연결 코드(JD1-…)를 받으면 여기에 넣어요
-const WB_HP=4000000,WB_TRY=3,WB_THROW=5,WB_TLIM=90;
+const WB_HP=1500000,WB_TRY=3,WB_THROW=5,WB_TLIM=90;
 // 지금은 전설만 · 나중에 신화(4) · 환상(5) · 유일(6) 보스로 넓혀요
 const WB_TIER=3,WB_DEX=[150,249,250,384,382,383,483,484,487,643,644,716,717,791,792,888,889,146,145,144,243,244,245,380,381,385,386,638,639,640,800];
 function wbCfg(){try{const c=WBCODE||localStorage.getItem('pka-wbcode')||'';if(!c.startsWith('JD1-'))return null;const [projectId,apiKey]=atob(c.slice(4).replace(/-/g,'+').replace(/_/g,'/')).split('|');return projectId&&apiKey?{projectId,apiKey}:null}catch(e){return null}}
@@ -3066,11 +3068,11 @@ setInterval(()=>{try{if(G&&G.party.length&&SCENE==='over'){wbS();if(G.wb.last)wb
 // ---------- 화면 ----------
 async function wbOpen(){if(!G)return;const w=wbS(),n=wbBoss();const fmt=x=>x.toLocaleString();const day=dayKey(),left=WB_TRY-(w.tries[day]||0);
   const render=L=>{const tot=wbTotal(L),dead=tot>=WB_HP,hpL=Math.max(0,WB_HP-tot);const me=L?L.findIndex(x=>x.id===G.pid):-1;const ms=wbNextReset(),dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);
-    const top=(L||[]).slice(0,10).map((x,i)=>`<div class="wbr${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${x.name}</span><em>${fmt(x.dmg)}</em></div>`).join('')||`<small>${wbCfg()?'아직 아무도 안 싸웠어요. 첫 데미지를 넣어 봐요!':'서버 연결 전이에요 · 내 기록만 보여요'}</small>`;
+    const top=(L||[]).slice(0,10).map((x,i)=>`<div class="wbr${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${x.name}</span><em>${fmt(x.dmg)}<small> · ${(x.dmg/WB_HP*100).toFixed(x.dmg/WB_HP>=.1?0:1)}%</small></em></div>`).join('')||`<small>${wbCfg()?'아직 아무도 안 싸웠어요. 첫 데미지를 넣어 봐요!':'서버 연결 전이에요 · 내 기록만 보여요'}</small>`;
     return `<div class="wbh" style="--c:${TCOL[META[n].types[0]]}"><img src="${THUMB[n]||''}"><div><small>이번 주 월드보스 · 전설</small><b>${META[n].name}</b><div class="wbhp"><i style="width:${hpL/WB_HP*100}%"></i><span>${dead?'처치 완료!':fmt(hpL)+' / '+fmt(WB_HP)}</span></div><div class="wbcd"><span><small>남은 체력</small><b>${dead?'0':fmt(hpL)}</b><small>${dead?'처치 완료':Math.ceil(hpL/WB_HP*100)+'%'}</small></span><span><small>남은 날</small><b class="wbD">${dd}일</b><small>월요일 초기화</small></span><span><small>남은 시간</small><b class="wbT">${String(Math.floor(ms%864e5/36e5)).padStart(2,'0')}:${String(Math.floor(ms%36e5/6e4)).padStart(2,'0')}:${String(Math.floor(ms%6e4/1e3)).padStart(2,'0')}</b><small>시:분:초</small></span></div></div></div>
-    <div class="wbme"><span>내 누적 데미지 <b>${fmt(w.dmg)}</b></span><span>내 순위 <b>${me>=0?(me+1)+'위':'-'}</b></span><span>오늘 도전 <b>${Math.max(0,left)}/${WB_TRY}</b></span></div>
+    <div class="wbme"><span>내 누적 데미지 <b>${fmt(w.dmg)}</b> <small>(보스 체력의 ${(w.dmg/WB_HP*100).toFixed(1)}%)</small></span><span>내 순위 <b>${me>=0?(me+1)+'위':'-'}</b></span><span>오늘 도전 <b>${Math.max(0,left)}/${WB_TRY}</b></span></div>
     <div class="wbt">${dead?(w.done?`<button disabled>${w.caught?'포획 성공! 이번 주 끝':'포획 시도 끝 · 다음 주에 또!'}</button>`:w.dmg?`<button class="main" id="wbC">처치 완료! 포획 시도 (${WB_THROW-w.throws}번 남음)</button>`:'<button disabled>처치 완료 · 싸운 친구만 포획 시도</button>'):`<button class="main" id="wbF" ${left>0?'':'disabled'}>${left>0?'보스에게 도전! (제한 '+WB_TLIM+'초)':'오늘 도전 끝 · 내일 또!'}</button>`}<button id="wbR">새로고침</button></div>
-    <h4>누적 데미지 랭킹 TOP 10 <small class="wbst"></small></h4><p class="wbpd">월드보스는 <b>인터넷이 켜져 있을 때만</b> 참여할 수 있어요. 모두의 데미지를 서버에 바로 모아서 실시간 랭킹을 만들기 때문이에요.${w.pend?' (방금 싸운 데미지가 아직 안 올라갔어요. 인터넷이 켜지면 자동으로 올라가요)':''}</p><div class="wbl">${top}</div>
+    <h4>누적 데미지 랭킹 TOP 10 <small class="wbst"></small> <button class="wbrk" onclick="rankOpen('tower')">다른 랭킹</button></h4><p class="wbpd">월드보스는 <b>인터넷이 켜져 있을 때만</b> 참여할 수 있어요. 모두의 데미지를 서버에 바로 모아서 실시간 랭킹을 만들기 때문이에요.${w.pend?' (방금 싸운 데미지가 아직 안 올라갔어요. 인터넷이 켜지면 자동으로 올라가요)':''}</p><div class="wbl">${top}</div>
     <div class="hcard"><b>주간 보상 (월요일에 자동 지급)</b><p>1~10위: 전설 카드팩 1장 + 포켓몬팩 10장 + 기술팩 10장<br>11위부터: 영웅~전설 카드팩 1장 + 포켓몬팩 5장 + 기술팩 5장<br>보스를 쓰러뜨리면: 싸운 친구 모두 전설 카드팩 1장 더!<br>쓰러뜨린 다음엔 「포획 시도」로 볼을 ${WB_THROW}번 던져서 잡을 수 있어요.</p><small>지금은 전설 보스만 나와요. 나중엔 신화 · 환상 · 유일 보스도 나와요!</small></div>`};
   openPanel('월드보스',render(WBC.wk===w.wk?WBC.list:null),null,p=>{const bind=()=>{const f=p.querySelector('#wbF');if(f)f.onclick=()=>wbFight();const c=p.querySelector('#wbC');if(c)c.onclick=()=>wbCatch();const r=p.querySelector('#wbR');if(r)r.onclick=async()=>{sfx('tap');const L=await wbFetch(w.wk,1);p.querySelector('.pb, .pbody')?0:0;const host=p.querySelector('.wbh').parentNode;host.innerHTML=render(L);bind()}};bind();
     const upd=async f=>{const L=await wbFetch(w.wk,f);if(!document.body.contains(p))return false;const h=p.querySelector('.wbh');if(h&&L){h.parentNode.innerHTML=render(L);bind()}const st=p.querySelector('.wbst');if(st)st.textContent=!wbCfg()?'서버 연결 전 · 내 기록만':!navigator.onLine||WBC.err?'인터넷이 꺼져 있어요 · 월드보스는 인터넷이 켜져 있어야 참여할 수 있어요':'실시간 랭킹 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' 기준';return true};
@@ -3088,6 +3090,46 @@ setInterval(()=>{try{const t=document.querySelector('.wbT');if(!t)return;const m
 setInterval(()=>{try{let o=document.getElementById('wbHud');if(!BS.wb||SCENE!=='battle'){if(o)o.remove();return}if(!o){o=document.createElement('div');o.id='wbHud';document.body.appendChild(o)}
   const L=WBC.list,f=BS.foe&&BS.foe.m;const fight=f&&BS.wbHp0?Math.max(0,BS.wbHp0-f.hp):0;const tot=wbTotal(L)+fight,hpL=Math.max(0,WB_HP-tot),ms=wbNextReset();
   o.innerHTML=`<b>월드보스 남은 체력 ${hpL.toLocaleString()} <small>(${Math.ceil(hpL/WB_HP*100)}%)</small></b><div class="wbhb"><i style="width:${hpL/WB_HP*100}%"></i></div><span>이번 판 데미지 <b>${fight.toLocaleString()}</b> · 남은 시간 <b>${Math.max(0,Math.ceil(WB_TLIM-(BS.wbT||0)))}초</b> · 초기화까지 ${Math.floor(ms/864e5)}일 ${Math.floor(ms%864e5/36e5)}시간</span>`}catch(e){}},250);
+
+// ===== 일반 랭킹: 격투 탑(이번 주 최고층) · 모험 진행도 — 「랭킹 등록하기」를 누르면 내 최고 기록이 올라가요 =====
+const RKB={tower:{n:'격투 탑 (이번 주)',k:()=>'tower-'+wbWeek(),v:()=>{const T=(G.mg||{}).tw||{};return (T.wk===wbWeek()?T.wb:0)||0},u:'층',d:'이번 주에 올라간 최고 층 · 매주 월요일 초기화'},
+  adv:{n:'모험 진행도',k:()=>'adv',v:()=>advScore(),u:'점',d:'배지 1개 100점 · 챔피언 500점 · 상위 배지 1개 300점 · 잡은 포켓몬 1마리 1점'}};
+function advScore(){return (G.badges||0)*100+(G.champ?500:0)+(G.ub||0)*300+Object.keys(G.dex.c||{}).length}
+async function rankFetch(b){const c=wbCfg();if(!c)return null;try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${RKB[b].k()}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)throw 0;const j=await r.json();
+  return (j.documents||[]).map(d=>({id:d.name.split('/').pop(),name:(d.fields.name||{}).stringValue||'?',v:+((d.fields.v||{}).integerValue||0)})).sort((a,b)=>b.v-a.v)}catch(e){return null}}
+async function rankPush(b){const c=wbCfg();if(!c){toast('서버 연결 전이에요');return false}if(!navigator.onLine){toast('랭킹 등록은 인터넷이 켜져 있어야 해요');return false}wbS();const v=Math.floor(RKB[b].v());
+  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${RKB[b].k()}/players/${G.pid}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:(G.name||'트레이너').slice(0,12)},v:{integerValue:String(v)},t:{integerValue:String(Date.now())}}})});
+    if(!r.ok)throw 0;toast('랭킹에 등록했어요! '+v+RKB[b].u);return true}catch(e){toast('등록 실패 · 이미 더 높은 기록이 있거나 인터넷을 확인해 주세요');return false}}
+function rankOpen(b){b=b||'tower';const tabs=`<div class="tabs"><button data-rk="wb">월드보스</button>${Object.keys(RKB).map(k=>`<button data-rk="${k}" class="${k===b?'on':''}">${RKB[k].n}</button>`).join('')}</div>`;
+  const body=L=>{const me=L?L.findIndex(x=>x.id===G.pid):-1,mv=Math.floor(RKB[b].v());return `<div class="wbme"><span>내 기록 <b>${mv.toLocaleString()}${RKB[b].u}</b></span><span>내 순위 <b>${me>=0?(me+1)+'위':'등록 전'}</b></span></div>
+    <div class="wbt"><button class="main" id="rkP">랭킹 등록하기 (내 최고 기록)</button><button id="rkR">새로고침</button></div><p class="wbpd">${RKB[b].d}. 「랭킹 등록하기」를 눌러야 올라가요 (인터넷 필요).</p>
+    <div class="wbl">${L?L.slice(0,30).map((x,i)=>`<div class="wbr${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${x.name}</span><em>${x.v.toLocaleString()}${RKB[b].u}</em></div>`).join('')||'<small>아직 아무도 없어요. 첫 번째로 등록해 봐요!</small>':'<small>'+(wbCfg()?'인터넷이 꺼져 있거나 서버에 연결이 안 돼요':'서버 연결 전이에요')+'</small>'}</div>`};
+  openPanel('랭킹 · '+RKB[b].n,tabs+'<div id="rkB"><small>불러오는 중…</small></div>',null,p=>{p.querySelectorAll('[data-rk]').forEach(x=>x.onclick=()=>{sfx('tap');if(x.dataset.rk==='wb'){closePanel(1);wbOpen()}else rankOpen(x.dataset.rk)});
+    const load=async()=>{const L=await rankFetch(b);const h=p.querySelector('#rkB');if(!h)return;h.innerHTML=body(L);h.querySelector('#rkP').onclick=async()=>{if(await rankPush(b))load()};h.querySelector('#rkR').onclick=()=>{sfx('tap');load()}};load()})}
+try{HUB.push({k:'rank',n:'랭킹',d:'월드보스 누적 데미지 · 격투 탑 이번 주 최고층 · 모험 진행도 랭킹. 격투 탑과 모험 진행도는 「랭킹 등록하기」를 눌러 내 최고 기록을 올려요 (인터넷 필요).',st:()=>'모험 '+advScore()+'점',go:[['랭킹 보기',()=>rankOpen('tower')]]})}catch(e){}
+
+// ===== 추천 편성: 상대 타입에 맞춰 내 포켓몬(파티+보관함) 중 제일 좋은 6마리 =====
+// 점수 = 레벨 · 공격(특공) · 체력 × 가진 기술로 상대에게 줄 수 있는 최고 상성(자속 보너스 포함) × 상대 기술 상성으로 받는 피해
+function recScore(m,foeTypes){const S=stOf(m),M=META[m.n];const atk=Math.max(S[1],S[3]),bulk=Math.sqrt(S[0]*(S[2]+S[4])/2);let best=1;
+  if(foeTypes&&foeTypes.length){best=.5;for(const id of m.moves||[]){const v=mv(id);if(!v||!v.pw)continue;const e=eff(v.type,foeTypes)*(M.types.includes(v.type)?1.5:1)*(v.pw/80);if(e>best)best=e}
+    const takes=Math.max(...foeTypes.map(t=>eff(t,M.types)));best*=takes>=2?.7:takes<1?1.25:1}
+  return (atk*1.2+bulk)*best*(m.hp>0?1:.6)}
+function recPick(foeTypes){const all=[...G.party,...G.box];return all.map(m=>({m,s:recScore(m,foeTypes)})).sort((a,b)=>b.s-a.s).slice(0,6)}
+function recWhy(m,foeTypes){if(!foeTypes||!foeTypes.length)return'강한 순';let b=null;for(const id of m.moves||[]){const v=mv(id);if(!v||!v.pw)continue;const e=eff(v.type,foeTypes);if(!b||e>b.e)b={e,n:v.name,t:v.type}}
+  return b&&b.e>=2?b.n+' 효과 굉장':b&&b.e<1?'상성 별로':'보통'}
+// 추천 편성 화면 · need=1이면 적용해야 다음으로 넘어가요
+function recOpen(title,foeTypes,need){return new Promise(done=>{const P=recPick(foeTypes);const cur=new Set(G.party);const same=P.length===G.party.length&&P.every(x=>cur.has(x.m));
+  openPanel('추천 편성 · '+title,`<p class="hhint">${foeTypes&&foeTypes.length?'상대 타입 '+foeTypes.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')+' 에 강한 순서로 골랐어요.':'레벨과 능력치가 강한 순서로 골랐어요.'}${need?' <b>추천 편성을 적용해야 입장할 수 있어요.</b>':''}</p>
+   <div class="tg">${P.map(({m},i)=>{const rr=rarOf(m.n),inP=cur.has(m);return `<div class="tm p rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${i+1}. ${nm(m)}</b> <small>Lv.${m.lv}</small><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><small>${recWhy(m,foeTypes)}${inP?'':' · 보관함에서 옴'}</small></div></div>`}).join('')}</div>
+   <div class="wbt"><button class="main" id="rcOk">${same?'이미 추천 편성이에요 · 입장':'추천 편성 적용'+(need?'하고 입장':'')}</button>${need?'':'<button id="rcNo">그대로 둘래요</button>'}</div>`,()=>done(false),p=>{
+    p.querySelector('#rcOk').onclick=()=>{sfx('get');const pick=P.map(x=>x.m),rest=[...G.party,...G.box].filter(m=>!pick.includes(m));G.party=pick;G.box=rest;save();try{refreshSpr()}catch(e){}closePanel(1);toast('추천 편성을 적용했어요');done(true)};
+    const n=p.querySelector('#rcNo');if(n)n.onclick=()=>{closePanel(1);done(false)}})})}
+// 월드보스: 추천 편성을 해야 입장
+{const _f=wbFight;wbFight=async function(){const n=wbBoss();const ok=await recOpen('월드보스 '+META[n].name,META[n].types,1);if(!ok)return;return _f()}}
+// 격투 탑 화면에 추천 편성 버튼
+{const _t=towerOpen;towerOpen=function(){_t();try{const B=document.querySelector('#mg .twr');if(B&&!B.querySelector('#tRec')){const b=document.createElement('button');b.id='tRec';b.textContent='추천 편성 (강한 순)';b.className='mgrec';b.onclick=async()=>{mgClose();await recOpen('격투 탑',null,0);if(G.a===12)towerOpen()};B.insertBefore(b,B.querySelector('#tGo'))}}catch(e){}}}
+// 편성 화면에도 추천 편성 버튼
+{const _to=teamOpen;teamOpen=function(){_to();setTimeout(()=>{const p=document.querySelector('.panel');if(!p||p.querySelector('#tmRec'))return;const h=p.querySelector('h4');if(!h)return;const b=document.createElement('button');b.id='tmRec';b.className='wbrk';b.textContent='추천 편성';b.onclick=async()=>{closePanel(1);await recOpen('강한 순',null,0);teamOpen()};h.appendChild(b)},30)}}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
