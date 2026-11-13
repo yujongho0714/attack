@@ -3580,7 +3580,10 @@ addEventListener('appinstalled',()=>{try{toast('📲 설치 완료! 홈 화면�
   ic('tQr','ui/ic_gift.webp','QR 가져오기','카메라로 찍기');ic('tQrA','ui/ic_dex.webp','앨범 QR','캡처한 사진');
   menu.append(sh,slots,big,row);if(inst){inst.className='pxbtn sm';menu.appendChild(inst)}if(qrs)qrs.remove();if(adm)menu.appendChild(adm);
   tb.innerHTML='';tb.appendChild(menu);
-  const upd=()=>{sh.style.display=slots.children.length?'':'none'};new MutationObserver(upd).observe(slots,{childList:true});upd()};
+  const upd=()=>{const has=slots.querySelector('.slot');sh.style.display=has?'':'none';
+    // 하던 친구는 「이어하기」가 제일 크게 · 새 모험은 작게 아래로
+    big.classList.toggle('big',!has);big.classList.toggle('sm',!!has);big.innerHTML=has?'<img src="ui/ic_star.webp" alt=""><span>새로 하기<small>다른 친구 · 처음부터</small></span>':'<img src="ui/ic_star.webp" alt=""><span>새 모험 시작<small>처음 하는 친구는 여기!</small></span>';
+    if(has){row.prepend(big)}else{menu.insertBefore(big,row)}};new MutationObserver(upd).observe(slots,{childList:true});upd()};
   if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 (function(){const c=document.createElement('style');c.textContent=`
 #title .tb{background:none!important;box-shadow:none!important;padding:6px 10px!important;overflow:visible!important}
@@ -3594,10 +3597,10 @@ addEventListener('appinstalled',()=>{try{toast('📲 설치 완료! 홈 화면�
 #title .tb .pxbtn.big{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;padding:16px 18px!important;font-size:24px!important;animation:pxglow 1.6s ease-in-out infinite}
 #title .tb .pxbtn.big img{width:52px;height:52px}
 @keyframes pxglow{50%{filter:brightness(1.12)}}
-.trow{display:grid;grid-template-columns:1fr 1fr;gap:10px}#title .tb .pxbtn.sm{background:#fff8e6!important;padding:10px 12px!important;font-size:16px!important;width:auto}#title .tb .pxbtn.sm img{width:32px;height:32px}
+.trow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}#title .tb .pxbtn.sm{background:#fff8e6!important;padding:10px 12px!important;font-size:16px!important;width:auto}#title .tb .pxbtn.sm img{width:32px;height:32px}
 #title #tSlots{display:flex;flex-direction:column;gap:10px}
 #title #tSlots .slot{display:flex;gap:8px;align-items:stretch}
-#title #tSlots .slot button.main{flex:1;background:linear-gradient(#bfe6ff 0 50%,#8fd0ff 50%)!important;color:#1c2550!important;padding:10px 14px!important;font-size:19px!important;flex-direction:column;align-items:flex-start;gap:2px}
+#title #tSlots .slot button.main{flex:1;background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;color:#1c2550!important;padding:14px 16px!important;font-size:22px!important;animation:pxglow 1.6s ease-in-out infinite;flex-direction:column;align-items:flex-start;gap:2px}
 #title #tSlots .slot button.main small{font-size:12px;opacity:.85}
 #title #tSlots .slot button.del{font-family:'Galmuri11',sans-serif;border:0!important;border-radius:0!important;background:#ff7a6a!important;color:#fff!important;margin:4px;padding:0 10px!important;box-shadow:0 4px 0 #1c2550,0 -4px 0 #1c2550,4px 0 0 #1c2550,-4px 0 0 #1c2550!important;font-size:13px!important}
 #title .adm{margin-top:2px}#title .adm summary{color:#fff!important;text-shadow:1px 1px 0 #1c2550;font:700 13px 'Galmuri11',sans-serif;cursor:pointer}
@@ -3620,6 +3623,51 @@ addEventListener('appinstalled',()=>{try{toast('📲 설치 완료! 홈 화면�
 #title>#tFull{font-family:'Galmuri11',sans-serif!important;border:0!important;border-radius:0!important;box-shadow:0 3px 0 #1c2550,0 -3px 0 #1c2550,3px 0 0 #1c2550,-3px 0 0 #1c2550,inset 0 -4px 0 #0002!important;margin:3px}
 #title>p{border-radius:0!important;box-shadow:0 0 0 3px #1c2550;border:0!important}
 @media (orientation:landscape) and (max-height:520px){#title .tb .pxbtn.big{padding:10px 14px!important;font-size:19px!important}#title .tb .pxbtn.big img{width:38px;height:38px}.tmenu{gap:8px}#title #tSlots .slot button.main{padding:6px 10px!important;font-size:16px!important}.pxwin .pxl{margin:6px 0 4px}}
+`;document.head.appendChild(c)})();
+
+// ===== 게임 창 공통 픽셀 스타일 (월드보스 · 장비 · 가방 · 포케스탑 · 스타캐치 · 휴지통 · 컨텐츠 …) =====
+// 둥근 웹 카드/버튼 대신: 각진 픽셀 테두리 · 위아래 두 톤 · 눌리면 쑥 들어가는 버튼 · 픽셀 글씨
+(function(){const B='#1c2550';const px=(w,c)=>`0 ${w}px 0 0 ${c},0 -${w}px 0 0 ${c},${w}px 0 0 0 ${c},-${w}px 0 0 0 ${c}`;
+const c=document.createElement('style');c.textContent=`
+:root{--pxB:${B}}
+.panel{font-family:'Galmuri11',var(--ff,sans-serif)}
+.panel .pb{padding:4px clamp(26px,4.4vw,54px) 18px!important}
+.panel .ph{border-radius:0!important;box-shadow:${px(3,B)},inset 0 -4px 0 #0004,inset 0 3px 0 #ffffff30!important;border:0!important;margin:6px 10px 10px!important}
+.panel .ph b{font-family:'Galmuri11',sans-serif;font-size:18px}
+.panel .ph .x{border-radius:0!important;border:0!important;box-shadow:${px(3,'#fff')},inset 0 -4px 0 #0003!important}
+/* 버튼 */
+.panel *{border-radius:0!important}
+.panel .pb button,.panel .wbt button,.panel .tabs button,.panel .wch button,.panel .gb button,.panel .gbb button,.panel .hrow button,.panel .htown button,.panel .bq button,.panel button.main,
+#psOv button,#sfAuto button,#gAsk button,#itInfo button,#pkStop,.psBox button{
+  font-family:'Galmuri11',sans-serif!important;border:0!important;border-radius:0!important;margin:4px!important;color:${B}!important;background:linear-gradient(#fffdf4 0 50%,#f1e6c8 50%)!important;
+  box-shadow:${px(3,B)},inset 0 -5px 0 0 #0000001f,inset 0 3px 0 0 #ffffff90,0 7px 0 0 #00000035!important;transition:transform .06s;font-weight:700!important}
+.panel .pb button:active,.panel .wbt button:active,.panel .tabs button:active,.panel .wch button:active,.panel .gb button:active,.panel .hrow button:active,.panel button.main:active,#psOv button:active,#gAsk button:active,#itInfo button:active{transform:translateY(3px)}
+.panel .wbt button.main,.panel button.main,.panel .tabs button.on,.panel .wch button.on,#gAsk #gaY,#itInfo button.main{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}
+.panel .tabs button.on,.panel .wch button.on{background:linear-gradient(#3a4a9a 0 50%,${B} 50%)!important;color:#ffe07a!important}
+.panel button:disabled{filter:grayscale(.8);opacity:.55}
+.panel .gdel,.gdel{background:linear-gradient(#ffd6d0 0 50%,#ffb3a8 50%)!important;color:#8a1a10!important}
+.panel .tabs,.panel .wch{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 10px}
+/* 카드 · 칸 */
+.panel .hcard,.panel .gs,.panel .gb,.panel .gsft,.panel .gcube,.panel .gsf,.panel .hrow,.panel .htown,.panel .wtown,.panel .pkt,.panel .row,.panel .gsum span{
+  border:0!important;border-radius:0!important;background:#fffaf0!important;box-shadow:${px(3,B)},inset 0 -4px 0 #0000000f!important;margin:8px 4px!important}
+.panel .gs,.panel .gb,.panel .gcube{box-shadow:${px(3,B)},inset 0 0 0 3px var(--gc,#c8a24a),inset 0 -6px 0 #0000000f!important}
+.panel .hcard{border-left:0!important;padding:12px 14px!important}
+.panel .gsum{gap:8px!important}.panel .gsum span{background:linear-gradient(#2c3a80,${B})!important;color:#fff;box-shadow:${px(3,'#c8a24a')}!important}
+.panel .wbpd,.panel .hhint{border-radius:0!important;box-shadow:${px(2,'#c8a24a')}!important;background:#fff6d6!important;padding:6px 10px!important;margin:8px 3px!important}
+.panel h4,.panel b{font-family:'Galmuri11',sans-serif}
+.panel h4{color:${B};text-shadow:1px 1px 0 #fff}
+.panel .pb button.pkt{background:#fffaf0!important}.panel .pb button.pkt.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}
+/* 따로 뜨는 창들 */
+.psBox,.scb,#sfAuto .sfb,.gak,#itInfo .iic{border:0!important;border-radius:0!important;box-shadow:0 0 0 4px #c8a24a,0 0 0 8px ${B},0 16px 40px #000a!important;font-family:'Galmuri11',sans-serif}
+.psBox{background:#16233a!important}.gak{background:#fff8e6!important}
+.psDisc{box-shadow:0 0 0 6px ${B},0 0 0 10px #e6f6ff,0 0 30px #38b6ff99!important;border:0!important}
+.sct{border-radius:0!important;box-shadow:${px(3,'#ffffff60')}!important;border:0!important}.scz{border-radius:0!important}
+#scGo,#sfAX{border-radius:0!important;border:0!important;box-shadow:${px(3,B)},inset 0 -5px 0 #0002!important;font-family:'Galmuri11',sans-serif!important}
+#wbHud{border-radius:0!important;border:0!important;box-shadow:${px(3,'#ff5a3a')},0 0 18px #ff5a3a88!important;font-family:'Galmuri11',sans-serif!important}
+.wbhb,.wbhb i{border-radius:0!important}
+#bStop,#bPortal{border-radius:0!important;border:0!important;box-shadow:${px(3,'#fff')},0 0 0 7px ${B},0 8px 14px #0006!important;font-family:'Galmuri11',sans-serif}
+#bStop i{border-radius:0!important}
+.toast,#toast{font-family:'Galmuri11',sans-serif}
 `;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
