@@ -3955,7 +3955,7 @@ try{const h=HUB.find(x=>x.k==='card');if(h){h.n='카드팩 · 영혼 합성';h.d
 
 // ===== 운영자(GM): 번호 010-2252-0714 · 이름은 「GM」 · 랭킹에는 안 나와요 (월드보스 데미지는 같이 깎아요) =====
 const GMNUM='01022520714';let isGM=()=>!!(G&&String(G.num||'').replace(/\D/g,'')===GMNUM);
-const isGMName=raw=>{const n=rkSplit(String(raw||'')).name.trim();return n==='GM'||n==='유종호'||n.startsWith('[GM]')};
+let isGMName=raw=>{const n=rkSplit(String(raw||'')).name.trim();return n==='GM'||n==='유종호'||n.startsWith('[GM]')};
 {const _n=rkName;rkName=function(){return isGM()?'[GM]'+(G.name||'유종호').slice(0,8):_n.apply(this,arguments)}}
 {const _rp=rankPush;rankPush=async function(){if(isGM()){toast('운영자(GM)는 랭킹에 올라가지 않아요');return false}return _rp.apply(this,arguments)}}
 {const _t=wbTotal;wbTotal=function(L){return _t.apply(this,arguments)+((L&&L.gmDmg)||0)}}
@@ -4726,6 +4726,8 @@ async function gmSend(to,kind,key,v){const c=wbCfg();if(!c){toast('서버 연결
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'~'+kind+'~'+key,name=String(to).slice(0,12),sec=Math.floor(Date.now()/1000),t=sec*1048576+await gmMac(id,name,v,sec);
   try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${gmBoard(0)}/players/${encodeURIComponent(id)}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:name},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});if(!r.ok)throw 0;return true}catch(e){toast('보내기 실패 · 인터넷을 확인해 주세요');return false}}
 const gmLabel=(kind,key,v)=>kind==='m'?(META[key]?META[key].name:key)+' Lv.'+(v&127)+((v>>7)&1?' 이로치':'')+((v>>8)?' ['+(PX[(v>>8)-1]||{}).n+']':''):kind==='i'?(ITEMS[key]?ITEMS[key].n:key)+' ×'+v:kind==='p'?(PKT[key]?PKT[key].n:key)+' ×'+v:kind==='g'?v.toLocaleString()+'원':'?';
+async function gmApply(kind,key,v){if(kind==='m'&&META[key]){const m=mkMon(key,Math.max(1,Math.min(100,v&127)));if((v>>7)&1)m.sh=1;if(v>>8)m.px=(v>>8)-1;m.gift=1;m.hp=stOf(m)[0];const M=META[key];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m))soulFrom(m);else if(G.party.length<6)G.party.push(m);else G.box.push(m);try{await CardPack.open({rar:rarOf(key),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(key,'Joyous')})}catch(e){}}
+      else if(kind==='i'&&ITEMS[key])addItem(key,v);else if(kind==='p'&&PKT[key])packAdd(Array(Math.min(200,v)).fill(key),'운영자 선물');else if(kind==='g')G.money+=v;else return null;return gmLabel(kind,key,v)}
 let GMBUSY=0;
 async function gmRecv(){if(GMBUSY||!G||!G.name||!navigator.onLine)return;const c=wbCfg();if(!c)return;GMBUSY=1;G.gmg=G.gmg||{};const got=[];
   try{for(const off of [0,1]){const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${gmBoard(off)}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)continue;const j=await r.json();
@@ -4733,14 +4735,17 @@ async function gmRecv(){if(GMBUSY||!G||!G.name||!navigator.onLine)return;const c
       const all=name==='*모두';if(!all&&name!==String(G.name).slice(0,12))continue;const sec=Math.floor(t/1048576),mac=t%1048576;if(Date.now()/1000-sec>45*86400)continue;if(all&&G.t0&&sec*1000<G.t0-86400e3)continue;
       if(await gmMac(id,name,v,sec)!==mac)continue;const [,kind,key]=id.split('~');G.gmg[id]=1;got.push([kind,key,v])}}}catch(e){}
   if(got.length){save();closePanel(1);const L=[];for(const [kind,key,v] of got){try{
-      if(kind==='m'&&META[key]){const m=mkMon(key,Math.max(1,Math.min(100,v&127)));if((v>>7)&1)m.sh=1;if(v>>8)m.px=(v>>8)-1;m.gift=1;m.hp=stOf(m)[0];const M=META[key];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m))soulFrom(m);else if(G.party.length<6)G.party.push(m);else G.box.push(m);try{await CardPack.open({rar:rarOf(key),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(key,'Joyous')})}catch(e){}}
-      else if(kind==='i'&&ITEMS[key])addItem(key,v);else if(kind==='p'&&PKT[key])packAdd(Array(Math.min(200,v)).fill(key),'운영자 선물');else if(kind==='g')G.money+=v;else continue;L.push(gmLabel(kind,key,v))}catch(e){}}
+      const lb=await gmApply(kind,key,v);if(lb)L.push(lb)}catch(e){}}
     save();try{refreshSpr();hud()}catch(e){}sfx('badge');await say(['<b>운영자(GM) 선물</b>이 도착했어요!',L.join('<br>')])}GMBUSY=0}
 setInterval(()=>{try{if(G&&SCENE==='over'&&!DLG.on&&!PANEL)gmRecv()}catch(e){}},60000);setTimeout(()=>{try{gmRecv()}catch(e){}},15000);
-// ---------- 운영자 선물 창 ----------
-const GMF={to:'',all:0,tab:'m',sel:null,q:'',lv:50,sh:0,px:0,n:1,names:null};
-async function gmOpen(){if(!isGM()){toast('운영자만 쓸 수 있어요');return}if(!GMF.names){GMF.names=[];try{const L=await rankFetch('dex');GMF.names=[...new Set((L||[]).map(x=>rkSplit(x.name).name.trim()).filter(n=>n&&!isGMName(n)))].slice(0,60)}catch(e){}}gmDraw()}
-function gmDraw(){const F=GMF;let list='';const q=F.q.trim();
+// ---------- 운영자 선물 창 (관장님 GM: 누구에게나 · 나에게 · 운영자 임명 / 임명된 운영자: 나에게 골드 · 포켓몬) ----------
+const GMF={to:'',all:0,self:0,tab:'m',sel:null,q:'',lv:50,sh:0,px:0,n:1,names:null,opn:'',opw:'',ops:null};
+async function gmOpen(){if(!isGM()&&!isOp()){toast('운영자만 쓸 수 있어요');return}if(!isGM()){GMF.self=1;if(!['m','g'].includes(GMF.tab))GMF.tab='m'}
+  if(isGM()&&!GMF.names){GMF.names=[];try{const L=await rankFetch('dex');GMF.names=[...new Set((L||[]).map(x=>rkSplit(x.name).name.trim()).filter(n=>n&&!isGMName(n)))].slice(0,60)}catch(e){}}gmDraw()}
+const gmTarget=()=>GMF.self?'나':GMF.all?'모두':GMF.to.trim();
+function gmDraw(){const F=GMF,gm=isGM();let list='';const q=F.q.trim();const TB=gm?[['m','포켓몬'],['i','아이템'],['p','카드팩'],['g','돈'],['op','운영자 임명']]:[['m','포켓몬'],['g','돈']];
+  const tabs=`<div class="tabs">${TB.map(([k,n])=>`<button data-tb="${k}" class="${F.tab===k?'on':''}">${n}</button>`).join('')}</div>`;
+  if(F.tab==='op'){opDraw(tabs);return}
   if(F.tab==='m'){const L=SPECIES.filter(s=>META[s]&&(!q||META[s].name.includes(q))).slice(0,48);list=`<div class="gmg">${L.map(s=>`<button class="gmc${F.sel===s?' on':''}" data-s="${encodeURIComponent(s)}"><img src="${THUMB[s]||''}" alt="" loading="lazy"><b>${META[s].name}</b><small style="color:${RARC[rarOf(s)]}">${RAR[rarOf(s)]}</small></button>`).join('')}</div>`}
   else if(F.tab==='i'){const L=Object.keys(ITEMS).filter(k=>ITEMS[k].n&&(!q||ITEMS[k].n.includes(q)));list=`<div class="gmg">${L.map(k=>`<button class="gmc${F.sel===k?' on':''}" data-s="${encodeURIComponent(k)}"><span class="gmi">${ITEMS[k].e||''}</span><b>${ITEMS[k].n}</b></button>`).join('')}</div>`}
   else if(F.tab==='p'){list=`<div class="gmg">${Object.keys(PKT).map(k=>`<button class="gmc${F.sel===k?' on':''}" data-s="${k}"><img src="${PKT[k].img}" alt=""><b>${PKT[k].n}</b></button>`).join('')}</div>`}
@@ -4748,25 +4753,57 @@ function gmDraw(){const F=GMF;let list='';const q=F.q.trim();
      <select id="gmPx"><option value="0">접두사 없음</option>${PX.map((p,i)=>`<option value="${i+1}" ${F.px===i+1?'selected':''}>[${PXG[p.g]}] ${p.n}</option>`).join('')}</select></div>`
    :F.tab==='g'?`<div class="gmo"><span>금액</span><b>${F.n.toLocaleString()}원</b>${[10000,100000,1000000].map(x=>`<button data-n="${x}">+${x/10000}만</button>`).join('')}<button data-n0="1">0으로</button></div>`
    :`<div class="gmo"><span>개수</span><button data-n="-10">−10</button><button data-n="-1">−</button><b>${F.n}</b><button data-n="1">＋</button><button data-n="10">+10</button></div>`;
-  const ready=(F.all||F.to.trim())&&(F.tab==='g'?F.n>0:F.sel);
-  openPanel('운영자 선물 (GM)',`<div class="gmto"><span>받는 사람</span><input id="gmTo" value="${esc(F.to)}" placeholder="닉네임" ${F.all?'disabled':''}><button data-all="1" class="${F.all?'on':''}">모두에게</button></div>
-    ${F.names&&F.names.length?`<div class="gmnm">${F.names.map(n=>`<button data-nm="${esc(n)}" class="${F.to===n?'on':''}">${esc(n)}</button>`).join('')}</div>`:''}
-    <div class="tabs">${[['m','포켓몬'],['i','아이템'],['p','카드팩'],['g','돈']].map(([k,n])=>`<button data-tb="${k}" class="${F.tab===k?'on':''}">${n}</button>`).join('')}</div>
-    ${F.tab==='m'||F.tab==='i'?`<input id="gmQ" class="gmq" value="${esc(F.q)}" placeholder="이름으로 찾기">`:''}${list}${opt}
-    <div class="wbt"><button class="main" id="gmGo" ${ready?'':'disabled'}>${ready?esc(F.all?'모두':F.to)+'에게 '+esc(gmLabel(F.tab,F.sel,gmV()))+' 보내기':'받는 사람과 선물을 골라요'}</button></div>
-    <p class="hhint">받는 친구가 게임을 켜고 인터넷이 되면 1분 안에 들어가요. 닉네임이 똑같아야 해요. 「모두에게」는 모든 친구가 한 번씩 받아요.</p>`,null,p=>{
-    const to=p.querySelector('#gmTo');if(to)to.oninput=()=>{F.to=to.value;const g=p.querySelector('#gmGo');if(g){const r=(F.all||F.to.trim())&&(F.tab==='g'?F.n>0:F.sel);g.disabled=!r;g.textContent=r?(F.all?'모두':F.to)+'에게 '+gmLabel(F.tab,F.sel,gmV())+' 보내기':'받는 사람과 선물을 골라요'}};
+  const ready=(F.self||F.all||F.to.trim())&&(F.tab==='g'?F.n>0:F.sel);const glab=()=>ready?gmTarget()+'에게 '+gmLabel(F.tab,F.sel,gmV())+(F.self?' 주기':' 보내기'):'받는 사람과 선물을 골라요';
+  openPanel(gm?'운영자 선물 (GM)':'운영자 도구',`<div class="gmto"><span>받는 사람</span>${gm?`<input id="gmTo" value="${esc(F.to)}" placeholder="닉네임" ${F.all||F.self?'disabled':''}><button data-all="1" class="${F.all?'on':''}">모두에게</button>`:''}<button data-self="1" class="${F.self?'on':''}" ${gm?'':'disabled'}>나에게</button></div>
+    ${gm&&!F.self&&F.names&&F.names.length?`<div class="gmnm">${F.names.map(n=>`<button data-nm="${esc(n)}" class="${F.to===n?'on':''}">${esc(n)}</button>`).join('')}</div>`:''}
+    ${tabs}${F.tab==='m'||F.tab==='i'?`<input id="gmQ" class="gmq" value="${esc(F.q)}" placeholder="이름으로 찾기">`:''}${list}${opt}
+    <div class="wbt"><button class="main" id="gmGo" ${ready?'':'disabled'}>${esc(glab())}</button></div>
+    <p class="hhint">${F.self?'「나에게」는 바로 들어와요.':'받는 친구가 게임을 켜고 인터넷이 되면 1분 안에 들어가요. 닉네임이 똑같아야 해요. 「모두에게」는 모든 친구가 한 번씩 받아요.'}</p>`,null,p=>{
+    const to=p.querySelector('#gmTo');if(to)to.oninput=()=>{F.to=to.value;const g=p.querySelector('#gmGo');if(g){const r=(F.self||F.all||F.to.trim())&&(F.tab==='g'?F.n>0:F.sel);g.disabled=!r;g.textContent=r?gmTarget()+'에게 '+gmLabel(F.tab,F.sel,gmV())+' 보내기':'받는 사람과 선물을 골라요'}};
     const qi=p.querySelector('#gmQ');if(qi){qi.oninput=()=>{F.q=qi.value;clearTimeout(qi._t);qi._t=setTimeout(()=>{gmDraw();setTimeout(()=>{const x=document.querySelector('#gmQ');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length)}},30)},350)}}
-    p.querySelectorAll('[data-nm]').forEach(b=>b.onclick=()=>{F.to=b.dataset.nm;F.all=0;gmDraw()});p.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{F.all=F.all?0:1;gmDraw()});
+    p.querySelectorAll('[data-nm]').forEach(b=>b.onclick=()=>{F.to=b.dataset.nm;F.all=0;F.self=0;gmDraw()});p.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{F.all=F.all?0:1;F.self=0;gmDraw()});p.querySelectorAll('[data-self]').forEach(b=>b.onclick=()=>{F.self=F.self?0:1;F.all=0;gmDraw()});
     p.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{F.tab=b.dataset.tb;F.sel=null;F.q='';F.n=F.tab==='g'?0:1;gmDraw()});p.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{F.sel=decodeURIComponent(b.dataset.s);gmDraw()});
     p.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{F.lv=Math.max(1,Math.min(100,F.lv+ +b.dataset.lv));gmDraw()});p.querySelectorAll('[data-sh]').forEach(b=>b.onclick=()=>{F.sh=F.sh?0:1;gmDraw()});
     const px=p.querySelector('#gmPx');if(px)px.onchange=()=>{F.px=+px.value;gmDraw()};
     p.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{F.n=Math.max(F.tab==='g'?0:1,Math.min(F.tab==='g'?1e9:999,F.n+ +b.dataset.n));gmDraw()});p.querySelectorAll('[data-n0]').forEach(b=>b.onclick=()=>{F.n=0;gmDraw()});
-    const go=p.querySelector('#gmGo');if(go)go.onclick=()=>{const to=F.all?'*모두':F.to.trim(),lab=gmLabel(F.tab,F.sel,gmV());itAsk((F.all?'모두':esc(to))+'에게 보낼까요?',esc(lab),async()=>{if(await gmSend(to,F.tab,F.tab==='g'?'money':F.sel,gmV())){sfx('get');toast('보냈어요! '+(F.all?'모두':to)+' · '+lab)}})}})}
+    const go=p.querySelector('#gmGo');if(go)go.onclick=()=>{const lab=gmLabel(F.tab,F.sel,gmV()),key=F.tab==='g'?'money':F.sel;
+      if(F.self){itAsk('나에게 줄까요?',esc(lab),async()=>{if(!isGM()&&!isOp())return;closePanel(1);const r=await gmApply(F.tab,key,gmV());save();try{refreshSpr();hud()}catch(e){}if(r){sfx('get');toast('받았어요! '+r)}gmOpen()});return}
+      const to=F.all?'*모두':F.to.trim();itAsk((F.all?'모두':esc(to))+'에게 보낼까요?',esc(lab),async()=>{if(await gmSend(to,F.tab,key,gmV())){sfx('get');toast('보냈어요! '+(F.all?'모두':to)+' · '+lab)}})}})}
 const gmV=()=>GMF.tab==='m'?(GMF.lv&127)+(GMF.sh?128:0)+GMF.px*256:GMF.n;
+// ---------- 운영자 임명 (관장님만) · 서버 gmop 칸 · 번호마다 비밀번호를 정해 줘요 ----------
+const opNorm=n=>String(n||'').replace(/\D/g,'');
+async function opList(){const c=wbCfg();if(!c)return null;try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/gmop/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)throw 0;const j=await r.json();const out=[];
+  for(const d of j.documents||[]){const id=decodeURIComponent(d.name.split('/').pop());if(!id.startsWith('op~'))continue;const name=(d.fields.name||{}).stringValue||'',v=+((d.fields.v||{}).integerValue||0),t=+((d.fields.t||{}).integerValue||0);const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)continue;out.push({num:id.slice(3),h:name,on:v===1,sec})}return out}catch(e){return null}}
+async function opSet(num,pw,on){const c=wbCfg();if(!c||!isGM())return false;const id='op~'+opNorm(num),name=on?hex(await sha('jdop|'+opNorm(num)+'|'+pw)).slice(0,12):'',v=on?1:0,sec=Math.floor(Date.now()/1000),t=sec*1048576+await gmMac(id,name,v,sec);
+  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/gmop/players/${encodeURIComponent(id)}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:name},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});return r.ok}catch(e){return false}}
+async function opDraw(tabs){const F=GMF;if(F.ops===null){F.ops=await opList()||[]}
+  const fmt=n=>n.replace(/^(\d{3})(\d{3,4})(\d{4})$/,'$1-$2-$3');
+  openPanel('운영자 임명 (GM)',`${tabs}<p class="hhint">번호를 운영자로 임명하면 그 번호로 게임하는 친구가 <b>나에게 골드 · 포켓몬 주기</b>를 쓸 수 있어요. 처음 한 번은 여기서 정한 <b>운영자 비밀번호</b>를 넣어야 해요. 운영자는 랭킹에 안 올라가요.</p>
+    <div class="gmto"><span>번호</span><input id="opN" value="${esc(F.opn)}" placeholder="010-0000-0000" inputmode="numeric"></div><div class="gmto"><span>비밀번호</span><input id="opW" value="${esc(F.opw)}" placeholder="운영자에게 알려 줄 비밀번호"></div>
+    <div class="wbt"><button class="main" id="opGo">운영자로 임명</button></div>
+    <h4>임명된 운영자</h4><div class="opl">${F.ops.length?F.ops.map(o=>`<div class="opr"><b>${fmt(o.num)}</b><small>${o.on?'운영자':'해제됨'} · ${new Date(o.sec*1000).toLocaleDateString('ko-KR')}</small>${o.on?`<button data-off="${o.num}">해제</button>`:''}</div>`).join(''):'<p class="hhint">아직 없어요 (인터넷이 꺼져 있으면 안 보여요)</p>'}</div>`,null,p=>{
+    p.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{F.tab=b.dataset.tb;F.sel=null;F.q='';F.n=F.tab==='g'?0:1;gmDraw()});
+    const n=p.querySelector('#opN'),w=p.querySelector('#opW');n.oninput=()=>F.opn=n.value;w.oninput=()=>F.opw=w.value;
+    p.querySelector('#opGo').onclick=()=>{const num=opNorm(F.opn),pw=F.opw.trim();if(num.length<10||!num.startsWith('01')){toast('번호를 다시 확인해 주세요');return}if(num===GMNUM){toast('관장님 번호예요');return}if(pw.length<4){toast('비밀번호는 4글자 이상');return}
+      itAsk(fmt(num)+'을(를) 운영자로 임명할까요?','운영자 비밀번호: <b>'+esc(pw)+'</b> · 이 비밀번호를 그 친구에게 알려 주세요.',async()=>{if(await opSet(num,pw,1)){sfx('badge');toast('운영자로 임명했어요');F.opn='';F.opw='';F.ops=null;gmDraw()}else toast('임명 실패 · 인터넷을 확인해 주세요')})};
+    p.querySelectorAll('[data-off]').forEach(b=>b.onclick=()=>{const num=b.dataset.off;itAsk(fmt(num)+' 운영자를 해제할까요?','해제하면 그 번호는 운영자 도구를 못 써요.',async()=>{if(await opSet(num,'',0)){toast('해제했어요');F.ops=null;gmDraw()}else toast('해제 실패 · 인터넷을 확인해 주세요')})})})}
+// ---------- 내가 임명된 운영자인지 (번호 + 비밀번호 한 번) ----------
+let OPREC=null,OPOK=false,OPASK=0,OPCHK=0;
+const isOp=()=>!!(G&&OPREC&&OPOK&&opNorm(G.num)===OPREC.num&&!isGM());
+async function opCheck(){if(!G||!G.num||!navigator.onLine||!wbCfg())return;const num=opNorm(G.num);if(num===GMNUM)return;const L=await opList();if(!L)return;const o=L.find(x=>x.num===num);
+  OPREC=o&&o.on?o:null;if(!OPREC){OPOK=false;LS.set('pka-opok','');return}OPOK=LS.get('pka-opok','')===OPREC.h+'|'+num}
+function opPw(){return new Promise(done=>{const o=document.createElement('div');o.id='gmPw';o.innerHTML=`<div class="gmw"><div class="gmt">운영자로 임명됐어요!</div><p>관장님께 받은 <b>운영자 비밀번호</b>를 넣어 주세요.</p><input type="password" id="gmIn" autocomplete="off" placeholder="운영자 비밀번호"><p class="gme"></p><div class="gmb"><button id="gmNo">나중에</button><button id="gmYes" class="main">들어가기</button></div></div>`;document.body.appendChild(o);
+  const inp=o.querySelector('#gmIn');setTimeout(()=>{try{inp.focus()}catch(e){}},50);
+  const go=async()=>{const num=opNorm(G.num),h=hex(await sha('jdop|'+num+'|'+inp.value.trim())).slice(0,12);if(OPREC&&h===OPREC.h){OPOK=true;LS.set('pka-opok',h+'|'+num);o.remove();sfx('badge');toast('운영자로 들어왔어요 · 왼쪽 「운영자」 버튼');done(true)}else{o.querySelector('.gme').textContent='비밀번호가 틀렸어요';sfx('hit')}};
+  o.querySelector('#gmYes').onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});o.querySelector('#gmNo').onclick=()=>{o.remove();done(false)}})}
+setInterval(async()=>{try{if(!G)return;if(Date.now()-OPCHK>600000){OPCHK=Date.now();await opCheck()}if(OPREC&&!OPOK&&!OPASK&&SCENE==='over'&&!DLG.on&&!PANEL&&!document.getElementById('gmPw')){OPASK=1;await opPw()}}catch(e){}},5000);
+// 운영자도 랭킹에는 안 올라가요 · 이름 앞에 [운영자]
+{const _rp=rankPush;rankPush=async function(){if(isOp())return false;return _rp.apply(this,arguments)}}
+{const _n=rkName;rkName=function(){return isOp()?'[운영자]'+(G.name||'').slice(0,7):_n.apply(this,arguments)}}
+{const _i=isGMName;isGMName=raw=>_i(raw)||String(rkSplit(String(raw||'')).name).startsWith('[운영자]')}
 // 운영자에게만 보이는 버튼
-setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&isGM()&&SCENE==='over'&&!document.body.classList.contains('inb');if(!on){if(b)b.style.display='none';return}
-  if(!b){b=document.createElement('button');b.id='gmBtn';b.innerHTML='<img src="ui/ic_gift.webp" alt=""><span>GM 선물</span>';b.onclick=()=>{sfx('tap');gmOpen()};document.body.appendChild(b)}b.style.display=''}catch(e){}},1000);
+setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&(isGM()||isOp())&&SCENE==='over'&&!document.body.classList.contains('inb');if(!on){if(b)b.style.display='none';return}
+  if(!b){b=document.createElement('button');b.id='gmBtn';b.innerHTML='<img src="ui/ic_gift.webp" alt=""><span>'+(isGM()?'GM 선물':'운영자')+'</span>';b.onclick=()=>{sfx('tap');gmOpen()};document.body.appendChild(b)}b.style.display=''}catch(e){}},1000);
 (function(){const c=document.createElement('style');c.textContent=`
 #gmPw{position:fixed;inset:0;z-index:300;background:#0a1024d8;display:flex;align-items:center;justify-content:center;font-family:'Galmuri11',sans-serif}
 .gmw{width:min(420px,92vw);background:#fff8e6;box-shadow:0 0 0 4px #1c2550,0 0 0 8px #ffd23f,0 20px 40px #000a;color:#1c2550}.gmt{background:linear-gradient(#2c3a80,#1c2550);color:#ffd23f;font-size:18px;font-weight:700;padding:10px 14px}
@@ -4779,7 +4816,7 @@ setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&isGM()&&
 .gmg{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 4px;max-height:44vh;overflow:auto;padding:4px}
 .panel button.gmc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px!important;font-size:13px!important}.gmc img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}.gmc small{font-size:11px}.gmi .ic,.gmi img{width:36px;height:36px}
 .panel button.gmc.on,.panel .gmo button.on,.panel .gmto button.on,.panel .gmnm button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}
-.gmo{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 4px}.gmo b{min-width:56px;text-align:center;font-size:18px}.gmo span{font-weight:700}#gmPx{font:700 14px 'Galmuri11',sans-serif;padding:8px;border:0;box-shadow:0 0 0 3px #1c2550;background:#fffdf4;max-width:100%}
+.opl{display:flex;flex-direction:column;gap:6px;margin:4px}.opr{display:flex;align-items:center;gap:10px;background:#fffaf0;padding:8px 10px;box-shadow:0 0 0 2px #1c2550}.opr small{flex:1;color:#5a6080}#opN,#opW{font:700 18px 'Galmuri11',sans-serif;flex:1;min-width:0;color:#1c2550;background:#fffdf4;border:0;border-radius:0;padding:8px 12px;outline:0;box-shadow:0 0 0 3px #1c2550,0 0 0 6px #ffd23f}.gmo{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 4px}.gmo b{min-width:56px;text-align:center;font-size:18px}.gmo span{font-weight:700}#gmPx{font:700 14px 'Galmuri11',sans-serif;padding:8px;border:0;box-shadow:0 0 0 3px #1c2550;background:#fffdf4;max-width:100%}
 #gmBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(200px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px 'Galmuri11',sans-serif;color:#ffd23f;background:#c0304a;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#gmBtn img{width:26px;height:26px}`;document.head.appendChild(c)})();
 
 // ===== 포켓몬 분해 · 잠금 =====
@@ -4829,11 +4866,71 @@ const arcPrize=r=>r===1?30:r<=3?20:r<=10?10:0;
 let ARCPAY=0;
 async function arcPayout(){if(ARCPAY||!G||!navigator.onLine)return;const c=wbCfg();if(!c)return;const wk=wbWeek();G.arcW=G.arcW||{};G.arcPaid=G.arcPaid||{};const olds=Object.keys(G.arcW).filter(w=>w<wk&&!G.arcPaid[w]);if(!olds.length)return;ARCPAY=1;const lines=[];
   try{for(const w of olds){for(const [b,n] of ARCB()){const my=(G.arcW[w]||{})[b];if(!my)continue;const key=b==='tower'?'tower-'+w:b+'-'+w;const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${key}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)throw 0;const j=await r.json();
-      const L=(j.documents||[]).map(d=>({id:d.name.split('/').pop(),name:(d.fields.name||{}).stringValue||'',v:+((d.fields.v||{}).integerValue||0)})).filter(x=>!isGMName(x.name)).sort((a,b)=>b.v-a.v);const i=L.findIndex(x=>x.id===G.pid);const p=i>=0?arcPrize(i+1):0;if(p){packAdd(Array(p).fill('P'),n+' 주간 '+(i+1)+'위');lines.push('<b>'+n+'</b> '+(i+1)+'위 · 포켓몬 카드팩 '+p+'장')}}
+      const L=(j.documents||[]).map(d=>({id:d.name.split('/').pop(),name:(d.fields.name||{}).stringValue||'',v:+((d.fields.v||{}).integerValue||0)})).filter(x=>!isGMName(x.name)&&!(typeof BANS!=='undefined'&&BANS.has(x.id))).sort((a,b)=>b.v-a.v);const i=L.findIndex(x=>x.id===G.pid);const p=i>=0?arcPrize(i+1):0;if(p){packAdd(Array(p).fill('P'),n+' 주간 '+(i+1)+'위');lines.push('<b>'+n+'</b> '+(i+1)+'위 · 포켓몬 카드팩 '+p+'장')}}
     G.arcPaid[w]=1;delete G.arcW[w]}save()}catch(e){}ARCPAY=0;if(lines.length){sfx('badge');await say(['<b>지난주 놀거리 랭킹 보상</b>이 왔어요!',lines.join('<br>')])}}
 setInterval(()=>{try{if(G&&SCENE==='over'&&!DLG.on&&!PANEL&&!document.getElementById('mg'))arcPayout()}catch(e){}},45000);
 // 격투 탑 · 끝말잇기도 이번 주 기록을 남겨 둬요 (지난주 보상 계산용)
 {const _rp=rankPush;rankPush=async function(b){const r=await _rp.apply(this,arguments);try{if(r&&b==='tower'){const wk=wbWeek();G.arcW=G.arcW||{};G.arcW[wk]=G.arcW[wk]||{};G.arcW[wk].tower=Math.floor(RKB.tower.v());save()}}catch(e){}return r}}
+
+// ===== 계정 관리 (관장님 GM): 닉네임 · 번호 대조 · 삭제하면 모든 랭킹에서 빠지고 그 폰의 기록도 지워져요 =====
+// 번호는 관장님 공개키로 암호화해서 올려요 (관장님 비밀번호가 있어야만 풀려요 · 서버를 봐도 번호는 안 보여요)
+const GMKEY={"pub":"BFQweSCytFzDWX/P4Wh3hADQEkshqURC8fbxvMkWQlLebPWgKh3Y8xm859QD1QtSGZplYsriJsoXJ3S0ozlJQDE=","salt":"FHRrEejYXi5Ao/xKKixcGA==","iv":"wqUTyfjcNK/xzzd9","ct":"gri5wPWiezLgGygyOEJ40krD1oLqLL3wVlwlssdJPaAMH0Obq0YLyQAOdWoz90gW+QV8ZZYAsUELxDtoDOp2Q+dxzq/LL2PF65yHUV+pW5b4H519S8RGnCdME++NkjtF7FfGUxBmS5r0F8GmE+bg+XUjCS2ZT1Vkf/j0B3/oN1sXk8SbqYFxdxAW1dTG9mE3/p/1eZrZyY9feg=="};
+const acUb64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+const acB64u=b=>btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+async function acEnc(txt){const S=crypto.subtle;const gp=await S.importKey('raw',acUb64(GMKEY.pub),{name:'ECDH',namedCurve:'P-256'},false,[]);const eph=await S.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
+  const bits=await S.deriveBits({name:'ECDH',public:gp},eph.privateKey,256);const k=await S.importKey('raw',await S.digest('SHA-256',bits),'AES-GCM',false,['encrypt']);const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=new Uint8Array(await S.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(txt)));const ep=new Uint8Array(await S.exportKey('raw',eph.publicKey));const out=new Uint8Array(ep.length+12+ct.length);out.set(ep);out.set(iv,ep.length);out.set(ct,ep.length+12);return acB64u(out)}
+let ACPRIV=null;
+async function acUnlock(pw){const S=crypto.subtle;const base=await S.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);const k=await S.deriveKey({name:'PBKDF2',salt:acUb64(GMKEY.salt),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+  const pk8=await S.decrypt({name:'AES-GCM',iv:acUb64(GMKEY.iv)},k,acUb64(GMKEY.ct));ACPRIV=await S.importKey('pkcs8',pk8,{name:'ECDH',namedCurve:'P-256'},false,['deriveBits'])}
+async function acDec(s){const S=crypto.subtle,b=acUb64(s);const ep=await S.importKey('raw',b.slice(0,65),{name:'ECDH',namedCurve:'P-256'},false,[]);const bits=await S.deriveBits({name:'ECDH',public:ep},ACPRIV,256);const k=await S.importKey('raw',await S.digest('SHA-256',bits),'AES-GCM',false,['decrypt']);
+  return new TextDecoder().decode(await S.decrypt({name:'AES-GCM',iv:b.slice(65,77)},k,b.slice(77)))}
+const fsBase=()=>{const c=wbCfg();return c?{u:`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/`,k:c.apiKey}:null};
+async function fsList(board){const B=fsBase();if(!B)return null;try{const r=await fetch(B.u+board+'/players?pageSize=300&key='+B.k);if(!r.ok)throw 0;const j=await r.json();return (j.documents||[]).map(d=>({id:decodeURIComponent(d.name.split('/').pop()),name:(d.fields.name||{}).stringValue||'',v:+((d.fields.v||{}).integerValue||0),t:+((d.fields.t||{}).integerValue||0)}))}catch(e){return null}}
+async function fsPut(board,id,name,v,t){const B=fsBase();if(!B)return false;try{const r=await fetch(B.u+board+'/players/'+encodeURIComponent(id)+'?key='+B.k+'&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:String(name).slice(0,12)},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});return r.ok}catch(e){return false}}
+// ---------- 내 계정 등록 (닉네임 + 암호화한 번호 · 하루 한 번 마지막 접속 갱신) ----------
+let ACREG=0;
+async function acRegister(){if(ACREG||!G||!G.num||!navigator.onLine||!fsBase()||!crypto.subtle)return;ACREG=1;try{wbS();const num=normNum(G.num),day=dayKey(),sig=G.pid+'|'+num+'|'+(G.name||'');
+  if(G.acReg&&G.acReg.s===sig&&G.acReg.d===day)return;let id=G.acReg&&G.acReg.s===sig?G.acReg.id:null;if(!id)id='u~'+G.pid+'~'+await acEnc(JSON.stringify({n:num,p:G.pid}));
+  if(await fsPut('users',id,G.name||'',G.badges||0,Math.floor(Date.now()/1000))){G.acReg={s:sig,d:day,id};save()}}catch(e){}finally{ACREG=0}}
+setTimeout(()=>{try{acRegister()}catch(e){}},12000);setInterval(()=>{try{if(G&&SCENE==='over')acRegister()}catch(e){}},300000);
+// ---------- 삭제 목록 (서명된 것만 · 모든 랭킹에서 빼요) ----------
+let BANS=new Set(),BANN=new Set(),BANT=0;
+const banNumH=async n=>'n~'+hex(await sha('jdban|'+normNum(n))).slice(0,16);
+async function banLoad(force){if(!force&&Date.now()-BANT<300000)return;BANT=Date.now();const L=await fsList('gmban');if(!L)return;const S2=new Set(),N=new Set();
+  for(const x of L){const sec=Math.floor(x.t/1048576);if(await gmMac(x.id,x.name,x.v,sec)!==x.t%1048576)continue;if(x.v!==1)continue;if(x.id.startsWith('b~'))S2.add(x.id.slice(2));if(x.id.startsWith('n~'))N.add(x.id)}BANS=S2;BANN=N}
+async function banSet(pid,num,name,on){if(!isGM())return false;const sec=Math.floor(Date.now()/1000),v=on?1:0;let ok=true;
+  for(const id of ['b~'+pid].concat(num?[await banNumH(num)]:[])){const t=sec*1048576+await gmMac(id,name||'',v,sec);ok=await fsPut('gmban',id,name||'',v,t)&&ok}await banLoad(1);return ok}
+{const _rf=rankFetch;rankFetch=async function(){const L=await _rf.apply(this,arguments);try{await banLoad()}catch(e){}return L?L.filter(x=>!BANS.has(x.id)):L}}
+{const _wf=wbFetch;wbFetch=async function(){const L=await _wf.apply(this,arguments);try{await banLoad()}catch(e){}if(!L)return L;const out=L.filter(x=>!BANS.has(x.id));for(const k of ['gmDmg','gmList'])if(L[k]!=null)out[k]=L[k];return out}}
+// 내가 삭제됐으면: 이 폰의 기록을 지워요
+let BANDONE=0;
+setInterval(async()=>{try{if(!G||BANDONE||isGM())return;await banLoad();if(!G.pid)return;const me=BANS.has(G.pid)||(G.num&&BANN.has(await banNumH(G.num)));if(!me)return;BANDONE=1;const nm0=G.name;
+  try{localStorage.removeItem('pka-save:'+nm0);const L=LS.get('pka-slots',[]).filter(x=>x!==nm0);LS.set('pka-slots',L)}catch(e){}G=null;
+  const o=document.createElement('div');o.id='gmPw';o.innerHTML='<div class="gmw"><div class="gmt">계정이 삭제됐어요</div><p>운영자가 이 계정을 삭제했어요. 궁금한 점은 관장님께 여쭤 보세요.</p><div class="gmb"><button class="main" id="gmYes">확인</button></div></div>';document.body.appendChild(o);o.querySelector('#gmYes').onclick=()=>location.reload()}catch(e){}},20000);
+// 같은 번호로 새로 만들어도 막아요
+{const _rp=rankPush;rankPush=async function(){try{await banLoad();if(G&&(BANS.has(G.pid)||(G.num&&BANN.has(await banNumH(G.num)))))return false}catch(e){}return _rp.apply(this,arguments)}}
+// ---------- 관장님 계정 관리 창 ----------
+const ACF={q:'',list:null,busy:0};
+async function acOpen(){if(!isGM()){toast('관장님(GM)만 쓸 수 있어요');return}if(!ACPRIV){const ok=await new Promise(done=>{const o=document.createElement('div');o.id='gmPw';o.innerHTML=`<div class="gmw"><div class="gmt">계정 관리</div><p>번호를 보려면 관장님 비밀번호를 한 번 더 넣어 주세요.</p><input type="password" id="gmIn" autocomplete="off" placeholder="비밀번호"><p class="gme"></p><div class="gmb"><button id="gmNo">닫기</button><button id="gmYes" class="main">열기</button></div></div>`;document.body.appendChild(o);
+    const inp=o.querySelector('#gmIn');setTimeout(()=>{try{inp.focus()}catch(e){}},50);const go=async()=>{try{await acUnlock(inp.value);o.remove();done(true)}catch(e){o.querySelector('.gme').textContent='비밀번호가 틀렸어요';sfx('hit')}};
+    o.querySelector('#gmYes').onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});o.querySelector('#gmNo').onclick=()=>{o.remove();done(false)}});if(!ok)return}
+  ACF.list=null;acDraw();const L=await fsList('users');await banLoad(1);if(!L){ACF.list=[];acDraw();toast('서버에 연결하지 못했어요');return}const by=new Map();
+  for(const x of L){const m=/^u~([^~]+)~(.+)$/.exec(x.id);if(!m)continue;let num='';try{num=JSON.parse(await acDec(m[2])).n||''}catch(e){continue}const o=by.get(m[1]);if(!o||x.t>o.t)by.set(m[1],{pid:m[1],name:x.name,num,t:x.t,b:x.v})}
+  ACF.list=[...by.values()].sort((a,b)=>b.t-a.t);acDraw()}
+function acDraw(){const fmt=n=>String(n).replace(/^(\d{3})(\d{3,4})(\d{4})$/,'$1-$2-$3');const q=ACF.q.trim().replace(/-/g,'');const L=(ACF.list||[]).filter(x=>!q||x.name.includes(q)||x.num.includes(q));
+  const row=x=>{const ban=BANS.has(x.pid);return `<div class="acr${ban?' ban':''}"><span><b>${esc(x.name||'(이름 없음)')}</b><small>${fmt(x.num)}</small></span><small>배지 ${x.b} · 마지막 ${new Date(x.t*1000).toLocaleDateString('ko-KR')}</small><button data-ac="${x.pid}" class="${ban?'':'del'}">${ban?'복구':'삭제'}</button></div>`};
+  openPanel('계정 관리 (GM)',`<p class="hhint">게임을 켠 적 있는 계정이에요 (인터넷이 될 때 등록돼요). 도장 명단과 번호를 대조해서, 우리 도장이 아니거나 악용하는 계정은 <b>삭제</b>해요. 삭제하면 모든 랭킹 · 주간 보상에서 빠지고, 그 폰이 인터넷에 연결되면 게임 기록이 지워져요. 같은 번호로 새로 만들어도 막혀요.</p>
+   <input id="acQ" class="gmq" value="${esc(ACF.q)}" placeholder="닉네임이나 번호로 찾기"><div class="acl">${ACF.list===null?'<p class="hhint">불러오는 중…</p>':L.length?L.map(row).join(''):'<p class="hhint">계정이 없어요</p>'}</div><p class="hhint">총 ${(ACF.list||[]).length}명 · 삭제 ${BANS.size}명</p>`,null,p=>{
+   const qi=p.querySelector('#acQ');qi.oninput=()=>{ACF.q=qi.value;clearTimeout(qi._t);qi._t=setTimeout(()=>{acDraw();setTimeout(()=>{const x=document.querySelector('#acQ');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length)}},30)},350)};
+   p.querySelectorAll('[data-ac]').forEach(b=>b.onclick=()=>{const x=ACF.list.find(y=>y.pid===b.dataset.ac);if(!x)return;const ban=BANS.has(x.pid);
+     itAsk(ban?'<b>'+esc(x.name)+'</b> 계정을 복구할까요?':'<b>'+esc(x.name)+'</b> ('+fmt(x.num)+') 계정을 정말 삭제할까요?',ban?'다시 랭킹에 나오고 게임할 수 있어요 (지워진 기록은 돌아오지 않아요).':'모든 랭킹에서 빠지고, 그 폰의 게임 기록이 지워져요.',async()=>{if(await banSet(x.pid,x.num,x.name,!ban)){sfx(ban?'get':'hit');toast(ban?'복구했어요':'삭제했어요');acDraw()}else toast('실패 · 인터넷을 확인해 주세요')})})})}
+// GM 창에 「계정 관리」 버튼
+{const _gd=gmDraw;gmDraw=function(){const r=_gd.apply(this,arguments);try{if(isGM()){const p=document.querySelector('.panel');const t=p&&p.querySelector('.tabs');if(t&&!t.querySelector('[data-acm]')){t.insertAdjacentHTML('beforeend','<button data-acm="1">계정 관리</button>');t.querySelector('[data-acm]').onclick=()=>{sfx('tap');acOpen()}}}}catch(e){}return r}}
+{const _od=opDraw;opDraw=async function(){const r=await _od.apply(this,arguments);try{const p=document.querySelector('.panel');const t=p&&p.querySelector('.tabs');if(t&&!t.querySelector('[data-acm]')){t.insertAdjacentHTML('beforeend','<button data-acm="1">계정 관리</button>');t.querySelector('[data-acm]').onclick=()=>{sfx('tap');acOpen()}}}catch(e){}return r}}
+(function(){const c=document.createElement('style');c.textContent=`.acl{display:flex;flex-direction:column;gap:6px;margin:6px 4px;max-height:52vh;overflow:auto;padding:4px}
+.acr{display:flex;align-items:center;gap:10px;background:#fffaf0;padding:8px 10px;box-shadow:0 0 0 2px #1c2550}.acr span{display:flex;flex-direction:column;min-width:120px}.acr span small{font-size:14px;color:#1c2550;font-weight:700}.acr>small{flex:1;font-size:12px;color:#5a6080}
+.acr.ban{background:#ffe4e4;opacity:.8}.acr.ban b{text-decoration:line-through}.panel .acr button.del{color:#fff!important;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%)!important}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
