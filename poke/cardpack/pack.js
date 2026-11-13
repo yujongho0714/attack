@@ -18,14 +18,18 @@ const CardPack=(()=>{
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
-      let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false;
+      let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false,SW=null,PWs=200,cutK=0;const NEED=R>=2?TAPS[R]:0;
       const C=COL[R],C2=COL2[R];
       function burst(n,sp,col,life){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=sp*(.3+Math.random());P.push({x:W/2,y:H*.48,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(R>=3?2:0),l:life*(.6+Math.random()*.6),L:life,s:2+Math.random()*4*(1+R*.4),c:col||C,k:Math.random()<.3?'star':'dot',conf:R>=3&&Math.random()<.5})}}
       function setPh(p){ph=p;pt=performance.now()}
-      cv.onpointerdown=()=>{
-        if(ph==='in'||ph==='idle'){taps++;S.tap(taps);shake=6+taps*4+R*3;flash=.15*taps;burst(6+taps*4,3+taps,C,40);
-          if(taps>=TAPS[R]){S.tear();setPh(R>=3?'pillar':'tear');if(R>=3)S.boom();shake=R>=2?22:10}}
-        else if(ph==='show'&&performance.now()-pt>900){close()}};
+      // 노말·희귀: 손가락으로 쓱 밀어서 자르기 · 영웅 이상: 톡톡 두드린 다음 밀어서 자르기
+      const doTear=()=>{S.tear();setPh(R>=3?'pillar':'tear');if(R>=3)S.boom();shake=R>=2?22:10;SW=null;try{navigator.vibrate&&navigator.vibrate(R>=2?[40,30,80]:30)}catch(e){}};
+      cv.onpointerdown=ev=>{
+        if((ph==='in'||ph==='idle')&&taps<NEED){taps++;S.tap(taps);shake=6+taps*4+R*3;flash=.15*taps;burst(6+taps*4,3+taps,C,40);try{navigator.vibrate&&navigator.vibrate(15+taps*5)}catch(e){}if(taps>=NEED)setPh('swipe');return}
+        if(ph==='in'||ph==='idle'||ph==='swipe'){if(ph!=='swipe')setPh('swipe');SW={x0:ev.clientX,x:ev.clientX};return}
+        if(ph==='show'&&performance.now()-pt>900){close()}};
+      cv.onpointermove=ev=>{if(ph!=='swipe'||!SW)return;SW.x=ev.clientX;cutK=Math.min(1,Math.abs(SW.x-SW.x0)/(PWs*.75));if(Math.random()<.5)burst(1,2,'#fff',20);if(cutK>=1)doTear()};
+      cv.onpointerup=cv.onpointercancel=()=>{if(ph==='swipe'&&SW){SW=null;if(cutK<1)cutK=0}};
       function close(){if(closed)return;closed=true;removeEventListener('resize',rs);cv.style.transition='opacity .35s';cv.style.opacity='0';setTimeout(()=>{cv.remove();done()},360)}
       // 카드 그리기
       function card(x,y,w,h,now,sx){
@@ -57,12 +61,15 @@ const CardPack=(()=>{
         const sk=shake*(Math.random()-.5);const sk2=shake*(Math.random()-.5);shake*=.88;c.translate(sk,sk2);
         // 배경
         const dark=ph==='pillar'||(R>=3&&ph==='tear');const bg=c.createRadialGradient(W/2,H*.48,10,W/2,H*.48,Math.max(W,H)*.8);bg.addColorStop(0,dark?'#2a1a00':C2+'cc');bg.addColorStop(1,'#05050c');c.fillStyle=bg;c.fillRect(-30,-30,W+60,H+60);
-        const ph_=Math.min(W*.62,H*.5)/280,pw=210*ph_,phh=280*ph_;
-        if(ph==='in'||ph==='idle'){if(ph==='in'&&e>600)setPh('idle');const k=ph==='in'?Math.min(1,e/600):1;const ease=1-Math.pow(1-k,3);
+        const ph_=Math.min(W*.62,H*.5)/280,pw=210*ph_,phh=280*ph_;PWs=pw;
+        if(ph==='in'||ph==='idle'||ph==='swipe'){if(ph==='in'&&e>600)setPh(NEED?'idle':'swipe');const k=ph==='in'?Math.min(1,e/600):1;const ease=1-Math.pow(1-k,3);
           const y=H*.48+(1-ease)*H*.6+Math.sin(now/400)*6;const rot=Math.sin(now/600)*.05+(taps?(Math.random()-.5)*.04*taps:0);
           c.save();c.translate(W/2,y);c.rotate(rot);c.shadowColor=C;c.shadowBlur=20+taps*15+R*8;if(pk)c.drawImage(pk,-pw/2,-phh/2,pw,phh);else{c.fillStyle=C;c.fillRect(-pw/2,-phh/2,pw,phh)}c.restore();
           if(taps&&R>=2){c.strokeStyle='rgba(255,255,255,'+(.5+taps*.15)+')';c.lineWidth=2;c.beginPath();for(let i=0;i<taps*3;i++){const a=i*2.4;c.moveTo(W/2,H*.48);c.lineTo(W/2+Math.cos(a)*pw*.45,H*.48+Math.sin(a)*phh*.4)}c.stroke()}
-          c.fillStyle='#fff';c.font='900 22px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText(TAPS[R]>1?'톡톡 눌러서 뜯기! ('+(TAPS[R]-taps)+')':'눌러서 뜯기!',W/2,H*.88);c.globalAlpha=1}
+          c.fillStyle='#fff';c.font='900 22px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText(ph!=='swipe'&&NEED?'톡톡 두드리기! ('+(NEED-taps)+')':'손가락으로 쓱 밀어서 자르기!',W/2,H*.88);c.globalAlpha=1;
+          if(ph==='swipe'){const cy=y-phh/2+phh*.2,x0=W/2-pw/2,x1=W/2+pw/2;c.save();c.setLineDash([8,7]);c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=3;c.beginPath();c.moveTo(x0-10,cy);c.lineTo(x1+10,cy);c.stroke();c.setLineDash([]);
+            if(cutK>0){const dir=SW&&SW.x<SW.x0?-1:1,sx=dir>0?x0:x1,ex=sx+dir*pw*cutK;c.strokeStyle='#fff';c.shadowColor=C;c.shadowBlur=18;c.lineWidth=5;c.beginPath();c.moveTo(sx,cy);c.lineTo(ex,cy);c.stroke()}
+            else{const hx=x0+((now/900)%1)*pw;c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.arc(hx,cy+18,11,0,7);c.fill();c.fillStyle=C;c.beginPath();c.arc(hx,cy+18,6,0,7);c.fill()}c.restore()}}
         if(ph==='pillar'){const k=Math.min(1,e/900);const bw=W*.08+k*W*.3;const g=c.createLinearGradient(W/2-bw/2,0,W/2+bw/2,0);g.addColorStop(0,'rgba(255,176,32,0)');g.addColorStop(.5,'rgba(255,240,180,'+(.6+.4*k)+')');g.addColorStop(1,'rgba(255,176,32,0)');c.fillStyle=g;c.fillRect(W/2-bw/2,-30,bw,H+60);
           c.save();c.translate(W/2,H*.48);c.shadowColor='#ffd060';c.shadowBlur=50;if(pk)c.drawImage(pk,-pw/2,-phh/2,pw,phh);c.restore();if(Math.random()<.3){burst(4,6,'#ffe08a',50)}shake=Math.max(shake,4);if(e>1000){setPh('tear');S.tear()}}
         if(ph==='tear'){const k=Math.min(1,e/500);const cut=.2;

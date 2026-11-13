@@ -207,7 +207,7 @@ body.inb #mini{display:none}
 #joyZ.on #joyB{opacity:1}
 body.inb #joyZ,body.inact #joyZ{display:none}
 #side button{min-height:0}
-@media (orientation:landscape){#side{gap:4px;grid-template-columns:repeat(4,auto)!important;top:calc(var(--vh,1vh)*17 + 40px)!important}#side button{padding:2px 0;font-size:10.5px;width:min(14vh,54px)!important;height:min(13vh,50px)!important}#side button b{font-size:17px;display:block}}
+@media (orientation:landscape){#side{gap:4px;grid-template-columns:repeat(5,auto)!important;top:calc(var(--vh,1vh)*17 + 40px)!important}#side button{padding:2px 0;font-size:10.5px;width:min(14vh,54px)!important;height:min(13vh,50px)!important}#side button b{font-size:17px;display:block}}
 @media (orientation:portrait){#side{display:grid;grid-template-columns:repeat(2,auto);gap:5px}#side button{width:56px;min-height:46px}}
 </style><style>.aCrit{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);font:italic 900 min(12vh,54px) system-ui,sans-serif;color:#ffe14a;-webkit-text-stroke:3px #5a2a00;paint-order:stroke fill;text-shadow:0 5px 0 #5a2a00,0 0 18px #ffb000;pointer-events:none;animation:acr .9s forwards;white-space:nowrap;z-index:5}
 @keyframes acr{0%{transform:translate(-50%,-50%) scale(2.6) rotate(-8deg);opacity:0}12%{transform:translate(-50%,-50%) scale(1) rotate(-8deg);opacity:1}20%{transform:translate(-50%,-50%) scale(1.15) rotate(-8deg)}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(1) rotate(-8deg);opacity:0}}</style><style>
@@ -288,7 +288,7 @@ body,button,input,select,textarea{font-family:var(--ff,system-ui,sans-serif)!imp
 .ldR{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}.ldR .bdg2{width:84px;height:84px}.ldP{display:flex;align-items:center;gap:6px;background:#fffdf2;border:2px solid #c8a040;border-radius:10px;padding:4px 8px;font-weight:800}.ldP span{font-size:11px;opacity:.6}.ldP img{width:40px;height:40px;image-rendering:pixelated}
 .ldQ{font-style:italic;font-weight:700;font-size:13px;opacity:.8;margin:4px 0}
 .wm{display:flex;flex-direction:column;gap:10px}
-.wmap{position:relative;width:100%;aspect-ratio:16/10;border-radius:14px;overflow:hidden;border:3px solid #c8a24a;box-shadow:0 4px 0 #0005,inset 0 0 30px #0006;background:#2a5a7a}
+.wmap{position:relative;width:100%;aspect-ratio:16/13;border-radius:14px;overflow:hidden;border:3px solid #c8a24a;box-shadow:0 4px 0 #0005,inset 0 0 30px #0006;background:#2a5a7a}
 .wmap>img{position:absolute;inset:0;z-index:0;pointer-events:none;width:100%;height:100%;object-fit:cover;filter:saturate(.7) brightness(.75)}
 .wmap svg{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none}
 .wmap line{stroke-linecap:round;stroke-width:1.2}.wmap line.op{stroke:#fff3c4;stroke-dasharray:1.8 1.2;filter:drop-shadow(0 0 .5px #000)}.wmap line.lk{stroke:#0009;stroke-dasharray:.8 1.4}
@@ -400,6 +400,16 @@ small.itd{display:block;color:#5a4a20;font-weight:700;font-size:11px}
 @media (orientation:landscape){#xfOv{flex-direction:row;flex-wrap:wrap}#xfOv canvas{width:min(80vh,60vw)}#xfOv video{width:min(60vh,55vw)}#xfOv .xfs{max-width:36vw}}
 #itInfo .wbt button{flex:1;padding:10px;border:3px solid #1c2550;border-radius:12px;background:#fff;font:900 16px var(--ff,sans-serif);color:#1c2550}#itInfo .wbt button.main{background:linear-gradient(#fff3c0,#ffd23f 55%,#e8a820)}#itInfo .wbt button:disabled{opacity:.5}
 .tqrs{display:flex;gap:6px}.tqrs .tqr{flex:1}
+.tm{border-color:var(--rc,#c8a040)!important;border-width:3px!important;position:relative}.tm.p{box-shadow:inset 0 0 0 2px #ffd23f88,0 0 0 1px #1c2550}
+.tmf{position:relative;flex:none}.tmf img{border-color:var(--rc)!important;box-shadow:0 0 8px var(--rc)}.trar{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);text-decoration:none;white-space:nowrap;font:900 10px var(--ff,sans-serif);color:#fff;background:var(--rc);border:2px solid #1c2550;border-radius:7px;padding:0 5px;line-height:13px}
+.tm.rr2{background:linear-gradient(135deg,#fffdf2 60%,#d8c8ff)}.tm.rr3{background:linear-gradient(135deg,#fffdf2 50%,#ffe9a8)}.tm.rr3 .tmf img,.tm.rr4 .tmf img,.tm.rr5 .tmf img,.tm.rr6 .tmf img{animation:trg 1.6s ease-in-out infinite}
+.tm.rr4{background:linear-gradient(135deg,#fffdf2 45%,#ffc8c8)}.tm.rr5{background:linear-gradient(135deg,#fffdf2 45%,#c8f0ff)}.tm.rr6{background:linear-gradient(135deg,#fff8e8 35%,#ffd6f6,#c8fff0)}
+@keyframes trg{50%{box-shadow:0 0 18px var(--rc),0 0 4px #fff}}.tlb{color:#e0a020;font-weight:900;margin-left:3px}
+.wsea{position:absolute;left:0;right:0;top:72%;bottom:0;background:linear-gradient(#0a2a5a00,#0a2a5acc 25%,#081a3ae6);border-top:2px dashed #9ad0ff88;pointer-events:none;z-index:1;display:flex;flex-direction:column;align-items:flex-start;padding:2px 8px}.wsea b{color:#9ad0ff;font-size:11px}.wsea small{color:#cfe6ff;font-size:10px}
+.wmap line.sea{stroke:#9ad0ff;stroke-dasharray:.6 1.2;stroke-width:.8}
+.ubd{margin:10px 0 4px;color:#1c2550}.ubd small{font-weight:700;color:#5a4a20;margin-left:6px}.ubg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.ubb{position:relative;display:flex;flex-direction:column;align-items:center;padding:8px;border-radius:14px;background:#2a2f4a;color:#fff;border:3px solid #555;filter:grayscale(.7);opacity:.85}.ubb.on{filter:none;opacity:1;border-color:var(--c);box-shadow:0 0 14px var(--c),inset 0 0 20px var(--c);background:linear-gradient(#2a2f4a,#1c2550)}
+.ubb img{width:64px;height:64px;image-rendering:pixelated}.ubb .tyi{position:absolute;top:6px;right:6px;width:28px;height:28px}.ubb b{color:#ffe066}.ubb em{font-style:normal;font-size:11px;background:#ffd23f;color:#3a2400;border-radius:6px;padding:0 6px;margin-top:3px}.ubb em.lk{background:#555;color:#ddd}
 </style><script src="lib/pixelfx.js" defer></script><script src="lib/qrcode.js" defer></script></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
@@ -1111,7 +1121,7 @@ const DIFF=()=>G&&G.opt&&G.opt.diff!=null?G.opt.diff:1;const DLV=[0,.18,.32],DEX
 // 어려울수록 보상: 상금 · 희귀 포켓몬 · 이로치 · 승리 카드팩
 const DMONEY=[1,1.6,2.4],DRARE=[1,1.6,2.5],DSHINY=[150,90,50],DPACK=[0,.08,.2];
 const gymAce=k=>Math.round((12+6*k)*(1+DLV[DIFF()]));// k=0..7
-const NA=19;const isTown=a=>a%2===0&&a<18;const townOf=a=>a/2;const areaName=a=>a===18?'포켓몬 리그':isTown(a)?TOWNS[a/2]:RTN[(a-1)/2];
+const NA=27;const isTown=a=>a%2===0&&a!==18&&a<NA;const townOf=a=>a/2;const areaName=a=>a===18?'포켓몬 리그':isTown(a)?TOWNS[a/2]:RTN[(a-1)/2];
 const AREAS={};
 function areaLv(a){const k=(a-1)/2;if(k===0)return[2,5];const lo=Math.round((3+6*k)*(1+DLV[DIFF()]*.8));return[lo,lo+5]}
 // ---------- 지역에 나오는 포켓몬 정하기 (세이브마다 같게) ----------
@@ -1189,6 +1199,16 @@ function bfs(A,sx,sy,goal,mode){const W=A.W,H=A.H,prev=new Int32Array(W*H).fill(
   while(Q.length){const i=Q.shift(),x=i%W,y=(i/W)|0;if(goal(x,y)&&!(x===sx&&y===sy&&Q.length===0&&false)){if(!(x===sx&&y===sy)||goal.self){const p=[];let j=i;while(j!==sy*W+sx){p.push([j%W,(j/W)|0]);j=prev[j]}return p.reverse()}}
     for(const [dx,dy] of [[0,-1],[1,0],[-1,0],[0,1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=W||Y>=H)continue;const k=Y*W+X;if(prev[k]>=0)continue;if(!canGo(A,X,Y,mode)&&!goal(X,Y))continue;prev[k]=i;Q.push(k)}}return null}
 
+// ===== 상위 지역 (챔피언 이후 · 배 타고 가는 섬들) =====
+// 19 얼음 해협 · 20 얼음꽃마을 · 21 어둠의 숲 · 22 그림자시티 · 23 황금 협곡 · 24 황금시티 · 25 용의 길 · 26 용의 성채
+const UP0=19,UTOWNS=['포켓몬 리그','얼음꽃마을','그림자시티','황금시티','용의 성채'],URTN=['얼음 해협','어둠의 숲','황금 협곡','용의 길'];
+TOWNS.push(...UTOWNS);RTN.push(...URTN);RTH.push('beach','swamp','ruins','volcano');
+RBIAS.push(['ICE','WATER','FLYING'],['GHOST','DARK','PSYCHIC'],['STEEL','FAIRY','ROCK'],['DRAGON','FIRE','FLYING']);
+GYM.push({t:'DRAGON',n:'포켓몬 리그',c:'#ffc83a',league:1},{t:'ICE',n:'상위 관장 류옹',c:'#7ad0f0',u:1,spr:'LEADER_Pryce'},{t:'GHOST',n:'상위 관장 유빈',c:'#7a4ab0',u:1,spr:'LEADER_Morty'},{t:'STEEL',n:'상위 관장 규리',c:'#a8b8cc',u:1,spr:'LEADER_Jasmine'},{t:'DRAGON',n:'상위 관장 이향',c:'#4a6ae0',u:1,spr:'LEADER_Clair'});
+const UMAP={19:1,20:4,21:9,22:10,23:11,24:2,25:17,26:6};
+const UTINT={19:'grayscale(.6) sepia(.35) hue-rotate(165deg) saturate(1.7) brightness(1.18)',20:'grayscale(.65) sepia(.3) hue-rotate(165deg) saturate(1.6) brightness(1.28)',21:'hue-rotate(230deg) saturate(.7) brightness(.6)',22:'hue-rotate(245deg) saturate(.85) brightness(.62)',23:'sepia(.7) saturate(1.8) hue-rotate(-12deg) brightness(1.05)',24:'sepia(.6) saturate(1.8) hue-rotate(-8deg) brightness(1.12)',25:'hue-rotate(-35deg) saturate(1.5) brightness(.8)',26:'hue-rotate(-42deg) saturate(1.6) brightness(.85)'};
+const isUp=a=>a>=UP0,upNeed=a=>a<=20?0:Math.floor((a-19)/2);
+
 // ===== 레조넌스 관동 지도 (진짜 마을·도로 그림) =====
 // maps/mNN.json + mNN_lo.webp(바닥) + mNN_hi.webp(나무 윗부분·지붕 → 캐릭터 위에 그림)
 // 출구: [이전 지역 쪽, 다음 지역 쪽] — 숫자 = 가장자리 출구 번호, ['w',x,y] = 문/동굴/게이트로 나가기
@@ -1196,10 +1216,13 @@ const RESX=[[null,0],[1,0],[0,1],[4,['w',32,19]],[6,3],[1,['w',24,29]],[0,2],[2,
 const RES_TOWNS=['태초마을','회색시티','블루시티','갈색시티','무지개시티','연분홍시티','노랑시티','홍련섬','상록시티'];
 const RES_GYMN=['관장 웅','관장 이슬','관장 마티스','관장 민화','관장 독수','관장 초련','관장 강연','관장 비주기'];
 let RESD={},RESOK=false;
-async function resPreload(){try{const L=await Promise.all(RESX.map((_,a)=>fetch('maps/m'+String(a).padStart(2,'0')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)));
+// 상위 지역: 원래 지도를 빌려 쓰고 색을 바꿔요 (출구는 원래 지도 그대로 · 19는 들어오는 쪽 없음 · 26은 끝)
+for(let a=19;a<=26;a++){const s=RESX[UMAP[a]];RESX[a]=[a===19?null:s[0],a===26?null:s[1]]}
+async function resPreload(){try{const L=await Promise.all(RESX.map((_,a)=>fetch('maps/m'+String(UMAP[a]??a).padStart(2,'0')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)));
   L.forEach((j,a)=>{if(j)RESD[a]=j});RESOK=Object.keys(RESD).length===RESX.length;
-  if(RESOK){TOWNS.splice(0,TOWNS.length,...RES_TOWNS);RTN.splice(0,RTN.length,...[1,3,5,7,9,11,13,15,17].map(a=>a===17?'23번도로 · 챔피언 로드':RESD[a].name));RES_GYMN.forEach((n,i)=>{if(GYM[i])GYM[i].n=n})}}catch(e){RESOK=false}}
-const RIMG={};function resImg(a,k){const key=a+k;if(!RIMG[key]){const i=new Image();i.decoding='async';i.src='maps/m'+String(a).padStart(2,'0')+'_'+k+'.webp';RIMG[key]=i}return RIMG[key]}
+  if(RESOK){TOWNS.splice(0,TOWNS.length,...RES_TOWNS);RTN.splice(0,RTN.length,...[1,3,5,7,9,11,13,15,17].map(a=>a===17?'23번도로 · 챔피언 로드':RESD[a].name));RES_GYMN.forEach((n,i)=>{if(GYM[i])GYM[i].n=n});TOWNS.push(...UTOWNS);RTN.push(...URTN);for(let a=19;a<=26;a++)if(RESD[a])RESD[a]=Object.assign({},RESD[a],{name:areaName(a)})}}catch(e){RESOK=false}}
+const RIMG={};function resImg(a,k){const key=a+k;if(!RIMG[key]){const src='maps/m'+String(UMAP[a]??a).padStart(2,'0')+'_'+k+'.webp';const i=new Image();i.decoding='async';
+  if(UTINT[a]){const o=new Image();o.onload=()=>{try{const c=document.createElement('canvas');c.width=o.naturalWidth;c.height=o.naturalHeight;const g=c.getContext('2d');g.filter=UTINT[a];g.drawImage(o,0,0);c.toBlob(b=>{i.src=URL.createObjectURL(b)},'image/webp',.9)}catch(e){i.src=src}};o.src=src}else i.src=src;RIMG[key]=i}return RIMG[key]}
 function genRes(a){const j=RESD[a],W=j.w,H=j.h,town=isTown(a)||a===18,r=rng(G.seed*31+a*977);const th=THEME[town?'town':RTH[(a-1)/2]];
   const raw=atob(j.cells);const TT=[T_.TREE,T_.G,T_.TG,T_.WATER,T_.G,T_.DOOR];
   const M=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>TT[raw.charCodeAt(y*W+x)]??T_.TREE));
@@ -1208,7 +1231,7 @@ function genRes(a){const j=RESD[a],W=j.w,H=j.h,town=isTown(a)||a===18,r=rng(G.se
   for(const b of j.blds){if(b.kind==='warp')continue;if(b.kind==='lab'&&a!==0)continue;if(b.kind==='home'&&a!==0)continue;
     A.bld.push({kind:b.kind,door:{x:b.x,y:b.y},out:{x:b.out[0],y:b.out[1]},name:b.name})}
   // 출구
-  const mk=(spec,to)=>{if(spec==null||to<0||to>18)return null;
+  const mk=(spec,to)=>{if(spec==null||to<0||to>=NA||(to===18&&a===19)||(a===18&&to===19))return null;
     if(Array.isArray(spec)){const b=j.blds.find(b=>b.x===spec[1]&&b.y===spec[2])||{x:spec[1],y:spec[2],out:[spec[1],spec[2]+1]};M[b.y][b.x]=T_.DOOR;
       const e={to,warp:1,cells:[[b.x,b.y]],arr:{x:b.out[0],y:b.out[1],dir:b.out[1]>b.y?0:b.out[1]<b.y?3:b.out[0]>b.x?2:1}};A.wAt[b.x+','+b.y]=e;return e}
     const run=j.runs[spec];if(!run)return null;const [dx,dy]=run.d;const e={to,edge:1,dx,dy,cells:run.cells};
@@ -1222,6 +1245,7 @@ function genRes(a){const j=RESD[a],W=j.w,H=j.h,town=isTown(a)||a===18,r=rng(G.se
   const from=A.exP?A.exP.arr:A.spawn,to2=A.exN?A.exN.arr:null;let path=[];
   if(to2){const p=bfs(A,from.x,from.y,(x,y)=>x===to2.x&&y===to2.y,'walk');if(p)path=p}
   if(A.exN&&a>0&&a<18&&town){const g=A.exN.arr;A.guard={x:g.x,y:g.y,need:a/2,beside:1}}
+  if(A.exN&&a>=20&&a<26&&town){const g=A.exN.arr;A.guard={x:g.x,y:g.y,need:100+(a-20)/2+1,beside:1}}
   if(a===0){const lab=A.bld.find(b=>b.kind==='lab');if(lab){const s=[[1,0],[-1,0],[2,0],[-2,0]].map(([dx,dy])=>[lab.out.x+dx,lab.out.y+dy]).find(([x,y])=>walk(x,y));if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:PAL.prof,kind:'talk',lines:['포켓몬 박사: 어서 와! 연구소에서 첫 포켓몬을 골라 주렴.']})}}
   if(town&&a>0&&a<16){const c=A.bld.find(b=>b.kind==='center');if(c){const s=[[2,1],[-2,1],[3,0],[-3,0]].map(([dx,dy])=>[c.out.x+dx,c.out.y+dy]).find(([x,y])=>walk(x,y));if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:NPAL(),kind:'talk',lines:[pick(['풀숲에 들어가면 야생 포켓몬이 나와!','포켓몬센터에서 공짜로 회복할 수 있어.','상성이 좋은 기술은 2배 피해야!','비행 타입 포켓몬이 있으면 하늘을 날 수 있대!','물 타입 포켓몬이 있으면 물 위를 탈 수 있어.'])]})}}
   if(!town){const k=(a-1)/2;A.enc=encTable(a);const enc=A.enc,[lo,hi]=areaLv(a);const nT=3+Math.floor(k/3);const used=new Set(path.map(([x,y])=>x+','+y));
@@ -1239,6 +1263,7 @@ async function goRes(to){const from=G.a;P.busy=1;await fade(1);const A=genArea(t
 function resFixSave(){if(!RESOK||!G)return;if(G.mapv===2)return;G.mapv=2;const A=genArea(G.a);const c=A.bld.find(b=>b.kind==='center')||A.bld.find(b=>b.kind==='home');const s=c?c.out:A.spawn;G.x=s.x;G.y=s.y;G.dir=0;
   const H=genArea(G.heal&&G.heal.a!=null?G.heal.a:0),hc=H.bld.find(b=>b.kind==='center')||H.bld.find(b=>b.kind==='home');G.heal=hc?{a:H.a,x:hc.out.x,y:hc.out.y}:{a:0,x:genArea(0).spawn.x,y:genArea(0).spawn.y}}
 
+const guardBlock=g=>g.need>=100?(G.ub||0)<g.need-100:G.badges<g.need;
 // ===== 걸어 다니기 · 화면 그리기 · 조작 =====
 const EVB={n:0};// 이벤트(체육관·리그·라이벌·탑) 진행 중엔 걷기·자동 이동 잠금
 const cv=document.getElementById('cv'),cx=cv.getContext('2d');let VW=0,VH=0,DPR=1,TS=32;
@@ -1247,7 +1272,7 @@ addEventListener('resize',resize);resize();
 const P={x:0,y:0,dir:0,mv:null,mode:'walk',fr:0,trail:[],busy:0,queue:null};let SCENE='title',NOW=0,LAST=performance.now();
 const KEY={dir:-1};
 function curA(){return genArea(G.a)}
-function place(a,x,y,dir){G.a=a;const A=genArea(a);P.x=x;P.y=y;P.dir=dir??P.dir;P.mv=null;P.trail=[];P.queue=null;if(A.town&&a<18){G.visit=G.visit||{};G.visit[a]=1}
+function place(a,x,y,dir){G.a=a;const A=genArea(a);P.x=x;P.y=y;P.dir=dir??P.dir;P.mv=null;P.trail=[];P.queue=null;if(A.town&&a!==18){G.visit=G.visit||{};G.visit[a]=1}
   const t=A.M[y]&&A.M[y][x];P.mode=t===T_.WATER?'surf':P.mode==='fly'?'fly':'walk';refreshSpr();hud();save();try{BGM.area()}catch(e){}}
 // 한 칸 움직이기
 function tryStep(d){if(P.mv||P.busy)return false;const A=curA();P.dir=d;const dx=[0,-1,1,0][d],dy=[1,0,0,-1][d];const X=P.x+dx,Y=P.y+dy;
@@ -1263,7 +1288,7 @@ function tryStep(d){if(P.mv||P.busy)return false;const A=curA();P.dir=d;const dx
     P.trail.unshift([P.x,P.y,P.dir]);P.trail.length=Math.min(P.trail.length,3);P.mv={x0:P.x,y0:P.y,t:0,d:P.mode==='fly'?.11:P.mode==='surf'?.17:(AUTO.on?.13:.16)};P.x=X;P.y=Y;return true}
   return false}
 function gateOk(A){if(G.a===0&&!G.party.length){say(['포켓몬 박사: 잠깐! 풀숲은 위험해. 먼저 연구소에서 포켓몬을 받아 가렴.']);return false}
-  if(A.guard&&G.badges<A.guard.need){say(['경비원: 이 앞은 '+TOWNS[A.guard.need]+' 체육관 배지가 있어야 지나갈 수 있어!']);return false}return true}
+  if(A.guard&&guardBlock(A.guard)){say([A.guard.need>=100?'경비원: 이 앞은 '+TOWNS[A.guard.need-100+9]+' 상위 배지가 있어야 지나갈 수 있어!':'경비원: 이 앞은 '+TOWNS[A.guard.need]+' 체육관 배지가 있어야 지나갈 수 있어!']);return false}return true}
 async function go(a,side,X){P.busy=1;await fade(1);const A=genArea(a);const y=side==='S'?A.H-1:0;place(a,A.GX+Math.max(0,Math.min(1,X)),y,side==='S'?3:0);toast('📍 '+A.name);await fade(0);P.busy=0}
 function afterStep(){const A=curA(),t=A.M[P.y][P.x];P.fr=(P.fr+1)%4;
   if(A.res){const e=A.wAt[P.x+','+P.y];if(e){P.queue=null;if(e.to>G.a&&!gateOk(A)){const b=e.arr;P.x=b.x;P.y=b.y;return}goRes(e.to);return}}
@@ -1288,7 +1313,7 @@ function drawOver(dt){cx.setTransform(1,0,0,1,0,0);cx.filter='none';cx.globalAlp
   for(const it of A.items){if(G.got[it.id])continue;const X=it.x*s-camX+s/2,Y=it.y*s-camY+s/2;const im=ico('POKEBALL');if(im.complete&&im.naturalWidth){cx.imageSmoothingEnabled=false;const z=s*.85;cx.drawImage(im,X-z/2,Y-z/2,z,z)}}
   const ents=[];
   for(const n of A.npc)if(!n.gone)ents.push({y:n.y,f:()=>drawPerson(n.pal,n.dir,0,n.x*s-camX,n.y*s-camY,s,n.kind==='trainer'&&!G.beat[n.id])});
-  if(A.guard&&G.badges<A.guard.need){const gx=A.res?A.guard.x:A.GX-1,gy=A.res?A.guard.y:1;ents.push({y:gy,f:()=>drawPerson(PAL.guard,0,0,gx*s-camX,gy*s-camY,s)})}
+  if(A.guard&&guardBlock(A.guard)){const gx=A.res?A.guard.x:A.GX-1,gy=A.res?A.guard.y:1;ents.push({y:gy,f:()=>drawPerson(PAL.guard,0,0,gx*s-camX,gy*s-camY,s)})}
   // 따라오는 포켓몬
   if(LEADS&&P.mode==='walk'&&P.trail[0]){const T=P.trail[0];let fx=T[0],fy=T[1];if(P.mv){const u=Math.min(1,P.mv.t/P.mv.d),T2=P.trail[1]||T;fx=T2[0]+(T[0]-T2[0])*u;fy=T2[1]+(T[1]-T2[1])*u}
     const fd=P.trail[0][2];ents.push({y:fy-.01,f:()=>{const S=LEADS;const st=P.mv?'walk':'idle';drawPm(cx,S,st,ROWOF[fd],NOW,fx*s-camX+s/2,fy*s-camY+s*.45,s/15*pmScale(S))}})}
@@ -1866,7 +1891,7 @@ function dexOne(n){const M=META[n],cc=G.dex.c[M.dex],L=LOC[n]||[];const evFrom=S
   openPanel('📖 No.'+M.dex+' '+M.name,`<div class="d1"><img src="${THUMB[n]||''}"><div><div>${M.types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')}</div><small>체력 ${M.stats[0]} · 공격 ${M.stats[1]} · 방어 ${M.stats[2]} · 특공 ${M.stats[3]} · 특방 ${M.stats[4]} · 스피드 ${M.stats[5]}</small><div>${RARS(n)} <small>등급 보너스 능력치 +${Math.round(rstat(n)*100)}%</small></div><div>${cc?'잡았어요':'아직 못 잡았어요'}</div><small>기술: ${(M.moves||[]).map(m=>m.name).join(', ')||'-'}</small></div></div>
   <h4>나오는 곳</h4>${L.length?L.map(a=>`<div class="row"><span>🌿 ${areaName(a)} <small>(Lv.${areaLv(a).join('~')}${genArea(a).enc.w.some(e=>e.n===n)&&!genArea(a).enc.g.some(e=>e.n===n)?' · 물 위':''})</small></span>${areaOpen(a)?'':`<small class="lkx">배지 ${areaNeed(a)}개 필요 · 먼저 ${(navSteps(a)[0]||{t:''}).t}</small>`}<button data-go="${a}">${areaOpen(a)?'잡으러 자동 이동':'목표로 정하기'}</button></div>`).join(''):`<small>${evFrom?META[evFrom].name+'(을)를 키워서 진화시키면 얻을 수 있어요':'풀숲에서는 안 나와요 (진화로 얻거나 다른 세이브에서 나와요)'}</small>`}<div class="wbt"><button id="dWm">월드맵에서 보기</button></div>`,()=>dexOpen(),p=>{
     p.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>{const a=+x.dataset.go;if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}if(SCENE!=='over')return;closePanel(1);navSet(a,n,'auto')});const wb=p.querySelector('#dWm');if(wb)wb.onclick=()=>{WM.pk=n;WM.hl=n;const L=LOC[n]||[];WM.sel=L.length?L.slice().sort((a,b)=>(areaOpen(b)-areaOpen(a))||Math.abs(a-G.a)-Math.abs(b-G.a))[0]:G.a;worldOpen()}})}
-function buildLoc(){LOC={};for(let a=1;a<18;a+=2){const T=encTable(a);for(const e of T.g.concat(T.w)){(LOC[e.n]=LOC[e.n]||[]);if(!LOC[e.n].includes(a))LOC[e.n].push(a)}}}
+function buildLoc(){LOC={};for(let a=1;a<NA;a+=2){if(a===18)continue;const T=encTable(a);for(const e of T.g.concat(T.w)){(LOC[e.n]=LOC[e.n]||[]);if(!LOC[e.n].includes(a))LOC[e.n].push(a)}}}
 // ---------- 저장 ----------
 function save(){if(!G)return;G.x=P.x;G.y=P.y;G.dir=P.dir;G.t=Date.now();LS.set('pka-save:'+(G.name||'처음 기록'),G)}
 function newGame(){G={v:1,seed:ri(1,1e8),a:0,x:10,y:12,dir:3,party:[],box:[],bag:{},money:3000,badges:0,dex:{s:{},c:{}},beat:{},got:{},visit:{0:1},heal:{a:0,x:4,y:15},flags:{},opt:{catchNew:true},fast:0,autoBattle:0}}
@@ -1969,14 +1994,18 @@ const CardPack=(()=>{
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
-      let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false;
+      let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false,SW=null,PWs=200,cutK=0;const NEED=R>=2?TAPS[R]:0;
       const C=COL[R],C2=COL2[R];
       function burst(n,sp,col,life){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=sp*(.3+Math.random());P.push({x:W/2,y:H*.48,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(R>=3?2:0),l:life*(.6+Math.random()*.6),L:life,s:2+Math.random()*4*(1+R*.4),c:col||C,k:Math.random()<.3?'star':'dot',conf:R>=3&&Math.random()<.5})}}
       function setPh(p){ph=p;pt=performance.now()}
-      cv.onpointerdown=()=>{
-        if(ph==='in'||ph==='idle'){taps++;S.tap(taps);shake=6+taps*4+R*3;flash=.15*taps;burst(6+taps*4,3+taps,C,40);
-          if(taps>=TAPS[R]){S.tear();setPh(R>=3?'pillar':'tear');if(R>=3)S.boom();shake=R>=2?22:10}}
-        else if(ph==='show'&&performance.now()-pt>900){close()}};
+      // 노말·희귀: 손가락으로 쓱 밀어서 자르기 · 영웅 이상: 톡톡 두드린 다음 밀어서 자르기
+      const doTear=()=>{S.tear();setPh(R>=3?'pillar':'tear');if(R>=3)S.boom();shake=R>=2?22:10;SW=null;try{navigator.vibrate&&navigator.vibrate(R>=2?[40,30,80]:30)}catch(e){}};
+      cv.onpointerdown=ev=>{
+        if((ph==='in'||ph==='idle')&&taps<NEED){taps++;S.tap(taps);shake=6+taps*4+R*3;flash=.15*taps;burst(6+taps*4,3+taps,C,40);try{navigator.vibrate&&navigator.vibrate(15+taps*5)}catch(e){}if(taps>=NEED)setPh('swipe');return}
+        if(ph==='in'||ph==='idle'||ph==='swipe'){if(ph!=='swipe')setPh('swipe');SW={x0:ev.clientX,x:ev.clientX};return}
+        if(ph==='show'&&performance.now()-pt>900){close()}};
+      cv.onpointermove=ev=>{if(ph!=='swipe'||!SW)return;SW.x=ev.clientX;cutK=Math.min(1,Math.abs(SW.x-SW.x0)/(PWs*.75));if(Math.random()<.5)burst(1,2,'#fff',20);if(cutK>=1)doTear()};
+      cv.onpointerup=cv.onpointercancel=()=>{if(ph==='swipe'&&SW){SW=null;if(cutK<1)cutK=0}};
       function close(){if(closed)return;closed=true;removeEventListener('resize',rs);cv.style.transition='opacity .35s';cv.style.opacity='0';setTimeout(()=>{cv.remove();done()},360)}
       // 카드 그리기
       function card(x,y,w,h,now,sx){
@@ -2008,12 +2037,15 @@ const CardPack=(()=>{
         const sk=shake*(Math.random()-.5);const sk2=shake*(Math.random()-.5);shake*=.88;c.translate(sk,sk2);
         // 배경
         const dark=ph==='pillar'||(R>=3&&ph==='tear');const bg=c.createRadialGradient(W/2,H*.48,10,W/2,H*.48,Math.max(W,H)*.8);bg.addColorStop(0,dark?'#2a1a00':C2+'cc');bg.addColorStop(1,'#05050c');c.fillStyle=bg;c.fillRect(-30,-30,W+60,H+60);
-        const ph_=Math.min(W*.62,H*.5)/280,pw=210*ph_,phh=280*ph_;
-        if(ph==='in'||ph==='idle'){if(ph==='in'&&e>600)setPh('idle');const k=ph==='in'?Math.min(1,e/600):1;const ease=1-Math.pow(1-k,3);
+        const ph_=Math.min(W*.62,H*.5)/280,pw=210*ph_,phh=280*ph_;PWs=pw;
+        if(ph==='in'||ph==='idle'||ph==='swipe'){if(ph==='in'&&e>600)setPh(NEED?'idle':'swipe');const k=ph==='in'?Math.min(1,e/600):1;const ease=1-Math.pow(1-k,3);
           const y=H*.48+(1-ease)*H*.6+Math.sin(now/400)*6;const rot=Math.sin(now/600)*.05+(taps?(Math.random()-.5)*.04*taps:0);
           c.save();c.translate(W/2,y);c.rotate(rot);c.shadowColor=C;c.shadowBlur=20+taps*15+R*8;if(pk)c.drawImage(pk,-pw/2,-phh/2,pw,phh);else{c.fillStyle=C;c.fillRect(-pw/2,-phh/2,pw,phh)}c.restore();
           if(taps&&R>=2){c.strokeStyle='rgba(255,255,255,'+(.5+taps*.15)+')';c.lineWidth=2;c.beginPath();for(let i=0;i<taps*3;i++){const a=i*2.4;c.moveTo(W/2,H*.48);c.lineTo(W/2+Math.cos(a)*pw*.45,H*.48+Math.sin(a)*phh*.4)}c.stroke()}
-          c.fillStyle='#fff';c.font='900 22px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText(TAPS[R]>1?'톡톡 눌러서 뜯기! ('+(TAPS[R]-taps)+')':'눌러서 뜯기!',W/2,H*.88);c.globalAlpha=1}
+          c.fillStyle='#fff';c.font='900 22px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText(ph!=='swipe'&&NEED?'톡톡 두드리기! ('+(NEED-taps)+')':'손가락으로 쓱 밀어서 자르기!',W/2,H*.88);c.globalAlpha=1;
+          if(ph==='swipe'){const cy=y-phh/2+phh*.2,x0=W/2-pw/2,x1=W/2+pw/2;c.save();c.setLineDash([8,7]);c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=3;c.beginPath();c.moveTo(x0-10,cy);c.lineTo(x1+10,cy);c.stroke();c.setLineDash([]);
+            if(cutK>0){const dir=SW&&SW.x<SW.x0?-1:1,sx=dir>0?x0:x1,ex=sx+dir*pw*cutK;c.strokeStyle='#fff';c.shadowColor=C;c.shadowBlur=18;c.lineWidth=5;c.beginPath();c.moveTo(sx,cy);c.lineTo(ex,cy);c.stroke()}
+            else{const hx=x0+((now/900)%1)*pw;c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.arc(hx,cy+18,11,0,7);c.fill();c.fillStyle=C;c.beginPath();c.arc(hx,cy+18,6,0,7);c.fill()}c.restore()}}
         if(ph==='pillar'){const k=Math.min(1,e/900);const bw=W*.08+k*W*.3;const g=c.createLinearGradient(W/2-bw/2,0,W/2+bw/2,0);g.addColorStop(0,'rgba(255,176,32,0)');g.addColorStop(.5,'rgba(255,240,180,'+(.6+.4*k)+')');g.addColorStop(1,'rgba(255,176,32,0)');c.fillStyle=g;c.fillRect(W/2-bw/2,-30,bw,H+60);
           c.save();c.translate(W/2,H*.48);c.shadowColor='#ffd060';c.shadowBlur=50;if(pk)c.drawImage(pk,-pw/2,-phh/2,pw,phh);c.restore();if(Math.random()<.3){burst(4,6,'#ffe08a',50)}shake=Math.max(shake,4);if(e>1000){setPh('tear');S.tear()}}
         if(ph==='tear'){const k=Math.min(1,e/500);const cut=.2;
@@ -2448,7 +2480,7 @@ function teachTo(m,id,after){const gi=(G.gifts||[]).findIndex(g=>g.kind==='M'&&G
   openPanel('잊을 기술 고르기',m.moves.map((x,k)=>`<div class="row"><span>${mv(x).name} <small>${TN[mv(x).type]} · 위력 ${mv(x).pw||'-'}</small></span><button data-f="${k}">잊기</button></div>`).join(''),()=>recOpen(id),q=>q.querySelectorAll('[data-f]').forEach(c=>c.onclick=()=>{m.moves[+c.dataset.f]=id;fin()}))}
 
 // ===== 포켓몬 편성 (출전 최대 6마리 · 나머지는 보관함) =====
-function teamOpen(){if(!G)return;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);return `<div class="tm ${w}"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><div class="ti"><b>${nm(m)}</b> <small>Lv.${m.lv}</small><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
+function teamOpen(){if(!G)return;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarOf(m.n);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${m.lv}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}<div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
   openPanel('포켓몬 편성 · 출전 '+G.party.length+' / 6',`<h4>출전 중 (최대 6마리)</h4><div class="tg">${G.party.map((m,i)=>row(m,i,'p')).join('')}${Array(6-G.party.length).fill('<div class="tm empty">빈 자리</div>').join('')}</div>
     <h4>보관함 ${G.box.length}마리</h4><div class="tg">${G.box.length?G.box.map((m,i)=>row(m,i,'b')).join(''):'<small>보관함이 비어 있어요</small>'}</div>`,null,p=>{
     p.querySelectorAll('[data-out]').forEach(b=>b.onclick=()=>{if(G.party.length<=1){toast('한 마리는 꼭 출전해야 해요');return}const m=G.party.splice(+b.dataset.out,1)[0];G.box.unshift(m);save();refreshSpr();toast(nm(m)+' 편성 해제 → 보관함');teamOpen()});
@@ -2457,16 +2489,17 @@ function teamOpen(){if(!G)return;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(
 
 // ===== 월드맵 · 목표(내비) · 포켓몬 검색 =====
 // G.nav = {a, n?} : 내가 정한 목표. 노란 안내 선 · 미니맵 · 자동 이동이 전부 이 목표를 따라가요.
-const WPOS=[[8,16],[22,16],[36,16],[50,16],[64,16],[78,16],[92,32],[78,48],[64,48],[50,48],[36,48],[22,48],[8,64],[22,80],[36,80],[50,80],[64,80],[78,80],[92,80]];
+const WPOS=[[8,11],[22,11],[36,11],[50,11],[64,11],[78,11],[92,23],[78,35],[64,35],[50,35],[36,35],[22,35],[8,47],[22,59],[36,59],[50,59],[64,59],[78,59],[92,59],[10,87],[22,87],[34,87],[46,87],[58,87],[70,87],[82,87],[93,87]];const WAR=.8125;
 const RTHC={meadow:'#6cc04a',forest:'#2f7a34',cave:'#8a8a8a',beach:'#e8c878',swamp:'#7a5a9a',ruins:'#a070c0',volcano:'#e04a2a',road:'#a07848'};
 const areaCol=a=>a===0?'#7ec8ff':a===18?'#ffc83a':isTown(a)?TCOL[GYM[a/2-1].t]:RTHC[RTH[(a-1)/2]]||'#888';
-const areaNeed=a=>a===18?8:a%2?(a-1)/2:Math.max(0,a/2-1);
-const areaOpen=a=>G.badges>=areaNeed(a);
+const areaNeed=a=>a>=18?8:a%2?(a-1)/2:Math.max(0,a/2-1);
+const areaOpen=a=>a>=UP0?(!!G.champ&&(G.ub||0)>=upNeed(a)):G.badges>=areaNeed(a);
 const encAt=a=>{if(!isTown(a)&&a!==18&&a%2){try{const A=genArea(a);return A.enc||{g:[],w:[]}}catch(e){return encTable(a)}}return{g:[],w:[]}};
 const RARS=n=>{const r=rarOf(n);return `<u class="wr r${r}" style="--rc:${RARC[r]}">${RAR[r]}</u>`};
 // 목표까지 무엇을 먼저 해야 하는지 (배지 순서대로)
 function navSteps(a){const need=areaNeed(a),out=[];for(let i=G.badges;i<need;i++){if(i<8)out.push({t:TOWNS[i+1]+' 체육관 · '+GYM[i].n+' ('+TN[GYM[i].t]+')',lv:gymAce(i)-1,a:2*(i+1),gym:i})}
-  if(a===18&&G.badges>=8&&!G.champ)out.push({t:'챔피언 로드 지나서 포켓몬 리그',lv:58,a:18});return out}
+  if(a>=18&&G.badges>=8&&!G.champ)out.push({t:'챔피언 로드 지나서 포켓몬 리그 챔피언 되기',lv:58,a:18});
+  if(a>=UP0&&G.champ)for(let i=G.ub||0;i<upNeed(a);i++)out.push({t:TOWNS[10+i]+' 상위 체육관 · '+GYM[9+i].n+' ('+TN[GYM[9+i].t]+')',lv:Math.min(100,74+i*7)-2,a:20+i*2,gym:9+i});return out}
 function navLabel(){const v=G&&G.nav;if(!v)return'';return v.n?META[v.n].name+' 잡기 · '+areaName(v.a):areaName(v.a)+'(으)로 가기'}
 function navSet(a,n,go){G.nav={a,n:n||null};save();const open=areaOpen(a);
   if(go){AUTO.on=1;AUTO.guide=go==='walk'?1:0;AUTO.huntOnly=n?1:0;AUTO.hunt=open&&n?{a,n}:null;AUTO.gt=null;G.autoQuest=0}
@@ -2486,12 +2519,12 @@ setInterval(()=>{try{const v=G&&G.nav;if(!v||SCENE!=='over')return;
 const WM={sel:null,q:'',r:-1,miss:0,hl:null};
 function worldOpen(sel){if(!G)return;if(sel!=null)WM.sel=sel;if(WM.sel==null)WM.sel=G.a;
   const v=G.nav,hl=WM.hl?new Set(LOC[WM.hl]||[]):null;
-  let path='';for(let a=0;a<NA-1;a++){const [x1,y1]=WPOS[a],[x2,y2]=WPOS[a+1];path+=`<line x1="${x1}" y1="${y1*.625}" x2="${x2}" y2="${y2*.625}" class="${areaOpen(a+1)?'op':'lk'}"/>`}
+  let path='';for(let a=0;a<NA-1;a++){const [x1,y1]=WPOS[a],[x2,y2]=WPOS[a+1];path+=a===18?`<line x1="${x1}" y1="${y1*WAR}" x2="${x2}" y2="${y2*WAR}" class="sea"/>`:`<line x1="${x1}" y1="${y1*WAR}" x2="${x2}" y2="${y2*WAR}" class="${areaOpen(a+1)?'op':'lk'}"/>`}
   const nodes=WPOS.map(([x,y],a)=>{const town=isTown(a)||a===18,open=areaOpen(a),me=a===G.a,tg=v&&v.a===a,cl=isTown(a)&&a>0&&G.badges>=a/2;
     const sub=a===0?'출발':a===18?'리그':isTown(a)?TN[GYM[a/2-1].t]+' 체육관':'';
     const ic=isTown(a)&&a>0?`<i class="tyi" style="${tyIco(GYM[a/2-1].t)}"></i>`:'';
     return `<button class="wnd ${town?'t':'r'}${open?'':' lk'}${me?' me':''}${tg?' tg':''}${cl?' cl':''}${hl&&hl.has(a)?' hl':''}${WM.sel===a?' sel':''}" data-a="${a}" style="left:${x}%;top:${y}%;--c:${areaCol(a)}"><div class="wth"><img src="ui/wm/a${String(a).padStart(2,'0')}.webp" alt="">${ic}${town?'':`<b class="wn">${(a+1)/2}</b>`}${cl?'<u class="wcl">배지</u>':''}${open?'':'<u class="wlkk">잠김</u>'}</div>${town?`<span>${areaName(a)}<small>${sub}</small></span>`:''}${me?'<em class="wme">나</em>':''}${tg?'<em class="wtg">목표</em>':''}</button>`}).join('');
-  openPanel('월드맵',`<div class="wm"><div class="wmap"><img src="ui/worldmap.webp" alt=""><svg viewBox="0 0 100 62.5" preserveAspectRatio="none">${path}</svg>${nodes}</div>
+  openPanel('월드맵',`<div class="wm"><div class="wmap"><img src="ui/worldmap.webp" alt=""><div class="wsea"><b>상위 지역 · 섬</b><small>${G.champ?'갈색시티에서 배 · 상위 배지 '+(G.ub||0)+'/4':'포켓몬 리그 챔피언이 되면 열려요'}</small></div><svg viewBox="0 0 100 81.25" preserveAspectRatio="none">${path}</svg>${nodes}</div>
     ${v?`<div class="wnav"><b>목표</b><span>${navLabel()}</span><button id="wNx">목표 지우기</button></div>`:''}
     <div id="wInfo">${worldInfo(WM.sel)}</div>
     <div class="wsr"><h4>포켓몬 찾기</h4><input id="wQ" placeholder="이름으로 검색 (예: 피카츄)" value="${WM.q.replace(/"/g,'')}"><div class="wch">${['전체',...RAR].map((t,i)=>`<button data-r="${i-1}" class="${WM.r===i-1?'on':''}">${t}</button>`).join('')}<button id="wMiss" class="${WM.miss?'on':''}">못 잡은 것만</button></div><div id="wRes"></div></div></div>`,null,p=>{
@@ -2545,9 +2578,10 @@ const TOWNF=[
  {d:'불타는 화산섬 · 포켓몬 연구소',f:['포켓몬센터','연구소 상점 · 고급상처약 할인'],sale:{hpotion:.7}},
  {d:'리그로 가는 마지막 도시',f:['포켓몬센터','준비물 가게 · 볼 전부 할인'],sale:{ball:.85,great:.85,hyper:.85}}];
 // 타입 부적 아이템
-for(const g of GYM){const k='ch_'+g.t;ITEMS[k]={n:TN[g.t]+'의 부적',e:`<i class="tyi ic" style="${tyIco(g.t)}"></i>`,charm:g.t,tp:4000+GYM.indexOf(g)*1500}}
+for(const g of GYM){if(g.league)continue;const k='ch_'+g.t;ITEMS[k]={n:TN[g.t]+'의 부적',e:`<i class="tyi ic" style="${tyIco(g.t)}"></i>`,charm:g.t,tp:4000+GYM.indexOf(g)*1500}}
 const hasCharm=t=>(G.bag['ch_'+t]||0)>0;
 {const _dc=dmgCalc;dmgCalc=function(a,d,m,c){const r=_dc(a,d,m,c);try{if(G.party.includes(a)&&hasCharm(m.type))r.d=Math.floor(r.d*1.1)}catch(e){}return r}}
+if(!ITEMS.master)ITEMS.master={n:'마스터볼',e:'<img class="ic" src="items/MASTERBALL.png">',ball:255,col:'#8a3ab0'};
 const townIdx=a=>isTown(a)?a/2:-1;
 function townGoods(a){const k=townIdx(a);if(k<0)return[];const T=TOWNF[k],L=[];
   if(k>0){const t=GYM[k-1].t,ck='ch_'+t;L.push({k:ck,p:ITEMS[ck].tp,tag:'부적',one:1})}
@@ -2703,7 +2737,7 @@ function buyAsk(k,n,price,ok,fixed){const it=ITEMS[k];let q=n||1;const d=documen
   draw();d.onclick=e=>{if(e.target===d)d.remove()};document.body.appendChild(d)}
 
 // ===== 사이드메뉴: 배지 · 컨텐츠 (뭐가 있는지 · 마을별로 바로 가기) =====
-function badgeOpen(){if(!G)return;const rows=GYM.map((g,i)=>{const got=i<G.badges,now=i===G.badges,a=2*(i+1),rm=rmLeft(i)<=0;
+function badgeOpen(){if(!G)return;const rows=GYM.slice(0,8).map((g,i)=>{const got=i<G.badges,now=i===G.badges,a=2*(i+1),rm=rmLeft(i)<=0;
   return `<div class="hrow ${got?'ok':now?'now':'lk'}"><i class="tyi" style="${tyIco(g.t)}"></i><span><b>${TOWNS[i+1]} · ${g.n}</b><small>${TN[g.t]} 타입 · ${got?'배지 획득'+(rm?' · 오늘 재대결 5번 끝':' · 재대결 '+rmLeft(i)+'/5번 남음'):now?'지금 도전할 차례 · 추천 Lv.'+(gymAce(i)-1):'배지 '+i+'개 모으면 도전'}</small></span>
   <button data-lc="${i}">관장 보기</button>${got||now?`<button data-gg="${a}">${now?'도전하러 가기':'가기'}</button>`:''}</div>`}).join('');
   openPanel('배지 · 관장',`<p class="hhint">배지를 누르면 관장과 파트너 포켓몬을 볼 수 있어요. 이긴 관장은 배지마다 하루 5번 재대결! (상대 레벨이 내 레벨을 따라와요)</p>${badgeCase()}${rows}`,null,p=>{
@@ -2724,7 +2758,7 @@ function hubOpen(tab){if(!G)return;tab=tab||HUB.tab||'c';HUB.tab=tab;
     return `<div class="htown ${open?'':'lk'}" style="--c:${areaCol(a)}"><img src="ui/wm/a${String(a).padStart(2,'0')}.webp" alt=""><div><b>${areaName(a)}</b>${G.a===a?'<em>지금 여기</em>':''}<small>${TOWNF[k].d}</small>
       <ul>${g?`<li>체육관 · ${g.n} (${TN[g.t]}) ${k<=G.badges?'· 배지 획득':''}</li>`:''}${mg?`<li>놀거리 · <b>${mg.n}</b></li>`:''}${goods?`<li>특산품 · ${goods}</li>`:''}</ul>
       <div class="wbt">${!open?`<small class="lkx">배지 ${areaNeed(a)}개 필요</small><button data-hn="${a}">먼저 할 일 안내</button>`:G.a===a?(mg?`<button class="main" data-hm="${a}">${mg.n} 하기</button>`:''):`<button class="main" data-hg="${a}">${mg?mg.n+' 하러 가기':'자동 이동'}</button>${vis&&canFly()?`<button data-hf="${a}">날아가기</button>`:''}`}</div></div></div>`};
-  const towns=[0,2,4,6,8,10,12,14,16].map(town).join('');
+  const towns=[0,2,4,6,8,10,12,14,16].map(town).join('')+'<h4 class="ubd">상위 지역 (챔피언 이후 · 배 타고 가는 섬)</h4>'+[20,22,24,26].map(town).join('');
   const cont=HUB.map(h=>`<div class="hcard"><b>${h.n}</b><small class="hst">${h.st()}</small><p>${h.d}</p>${h.list?`<div class="hmg">${Object.keys(MGS).map(a=>`<span><b>${areaName(+a)} · ${MGS[a].n}</b><small>${MGS[a].d}</small>${G.a===+a?`<button class="main" data-hm="${a}">지금 하기</button>`:areaOpen(+a)?`<button data-hg="${a}">가서 하기</button>`:`<small class="lkx">배지 ${areaNeed(+a)}개 필요</small>`}</span>`).join('')}</div>`:''}${h.town?'<button data-tab="t">마을별로 보기</button>':''}${h.go?`<div class="wbt">${h.go.map((g,i)=>`<button data-hb="${h.k}:${i}">${g[0]}</button>`).join('')}</div>`:''}</div>`).join('');
   openPanel('컨텐츠',`<div class="tabs"><button data-tab="c" class="${tab==='c'?'on':''}">컨텐츠별</button><button data-tab="t" class="${tab==='t'?'on':''}">마을별</button></div>${tab==='c'?cont:towns}`,null,p=>{
     p.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{sfx('tap');hubOpen(b.dataset.tab)});
@@ -2905,6 +2939,59 @@ function xferAlbum(){const inp=document.createElement('input');inp.type='file';i
 {const _xo=xferOpen;xferOpen=function(){_xo();setTimeout(()=>{const p=document.querySelector('.panel');const b=p&&p.querySelector('#xS');if(!b||p.querySelector('#xA'))return;const a=document.createElement('button');a.id='xA';a.textContent='앨범에서 QR 가져오기';a.onclick=()=>{closePanel(1);xferAlbum()};b.parentNode.appendChild(a);
   const t=b.closest('.hcard').querySelector('p');if(t)t.insertAdjacentHTML('beforeend','<br><small>출석 앱 QR을 미리 사진(캡처)으로 저장해 뒀다면 「앨범에서 QR 가져오기」로 골라요.</small>')},30)}}
 (function(){const go=()=>{const t=document.getElementById('tQrA');if(t)t.onclick=()=>{sfx('tap');xferAlbum()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+
+// ===== 상위 지역: 챔피언이 되면 배를 타고 가는 섬 4곳 · 상위 관장 4명 · 상위 배지 · 전설·신화·환상·유일 야생 포켓몬 =====
+const ULINE=[
+ {pre:['챔피언이 여기까지 왔다고? 얼음은 쉽게 깨지지 않는단다.','내 포켓몬은 전설의 추위 속에서 자랐지. 버텨 보거라!'],win:['허허… 얼음이 녹을 만큼 뜨거운 승부였다.','이 상위 배지를 가져가거라. 다음 섬이 너를 기다린다.']},
+ {pre:['그림자 속에서 너를 지켜보고 있었어.','보이지 않는 것이 제일 무서운 법이지. 시작하자!'],win:['그림자가 걷혔군… 네 빛이 더 밝았어.','상위 배지야. 황금시티로 가 봐.']},
+ {pre:['강철처럼 단단한 마음이 있어야 이 배지를 받을 수 있어요.','봐주지 않을 거예요. 진짜 실력으로 와요!'],win:['정말 대단해요… 내 강철이 휘어 버렸어요.','상위 배지예요! 마지막은 용의 성채예요.']},
+ {pre:['나는 용의 성채의 주인. 전설의 용들이 나와 함께 있다.','여기까지 온 트레이너는 손에 꼽지. 끝까지 버텨 봐라!'],win:['…인정하지. 너는 진짜 최강의 트레이너다.','마지막 상위 배지를 주마. 이제 섬 어디서든 전설을 찾아 봐라!']}];
+const UPW=[.15,.5,1.3,1.6,1.1,.75,.4];// 상위 지역은 높은 등급이 훨씬 잘 나와요
+const formKeys=()=>Object.keys(META).filter(k=>META[k].form&&FTIER&&FTIER[META[k].form]&&THUMB[k]!==undefined);
+{const _e=encTable;encTable=function(a){if(a<UP0)return _e(a);const k=(a-1)/2,u=(a-19)/2,r=rng(G.seed*13+a*101),bias=RBIAS[k];
+  const pick=(L,n,w)=>{const out=[];L=L.slice();const W=L.map(s=>META[s].types.some(t=>bias.includes(t))?4:1);for(let i=0;i<n&&L.length;i++){let tot=W.reduce((x,y)=>x+y,0),q=r()*tot,j=0;for(;j<L.length;j++){q-=W[j];if(q<=0)break}j=Math.min(j,L.length-1);out.push({n:L[j],w});L.splice(j,1);W.splice(j,1)}return out};
+  const base=SPECIES.filter(s=>!META[s].form);const R2=base.filter(s=>rarOf(s)===2),R3=base.filter(s=>rarOf(s)===3),R1=base.filter(s=>rarOf(s)===1);let F=[];try{F=formKeys()}catch(e){}
+  const g=[...pick(R1,3,8),...pick(R2,4,7),...pick(R3,3+u,6),...pick(F,2+u,5+u)];
+  const wl=base.filter(s=>META[s].types.includes('WATER')&&rarOf(s)>=1);const w=pick(wl.length?wl:R2,4,6);return{g,w}}}
+{const _w=wpick;wpick=function(T){if(!G||G.a<UP0)return _w(T);const W=T.map(e=>e.w*UPW[rarOf(e.n)]*DRARE[DIFF()]);const tot=W.reduce((a,b)=>a+b,0);let u=R()*tot;for(let i=0;i<T.length;i++){u-=W[i];if(u<=0)return T[i].n}return T[0].n}}
+// 상위 관장 팀: 그 타입의 영웅 이상 (전설·폼 포함) 중 강한 순
+function upTeam(t,n,lvs,seed){const r=rng(seed);let L=[...SPECIES,...(()=>{try{return formKeys()}catch(e){return[]}})()].filter(k=>META[k]&&META[k].types.includes(t)&&rarOf(k)>=2);
+  L.sort((a,b)=>bst(META[b].stats)-bst(META[a].stats));L=L.slice(0,Math.max(n+4,14));const out=[];for(let i=0;i<n&&L.length;i++){const j=Math.floor(r()*L.length);out.push(mkMon(L[j],lvs[i]||lvs[lvs.length-1]));L.splice(j,1)}return out}
+async function ugym(i){const g=GYM[9+i],town=TOWNS[10+i],ub=G.ub||0;
+  if(!G.champ){await say(['안내원: 여기는 포켓몬 리그 챔피언만 도전할 수 있는 <b>상위 체육관</b>이에요!']);return}
+  if(ub>i){await say([g.n+': 상위 배지는 이미 줬단다. 다음 섬으로 가 보렴.']);return}
+  if(ub<i){await say(['안내원: 먼저 '+TOWNS[10+ub]+' 상위 체육관부터 도전해 봐!']);return}
+  const lv=Math.min(100,Math.max(topLv()+2,74+i*7));
+  await say(['안내원: 여기는 '+town+' <b>상위 체육관</b>! <b>'+TN[g.t]+'</b> 타입 전설 포켓몬을 쓰는 '+g.n+'이(가) 기다려요.','추천 Lv.'+(lv-2)+' · 이기면 <b>상위 배지</b>와 높은 등급 카드팩!']);
+  let r=await battle({scaled:1,trainer:'상위 수련생',foes:upTeam(g.t,3,[lv-6,lv-5,lv-4],G.seed+i*31),money:lv*40,lose:'관장님은 전설을 다뤄!',bg:'town'});if(r!=='win'){if(r==='lose')await blackout();return}
+  await trainerScene(g.spr,g.n,ULINE[i].pre);
+  r=await battle({scaled:1,trainer:g.n,foes:upTeam(g.t,6,[lv-4,lv-3,lv-2,lv-1,lv,lv+1],G.seed+i*57),money:lv*220,lose:'훌륭하다…',bg:'town'});
+  if(r==='win'){await trainerScene(g.spr,g.n,ULINE[i].win,'win');G.ub=i+1;sfx('badge');addItem('hyper',10);addItem('candy',5);
+    REWQ.push({multi:Array(5).fill('P'),msg:'상위 배지 보상!',title:town+' 상위 배지 보상 · 포켓몬팩 5장'});
+    await say(['<b>'+town+' 상위 배지</b>를 받았다! (상위 배지 '+G.ub+'/4)','하이퍼볼 10개 · 이상한사탕 5개도 받았다!',G.ub<4?'다음 섬으로 가는 길이 열렸어요!':'상위 배지 4개 완성! 이제 섬 어디서든 전설·신화·환상·유일 포켓몬을 찾아 보세요.']);save()}
+  else if(r==='lose')await blackout()}
+{const _g=gym;gym=function(k){if(k>=10)return ugym(k-10);return _g.apply(this,arguments)}}
+// 배 타고 가기 (갈색시티 항구 ↔ 얼음꽃마을)
+async function shipTo(a){P.busy=1;toast('배를 타고 '+areaName(a)+'(으)로 가요');sfx('get');await fade(1);const A=genArea(a);const b=A.bld.find(b=>b.kind==='center');place(a,b?b.out.x:A.spawn.x,b?b.out.y:A.spawn.y,0);await fade(0);P.busy=0;save()}
+{const _n=navArea;navArea=function(a){if(a>=UP0&&G.a<UP0){if(!G.champ){toast('상위 지역은 챔피언이 되면 갈 수 있어요');return}const v=Object.keys(G.visit||{}).map(Number).filter(x=>x>=UP0&&x<=a);shipTo(v.length?Math.max(...v):20);return}
+  if(a<UP0&&G.a>=UP0){const v=Object.keys(G.visit||{}).map(Number).filter(x=>x<18);if(canFly()&&v.length){flyTo(v.sort((p,q)=>Math.abs(p-a)-Math.abs(q-a))[0]);return}shipTo(6);return}return _n(a)}}
+{const _h=healGoal;healGoal=function(){if(G&&G.a>=UP0){let best=20;for(let a=20;a<=26;a+=2)if(areaOpen(a)&&Math.abs(a-G.a)<Math.abs(best-G.a))best=a;return{a:best,door:'center'}}return _h()}}
+// 퀘스트: 챔피언 다음엔 상위 체육관
+{const _o=objective;objective=function(){const o=_o();try{if(!G||!G.champ||o.nav||/치료/.test(o.t||''))return o;const ub=G.ub||0;
+  if(ub<4){const a=20+ub*2;return{t:'상위 지역 · '+TOWNS[10+ub]+' 상위 체육관 ('+GYM[9+ub].n+')',g:{a,door:'gym'}}}
+  return{t:'상위 배지 4개! 섬에서 전설·신화·환상·유일 포켓몬 찾기',hunt:{a:25}}}catch(e){return o}}}
+// 자동 사냥 버튼: 상위 마을에 있으면 옆 도로로
+{const b=()=>{const e=document.getElementById('bHunt');if(!e)return;const _c=e.onclick;e.onclick=function(ev){if(G&&G.a>=UP0&&isTown(G.a)&&!AUTO.huntOnly){const to=G.a===26?25:areaOpen(G.a+1)?G.a+1:G.a-1;AUTO.on=1;AUTO.huntOnly=1;AUTO.hunt={a:to};AUTO.guide=0;hud();toast(areaName(to)+'에서 자동 사냥');return}return _c&&_c.call(this,ev)}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',()=>setTimeout(b,50));else setTimeout(b,50)}
+// 마을 특색 (상위)
+try{TOWNF[9]={d:'',f:[],sale:{}};TOWNF.push(
+ {d:'눈꽃이 피는 얼음 섬 · 상위 지역의 입구',f:['포켓몬센터','상위 체육관 (얼음)','항구 · 갈색시티로 가는 배'],sale:{hyper:.75}},
+ {d:'해가 들지 않는 어둠의 도시',f:['포켓몬센터','상위 체육관 (고스트)','어둠 시장 · 이상한사탕'],sale:{},only:{candy:2500}},
+ {d:'모든 것이 금빛으로 빛나는 부자 도시',f:['포켓몬센터','상위 체육관 (강철)','황금 상점 · 마스터볼 (여기서만)'],sale:{hyper:.7},only:{master:60000}},
+ {d:'전설의 용들이 잠든 성채',f:['포켓몬센터','상위 체육관 (드래곤)','전설 포켓몬이 가장 많이 나오는 곳'],sale:{hyper:.7,hpotion:.7}})}catch(e){}
+// 배지 화면에 상위 배지
+{const _b=badgeOpen;badgeOpen=function(){_b();setTimeout(()=>{const p=document.querySelector('.panel .pb')||document.querySelector('.panel');if(!p||p.querySelector('.ubd'))return;const ub=G.ub||0;
+  const h=`<h4 class="ubd">상위 배지 ${ub}/4 <small>${G.champ?'챔피언이 되면 배를 타고 가는 섬의 관장들':'포켓몬 리그 챔피언이 되면 열려요'}</small></h4><div class="ubg">${[0,1,2,3].map(i=>{const g=GYM[9+i];return `<div class="ubb ${i<ub?'on':''}" style="--c:${g.c}"><img src="trainers/${g.spr}.png"><i class="tyi" style="${tyIco(g.t)}"></i><b>${TOWNS[10+i]}</b><small>${g.n}</small>${i<ub?'<em>획득</em>':i===ub&&G.champ?`<button data-ug="${20+i*2}">도전하러 가기</button>`:'<em class="lk">잠김</em>'}</div>`}).join('')}</div>`;
+  const box=document.createElement('div');box.innerHTML=h;p.appendChild(box);box.querySelectorAll('[data-ug]').forEach(b=>b.onclick=()=>{closePanel(1);navSet(+b.dataset.ug,null,'auto')})},40)}}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
