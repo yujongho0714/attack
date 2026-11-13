@@ -3670,7 +3670,7 @@ const PXRAW=[
 const PX=PXRAW.map(([g,n,s],i)=>{const e={};for(const t of s.split(' ')){const m=t.match(/^([a-z]+)([\d.]*)$/);e[m[1]]=+(PXB*(m[2]?+m[2]:1)*PXM[g]).toFixed(1)}return{i,g,n,e}});
 // 난이도별 최고 등급: 쉬움 희귀 · 보통 영웅 · 어려움 전설 · 지옥 환상 · 나이트메어 유일 (환생 1번마다 한 칸 더 · 최대 유일)
 const PXCAP=[1,2,3,5,6];const pxCap=()=>{try{return Math.min(6,PXCAP[Math.min(4,DIFF())]+(G&&G.rebirth||0))}catch(e){return 2}};
-function pxRoll(){const cap=pxCap(),W=PXW.slice(0,cap+1);let u=R()*W.reduce((a,b)=>a+b,0),g=0;for(;g<W.length;g++){u-=W[g];if(u<0)break}g=Math.min(g,cap);const L=PX.filter(p=>p.g===g);return L[ri(0,L.length-1)].i}
+function pxRoll(){const cap=pxCap(),W=PXW.slice(0,cap+1);let u=R()*W.reduce((a,b)=>a+b,0),g=0;for(;g<W.length;g++){u-=W[g];if(u<0)break}g=Math.min(g,cap);const L=PX.filter(p=>p.g===g&&!p.lim);return L[ri(0,L.length-1)].i}
 const pxOf=m=>m&&m.px!=null?PX[m.px]:null;
 const pxTxt=p=>Object.keys(p.e).map(k=>PXS[k]+' +'+p.e[k]+'%').join(' · ');
 // 내 포켓몬에게 접두사 주기 (새로 들어온 포켓몬도 몇 초 안에)
@@ -3885,6 +3885,46 @@ try{HUB.push({k:'egg',n:'알 부화',d:'포케스탑 · 히든 포탈에서 포�
 #egHud span{display:flex;flex-direction:column;align-items:center;gap:2px}#egHud u,.egr u{display:block;width:22px;height:4px;background:#ffffff40}#egHud u em,.egr u em{display:block;height:100%;background:#7cf06a}
 #egHud small{color:#fff;font:700 11px 'Galmuri11',sans-serif}body.inb #egHud{display:none!important}@media (orientation:landscape){#egHud{top:calc(222px + env(safe-area-inset-top))}}
 .egl{display:flex;flex-direction:column;gap:10px;margin:6px 4px}.egr{display:flex;align-items:center;gap:12px;background:#fffaf0;padding:10px 12px;box-shadow:0 3px 0 #1c2550,0 -3px 0 #1c2550,3px 0 0 #1c2550,-3px 0 0 #1c2550}.egr .egg{width:30px;height:36px}.egr span{flex:1;display:flex;flex-direction:column;gap:3px}.egr u{width:100%;height:8px;background:#1c255022}`;document.head.appendChild(c)})();
+
+// ===== 시즌 패스: 한 달 동안 놀면서 점수(XP)를 모아 30단계 보상 · 매달 1일 새 시즌 · 마지막은 시즌 한정 접두사 =====
+// 점수: 접속 하루 20 · 야생 승리 2 · 포켓몬 잡기 6 · 트레이너 승리 6 · 체육관/리그 30 · 포케스탑 3 · 히든 포탈 10 · 월드보스 20 · 알 부화 15
+PX.push({i:PX.length,g:6,n:'시즌 챔피언',e:{hp:12,atk:12,def:12,spa:12,spd:12,spe:12},lim:1});const SPX_I=PX.length-1;
+ITEMS.spxsc={n:'시즌 한정 접두사권',e:'<img class="ic" src="ui/star.webp" style="filter:hue-rotate(300deg) saturate(2) drop-shadow(0 0 4px #ff2aa0)">'};
+try{ITD.spxsc={s:'포켓몬 한 마리에게 시즌 한정 접두사 「시즌 챔피언」(모든 능력치 +12%)을 붙여요',use:'가방에서 누르고 「사용하기」 → 포켓몬 고르기',good:'뽑기로는 절대 안 나오는 한정 접두사예요',who:'제일 아끼는 주력 포켓몬',tip:'시즌 패스 30단계를 다 깨면 받아요'}}catch(e){}
+const SP_LV=30,SP_XP=100;
+const spKey=()=>{const d=new Date(Date.now()+9*3600e3);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')};
+function spS(){G.sp=G.sp||{};if(G.sp.k!==spKey()){G.sp={k:spKey(),xp:0,got:{},day:''}}return G.sp}
+const spLv=()=>Math.min(SP_LV,Math.floor(spS().xp/SP_XP));
+function spAdd(n,why){if(!G||!n)return;const s=spS(),l0=spLv();s.xp+=n;save();const l1=spLv();if(l1>l0){toast('시즌 패스 '+l1+'단계! 보상을 받으러 가요 · 컨텐츠 → 시즌 패스');try{sfx('badge')}catch(e){}spBadge()}}
+// 단계별 보상
+function spRew(l){if(l===SP_LV)return[['spxsc',1],['pack:P3',1]];if(l===25)return[['cube2',1],['pack:P2',1]];if(l===20)return[['pack:P3',1],['pxsc',1]];if(l===15)return[['pack:P2',1],['egg',1]];if(l===10)return[['pack:P2',1],['pxsc',1]];if(l===5)return[['pack:P',3]];
+  return[[['ball',10],['pack:P',1],['great',5],['potion',5],['pack:M',1],['cube',1],['egg',1],['hyper',3],['pxsc',1],['candy',1]][(l-1)%10]]}
+const spRN=([k,n])=>k.startsWith('pack:')?PKT[k.slice(5)].n+' ×'+n:(ITEMS[k]?ITEMS[k].n:k)+' ×'+n;
+function spGive(l){const s=spS();if(s.got[l]||spLv()<l)return false;s.got[l]=1;for(const [k,n] of spRew(l)){if(k.startsWith('pack:'))packAdd(Array(n).fill(k.slice(5)),'시즌 패스');else addItem(k,n)}save();return true}
+function spOpen(){if(!G)return;const s=spS(),lv=spLv(),d=new Date(Date.now()+9*3600e3),last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate(),left=last-d.getUTCDate()+1;
+  const can=[...Array(SP_LV)].map((_,i)=>i+1).filter(l=>l<=lv&&!s.got[l]);
+  openPanel('시즌 패스 · '+(d.getUTCMonth()+1)+'월 시즌',`<div class="sph"><div><b>${lv} / ${SP_LV} 단계</b><small>점수 ${s.xp.toLocaleString()} · 다음 단계까지 ${lv>=SP_LV?'완료!':(SP_XP-s.xp%SP_XP)+'점'} · 이번 시즌 ${left}일 남음</small></div><u><em style="width:${Math.min(100,s.xp/(SP_LV*SP_XP)*100)}%"></em></u></div>
+   <p class="hhint">놀면 점수가 쌓여요: 접속 하루 20 · 야생 승리 2 · 잡기 6 · 트레이너 6 · 체육관/리그 30 · 포케스탑 3 · 히든 포탈 10 · 월드보스 20 · 알 부화 15. 매달 1일 새 시즌! 30단계 보상은 뽑기로는 안 나오는 <b>시즌 한정 접두사 「시즌 챔피언」</b>(모든 능력치 +12%)!</p>
+   <div class="wbt"><button class="main" id="spAll" ${can.length?'':'disabled'}>받을 수 있는 보상 모두 받기 (${can.length}개)</button></div>
+   <div class="spg">${[...Array(SP_LV)].map((_,i)=>{const l=i+1,st=s.got[l]?'got':l<=lv?'can':'lock',big=l%5===0;return `<div class="spc ${st}${big?' big':''}"><b>${l}</b><span>${spRew(l).map(spRN).join('<br>')}</span>${st==='can'?`<button data-sp="${l}">받기</button>`:st==='got'?'<em>받음</em>':'<em>잠김</em>'}</div>`}).join('')}</div>`,null,p=>{
+    p.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{if(spGive(+b.dataset.sp)){sfx('get');toast(b.dataset.sp+'단계 보상을 받았어요!');spOpen()}});
+    const a=p.querySelector('#spAll');if(a)a.onclick=()=>{let n=0;for(const l of can)if(spGive(l))n++;sfx('badge');toast('보상 '+n+'개를 받았어요!');spOpen()}})}
+function spBadge(){const h=HUB.find(x=>x.k==='season');if(h){}}
+// 시즌 한정 접두사권 쓰기
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it="spxsc"]');if(!b)return;e.stopImmediatePropagation();e.preventDefault();
+  itemInfo('spxsc',()=>{const L=[...G.party,...G.box].filter(m=>m.px!==SPX_I);itPick(L.slice(0,40),ITEMS.spxsc,m=>{itAsk(nm(m)+'에게 「시즌 챔피언」을 붙일까요?','지금 접두사는 사라져요.',()=>{if(!(G.bag.spxsc>0))return;G.bag.spxsc--;m.px=SPX_I;save();sfx('badge');toast(nm(m)+' · 시즌 한정 접두사!')})})})},true);
+// 점수 모으기
+setInterval(()=>{try{if(!G)return;const s=spS(),dk=dayKey();if(s.day!==dk){s.day=dk;spAdd(20,'접속')}}catch(e){}},5000);
+{const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{if(o&&r==='win'){if(o.wb)spAdd(20);else if(o.gym||o.league||/관장|챔피언|사천왕/.test(o.trainer||''))spAdd(30);else if(o.trainer)spAdd(6);else spAdd(2)}else if(r==='caught')spAdd(6);if(o&&o.wb&&r!=='win')spAdd(20)}catch(e){}return r}}
+{const _g=psGive;psGive=function(){const r=_g.apply(this,arguments);if(r)spAdd(3);return r}}
+{const _h=hpEnter;hpEnter=async function(){const r=await _h.apply(this,arguments);try{if(BS.lastRes==='win')spAdd(10)}catch(e){}return r}}
+{const _e=eggHatch;eggHatch=async function(){const r=await _e.apply(this,arguments);spAdd(15);return r}}
+try{HUB.unshift({k:'season',n:'시즌 패스 (매달 새 시즌)',d:'한 달 동안 놀면서 점수를 모아 30단계 보상을 받아요. 5단계마다 큰 보상, 30단계는 시즌 한정 접두사 「시즌 챔피언」!',st:()=>spLv()+'/'+SP_LV+'단계'+([...Array(SP_LV)].some((_,i)=>i+1<=spLv()&&!spS().got[i+1])?' · 받을 보상 있음!':''),go:[['시즌 패스 열기',()=>spOpen()]]})}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`
+.sph{display:flex;flex-direction:column;gap:6px;margin:6px 4px;padding:10px 12px;background:linear-gradient(#2c3a80,#1c2550);color:#fff;box-shadow:0 0 0 3px #ffd23f}.sph b{font-size:20px;color:#ffd23f}.sph small{display:block;font-size:12px;opacity:.9}.sph u{display:block;height:10px;background:#ffffff30}.sph u em{display:block;height:100%;background:linear-gradient(90deg,#ffd23f,#ff8a1a)}
+.spg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin:8px 4px}
+.spc{display:flex;flex-direction:column;gap:4px;padding:8px;background:#fffaf0;box-shadow:0 3px 0 #1c2550,0 -3px 0 #1c2550,3px 0 0 #1c2550,-3px 0 0 #1c2550;font-size:12px;color:#1c2550}.spc>b{font-size:18px}.spc span{flex:1;line-height:1.35}.spc em{font-style:normal;font-size:11px;color:#6b7280;text-align:center}
+.spc.big{background:#fff2b8;box-shadow:0 3px 0 #ffb020,0 -3px 0 #ffb020,3px 0 0 #ffb020,-3px 0 0 #ffb020,0 0 12px #ffb02088}.spc.lock{opacity:.55}.spc.got{opacity:.7}.spc.can{animation:pxglow 1.4s ease-in-out infinite}`;document.head.appendChild(c)})();
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
