@@ -3748,7 +3748,7 @@ try{HUB.push({k:'prefix',n:'접두사 (100가지)',d:'내 포켓몬마다 접두
 function mePx(){if(!G)return null;if(G.mepx==null){G.mepx=pxRoll();save()}return PX[G.mepx]}
 {const _s2=stOf;const IX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};stOf=function(m){const S=_s2(m);if(!m||m.px==null||!G||!(G.party.includes(m)||G.box.includes(m)))return S;const p=mePx();if(!p)return S;const o=S.slice?S.slice():S;for(const k in p.e)if(IX[k]!=null)o[IX[k]]=Math.round(o[IX[k]]*(1+p.e[k]/200));return o}}
 {const _dc2=dmgCalc;dmgCalc=function(a,d,mv0,crit){const r=_dc2.apply(this,arguments);try{if(a&&a.px!=null&&G&&(G.party.includes(a)||G.box.includes(a))){const p=mePx();if(p&&r&&r.d>0){if(crit&&p.e.cdm)r.d=Math.round(r.d*(1+p.e.cdm/200));else if(!crit&&p.e.crt&&R()<p.e.crt/200)r.d=Math.round(r.d*1.5)}}}catch(e){}return r}}
-function meLabelEnt(ents,px,py,s,camX,camY){if(!G)return;const p=mePx();const name=(typeof isGM==='function'&&isGM()?'[GM] ':'')+(G.name||'');ents.push({y:py+.02,f:()=>{const X=px*s-camX+s/2,Y=py*s-camY-s*.08;cx.save();cx.textAlign='center';cx.textBaseline='bottom';
+function meLabelEnt(ents,px,py,s,camX,camY){if(!G)return;const p=mePx();const name=(typeof isGM==='function'&&isGM()?'[GM] ':'')+(G.name||'');ents.push({y:py+.02,f:()=>{const X=px*s-camX+s/2,Y=py*s-camY-s*(G.me&&typeof MEF!=="undefined"&&MEF?1.02:.08);cx.save();cx.textAlign='center';cx.textBaseline='bottom';
   const f1=Math.max(9,Math.round(s*.3)),f2=Math.max(10,Math.round(s*.36));cx.lineJoin='round';
   cx.font=`700 ${f2}px Galmuri11, sans-serif`;cx.lineWidth=Math.max(3,s*.12);cx.strokeStyle='#1c2550';cx.fillStyle='#fff';cx.strokeText(name,X,Y);cx.fillText(name,X,Y);
   if(p){const t='['+p.n+']';cx.font=`700 ${f1}px Galmuri11, sans-serif`;const y2=Y-f2-1;if(p.g>=3){cx.shadowColor=PXC[p.g];cx.shadowBlur=8+4*Math.sin(NOW*4)}cx.lineWidth=Math.max(3,s*.11);cx.strokeStyle='#1c2550';cx.strokeText(t,X,y2);cx.shadowBlur=0;
@@ -4188,6 +4188,35 @@ try{spRN=([k,n])=>{const ic=k.startsWith('pack:')?`<img class="ic" src="${PKT[k.
 #bPortal i{display:block;width:34px;height:34px;background:url(ui/ic_portal.webp) center/cover;animation:pspin 4s linear infinite}@keyframes pspin{to{transform:rotate(360deg)}}
 .spi{display:flex;align-items:center;gap:6px;font-style:normal;margin:2px 0}.spi .ic{width:26px;height:26px;object-fit:contain;flex:none}.spi span{line-height:1.2}
 #wxBadge i{width:20px!important;height:20px!important;background:url(ui/ic_wx.webp) center/cover!important;box-shadow:none!important}`;document.head.appendChild(c)})();
+
+// ===== 빨간불: 받을 것 · 할 것이 있으면 빨간 점, 다 하면 꺼져요 (사이드메뉴 · 컨텐츠 카드) =====
+const NOTI={
+  season:()=>{try{const s=spS(),l=spLv();for(let i=1;i<=l;i++)if(!s.got[i])return true}catch(e){}return false},
+  wb:()=>{try{const w=wbS();return navigator.onLine&&!!wbCfg()&&(w.tries[dayKey()]||0)<WB_TRY&&G.badges>=1}catch(e){return false}},
+  rm:()=>{try{return GYM.slice(0,8).some((g,i)=>i<G.badges&&rmLeft(i)>0)}catch(e){return false}},
+  card:()=>{try{const D=G.dupes||[];const c={};for(const x of D){const k=x.kind+x.rar;c[k]=(c[k]||0)+1}return Object.entries(c).some(([k,n])=>n>=2&&+k.slice(1)<(k[0]==='M'?MMAX:PMAX))}catch(e){return false}},
+  pack:()=>Object.values(G.packs||{}).some(n=>n>0),
+  gift:()=>(G.gifts||[]).length>0,
+  portal:()=>{try{return !!HPOPEN}catch(e){return false}},
+  egg:()=>{try{return (G.bag.egg||0)>0&&eggS().length<EGG_SLOT}catch(e){return false}},
+  stop:()=>{try{return psS().n<PS_MAX&&!!PSNEAR}catch(e){return false}},
+  heal:()=>{try{return G.party.some(m=>m.hp<=0)}catch(e){return false}},
+  prefix:()=>(G.bag.pxsc||0)>0||(G.bag.spxsc||0)>0,
+  gear:()=>{try{return (G.bag.cube||0)+(G.bag.cube2||0)>0}catch(e){return false}},
+  rank:()=>{try{const T=(G.mg||{}).tw||{};return navigator.onLine&&!!wbCfg()&&T.wk===wbWeek()&&(T.wb||0)>(G.rkTw||0)}catch(e){return false}}
+};
+const NOTI_BTN={bHub:['season','rm','card','egg','prefix'],bWB:['wb'],bPack:['pack'],bGiftS:['gift'],bFuse:['card'],bBadge:['rm'],bHeal:['heal'],bGear:['gear','prefix'],bRank:['rank']};
+const notiOn=ks=>ks.some(k=>{try{return NOTI[k]&&NOTI[k]()}catch(e){return false}});
+function notiDot(el,on){if(!el)return;let d=el.querySelector(':scope>.rdot');if(on&&!d){d=document.createElement('i');d.className='rdot';el.appendChild(d)}if(!on&&d)d.remove()}
+setInterval(()=>{try{if(!G)return;for(const id in NOTI_BTN)notiDot(document.getElementById(id),notiOn(NOTI_BTN[id]));
+  const p=document.querySelector('.panel');if(p){const cs=p.querySelectorAll('.hcard');if(cs.length&&HUB&&p.querySelector('.ph b')&&/컨텐츠/.test(p.querySelector('.ph b').textContent))HUB.forEach((h,i)=>{notiDot(cs[i],!!(NOTI[h.k]&&notiOn([h.k])))})}}catch(e){}},1200);
+// 격투 탑: 등록한 기록을 기억해서 더 높은 기록이 생기면 빨간불
+{const _rp=rankPush;rankPush=async function(b){const r=await _rp.apply(this,arguments);try{if(r&&b==='tower'){G.rkTw=Math.floor(RKB.tower.v());save()}}catch(e){}return r}}
+(function(){const c=document.createElement('style');c.textContent=`
+.rdot{position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%!important;background:radial-gradient(circle at 35% 30%,#ff8a8a,#ff2a2a 55%,#b00000);box-shadow:0 0 0 2px #fff,0 0 8px #ff2a2a;z-index:5;pointer-events:none;animation:rdotP 1.2s ease-in-out infinite}
+@keyframes rdotP{50%{transform:scale(1.18);box-shadow:0 0 0 2px #fff,0 0 14px #ff2a2a}}
+.panel .hcard{position:relative}.panel .hcard>.rdot{top:8px;right:8px;width:16px;height:16px}
+#bHub,#bWB,#bPack,#bGiftS,#bFuse,#bBadge,#bHeal,#bGear,#bRank{position:relative}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
