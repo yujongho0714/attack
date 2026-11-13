@@ -12,6 +12,8 @@ jobs:
           set -e
           git clone --depth 1 -b fetch-ui https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} r
           cd r && mkdir -p inbox
-          curl -fsSL -o inbox/podium.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_071001_099c4718-fc0c-4579-bd1b-d353daefb344.png
+          curl -fsSL -o inbox/pk4.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_172214_e83231f0-5802-417a-8a00-366c65a9c49e.png
+          curl -fsSL -o inbox/pk5.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_172158_651ac64e-225a-4cfc-b6ef-295bc77bb48d.png
+          curl -fsSL -o inbox/pk6.png https://d8j0ntlcm91z4.cloudfront.net/user_3Lwb90mN1g9pyJlGR5eRI3wJ8Kw/hf_20261113_172228_f7a76291-9b7d-4ac0-b6e1-a0df1c05dded.png
           git config user.email noreply@anthropic.com; git config user.name Claude
-          git add inbox && git commit -m "inbox: gear ui" && git push -f origin HEAD:fetch-ui-out
+          git add inbox && git commit -m "inbox: packs 4-6" && git push -f origin HEAD:fetch-ui-out
