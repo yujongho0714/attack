@@ -3136,7 +3136,7 @@ async function wbCatch(){const w=wbS();if(!navigator.onLine){await say(['포획 
 async function wbPayout(){const w=wbS(),o=w.last;if(!o||w.paid[o.wk])return;let L=await wbFetch(o.wk,1),rank=null,killed=false;
   if(L){const i=L.findIndex(x=>x.id===G.pid);rank=i>=0?i+1:L.length+1;killed=wbTotal(L)>=WB_HP}else if(wbCfg())return;else killed=o.dmg>=WB_HP;
   w.paid[o.wk]=1;delete w.last;save();const top=rank&&rank<=10;
-  REWQ.push({kind:'P',rar:top?3:(R()<.6?2:3),msg:'월드보스 주간 보상'+(rank?' · '+rank+'위':''),why:'월드보스 보상'});
+  for(let i=0;i<(top?2:1);i++)REWQ.push({kind:'P',rar:2,msg:'월드보스 주간 보상'+(rank?' · '+rank+'위':''),why:'월드보스 보상'});
   REWQ.push({multi:Array(top?10:5).fill('P'),msg:'월드보스 보상 포켓몬팩',title:'월드보스 주간 보상'+(rank?' ('+rank+'위)':'')+' · 포켓몬팩 '+(top?10:5)+'장'},{multi:Array(top?10:5).fill('M'),msg:'월드보스 보상 기술팩',title:'월드보스 주간 보상 · 기술팩 '+(top?10:5)+'장'});
   if(killed)REWQ.push({kind:'P',rar:3,msg:'월드보스 격파 보너스! 전설 카드팩',why:'월드보스 격파'});
   toast('지난주 월드보스 보상이 왔어요!'+(rank?' ('+rank+'위)':''))}
@@ -3151,7 +3151,7 @@ async function wbOpen(){if(!G)return;const w=wbS(),n=wbBoss();const fmt=x=>x.toL
     <h4>월드보스 시간표 <small>이번 주 + 앞으로 3주</small></h4><div class="wbtt">${[0,1,2,3].map(i=>{const wk=wbWeek(-i),b=wbBoss(wk),d0=new Date(wk+'T00:00:00+09:00'),d1=new Date(d0.getTime()+6*864e5),f=d=>(d.getMonth()+1)+'/'+d.getDate();return `<div class="wbtr${i?'':' now'}"><img src="${THUMB[b]||''}"><div><small>${i?i+'주 뒤':'이번 주'} · ${f(d0)}(월) ~ ${f(d1)}(일)</small><b>${META[b].name}</b><span>${META[b].types.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')}</span></div></div>`}).join('')}</div>
     <p class="hhint">약한 타입을 미리 보고 포켓몬을 키워 두세요!</p>
     <h4>누적 데미지 랭킹 TOP 10 <small class="wbst"></small> <button class="wbrk" onclick="rankOpen('tower')">다른 랭킹</button></h4><p class="wbpd">월드보스는 <b>인터넷이 켜져 있을 때만</b> 참여할 수 있어요. 모두의 데미지를 서버에 바로 모아서 실시간 랭킹을 만들기 때문이에요.${w.pend?' (방금 싸운 데미지가 아직 안 올라갔어요. 인터넷이 켜지면 자동으로 올라가요)':''}</p><div class="wbl">${top}</div>
-    <div class="hcard"><b>주간 보상 (월요일에 자동 지급)</b><p>1~10위: 전설 카드팩 1장 + 포켓몬팩 10장 + 기술팩 10장<br>11위부터: 영웅~전설 카드팩 1장 + 포켓몬팩 5장 + 기술팩 5장<br>보스를 쓰러뜨리면: 싸운 친구 모두 전설 카드팩 1장 더!<br>쓰러뜨린 다음엔 「포획 시도」로 볼을 ${WB_THROW}번 던져서 잡을 수 있어요.</p><small>지금은 전설 보스만 나와요. 나중엔 신화 · 환상 · 유일 보스도 나와요!</small></div>`};
+    <div class="hcard"><b>주간 보상 (월요일에 자동 지급)</b><p>1~10위: 영웅~전설 카드팩 2장 + 포켓몬팩 10장 + 기술팩 10장<br>11위부터: 영웅~전설 카드팩 1장 + 포켓몬팩 5장 + 기술팩 5장<br><small>영웅~전설 카드팩은 열면 영웅 90% · 전설 10%</small><br>보스를 쓰러뜨리면: 싸운 친구 모두 전설 카드팩 1장 더!<br>쓰러뜨린 다음엔 「포획 시도」로 볼을 ${WB_THROW}번 던져서 잡을 수 있어요.</p><small>지금은 전설 보스만 나와요. 나중엔 신화 · 환상 · 유일 보스도 나와요!</small></div>`};
   openPanel('월드보스',render(WBC.wk===w.wk?WBC.list:null),null,p=>{const bind=()=>{const f=p.querySelector('#wbF');if(f)f.onclick=()=>wbFight();const c=p.querySelector('#wbC');if(c)c.onclick=()=>wbCatch();const r=p.querySelector('#wbR');if(r)r.onclick=async()=>{sfx('tap');const L=await wbFetch(w.wk,1);p.querySelector('.pb, .pbody')?0:0;const host=p.querySelector('.wbh').parentNode;host.innerHTML=render(L);bind()}};bind();
     const upd=async f=>{const L=await wbFetch(w.wk,f);if(!document.body.contains(p))return false;const h=p.querySelector('.wbh');if(h&&L){h.parentNode.innerHTML=render(L);bind()}const st=p.querySelector('.wbst');if(st)st.textContent=!wbCfg()?'서버 연결 전 · 내 기록만':!navigator.onLine||WBC.err?'인터넷이 꺼져 있어요 · 월드보스는 인터넷이 켜져 있어야 참여할 수 있어요':'실시간 랭킹 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' 기준';return true};
     upd(0);const iv=setInterval(async()=>{if(!(await upd(1)))clearInterval(iv)},8000)})}
@@ -3519,7 +3519,7 @@ async function sfAuto(c){const sf=gSF(c);if(sf.none||sf.b||sf.s>=15)return;close
 
 // ===== 카드팩 가방 · 히든 포탈 · 스탯 부적 =====
 // 카드팩은 받자마자 열리지 않고 가방에 쌓여요. 1장 · 10장 · 원하는 만큼 골라서 열고, 한 장씩 손가락으로 잘라요.
-const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅 이상 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'}};
+const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅~전설 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'}};
 function packAdd(list,why){G.packs=G.packs||{};const c={};for(const k0 of list){const k=PKT[k0]?k0:k0[0];G.packs[k]=(G.packs[k]||0)+1;c[k]=(c[k]||0)+1}save();
   toast((why?why+' · ':'')+Object.keys(c).map(k=>PKT[k].n+' '+c[k]+'장').join(', ')+' 가방에 넣었어요');sfx('get');packBadge()}
 function packBadge(){const b=document.getElementById('bPack');if(!b||!G)return;const n=Object.values(G.packs||{}).reduce((a,b)=>a+b,0);let e=b.querySelector('.nb');if(!e){e=document.createElement('em');e.className='nb';b.appendChild(e)}e.textContent=n>99?'99+':n||'';e.style.display=n?'':'none'}
@@ -3532,7 +3532,7 @@ function packOpenUI(sel){if(!G)return;G.packs=G.packs||{};const ks=Object.keys(P
   openPanel('카드팩 가방',`<div id="pkB"></div>`,null,draw)}
 let PKSTOP=0;
 async function packRun(k,n){PKSTOP=0;const kind=k[0],rar=k.length>1?+k.slice(1):null;const bk=document.createElement('div');bk.id='pkBack';document.body.appendChild(bk);const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
-  let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;await grant(rollItem(kind,rar),PKT[k].n);done++}}finally{st.remove();bk.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
+  let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;await grant(rollItem(kind,k==='P2'?(R()<.1?3:2):rar),PKT[k].n);done++}}finally{st.remove();bk.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
 (function(){const go=()=>{const b=document.getElementById('bPack');if(b)b.onclick=()=>{sfx('tap');packOpenUI()};packBadge()};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // ---------- 스탯 부적 (히든 포탈에서만) · 먹이면 그 포켓몬만 영구 강화 · 먹이기 한도는 타입 부적과 같이 ----------
 const STC=[['sc_atk',[1,2,3,4],'공격력','%'],['sc_hp',[1,2,3,4],'체력','%'],['sc_def',[1,2,3,4],'방어력','%'],['sc_crt',[1],'크리티컬 확률','%'],['sc_cdm',[1],'크리티컬 데미지','%']];
