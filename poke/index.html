@@ -4217,6 +4217,20 @@ setInterval(()=>{try{if(!G)return;for(const id in NOTI_BTN)notiDot(document.getE
 @keyframes rdotP{50%{transform:scale(1.18);box-shadow:0 0 0 2px #fff,0 0 14px #ff2a2a}}
 .panel .hcard{position:relative}.panel .hcard>.rdot{top:8px;right:8px;width:16px;height:16px}
 #bHub,#bWB,#bPack,#bGiftS,#bFuse,#bBadge,#bHeal,#bGear,#bRank{position:relative}`;document.head.appendChild(c)})();
+// ===== 받을 보상이 있으면 화면 위에 안내 (받을 때까지 계속) =====
+function rewList(){const L=[];try{const s=spS(),l=spLv();let n=0;for(let i=1;i<=l;i++)if(!s.got[i])n++;if(n)L.push(['시즌 패스 보상 '+n+'개',()=>spOpen()])}catch(e){}
+  try{const g=(G.gifts||[]).length;if(g)L.push(['선물 '+g+'개',()=>giftOpen()])}catch(e){}
+  try{const p=Object.values(G.packs||{}).reduce((a,b)=>a+b,0);if(p)L.push(['카드팩 '+p+'장',()=>packOpenUI()])}catch(e){}
+  try{if((G.bag.spxsc||0)>0)L.push(['시즌 한정 접두사권',()=>menuOpen&&menuOpen()])}catch(e){}return L}
+setInterval(()=>{try{let b=document.getElementById('rewBar');const L=G&&SCENE==='over'&&!PANEL?rewList():[];if(!L.length){if(b)b.remove();return}
+  if(!b){b=document.createElement('div');b.id='rewBar';document.body.appendChild(b)}const h=L.map((x,i)=>`<button data-rw="${i}">${x[0]}</button>`).join('');
+  if(b.dataset.h!==h){b.dataset.h=h;b.innerHTML=`<img src="ui/ic_gift.webp" alt=""><b>받을 보상이 있어요!</b>${h}`;b.querySelectorAll('[data-rw]').forEach(x=>x.onclick=()=>{sfx('tap');const it=rewList()[+x.dataset.rw];if(it)it[1]()})}}catch(e){}},1000);
+(function(){const c=document.createElement('style');c.textContent=`
+#rewBar{position:fixed;z-index:7;left:50%;top:calc(76px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:6px;max-width:min(92vw,720px);padding:6px 12px;background:linear-gradient(#ff5a4a,#c81e2e);color:#fff;font-family:'Galmuri11',sans-serif;box-shadow:0 0 0 3px #ffd23f,0 0 0 6px #1c2550,0 6px 16px #0007;animation:rewB 1.4s ease-in-out infinite}
+#rewBar img{width:28px;height:28px}#rewBar b{font-size:14px;text-shadow:1px 1px 0 #1c2550}
+#rewBar button{font:700 13px 'Galmuri11',sans-serif;border:0;padding:5px 10px;color:#1c2550;background:linear-gradient(#ffe680 0 50%,#ffc21f 50%);box-shadow:0 2px 0 #1c2550,0 -2px 0 #1c2550,2px 0 0 #1c2550,-2px 0 0 #1c2550;cursor:pointer}#rewBar button:active{transform:translateY(2px)}
+@keyframes rewB{50%{box-shadow:0 0 0 3px #fff3a0,0 0 0 6px #1c2550,0 0 22px #ff5a4a}}
+body.inb #rewBar{display:none!important}@media (orientation:landscape){#rewBar{top:calc(82px + env(safe-area-inset-top))}}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
