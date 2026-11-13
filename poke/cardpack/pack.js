@@ -82,7 +82,7 @@ const CardPack=(()=>{
           c.save();c.translate(W/2,H*.48);c.rotate(now/(R>=3?900:2000));c.globalAlpha=.25+R*.08;c.fillStyle=R>=3?'#ffe08a':C;for(let i=0;i<(8+R*4);i++){c.rotate(Math.PI*2/(8+R*4));c.beginPath();c.moveTo(0,0);c.lineTo(Math.max(W,H),-40-R*15);c.lineTo(Math.max(W,H),40+R*15);c.fill()}c.restore();c.globalAlpha=1;
           if(bolts&&(ph==='card'||Math.random()<.04)){c.strokeStyle='rgba(220,180,255,.9)';c.shadowColor='#c070ff';c.shadowBlur=18;for(let i=0;i<2;i++){const a=Math.random()*Math.PI*2;bolt(c,W/2,H*.48,W/2+Math.cos(a)*W*.6,H*.48+Math.sin(a)*H*.5,3)}c.shadowBlur=0;if(Math.random()<.3)S.zap()}
           const cw=Math.min(W*.7,H*.42*.72),chh=cw/.72;let sx=1,y=H*.48+(1-ease)*H*.2,sc=.3+.7*ease;
-          if(R==2)sx=Math.cos((1-ease)*Math.PI);if(R>=3)sx=Math.cos((1-ease)*Math.PI*4);
+          if(R>=2)sx=Math.cos((1-ease)*Math.PI);
           if(R>=1){c.save();c.translate(W/2,y);c.scale(sc,sc);const pul=.6+.4*Math.sin(now/(R>=3?160:260));
             const ag=c.createRadialGradient(0,0,cw*.3,0,0,cw*(1+R*.25));const AC=R>=6?'hsla('+((now/4)%360)+',100%,65%,':R===5?'rgba(40,240,220,':R===4?'rgba(255,50,90,':R>=3?'rgba(255,200,60,':R>=2?'rgba(190,90,255,':'rgba(70,160,255,';ag.addColorStop(0,AC+(.55*pul)+')');ag.addColorStop(1,AC+'0)');c.fillStyle=ag;c.fillRect(-cw*2,-chh*2,cw*4,chh*4);
             const n=R*10;for(let i=0;i<n;i++){const a=now/(900-R*150)*(i%2?1:-1)+i*Math.PI*2/n,rx=cw*(.62+.06*Math.sin(now/300+i)),ry=chh*(.6+.05*Math.cos(now/280+i));c.fillStyle=R>=6||R===3?'hsl('+((i*36+now/5)%360)+',100%,70%)':R===5?'#aafff4':R===4?'#ff9ab0':R>=2?'#e2b8ff':'#bfe0ff';c.globalAlpha=.5+.5*Math.sin(now/120+i);c.beginPath();c.arc(Math.cos(a)*rx,Math.sin(a)*ry,2+R*1.2,0,7);c.fill()}
