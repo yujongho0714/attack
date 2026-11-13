@@ -2066,21 +2066,22 @@ const CardPack=(()=>{
   function bolt(c,x1,y1,x2,y2,w){c.beginPath();c.moveTo(x1,y1);const n=8;for(let i=1;i<n;i++){const t=i/n;c.lineTo(x1+(x2-x1)*t+(Math.random()-.5)*40,y1+(y2-y1)*t+(Math.random()-.5)*40)}c.lineTo(x2,y2);c.lineWidth=w;c.stroke()}
 
   async function open(o){
-    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const R=Math.max(0,Math.min(6,o.rar|0));
-    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>art=v):null;const pk=await loadImg(o.base+'pk'+Math.min(3,R)+'.webp',800);let frm=null;loadImg(o.base+'frame'+R+'.webp',4000).then(v=>frm=v);
+    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(6,o.rar|0)),PR=Math.min(3,RF);let R=PR;while(R>0&&Math.random()<.3)R--;let CS=RF;while(CS>0&&Math.random()<.3)CS--;
+    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=await loadImg(o.base+'pk'+t+'.webp',800);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>frmI[t]=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
-      let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false,SW=null,PWs=200,cutK=0;const NEED=R>=2?TAPS[R]:0;
-      const C=COL[R],C2=COL2[R];
+      let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false,SW=null,PWs=200,cutK=0;const NEED=RF>=2?TAPS[RF]:0;let ubT=0,ubF=0;
+      let C=COL[R],C2=COL2[R];function setR(x,keep){ubF=R;R=x;C=COL[R];C2=COL2[R];if(!keep)pk=pkI[Math.min(3,R)]||pk}
+      function upFx(){flash=1;shake=26;burst(40+R*12,6+R,C,70);burst(16,8,'#fff',50);S.rev(R);ubT=performance.now()+1100;if(R>=2)bolts=1;try{navigator.vibrate&&navigator.vibrate([30,40,90])}catch(e){}}
       function burst(n,sp,col,life){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=sp*(.3+Math.random());P.push({x:W/2,y:H*.48,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(R>=3?2:0),l:life*(.6+Math.random()*.6),L:life,s:2+Math.random()*4*(1+R*.4),c:col||C,k:Math.random()<.3?'star':'dot',conf:R>=3&&Math.random()<.5})}}
       function setPh(p){ph=p;pt=performance.now()}
       // 노말·희귀: 손가락으로 쓱 밀어서 자르기 · 영웅 이상: 톡톡 두드린 다음 밀어서 자르기
-      const doTear=()=>{S.tear();setPh(R>=3?'pillar':'tear');if(R>=3)S.boom();shake=R>=2?22:10;SW=null;try{navigator.vibrate&&navigator.vibrate(R>=2?[40,30,80]:30)}catch(e){}};
-      cv.onpointerdown=ev=>{
+      const doTear=()=>{setR(CS,1);S.tear();setPh(R>=3?'pillar':'tear');if(R>=3)S.boom();shake=R>=2?22:10;SW=null;try{navigator.vibrate&&navigator.vibrate(R>=2?[40,30,80]:30)}catch(e){}};
+      cv.onpointerdown=ev=>{if(ph==='upk')return;
         if((ph==='in'||ph==='idle')&&taps<NEED){taps++;S.tap(taps);shake=6+taps*4+R*3;flash=.15*taps;burst(6+taps*4,3+taps,C,40);try{navigator.vibrate&&navigator.vibrate(15+taps*5)}catch(e){}if(taps>=NEED)setPh('swipe');return}
         if(ph==='in'||ph==='idle'||ph==='swipe'){if(ph!=='swipe')setPh('swipe');SW={x0:ev.clientX,x:ev.clientX};return}
-        if(ph==='show'&&performance.now()-pt>900){close()}};
+        if(ph==='show'&&R>=RF&&performance.now()-pt>900){close()}};
       cv.onpointermove=ev=>{if(ph!=='swipe'||!SW)return;SW.x=ev.clientX;cutK=Math.min(1,Math.abs(SW.x-SW.x0)/(PWs*.75));if(Math.random()<.5)burst(1,2,'#fff',20);if(cutK>=1)doTear()};
       cv.onpointerup=cv.onpointercancel=()=>{if(ph==='swipe'&&SW){SW=null;if(cutK<1)cutK=0}};
       function close(){if(closed)return;closed=true;removeEventListener('resize',rs);cv.style.transition='opacity .35s';cv.style.opacity='0';setTimeout(()=>{cv.remove();done()},360)}
@@ -2104,7 +2105,7 @@ const CardPack=(()=>{
         c.restore();
         c.fillStyle=C2;rr(c,w*.1,h*.7,w*.8,h*.07,h*.035);c.fill();c.fillStyle='#fff';c.font=`900 ${w*.065}px sans-serif`;c.textAlign='center';c.fillText((o.sh?'✨ 이로치 · ':'')+RN[R]+(o.kind==='M'?' 기술 카드':' 포켓몬'),w/2,h*.735);
         c.fillStyle='#333';c.font=`800 ${w*.07}px sans-serif`;c.fillText(o.sub||'',w/2,h*.84,w*.8);
-        if(frm){c.shadowBlur=0;c.drawImage(frm,-w*.07,-h*.055,w*1.14,h*1.11)}
+        const frm=frmI[R];if(frm){c.shadowBlur=0;c.drawImage(frm,-w*.07,-h*.055,w*1.14,h*1.11)}
         // 이름 (프레임 위에 띠로)
         c.fillStyle='rgba(20,22,40,.82)';rr(c,w*.12,h*.065,w*.76,h*.075,h*.03);c.fill();c.fillStyle='#fff';c.font=`900 ${w*.085}px sans-serif`;c.textAlign='left';c.textBaseline='middle';c.fillText(o.name,w*.16,h*.103,R>=4?w*.46:w*.5);
         c.textAlign='right';c.fillStyle=R>=4?COL[R]:R>=3?'#ffd060':R>=2?'#e0a0ff':R>=1?'#8fd0ff':'#ccc';c.font=`900 ${w*.065}px sans-serif`;c.fillText(R>=4?'★'+(R+1):'★'.repeat(R+1),w*.85,h*.103,w*.22);
@@ -2115,11 +2116,11 @@ const CardPack=(()=>{
         // 배경
         const dark=ph==='pillar'||(R>=3&&ph==='tear');const bg=c.createRadialGradient(W/2,H*.48,10,W/2,H*.48,Math.max(W,H)*.8);bg.addColorStop(0,dark?'#2a1a00':C2+'cc');bg.addColorStop(1,'#05050c');c.fillStyle=bg;c.fillRect(-30,-30,W+60,H+60);
         const ph_=Math.min(W*.62,H*.5)/280,pw=210*ph_,phh=280*ph_;PWs=pw;
-        if(ph==='in'||ph==='idle'||ph==='swipe'){if(ph==='in'&&e>600)setPh(NEED?'idle':'swipe');const k=ph==='in'?Math.min(1,e/600):1;const ease=1-Math.pow(1-k,3);
+        if(ph==='in'||ph==='idle'||ph==='swipe'||ph==='upk'){if(ph==='in'&&e>600)setPh(R<PR?'upk':NEED?'idle':'swipe');if(ph==='upk'&&e>850){setR(R+1);upFx();setPh(R<PR?'upk':NEED?'idle':'swipe')}const k=ph==='in'?Math.min(1,e/600):1;const ease=1-Math.pow(1-k,3);
           const y=H*.48+(1-ease)*H*.6+Math.sin(now/400)*6;const rot=Math.sin(now/600)*.05+(taps?(Math.random()-.5)*.04*taps:0);
           c.save();c.translate(W/2,y);c.rotate(rot);c.shadowColor=C;c.shadowBlur=20+taps*15+R*8;if(pk)c.drawImage(pk,-pw/2,-phh/2,pw,phh);else{c.fillStyle=C;c.fillRect(-pw/2,-phh/2,pw,phh)}c.restore();
           if(taps&&R>=2){c.strokeStyle='rgba(255,255,255,'+(.5+taps*.15)+')';c.lineWidth=2;c.beginPath();for(let i=0;i<taps*3;i++){const a=i*2.4;c.moveTo(W/2,H*.48);c.lineTo(W/2+Math.cos(a)*pw*.45,H*.48+Math.sin(a)*phh*.4)}c.stroke()}
-          c.fillStyle='#fff';c.font='900 22px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText(ph!=='swipe'&&NEED?'톡톡 두드리기! ('+(NEED-taps)+')':'손가락으로 쓱 밀어서 자르기!',W/2,H*.88);c.globalAlpha=1;
+          c.fillStyle='#fff';c.font='900 22px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText(ph==='upk'?'어라…? 봉지가 떨려요!':ph!=='swipe'&&NEED?'톡톡 두드리기! ('+(NEED-taps)+')':'손가락으로 쓱 밀어서 자르기!',W/2,H*.88);c.globalAlpha=1;
           if(ph==='swipe'){const cy=y-phh/2+phh*.2,x0=W/2-pw/2,x1=W/2+pw/2;c.save();c.setLineDash([8,7]);c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=3;c.beginPath();c.moveTo(x0-10,cy);c.lineTo(x1+10,cy);c.stroke();c.setLineDash([]);
             if(cutK>0){const dir=SW&&SW.x<SW.x0?-1:1,sx=dir>0?x0:x1,ex=sx+dir*pw*cutK;c.strokeStyle='#fff';c.shadowColor=C;c.shadowBlur=18;c.lineWidth=5;c.beginPath();c.moveTo(sx,cy);c.lineTo(ex,cy);c.stroke()}
             else{const hx=x0+((now/900)%1)*pw;c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.arc(hx,cy+18,11,0,7);c.fill();c.fillStyle=C;c.beginPath();c.arc(hx,cy+18,6,0,7);c.fill()}c.restore()}}
@@ -2142,13 +2143,14 @@ const CardPack=(()=>{
             if(R>=2){c.globalAlpha=.7*pul;c.lineWidth=3+R;c.strokeStyle=R>=6||R===3?'hsl('+((now/4)%360)+',100%,65%)':R===5?'#22e6d0':R===4?'#ff3b6b':'#c070ff';c.shadowColor=c.strokeStyle;c.shadowBlur=25;rr(c,-cw*.58,-chh*.56,cw*1.16,chh*1.12,cw*.1);c.stroke()}c.restore()}
           c.save();c.translate(W/2,y);c.scale(sc,sc);c.shadowColor=o.sh?'#fff':R>=3?'#ffd060':C;c.shadowBlur=30+R*25;card(0,0,cw,chh,now,sx||.001);c.restore();
           if(ph==='card'&&k>=1){setPh('show');if(R>=1)burst(20+Math.min(R,3)*20,4+Math.min(R,3),C,60)}
-          if(ph==='show'){if(R>=3&&Math.random()<.5)P.push({x:Math.random()*W,y:-10,vx:(Math.random()-.5)*2,vy:2+Math.random()*3,l:200,L:200,s:4+Math.random()*4,c:'hsl('+(Math.random()*360|0)+',90%,60%)',k:'conf'});
+          if(ph==='show'&&R<RF&&e>750){setR(R+1,1);upFx();pt=now}if(ph==='show'){if(R>=3&&Math.random()<.5)P.push({x:Math.random()*W,y:-10,vx:(Math.random()-.5)*2,vy:2+Math.random()*3,l:200,L:200,s:4+Math.random()*4,c:'hsl('+(Math.random()*360|0)+',90%,60%)',k:'conf'});
             if(R>=1&&Math.random()<.2+R*.1)P.push({x:W/2+(Math.random()-.5)*cw,y:H*.48+(Math.random()-.5)*chh,vx:0,vy:-.3,l:40,L:40,s:3+Math.random()*3,c:'#fff',k:'star'});
-            if(e>900){c.fillStyle='#fff';c.font='900 20px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText('눌러서 가방에 넣기',W/2,H*.92);c.globalAlpha=1}}}
+            if(e>900&&R>=RF){c.fillStyle='#fff';c.font='900 20px sans-serif';c.textAlign='center';c.globalAlpha=.6+.4*Math.sin(now/200);c.fillText('눌러서 가방에 넣기',W/2,H*.92);c.globalAlpha=1}}}
         // 파티클
         for(let i=P.length-1;i>=0;i--){const p=P[i];p.x+=p.vx;p.y+=p.vy;if(p.k==='conf'){p.vx+=Math.sin(now/200+i)*.05}else{p.vx*=.96;p.vy=p.vy*.96+.05}p.l--;if(p.l<=0||p.y>H+20){P.splice(i,1);continue}
           c.globalAlpha=Math.min(1,p.l/p.L*1.5);c.fillStyle=p.c;if(p.k==='star'){c.save();c.translate(p.x,p.y);c.rotate(now/300);c.beginPath();for(let j=0;j<8;j++){const r=j%2?p.s*.35:p.s*1.4;c.lineTo(Math.cos(j*Math.PI/4)*r,Math.sin(j*Math.PI/4)*r)}c.fill();c.restore()}else if(p.k==='conf'){c.save();c.translate(p.x,p.y);c.rotate(now/150+i);c.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);c.restore()}else{c.beginPath();c.arc(p.x,p.y,p.s,0,7);c.fill()}}c.globalAlpha=1;
         c.restore();
+        if(ubT>now){const k=(ubT-now)/1100,sc=1+(1-k)*.3;c.save();c.translate(W/2,H*.16);c.scale(sc,sc);c.globalAlpha=Math.min(1,k*2);c.textAlign='center';c.textBaseline='middle';c.font='900 34px sans-serif';c.lineWidth=7;c.strokeStyle='#1c2550';c.strokeText('확률 돌파!',0,0);c.fillStyle='#fff';c.fillText('확률 돌파!',0,0);c.font='900 24px sans-serif';const t2=RN[ubF]+' → '+RN[R];c.strokeText(t2,0,36);c.fillStyle=COL[R]==='#ffffff'?'#ff2aa0':COL[R];c.fillText(t2,0,36);c.restore()}
         if(flash>0){c.fillStyle=R>=3?'rgba(255,240,200,'+flash+')':'rgba(255,255,255,'+flash+')';c.fillRect(0,0,W,H);flash=Math.max(0,flash-.04)}
         requestAnimationFrame(frame)}
       requestAnimationFrame(frame)})}
