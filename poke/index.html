@@ -4656,6 +4656,9 @@ document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 // 그래도 확대되면 바로 원래대로
 setInterval(()=>{try{const v=window.visualViewport;if(v&&v.scale>1.01&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))vpReset();if(scrollX||scrollY)scrollTo(0,0)}catch(e){}},700);
 document.addEventListener('focusout',e=>{if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))setTimeout(()=>{try{vpReset();resize()}catch(_){}},150)});
+// 미니맵 높이가 지역마다 달라서 날씨 · 알 부화기가 미니맵 뒤로 숨던 것 → 미니맵 바로 아래에 차례로 붙여요
+setInterval(()=>{try{const m=document.getElementById('mini');let y=null;if(m&&getComputedStyle(m).display!=='none'){const r=m.getBoundingClientRect();if(r.height)y=r.bottom+8}
+  for(const id of ['wxBadge','egHud']){const e=document.getElementById(id);if(!e)continue;if(y==null||getComputedStyle(e).display==='none'){if(y==null)e.style.top='';continue}e.style.top=y+'px';const rr=e.getBoundingClientRect();y=rr.bottom+6}}catch(e){}},300);
 
 // ===== 확률 정보: 확률로 정해지는 건 전부 「뭐가 나오는지 · 몇 %인지」 볼 수 있게 (지금 난이도 기준으로 계산) =====
 const ODN=['쉬움','보통','어려움','지옥','나이트메어'];
