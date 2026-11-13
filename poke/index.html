@@ -4306,7 +4306,10 @@ new MutationObserver(()=>{requestAnimationFrame(()=>document.body.style.setPrope
 let INSTP=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();INSTP=e;bt('tInst').style.display=''});
 bt('tInst').onclick=async()=>{if(INSTP){INSTP.prompt();try{await INSTP.userChoice}catch(e){}INSTP=null;bt('tInst').style.display='none'}};
 if(/iphone|ipad/i.test(navigator.userAgent)&&!navigator.standalone){bt('tInst').style.display='';bt('tInst').onclick=()=>toast('사파리 아래 공유 버튼(□↑) → 「홈 화면에 추가」를 눌러 주세요')}
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{setInterval(()=>{try{r.update()}catch(e){}},180000)}).catch(()=>{});
+  // 새 버전이 들어오면 위에 안내 · 누르면 바로 새로고침
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had||document.getElementById('upBar'))return;const d=document.createElement('button');d.id='upBar';d.textContent='새 버전이 나왔어요! 눌러서 업데이트';d.onclick=()=>{try{save()}catch(e){}location.reload()};document.body.appendChild(d)});
+  (function(){const c=document.createElement('style');c.textContent="#upBar{position:fixed;z-index:400;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);font:700 16px 'Galmuri11',sans-serif;border:0;padding:10px 18px;color:#1c2550;cursor:pointer;background:linear-gradient(#ffe680 0 50%,#ffc21f 50%);box-shadow:0 0 0 3px #1c2550,0 0 0 6px #ffd23f,0 8px 16px #0008;animation:pxglow 1.4s ease-in-out infinite}";document.head.appendChild(c)})()}
 const OFF={p:0,done:LS.get('pka-off',0),run:0};
 async function offlinePrep(){if(OFF.run||!('caches' in window))return;OFF.run=1;try{const L=await (await fetch('assets.json')).json();const c=await caches.open('pka-assets');let i=0,ok=0;const ver=L.v;if(LS.get('pka-off',0)===ver){OFF.p=100;OFF.run=0;offUI();return}
   const files=L.f;let k=0;const work=async()=>{while(k<files.length){const u=files[k++];try{if(!(await c.match(u))){const r=await fetch(u);if(r.ok)await c.put(u,r)}ok++}catch(e){}i++;if(i%25===0){OFF.p=Math.floor(i/files.length*100);offUI()}}};
