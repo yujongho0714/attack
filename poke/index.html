@@ -410,11 +410,20 @@ small.itd{display:block;color:#5a4a20;font-weight:700;font-size:11px}
 .ubd{margin:10px 0 4px;color:#1c2550}.ubd small{font-weight:700;color:#5a4a20;margin-left:6px}.ubg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
 .ubb{position:relative;display:flex;flex-direction:column;align-items:center;padding:8px;border-radius:14px;background:#2a2f4a;color:#fff;border:3px solid #555;filter:grayscale(.7);opacity:.85}.ubb.on{filter:none;opacity:1;border-color:var(--c);box-shadow:0 0 14px var(--c),inset 0 0 20px var(--c);background:linear-gradient(#2a2f4a,#1c2550)}
 .ubb img{width:64px;height:64px;image-rendering:pixelated}.ubb .tyi{position:absolute;top:6px;right:6px;width:28px;height:28px}.ubb b{color:#ffe066}.ubb em{font-style:normal;font-size:11px;background:#ffd23f;color:#3a2400;border-radius:6px;padding:0 6px;margin-top:3px}.ubb em.lk{background:#555;color:#ddd}
+.wbh{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#1c2550,#3a1a5a);color:#fff;border-radius:14px;padding:10px;border:3px solid var(--c);box-shadow:0 0 16px var(--c)}.wbh img{width:96px;height:96px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 10px var(--c))}.wbh>div{flex:1}.wbh b{font-size:22px;color:#ffe066;display:block}.wbh small{opacity:.85}
+.wbhp{position:relative;height:18px;border-radius:9px;background:#0008;margin:6px 0;overflow:hidden;border:2px solid #fff3}.wbhp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff3b3b,#ffb03b);transition:width .6s}.wbhp span{position:relative;display:block;text-align:center;font:900 12px/14px var(--ff,sans-serif)}
+.wbme{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.wbme span{flex:1;min-width:120px;background:#fff;border-radius:10px;padding:6px 10px;border:2px solid #e6dcc0;font-weight:700}.wbme b{color:#a03030}
+.wbl{display:flex;flex-direction:column;gap:3px}.wbr{display:flex;gap:8px;align-items:center;background:#fff;border-radius:8px;padding:5px 10px;border:2px solid #e6dcc0}.wbr b{width:26px;color:#a05a00}.wbr span{flex:1;font-weight:800}.wbr em{font-style:normal;font-weight:900}.wbr.me{border-color:#ff5aa0;background:#fff0f6}
+.wbr:nth-child(1) b{color:#e0a020}.wbr:nth-child(2) b{color:#9aa4b0}.wbr:nth-child(3) b{color:#c07a40}.wbst{font-weight:700;color:#2a6a3a;font-size:11px}.wbpd{background:#fff4d8;border-radius:8px;padding:6px 10px;font-weight:700;font-size:12px}
+.twk{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.twk span{background:#fff;border:2px solid #e0b040;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700}.twk span b{color:#a05a00;margin-right:4px}.twk span.on{background:#e8f8ea;border-color:#3ad66a}
+.wbcd{display:flex;gap:6px;margin-top:6px}.wbcd span{flex:1;display:flex;flex-direction:column;align-items:center;background:#0006;border-radius:10px;padding:4px 2px;border:1px solid #fff3}.wbcd b{font-size:20px!important;color:#fff!important;display:block;font-variant-numeric:tabular-nums}.wbcd small{font-size:10px}
+#wbHud{position:fixed;top:calc(64px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:30;width:min(520px,70vw);background:#10162ae6;color:#fff;border:2px solid #ff5a3a;border-radius:12px;padding:5px 10px;text-align:center;font:700 12px var(--ff,sans-serif);pointer-events:none;box-shadow:0 0 14px #ff5a3a88}
+#wbHud>b{font-size:14px;color:#ffe066}.wbhb{height:10px;border-radius:5px;background:#0008;margin:3px 0;overflow:hidden}.wbhb i{display:block;height:100%;background:linear-gradient(90deg,#ff3b3b,#ffb03b);transition:width .3s}#wbHud span b{color:#ffe066}
 </style><script src="lib/pixelfx.js" defer></script><script src="lib/qrcode.js" defer></script></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
-<div id="side"><button id="bQr"><img class="sic" src="ui/ic_gift.webp" alt=""><span>QR 옮기기</span></button><button id="bHub"><img class="sic" src="ui/ic_quest.webp" alt=""><span>컨텐츠</span></button><button id="bBadge"><img class="sic" src="ui/ic_badge.webp" alt=""><span>배지</span></button><button id="bBag"><img class="sic" src="ui/ic_bag.webp" alt=""><span>가방</span></button><button id="bShop"><img class="sic" src="ui/ic_shop.webp" alt=""><span>상점</span></button><button id="bFuse"><img class="sic" src="ui/ic_fuse.webp" alt=""><span>합성</span></button><button id="bGiftS"><img class="sic" src="ui/ic_gift.webp" alt=""><span>선물</span></button><button id="bTeam"><img class="sic" src="ui/ic_star.webp" alt=""><span>편성</span></button><button id="bHunt"><img class="sic" src="ui/ic_hunt.webp" alt=""><span>자동사냥</span></button><button id="bHeal"><img class="sic" src="items/HYPERPOTION.png" alt="" style="image-rendering:pixelated"><span>치료</span></button><button id="bWorld"><img class="sic" src="ui/ic_map.webp" alt=""><span>월드맵</span></button><button id="bDex"><img class="sic" src="ui/ic_dex.webp" alt=""><span>도감</span></button><button id="bMenu2"><img class="sic" src="ui/ic_menu.webp" alt=""><span>메뉴</span></button><button id="bFly"><img class="sic" src="ui/ic_fly.webp" alt=""><span>날기</span></button><button id="bFast"><img class="sic" src="ui/ic_fast.webp" alt=""><span>빠르게</span></button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
+<div id="side"><button id="bWB"><img class="sic" src="ui/ic_star.webp" alt="" style="filter:hue-rotate(-40deg) saturate(2)"><span>월드보스</span></button><button id="bQr"><img class="sic" src="ui/ic_gift.webp" alt=""><span>QR 옮기기</span></button><button id="bHub"><img class="sic" src="ui/ic_quest.webp" alt=""><span>컨텐츠</span></button><button id="bBadge"><img class="sic" src="ui/ic_badge.webp" alt=""><span>배지</span></button><button id="bBag"><img class="sic" src="ui/ic_bag.webp" alt=""><span>가방</span></button><button id="bShop"><img class="sic" src="ui/ic_shop.webp" alt=""><span>상점</span></button><button id="bFuse"><img class="sic" src="ui/ic_fuse.webp" alt=""><span>합성</span></button><button id="bGiftS"><img class="sic" src="ui/ic_gift.webp" alt=""><span>선물</span></button><button id="bTeam"><img class="sic" src="ui/ic_star.webp" alt=""><span>편성</span></button><button id="bHunt"><img class="sic" src="ui/ic_hunt.webp" alt=""><span>자동사냥</span></button><button id="bHeal"><img class="sic" src="items/HYPERPOTION.png" alt="" style="image-rendering:pixelated"><span>치료</span></button><button id="bWorld"><img class="sic" src="ui/ic_map.webp" alt=""><span>월드맵</span></button><button id="bDex"><img class="sic" src="ui/ic_dex.webp" alt=""><span>도감</span></button><button id="bMenu2"><img class="sic" src="ui/ic_menu.webp" alt=""><span>메뉴</span></button><button id="bFly"><img class="sic" src="ui/ic_fly.webp" alt=""><span>날기</span></button><button id="bFast"><img class="sic" src="ui/ic_fast.webp" alt=""><span>빠르게</span></button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
 <div id="pad" style="display:none"><button data-d="3">▲</button><button data-d="1">◀</button><button data-d="2">▶</button><button data-d="0">▼</button></div><div id="joyZ"><div id="joyB"><i id="joyK"></i></div></div><button id="bA">A<br><small>조사</small></button>
 <div id="bF"></div><div id="bM"></div><div id="bMenu"></div><div id="bTx"></div>
 <div id="dlg"></div><div id="toasts"></div><div id="fade"></div>
@@ -2331,7 +2340,7 @@ async function grant(g,why){const dup=isDup(g);try{await packFor(g)}catch(e){}
 // ---------- 보상 대기열 (마을을 걷고 있을 때 하나씩) ----------
 const REWQ=[];let REWBUSY=0;
 setInterval(async()=>{if(REWBUSY||!REWQ.length||!G||SCENE!=='over'||DLG.on||PANEL||P.busy||document.getElementById('fuseOv')||document.getElementById('multiOv'))return;REWBUSY=1;const q=REWQ.shift();
-  try{if(q.badge!=null)await badgeShow(q.badge);else if(q.multi){toast(q.msg);sfx('badge');await multiOpen(q.multi.map(k=>rollItem(k)),q.title)}else{toast(q.msg);sfx('get');await sleep(500);await grant(rollItem(q.kind),q.why)}}catch(e){console.warn(e)}REWBUSY=0},700);
+  try{if(q.badge!=null)await badgeShow(q.badge);else if(q.multi){toast(q.msg);sfx('badge');await multiOpen(q.multi.map(k=>rollItem(k)),q.title)}else{toast(q.msg);sfx('get');await sleep(500);await grant(rollItem(q.kind,q.rar),q.why)}}catch(e){console.warn(e)}REWBUSY=0},700);
 function dayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
 function rewardCheck(){if(!G)return;const today=dayKey();
   if(G.lastLogin!==today){G.lastLogin=today;const idx=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);G.loginDays=(G.loginDays||0)+1;
@@ -2436,7 +2445,7 @@ const ELINE=[
  {pre:['사천왕 국화란다. 유령 포켓몬의 무서움을 알려 줄까?'],win:['호호, 오랜만에 즐거웠단다. 어서 가거라.']},
  {pre:['사천왕의 대장, 목호다. 전설의 드래곤 포켓몬과 겨뤄 보아라!'],win:['…너의 실력을 인정한다. 챔피언이 기다리고 있다.']}];
 function trainerScene(spr,name,lines,mood){return new Promise(done=>{const d=document.createElement('div');d.id='trScene';d.className=mood||'';
-  d.innerHTML=`<div class="tsBg"></div><div class="tsStripe"></div><img class="tsImg" src="trainers/${spr}.png"><div class="tsName">${name}</div><div class="tsBox"><p></p><small>눌러서 계속</small></div>`;document.body.appendChild(d);try{sfx('enc')}catch(e){}
+  d.innerHTML=`<div class="tsBg"></div><div class="tsStripe"></div><img class="tsImg" src="${String(spr).includes('/')?spr:'trainers/'+spr+'.png'}"><div class="tsName">${name}</div><div class="tsBox"><p></p><small>눌러서 계속</small></div>`;document.body.appendChild(d);try{sfx('enc')}catch(e){}
   const p=d.querySelector('.tsBox p');let i=0,typing=0,full='';
   const show=()=>{full=lines[i];p.textContent='';typing=1;let k=0;const tick=()=>{if(!typing)return;k++;p.textContent=full.slice(0,k);if(k<full.length)setTimeout(tick,28);else typing=0};tick()};
   d.addEventListener('pointerdown',e=>{e.preventDefault();if(typing){typing=0;p.textContent=full;return}i++;if(i>=lines.length){d.classList.add('out');setTimeout(()=>{d.remove();done()},300);return}show();try{sfx('tap')}catch(_){}});
@@ -2615,7 +2624,7 @@ gym=evWrap(gym);league=evWrap(league);areaEvent=evWrap(areaEvent);trainerSpot=ev
 
 // ===== 마을 놀거리: 블루시티 낚시 · 회색시티 화석 발굴 · 연분홍시티 사파리존 · 노랑시티 격투 탑 =====
 const MGS={4:{k:'fish',n:'낚시',d:'타이밍 맞춰 낚싯대를 당기면 물 포켓몬이나 아이템이 나와요'},2:{k:'fossil',n:'화석 발굴',d:'바위를 두드려 화석을 캐면 화석 포켓몬으로 복원해 줘요 (하루 1번 무료)'},
- 10:{k:'safari',n:'사파리존',d:'입장료 1500원 · 사파리볼 20개로 희귀한 포켓몬 잡기'},12:{k:'tower',n:'격투 탑',d:'층마다 강해지는 트레이너와 연속 배틀 · 5층마다 카드팩'}};
+ 10:{k:'safari',n:'사파리존',d:'입장료 1500원 · 사파리볼 20개로 희귀한 포켓몬 잡기'},12:{k:'tower',n:'격투 탑',d:'층마다 강해지는 트레이너와 연속 배틀 · 5층마다 카드팩 · 매주 월요일 1층부터, 10·20·30·50층 주간 보상'}};
 const mgS=()=>{G.mg=G.mg||{};return G.mg};
 function addMon(m){const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;m.hp=stOf(m)[0];if(G.party.length<6)G.party.push(m);else G.box.push(m);try{askEvo(M.dex)}catch(e){}save();return G.party.includes(m)?'동료가 됐어요':'보관함으로 보냈어요'}
 function mgOpen(title,bg){mgClose();const d=document.createElement('div');d.id='mg';d.innerHTML=`<div class="mgw" style="background-image:linear-gradient(#0003,#0006),url(${bg})"><div class="mgh"><b>${title}</b><button class="mgx">나가기</button></div><div class="mgb"></div></div>`;document.body.appendChild(d);d.querySelector('.mgx').onclick=()=>{sfx('tap');mgClose()};return d.querySelector('.mgb')}
@@ -2673,14 +2682,17 @@ function safariRun(B,S){if(S.balls<=0||S.left<=0){B.innerHTML=`<div class="mgwin
   draw('야생 '+META[n].name+'(이)가 나타났다!')}
 // ---------- 격투 탑 ----------
 const TWR=[['BLACKBELT','태권 소년'],['PSYCHIC_M','초능력자'],['PSYCHIC_F','초능력 소녀'],['COOLTRAINER_M','엘리트 트레이너'],['COOLTRAINER_F','엘리트 트레이너'],['HIKER','등산가'],['JUGGLER','저글러'],['CHANNELER','무당'],['SCIENTIST','연구원']];
-function towerOpen(){const S=mgS();S.tw=S.tw||{f:1,best:0};const T=S.tw;const B=mgOpen('노랑시티 격투 탑','stages/gym_psychic.webp');const lv=twLv(T.f);
-  B.innerHTML=`<div class="twr"><div class="twf"><small>지금</small><b>${T.f}층</b><small>최고 기록 ${T.best}층</small></div><p class="mgt">층마다 트레이너가 기다려요. 이기면 다음 층!<br><small>5층마다 카드팩 · 5층마다 회복 · 지면 1층부터 (돈은 안 잃어요)</small></p>
+// 격투 탑: 매주 월요일 1층부터 · 그 주에 처음 깬 층 보상 (10·20·30·50층) · 역대 최고는 따로
+const TWWK=[[10,'포켓몬팩 3장',[{multi:['P','P','P']}]],[20,'포켓몬팩 3 + 기술팩 3',[{multi:['P','P','P']},{multi:['M','M','M']}]],[30,'영웅~전설 카드팩 1 + 포켓몬팩 5',[{kind:'P',rar:2},{multi:['P','P','P','P','P']}]],[50,'전설 카드팩 1 + 포켓몬팩 5 + 기술팩 5',[{kind:'P',rar:3},{multi:['P','P','P','P','P']},{multi:['M','M','M','M','M']}]]];
+function twWeek(T){const wk=typeof wbWeek==='function'?wbWeek():dayKey();if(T.wk!==wk){T.wk=wk;T.f=1;T.wb=0;T.got={}}}
+function towerOpen(){const S=mgS();S.tw=S.tw||{f:1,best:0};const T=S.tw;twWeek(T);const B=mgOpen('노랑시티 격투 탑','stages/gym_psychic.webp');const lv=twLv(T.f);
+  B.innerHTML=`<div class="twr"><div class="twf"><small>지금</small><b>${T.f}층</b><small>이번 주 최고 ${T.wb||0}층 · 역대 ${T.best}층</small></div><p class="mgt">층마다 트레이너가 기다려요. 이기면 다음 층!<br><small>5층마다 회복 + 카드팩 · 지면 1층부터 · <b>매주 월요일 1층부터 다시</b></small></p><div class="twk">${TWWK.map(([f,t])=>`<span class="${(T.got||{})[f]?'on':''}"><b>${f}층</b>${t}${(T.got||{})[f]?' · 받음':''}</span>`).join('')}</div>
    <div class="twn">다음 상대: Lv.${lv} · ${twCnt(T.f)}마리</div><button class="main mgbig" id="tGo">${T.f}층 도전!</button></div>`;
   B.querySelector('#tGo').onclick=async()=>{if(!G.party.some(m=>m.hp>0)){toast('먼저 치료하고 와요');return}const [spr,name]=pick(TWR);const f=T.f,lv=twLv(f),n=twCnt(f);
     const L=SPECIES.filter(s=>!META[s].form&&bst(META[s].stats)<=360+f*14&&bst(META[s].stats)>=260+f*8);const foes=Array.from({length:n},()=>mkMon(pick(L.length>4?L:SPECIES),lv+ri(-1,1)));mgClose();
     try{await trainerScene(spr,name+' ('+f+'층)',[pick(['격투 탑에 온 걸 환영해!','여기까지 오다니 제법인데?','내 포켓몬이 더 강해!','한 층 한 층이 시험이야!'])])}catch(e){}
     const r=await battle({trainer:name,foes,money:lv*40,scaled:1,bg:'gym_psychic',lose:'다음 층도 힘내!'});
-    if(r==='win'){T.f++;if(T.f-1>T.best)T.best=T.f-1;if((T.f-1)%5===0){healAll();REWQ.push({kind:R()<.5?'P':'M',msg:'격투 탑 '+(T.f-1)+'층 돌파! 카드팩 1장',why:'격투 탑'});toast((T.f-1)+'층 돌파! 포켓몬 회복 + 카드팩')}save();if(G.a===12)towerOpen()}
+    if(r==='win'){T.f++;const cl=T.f-1;if(cl>T.best)T.best=cl;if(cl>(T.wb||0))T.wb=cl;T.got=T.got||{};for(const [mf,txt,rw] of TWWK)if(cl>=mf&&!T.got[mf]){T.got[mf]=1;for(const q of rw)REWQ.push(Object.assign({msg:'격투 탑 '+mf+'층 주간 보상!',why:'격투 탑 '+mf+'층',title:'격투 탑 '+mf+'층 주간 보상 · '+txt},q));toast('격투 탑 '+mf+'층 주간 보상! '+txt)}if((T.f-1)%5===0){healAll();REWQ.push({kind:R()<.5?'P':'M',msg:'격투 탑 '+(T.f-1)+'층 돌파! 카드팩 1장',why:'격투 탑'});toast((T.f-1)+'층 돌파! 포켓몬 회복 + 카드팩')}save();if(G.a===12)towerOpen()}
     else{T.f=1;healAll();save();toast('격투 탑 도전 끝! 최고 '+T.best+'층 · 다음엔 더 높이!')}}}
 const twLv=f=>Math.max(5,Math.min(100,topLv()-4+Math.round(f*1.3)));const twCnt=f=>Math.min(3,1+Math.floor(f/3));
 // ---------- 들어가는 곳: 마을에 있으면 화면 버튼 + 월드맵 팝업 ----------
@@ -2992,6 +3004,90 @@ try{TOWNF[9]={d:'',f:[],sale:{}};TOWNF.push(
 {const _b=badgeOpen;badgeOpen=function(){_b();setTimeout(()=>{const p=document.querySelector('.panel .pb')||document.querySelector('.panel');if(!p||p.querySelector('.ubd'))return;const ub=G.ub||0;
   const h=`<h4 class="ubd">상위 배지 ${ub}/4 <small>${G.champ?'챔피언이 되면 배를 타고 가는 섬의 관장들':'포켓몬 리그 챔피언이 되면 열려요'}</small></h4><div class="ubg">${[0,1,2,3].map(i=>{const g=GYM[9+i];return `<div class="ubb ${i<ub?'on':''}" style="--c:${g.c}"><img src="trainers/${g.spr}.png"><i class="tyi" style="${tyIco(g.t)}"></i><b>${TOWNS[10+i]}</b><small>${g.n}</small>${i<ub?'<em>획득</em>':i===ub&&G.champ?`<button data-ug="${20+i*2}">도전하러 가기</button>`:'<em class="lk">잠김</em>'}</div>`}).join('')}</div>`;
   const box=document.createElement('div');box.innerHTML=h;p.appendChild(box);box.querySelectorAll('[data-ug]').forEach(b=>b.onclick=()=>{closePanel(1);navSet(+b.dataset.ug,null,'auto')})},40)}}
+
+// ===== 월드보스: 매주 전설 포켓몬 · 모두의 데미지를 합쳐서 쓰러뜨리기 · 랭킹 · 처치 완료 → 포획 시도 5번 =====
+// 서버: 출결 Firebase(Firestore) pokeBoss/{주}/players/{기기id} = {name, dmg, t} · 연결 코드가 없으면 내 폰 기록만
+const WBCODE='';// 출결 연결 코드(JD1-…)를 받으면 여기에 넣어요
+const WB_HP=4000000,WB_TRY=3,WB_THROW=5,WB_TLIM=90;
+// 지금은 전설만 · 나중에 신화(4) · 환상(5) · 유일(6) 보스로 넓혀요
+const WB_TIER=3,WB_DEX=[150,249,250,384,382,383,483,484,487,643,644,716,717,791,792,888,889,146,145,144,243,244,245,380,381,385,386,638,639,640,800];
+function wbCfg(){try{const c=WBCODE||localStorage.getItem('pka-wbcode')||'';if(!c.startsWith('JD1-'))return null;const [projectId,apiKey]=atob(c.slice(4).replace(/-/g,'+').replace(/_/g,'/')).split('|');return projectId&&apiKey?{projectId,apiKey}:null}catch(e){return null}}
+function wbWeek(off){const n=new Date(Date.now()+9*36e5-(off||0)*7*864e5);const d=(n.getUTCDay()+6)%7;const m=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()-d));return m.toISOString().slice(0,10)}
+function wbNextReset(){const k=wbWeek();const t=Date.parse(k+'T00:00:00+09:00')+7*864e5;return t-Date.now()}
+function wbBoss(wk){const L=WB_DEX.filter(d=>BYDEX[d]&&META[BYDEX[d]]&&rarOf(BYDEX[d])===WB_TIER);const i=Math.floor(Date.parse(wk||wbWeek())/(7*864e5));return BYDEX[(L.length?L:[150])[((i%L.length)+L.length)%L.length]]}
+function wbS(){if(!G.wb||G.wb.wk!==wbWeek()){const old=G.wb;G.wb={wk:wbWeek(),dmg:0,tries:{},throws:0,done:0,caught:0,paid:(old&&old.paid)||{}};if(old&&old.dmg>0&&!G.wb.paid[old.wk])G.wb.last=old}if(!G.pid)G.pid=(Date.now().toString(36)+Math.random().toString(36).slice(2,8));return G.wb}
+// ---------- 서버 ----------
+const WBC={list:null,t:0,err:''};
+async function wbFetch(wk,force){const c=wbCfg();if(!c){WBC.err='local';return null}if(!force&&WBC.list&&WBC.wk===wk&&Date.now()-WBC.t<20000)return WBC.list;
+  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeBoss/${wk}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)throw new Error(r.status);const j=await r.json();
+    const L=(j.documents||[]).map(d=>({id:d.name.split('/').pop(),name:(d.fields.name||{}).stringValue||'?',dmg:+((d.fields.dmg||{}).integerValue||0)})).sort((a,b)=>b.dmg-a.dmg);WBC.list=L;WBC.wk=wk;WBC.t=Date.now();WBC.err='';return L}catch(e){WBC.err=String(e.message||e);return null}}
+async function wbPush(){const c=wbCfg(),w=wbS();if(!c||!w.dmg)return false;try{const u=`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeBoss/${w.wk}/players/${G.pid}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=dmg&updateMask.fieldPaths=t`;
+  const r=await fetch(u,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:(G.name||'트레이너').slice(0,12)},dmg:{integerValue:String(Math.floor(w.dmg))},t:{integerValue:String(Date.now())}}})});w.pend=!r.ok;save();return r.ok}catch(e){w.pend=1;save();return false}}
+setInterval(()=>{try{if(G&&G.wb&&G.wb.pend)wbPush()}catch(e){}},30000);addEventListener('online',()=>{try{if(G&&G.wb&&G.wb.pend)wbPush()}catch(e){}});
+// 전체 데미지 (서버 없으면 내 데미지만)
+const wbTotal=L=>L?L.reduce((a,b)=>a+b.dmg,0):(G.wb?G.wb.dmg:0);
+// ---------- 보스전 ----------
+async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY){toast('오늘 도전은 다 했어요 (하루 '+WB_TRY+'번)');return}if(SCENE!=='over'){toast('밖에서만 도전할 수 있어요');return}if(!G.party.some(m=>m.hp>0)){toast('먼저 포켓몬을 치료해요');return}
+  if(!wbCfg()){await say(['월드보스는 아직 준비 중이에요. 선생님이 서버를 연결하면 열려요!']);return}
+  if(!navigator.onLine){await say(['월드보스는 <b>인터넷(와이파이·데이터)</b>이 켜져 있어야 참여할 수 있어요.','다 같이 데미지를 모으고 실시간 랭킹을 보려면 서버에 바로 올려야 하거든요. 인터넷을 켜고 다시 와 주세요!']);return}
+  const L=await wbFetch(w.wk,1);if(!L){await say(['서버에 연결이 안 돼요. 인터넷을 확인하고 잠시 뒤 다시 해 주세요.']);return}if(wbTotal(L)>=WB_HP){toast('이번 주 보스는 이미 쓰러졌어요! 포획 시도를 해 봐요');wbOpen();return}
+  w.tries[day]=(w.tries[day]||0)+1;save();closePanel(1);const n=wbBoss(),boss=mkMon(n,Math.min(100,Math.max(30,topLv()+8)));boss.hpx=60;boss.hp=stOf(boss)[0];const hp0=boss.hp;BS.wbHp0=hp0;
+  const keep=G.party.map(m=>m.hp);BS.wbT=0;BS.wb=1;
+  try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','월드보스 '+META[n].name,['이번 주의 월드보스, 전설의 '+META[n].name+'(이)가 나타났다!','모두의 데미지를 합쳐서 쓰러뜨리자! 제한 시간 '+WB_TLIM+'초!'])}catch(e){}
+  const r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'gym_psychic'});BS.wb=0;
+  const dmg=Math.max(0,hp0-Math.max(0,boss.hp));G.party.forEach((m,i)=>{if(m.hp<=0)m.hp=Math.max(1,Math.round((keep[i]||1)*.5))});w.dmg+=dmg;save();
+  const ok=await wbPush();sfx('badge');await say(['월드보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!','이번 주 내 누적 데미지 '+w.dmg.toLocaleString()+(wbCfg()?(ok?' · 랭킹에 올렸어요':' · 인터넷이 되면 자동으로 올려요'):'')]);wbOpen()}
+// 시간 제한: 지나면 보스가 날아가 버려요 (내 포켓몬은 다치지 않게 되돌려요)
+{const _u=actUpdate;actUpdate=function(dt){_u(dt);try{if(BS.wb&&ACT.on&&!ACT.pause){BS.wbT=(BS.wbT||0)+dt;if(BS.wbT>WB_TLIM&&!BS.wbEnd){BS.wbEnd=1;toast('시간 끝! 보스가 하늘로 날아갔다');for(const m of G.party)m.hp=0}}else if(!BS.wb)BS.wbEnd=0}catch(e){}}}
+{const _bl=blackout;blackout=async function(){if(BS.wbEnd||(G&&G.wb&&BS.wb)){BS.wbEnd=0;return}return _bl.apply(this,arguments)}}
+// ---------- 처치 완료 → 포획 시도 5번 ----------
+async function wbCatch(){const w=wbS();if(!navigator.onLine){await say(['포획 시도도 인터넷이 켜져 있어야 해요!']);return}if(w.done){toast('이번 주 포획 시도는 끝났어요');return}if(!w.dmg){toast('이번 주 보스와 싸운 친구만 포획 시도를 할 수 있어요');return}
+  const n=wbBoss();closePanel(1);const B=mgOpen('월드보스 포획 · '+META[n].name,'stages/gym_psychic.webp');
+  const draw=msg=>{const left=WB_THROW-w.throws;const balls=['ball','great','hyper','master'].filter(k=>ITEMS[k]&&(G.bag[k]||0)>0);
+    B.innerHTML=`<div class="saf"><div class="sinfo">남은 기회 <b>${left}</b> / ${WB_THROW}</div><div class="smon"><img src="${THUMB[n]||''}"><b>${META[n].name}</b> ${RARS(n)} <small>쓰러진 월드보스</small></div><p class="mgt">${msg}</p>
+    <div class="sact"><button class="main" data-b="free">보스볼 던지기<small>공짜 · 잡히는 정도 ×1</small></button>${balls.map(k=>`<button data-b="${k}">${ITEMS[k].n}<small>가진 것 ${G.bag[k]} · ×${ITEMS[k].ball>=100?'무조건':ITEMS[k].ball}</small></button>`).join('')}</div></div>`;
+    B.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>thr(b.dataset.b))};
+  const fin=async(ok)=>{w.done=1;save();await sleep(400);B.innerHTML=`<div class="mgwin"><p class="mgt">${ok?'<b>'+META[n].name+'</b>(을)를 잡았다!':'아쉬워요… '+META[n].name+'(이)가 날아가 버렸어요'}</p><img src="${THUMB[n]||''}" style="${ok?'':'filter:grayscale(1);opacity:.6'}"><p>${ok?'전설 포켓몬이 동료가 됐어요!':'다음 주 보스에 또 도전해요!'}<br><small>이번 주 월드보스는 여기서 끝이에요. 주간 보상은 월요일에 받아요.</small></p><button class="main mgbig" id="wOk">확인</button></div>`;B.querySelector('#wOk').onclick=()=>{mgClose();wbOpen()}};
+  let busy=0;const thr=async k=>{if(busy||w.throws>=WB_THROW)return;busy=1;if(k!=='free'){if(!(G.bag[k]>0)){busy=0;return}G.bag[k]--}w.throws++;save();
+    B.querySelector('.mgt').textContent='타이밍 맞춰서!';const t=await mgBar(B.querySelector('.saf'),.2,4.6);const mul=k==='free'?1:ITEMS[k].ball;
+    B.querySelector('.smon').classList.add('shake');B.querySelector('.mgt').textContent='흔들… 흔들…';await sleep(1200);
+    const p=mul>=100?1:Math.min(.9,.1*mul*(t?2:1));if(R()<p){const m=mkMon(n,Math.min(100,Math.max(50,topLv())));m.wb=w.wk;const rr=addMon(m);sfx('badge');w.caught=1;toast(META[n].name+' 포획! '+rr);busy=0;return fin(1)}
+    busy=0;if(w.throws>=WB_THROW)return fin(0);draw((t?'타이밍은 좋았는데… ':'')+'볼에서 나와 버렸다! 다시 던져요')};
+  draw('쓰러진 '+META[n].name+'(이)가 지쳐 있어요. 지금이 기회!')}
+// ---------- 주간 보상 (월요일에 지난주 순위대로) ----------
+async function wbPayout(){const w=wbS(),o=w.last;if(!o||w.paid[o.wk])return;let L=await wbFetch(o.wk,1),rank=null,killed=false;
+  if(L){const i=L.findIndex(x=>x.id===G.pid);rank=i>=0?i+1:L.length+1;killed=wbTotal(L)>=WB_HP}else if(wbCfg())return;else killed=o.dmg>=WB_HP;
+  w.paid[o.wk]=1;delete w.last;save();const top=rank&&rank<=10;
+  REWQ.push({kind:'P',rar:top?3:(R()<.6?2:3),msg:'월드보스 주간 보상'+(rank?' · '+rank+'위':''),why:'월드보스 보상'});
+  REWQ.push({multi:Array(top?10:5).fill('P'),msg:'월드보스 보상 포켓몬팩',title:'월드보스 주간 보상'+(rank?' ('+rank+'위)':'')+' · 포켓몬팩 '+(top?10:5)+'장'},{multi:Array(top?10:5).fill('M'),msg:'월드보스 보상 기술팩',title:'월드보스 주간 보상 · 기술팩 '+(top?10:5)+'장'});
+  if(killed)REWQ.push({kind:'P',rar:3,msg:'월드보스 격파 보너스! 전설 카드팩',why:'월드보스 격파'});
+  toast('지난주 월드보스 보상이 왔어요!'+(rank?' ('+rank+'위)':''))}
+setInterval(()=>{try{if(G&&G.party.length&&SCENE==='over'){wbS();if(G.wb.last)wbPayout()}}catch(e){}},15000);
+// ---------- 화면 ----------
+async function wbOpen(){if(!G)return;const w=wbS(),n=wbBoss();const fmt=x=>x.toLocaleString();const day=dayKey(),left=WB_TRY-(w.tries[day]||0);
+  const render=L=>{const tot=wbTotal(L),dead=tot>=WB_HP,hpL=Math.max(0,WB_HP-tot);const me=L?L.findIndex(x=>x.id===G.pid):-1;const ms=wbNextReset(),dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);
+    const top=(L||[]).slice(0,10).map((x,i)=>`<div class="wbr${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${x.name}</span><em>${fmt(x.dmg)}</em></div>`).join('')||`<small>${wbCfg()?'아직 아무도 안 싸웠어요. 첫 데미지를 넣어 봐요!':'서버 연결 전이에요 · 내 기록만 보여요'}</small>`;
+    return `<div class="wbh" style="--c:${TCOL[META[n].types[0]]}"><img src="${THUMB[n]||''}"><div><small>이번 주 월드보스 · 전설</small><b>${META[n].name}</b><div class="wbhp"><i style="width:${hpL/WB_HP*100}%"></i><span>${dead?'처치 완료!':fmt(hpL)+' / '+fmt(WB_HP)}</span></div><div class="wbcd"><span><small>남은 체력</small><b>${dead?'0':fmt(hpL)}</b><small>${dead?'처치 완료':Math.ceil(hpL/WB_HP*100)+'%'}</small></span><span><small>남은 날</small><b class="wbD">${dd}일</b><small>월요일 초기화</small></span><span><small>남은 시간</small><b class="wbT">${String(Math.floor(ms%864e5/36e5)).padStart(2,'0')}:${String(Math.floor(ms%36e5/6e4)).padStart(2,'0')}:${String(Math.floor(ms%6e4/1e3)).padStart(2,'0')}</b><small>시:분:초</small></span></div></div></div>
+    <div class="wbme"><span>내 누적 데미지 <b>${fmt(w.dmg)}</b></span><span>내 순위 <b>${me>=0?(me+1)+'위':'-'}</b></span><span>오늘 도전 <b>${Math.max(0,left)}/${WB_TRY}</b></span></div>
+    <div class="wbt">${dead?(w.done?`<button disabled>${w.caught?'포획 성공! 이번 주 끝':'포획 시도 끝 · 다음 주에 또!'}</button>`:w.dmg?`<button class="main" id="wbC">처치 완료! 포획 시도 (${WB_THROW-w.throws}번 남음)</button>`:'<button disabled>처치 완료 · 싸운 친구만 포획 시도</button>'):`<button class="main" id="wbF" ${left>0?'':'disabled'}>${left>0?'보스에게 도전! (제한 '+WB_TLIM+'초)':'오늘 도전 끝 · 내일 또!'}</button>`}<button id="wbR">새로고침</button></div>
+    <h4>누적 데미지 랭킹 TOP 10 <small class="wbst"></small></h4><p class="wbpd">월드보스는 <b>인터넷이 켜져 있을 때만</b> 참여할 수 있어요. 모두의 데미지를 서버에 바로 모아서 실시간 랭킹을 만들기 때문이에요.${w.pend?' (방금 싸운 데미지가 아직 안 올라갔어요. 인터넷이 켜지면 자동으로 올라가요)':''}</p><div class="wbl">${top}</div>
+    <div class="hcard"><b>주간 보상 (월요일에 자동 지급)</b><p>1~10위: 전설 카드팩 1장 + 포켓몬팩 10장 + 기술팩 10장<br>11위부터: 영웅~전설 카드팩 1장 + 포켓몬팩 5장 + 기술팩 5장<br>보스를 쓰러뜨리면: 싸운 친구 모두 전설 카드팩 1장 더!<br>쓰러뜨린 다음엔 「포획 시도」로 볼을 ${WB_THROW}번 던져서 잡을 수 있어요.</p><small>지금은 전설 보스만 나와요. 나중엔 신화 · 환상 · 유일 보스도 나와요!</small></div>`};
+  openPanel('월드보스',render(WBC.wk===w.wk?WBC.list:null),null,p=>{const bind=()=>{const f=p.querySelector('#wbF');if(f)f.onclick=()=>wbFight();const c=p.querySelector('#wbC');if(c)c.onclick=()=>wbCatch();const r=p.querySelector('#wbR');if(r)r.onclick=async()=>{sfx('tap');const L=await wbFetch(w.wk,1);p.querySelector('.pb, .pbody')?0:0;const host=p.querySelector('.wbh').parentNode;host.innerHTML=render(L);bind()}};bind();
+    const upd=async f=>{const L=await wbFetch(w.wk,f);if(!document.body.contains(p))return false;const h=p.querySelector('.wbh');if(h&&L){h.parentNode.innerHTML=render(L);bind()}const st=p.querySelector('.wbst');if(st)st.textContent=!wbCfg()?'서버 연결 전 · 내 기록만':!navigator.onLine||WBC.err?'인터넷이 꺼져 있어요 · 월드보스는 인터넷이 켜져 있어야 참여할 수 있어요':'실시간 랭킹 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' 기준';return true};
+    upd(0);const iv=setInterval(async()=>{if(!(await upd(1)))clearInterval(iv)},8000)})}
+try{HUB.push({k:'wb',n:'월드보스 (매주)',d:'매주 월요일 새 전설 포켓몬 보스! 모두의 데미지를 합쳐서 쓰러뜨려요. 하루 3번 도전, 누적 데미지 랭킹으로 주간 보상. 쓰러뜨리면 포획 시도 5번!',st:()=>{const w=wbS();return '내 데미지 '+w.dmg.toLocaleString()},go:[['월드보스 열기',()=>wbOpen()]]})}catch(e){}
+(function(){const go=()=>{const b=document.getElementById('bWB');if(b)b.onclick=()=>{sfx('tap');wbOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+// 연결 코드 넣기 (운영자): 콘솔 대신 주소 ?wb=JD1-… 로도
+try{const q=new URLSearchParams(location.search).get('wb');if(q&&q.startsWith('JD1-')){localStorage.setItem('pka-wbcode',q);history.replaceState(null,'',location.pathname)}}catch(e){}
+// 월드보스는 엄청 크게 · 우리 포켓몬은 조금 작게
+{const _b=bsc;bsc=function(S,mine){const k=_b(S,mine);if(!BS.wb)return k;return mine?k*.8:k*2.8}}
+
+// 남은 시간 실시간 째깍 (보스 화면)
+setInterval(()=>{try{const t=document.querySelector('.wbT');if(!t)return;const ms=wbNextReset();t.textContent=String(Math.floor(ms%864e5/36e5)).padStart(2,'0')+':'+String(Math.floor(ms%36e5/6e4)).padStart(2,'0')+':'+String(Math.floor(ms%6e4/1e3)).padStart(2,'0');const d=document.querySelector('.wbD');if(d)d.textContent=Math.floor(ms/864e5)+'일'}catch(e){}},1000);
+// 보스와 싸우는 중: 위쪽에 모두의 남은 체력 · 이번 판 남은 초 · 초기화까지
+setInterval(()=>{try{let o=document.getElementById('wbHud');if(!BS.wb||SCENE!=='battle'){if(o)o.remove();return}if(!o){o=document.createElement('div');o.id='wbHud';document.body.appendChild(o)}
+  const L=WBC.list,f=BS.foe&&BS.foe.m;const fight=f&&BS.wbHp0?Math.max(0,BS.wbHp0-f.hp):0;const tot=wbTotal(L)+fight,hpL=Math.max(0,WB_HP-tot),ms=wbNextReset();
+  o.innerHTML=`<b>월드보스 남은 체력 ${hpL.toLocaleString()} <small>(${Math.ceil(hpL/WB_HP*100)}%)</small></b><div class="wbhb"><i style="width:${hpL/WB_HP*100}%"></i></div><span>이번 판 데미지 <b>${fight.toLocaleString()}</b> · 남은 시간 <b>${Math.max(0,Math.ceil(WB_TLIM-(BS.wbT||0)))}초</b> · 초기화까지 ${Math.floor(ms/864e5)}일 ${Math.floor(ms%864e5/36e5)}시간</span>`}catch(e){}},250);
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
