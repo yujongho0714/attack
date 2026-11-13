@@ -2007,7 +2007,7 @@ function giftOpen(){if(SCENE!=='over')return;const L=G.gifts||[];
     p.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>useGift(+b.dataset.u))})}
 function askNum(){return new Promise(r=>{openPanel('본인 번호',`<p>내 휴대폰 번호를 써 주세요.<br><small>폰이 없으면 도장에서 받은 <b>원생 번호</b>를 써요. 출석 문자의 부모님 번호가 아니에요!</small></p><div class="nw"><input id="nIn" inputmode="numeric" placeholder="01012345678" value="${G.num||''}"><button id="nOk" class="it">확인</button></div>`,r,p=>{p.querySelector('#nOk').onclick=()=>{const v=normNum(p.querySelector('#nIn').value);if(v.length<4){toast('번호를 다시 확인해 주세요');return}G.num=v;save();closePanel(1);r()}})})}
 async function useGift(i){const g=G.gifts[i];if(!g)return;
-  if(g.kind==='P'){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0];G.forms=G.forms||{};G.forms[g.f]=1}m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);G.gifts.splice(i,1);save();closePanel(1);sfx('lv');refreshSpr();await say([{t:'🎁 <b>'+nm(m)+'</b>(이)가 동료가 됐어요! '+(G.party.includes(m)?'':'(보관함으로 갔어요)'),f:[n,'Joyous']}]);return}
+  if(g.kind==='P'){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0];G.forms=G.forms||{};G.forms[g.f]=1}m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(!monCapOk(m)){soulFrom(m);G.gifts.splice(i,1);save();closePanel(1);await say(['<b>'+nm(m)+'</b>은(는) 이미 '+MONCAP+'마리라서 영혼 1개로 바뀌었어요. 영혼 합성에서 써요!']);return}if(G.party.length<6)G.party.push(m);else G.box.push(m);G.gifts.splice(i,1);save();closePanel(1);sfx('lv');refreshSpr();await say([{t:'🎁 <b>'+nm(m)+'</b>(이)가 동료가 됐어요! '+(G.party.includes(m)?'':'(보관함으로 갔어요)'),f:[n,'Joyous']}]);return}
   const id=GMOVES[g.id][0],mvv=mv(id);openPanel(mvv.name+' 가르치기',`<p>누구에게 가르칠까요? <small>(${TN[mvv.type]} · 위력 ${mvv.pw})</small></p><button class="it" id="recB" style="width:100%">추천 포켓몬 보기 (가진 것 · 없는 것)</button>${G.party.map((m,j)=>`<div class="row"><span>${nm(m)} Lv.${m.lv} <small>${m.moves.map(x=>mv(x).name).join(', ')}</small></span><button data-p="${j}" ${m.moves.includes(id)?'disabled':''}>선택</button></div>`).join('')}`,giftOpen,p=>{
     const rb=p.querySelector('#recB');if(rb)rb.onclick=()=>recOpen(id,()=>giftOpen());p.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const m=G.party[+b.dataset.p];if(m.moves.length<4){m.moves.push(id);done(m)}else{openPanel('잊을 기술 고르기',m.moves.map((x,k)=>`<div class="row"><span>${mv(x).name} <small>Lv.${mlv(m,x)}</small></span><button data-f="${k}">잊기</button></div>`).join(''),giftOpen,q=>q.querySelectorAll('[data-f]').forEach(c=>c.onclick=()=>{m.moves[+c.dataset.f]=id;done(m)}))}})});
   function done(m){G.gifts.splice(i,1);save();closePanel(1);sfx('lv');say([{t:'<b>'+nm(m)+'</b>(은)는 <b>'+mvv.name+'</b>을(를) 배웠다!',f:[m.n,'Joyous']}])}}
@@ -2233,7 +2233,7 @@ async function gbApply(link){if(!G)return false;
   giftOpen();return true}
 // 선물 가방의 포켓몬 전부 꺼내기 (6마리 넘으면 보관함)
 async function giftAllMons(){const L=(G.gifts||[]).filter(g=>g.kind==='P');if(!L.length){toast('꺼낼 포켓몬이 없어요');return}let toBox=0;
-  for(const g of L){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else{G.box.push(m);toBox++}}
+  for(const g of L){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(!monCapOk(m)){soulFrom(m);continue}if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else{G.box.push(m);toBox++}}
   G.gifts=G.gifts.filter(g=>g.kind!=='P');save();refreshSpr();sfx('lv');closePanel(1);await say(['🎉 포켓몬 '+L.length+'마리가 동료가 됐어요!'+(toBox?' ('+toBox+'마리는 보관함으로 갔어요)':'')]);giftOpen()}
 // 카메라로 QR 찍기 (안드로이드 크롬)
 async function qrScan(){if(!('BarcodeDetector' in window)){await say(['이 폰은 게임 안에서 QR을 못 읽어요.<br><b>폰 카메라 앱</b>으로 출석 앱 QR을 찍고, 뜨는 링크를 누르세요!']);return}
@@ -2698,7 +2698,7 @@ gym=evWrap(gym);league=evWrap(league);areaEvent=evWrap(areaEvent);trainerSpot=ev
 const MGS={4:{k:'fish',n:'낚시',d:'타이밍 맞춰 낚싯대를 당기면 물 포켓몬이나 아이템이 나와요'},2:{k:'fossil',n:'화석 발굴',d:'바위를 두드려 화석을 캐면 화석 포켓몬으로 복원해 줘요 (하루 1번 무료)'},
  10:{k:'safari',n:'사파리존',d:'입장료 1500원 · 사파리볼 20개로 희귀한 포켓몬 잡기'},12:{k:'tower',n:'격투 탑',d:'층마다 강해지는 트레이너와 연속 배틀 · 5층마다 카드팩 · 매주 월요일 1층부터, 10·20·30·50층 주간 보상'}};
 const mgS=()=>{G.mg=G.mg||{};return G.mg};
-function addMon(m){const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;m.hp=stOf(m)[0];if(G.party.length<6)G.party.push(m);else G.box.push(m);try{askEvo(M.dex)}catch(e){}save();return G.party.includes(m)?'동료가 됐어요':'보관함으로 보냈어요'}
+function addMon(m){if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m);return}const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;m.hp=stOf(m)[0];if(G.party.length<6)G.party.push(m);else G.box.push(m);try{askEvo(M.dex)}catch(e){}save();return G.party.includes(m)?'동료가 됐어요':'보관함으로 보냈어요'}
 function mgOpen(title,bg){mgClose();const d=document.createElement('div');d.id='mg';d.innerHTML=`<div class="mgw" style="background-image:linear-gradient(#0003,#0006),url(${bg})"><div class="mgh"><b>${title}</b><button class="mgx">나가기</button></div><div class="mgb"></div></div>`;document.body.appendChild(d);d.querySelector('.mgx').onclick=()=>{sfx('tap');mgClose()};return d.querySelector('.mgb')}
 function mgClose(){const d=document.getElementById('mg');if(d)d.remove()}
 function mgStart(a){if(G.a!==a){toast(areaName(a)+'에 가야 할 수 있어요');return}if(SCENE!=='over')return;closePanel(1);const k=MGS[a].k;({fish:fishOpen,fossil:fossilOpen,safari:safariOpen,tower:towerOpen})[k]()}
@@ -2992,7 +2992,7 @@ function xferOpen(){openPanel('QR 옮기기',`<div class="hcard"><b>받기 (카�
   <div class="hcard"><b>보내기 (다른 폰으로 내 기록 전부)</b><p>캐릭터 · 포켓몬 전부 · 기술 · 가방 · 돈 · 배지 · 도감까지 그대로 옮겨요. 받는 폰에서 「카메라로 QR 찍기」로 이 화면을 비추면 돼요.</p><div class="wbt"><button id="xE">내 기록 QR 보여 주기</button></div></div>`,null,p=>{p.querySelector('#xS').onclick=()=>{closePanel(1);xferScan()};p.querySelector('#xE').onclick=()=>{closePanel(1);xferSend()}})}
 (function(){const go=()=>{const b=document.getElementById('bQr');if(b)b.onclick=()=>{sfx('tap');xferOpen()};const t=document.getElementById('tQr');if(t)t.onclick=()=>{sfx('tap');xferScan()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // 출석 앱 QR로 온 포켓몬은 선물 가방에 쌓아 두지 않고 바로 동료로 (기술 카드는 가방에서 가르칠 포켓몬 골라요)
-{const _ga=gbApply;gbApply=async function(link){const before=(G&&G.gifts||[]).length;const r=await _ga(link);try{if(G&&(G.gifts||[]).some(g=>g.kind==='P')){const L=G.gifts.filter(g=>g.kind==='P');let box=0;for(const g of L){const n=BYDEX[g.id];if(!n)continue;const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(!G.party.length)G.party.push(m);else{G.box.push(m);box++}}
+{const _ga=gbApply;gbApply=async function(link){const before=(G&&G.gifts||[]).length;const r=await _ga(link);try{if(G&&(G.gifts||[]).some(g=>g.kind==='P')){const L=G.gifts.filter(g=>g.kind==='P');let box=0;for(const g of L){const n=BYDEX[g.id];if(!n)continue;const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(!monCapOk(m)){soulFrom(m);continue}if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(!G.party.length)G.party.push(m);else{G.box.push(m);box++}}
   G.gifts=G.gifts.filter(g=>g.kind!=='P');save();try{refreshSpr()}catch(e){}closePanel(1);toast('포켓몬 '+L.length+'마리가 보관함에 들어갔어요 · 편성에서 「출전하기」로 데려가요')}}catch(e){}return r}}
 // ===== 앨범(사진)에서 QR 가져오기 · QR 해독기(jsQR)는 필요할 때만 불러와요 =====
 let JSQRP=null;const jsqrLoad=()=>JSQRP||(JSQRP=new Promise((ok,no)=>{if(typeof jsQR!=='undefined')return ok();const s=document.createElement('script');s.src='lib/jsQR.js';s.onload=()=>ok();s.onerror=no;document.head.appendChild(s)}));
@@ -3605,6 +3605,15 @@ try{HUB.push({k:'stop',n:'포케스탑 (하루 20번)',d:'길가에 가끔 파�
 // 영혼은 합성 재료: 같은 등급 영혼 2개(서로 다른 포켓몬이어도 OK)를 합치면 10% 확률로 한 등급 위 포켓몬 · 한계 돌파 재료로도 써요
 // 잡기는 몬스터볼이 떨어질 때까지 계속 해 볼 수 있어요 (실패하면 2.5초 뒤 다시)
 const owned=f=>{try{return !!(G&&f&&G.dex.c[META[f.n].dex])&&!f.shiny&&!META[f.n].form&&!(AUTO.hunt&&AUTO.hunt.n===f.n&&!G.dex.c[META[f.n].dex])}catch(e){return false}};
+// 같은 포켓몬은 최대 5마리까지 (파티 + 보관함) · 넘치면 잡을 수 없고, 선물·카드팩으로 오면 영혼으로 바뀌어요
+const MONCAP=5;const monCnt=d=>G?[...G.party,...G.box].filter(m=>META[m.n]&&META[m.n].dex===d).length:0;
+function monCapOk(m){try{return monCnt(META[m.n].dex)<MONCAP}catch(e){return true}}
+const capFull=f=>{try{return !!(G&&f&&!BS.trainer&&monCnt(META[f.n].dex)>=MONCAP)}catch(e){return false}};
+function soulFrom(m){const M=META[m.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P',id:M.dex,rar:rarOf(m.n),lv:m.lv,sh:0,soul:1});save();toast(M.name+'은(는) 이미 '+MONCAP+'마리 · 영혼 +1')}
+{const _w=wantCatch;wantCatch=function(f){if(capFull(f))return false;return _w.apply(this,arguments)}}
+{const _a0=wantAsk;wantAsk=function(){if(capFull(BS.foe&&BS.foe.m))return false;return _a0.apply(this,arguments)}}
+{const _cf=catchFlow;catchFlow=function(){const f=BS.foe&&BS.foe.m;if(capFull(f)){toast(META[f.n].name+'은(는) 이미 '+MONCAP+'마리예요 (최대) · 쓰러뜨리면 영혼을 얻어요');return Promise.resolve(null)}return _cf.apply(this,arguments)}}
+{const _tb0=throwBall;throwBall=async function(f,it){if(capFull(f)&&it&&it.ball){try{const k=Object.keys(ITEMS).find(k=>ITEMS[k].n===it.n);if(k)G.bag[k]=(G.bag[k]||0)+1}catch(e){}await msg('이미 '+MONCAP+'마리라서 더 잡을 수 없어요! 쓰러뜨리면 영혼을 얻어요',700);return false}return _tb0.apply(this,arguments)}}
 const soulN=dex=>(G.dupes||[]).filter(x=>x.kind==='P'&&x.id===dex).length;
 function soulAdd(f){const M=META[f.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P',id:M.dex,rar:rarOf(f.n),lv:f.lv,sh:0,soul:1});save();toast(M.name+'의 영혼 +1 (가진 영혼 '+soulN(M.dex)+'개) · 합성에서 써요')}
 {const _a=wantAsk;wantAsk=function(){if(Date.now()-(BS.thT||0)<2500)return false;return _a.apply(this,arguments)}}
@@ -3615,7 +3624,7 @@ function soulAdd(f){const M=META[f.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P'
 {const _f=fuseOpen;fuseOpen=function(){_f.apply(this,arguments);try{const p=document.querySelector('.panel');if(!p)return;const h=p.querySelector('.ph b');if(h)h.textContent='영혼 합성 · 카드팩';
   const n=(G.dupes||[]).filter(x=>x.soul).length;const pb=p.querySelector('.pb');pb.insertAdjacentHTML('afterbegin',`<p class="hhint"><b>영혼 합성</b> · 이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 <b>영혼</b>을 얻어요 (지금 영혼 ${n}개). 같은 등급 영혼 2개를 합치면 (파이리 영혼 + 꼬부기 영혼도 OK) <b>10%</b> 확률로 <b>한 등급 위 포켓몬</b>! 카드팩 중복 카드도 영혼처럼 써요.</p>`);
   const w=document.createTreeWalker(pb,NodeFilter.SHOW_TEXT);const R2=[['🎴 포켓몬 재료','포켓몬 영혼'],['📀 기술 재료','기술 카드'],['중복 카드 2장','영혼 2개 · 중복 카드 2장'],['2장 합성','2개 합성']];let t;while(t=w.nextNode()){let v=t.nodeValue;for(const [a,b] of R2)v=v.split(a).join(b);if(v!==t.nodeValue)t.nodeValue=v}}catch(e){}}}
-try{const h=HUB.find(x=>x.k==='card');if(h){h.n='카드팩 · 영혼 합성';h.d='이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 영혼을 얻어요 (두 마리 갖고 싶으면 잡아도 돼요). 같은 등급 영혼 2개를 합치면 10% 확률로 한 등급 위 포켓몬! 매일 접속하면 카드팩 3장, 7일째는 포켓몬팩 10장 + 기술팩 10장.';h.st=()=>'영혼 · 중복 '+((G.dupes||[]).filter(x=>x.kind==='P').length)+'개'}}catch(e){}
+try{const h=HUB.find(x=>x.k==='card');if(h){h.n='카드팩 · 영혼 합성';h.d='이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 영혼을 얻어요 (같은 포켓몬은 최대 5마리까지 잡을 수 있어요). 같은 등급 영혼 2개를 합치면 10% 확률로 한 등급 위 포켓몬! 매일 접속하면 카드팩 3장, 7일째는 포켓몬팩 10장 + 기술팩 10장.';h.st=()=>'영혼 · 중복 '+((G.dupes||[]).filter(x=>x.kind==='P').length)+'개'}}catch(e){}
 
 // ===== 운영자(GM): 번호 010-2252-0714 · 이름은 「GM」 · 랭킹에는 안 나와요 (월드보스 데미지는 같이 깎아요) =====
 const GMNUM='01022520714';const isGM=()=>!!(G&&String(G.num||'').replace(/\D/g,'')===GMNUM);
