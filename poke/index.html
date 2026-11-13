@@ -1787,7 +1787,7 @@ const isNight=()=>{const h=new Date().getHours();return h>=19||h<6};
 {const _b=battle;battle=async function(o){o=Object.assign({},o);if(o.gym)o.bg=GYMBG[o.gym-1];if(!o.bg||o.bg==='town')o.bg=o.trainer?'city':'meadow';if(!o.trainer&&isNight()&&(o.bg==='meadow'||o.bg==='forest'))o.bg='night';
   BS.wx=pickWx(o);BS.wxT=0;BS.wxP=[];
   // 상대 체력 (난이도·트레이너·관장일수록 튼튼)
-  const hx=[1,1.6,2.1,2.8,3.6][DIFF()]*(o.gym?1.35:o.trainer?1.15:1);if(hx>1)for(const f of o.foes){f.hpx=hx;f.hp=stOf(f)[0]}return _b(o)}}
+  const hx=[1,1.6,2.1,2.8,3.6][DIFF()]*(o.gym?1.35:o.trainer?1.15:1);if(hx>1&&!o.wb)for(const f of o.foes){f.hpx=(f.hpx||1)*hx;f.hp=stOf(f)[0]}return _b(o)}}
 function wxDraw(dt){const w=BS.wx;if(!w||!BS.on)return;BS.wxT=(BS.wxT||0)+dt;const P=BS.wxP;cx.save();
   if(w==='rain'){cx.fillStyle='rgba(20,40,80,.18)';cx.fillRect(0,0,VW,VH);while(P.length<120)P.push({x:R()*VW*1.2,y:R()*VH,v:VH*(1.4+R())});cx.strokeStyle='rgba(190,215,255,.55)';cx.lineWidth=1.3;cx.beginPath();for(const p of P){p.y+=p.v*dt;p.x-=p.v*dt*.25;if(p.y>VH){p.y=-20;p.x=R()*VW*1.2}cx.moveTo(p.x,p.y);cx.lineTo(p.x+4,p.y-16)}cx.stroke()}
   else if(w==='snow'){cx.fillStyle='rgba(220,235,255,.12)';cx.fillRect(0,0,VW,VH);while(P.length<90)P.push({x:R()*VW,y:R()*VH,v:20+R()*40,r:1.5+R()*2.5,s:R()*6});cx.fillStyle='rgba(255,255,255,.9)';for(const p of P){p.y+=p.v*dt;p.x+=Math.sin(BS.wxT*1.5+p.s)*.4;if(p.y>VH){p.y=-5;p.x=R()*VW}cx.beginPath();cx.arc(p.x,p.y,p.r,0,7);cx.fill()}}
@@ -3061,7 +3061,7 @@ async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY
   if(!wbCfg()){await say(['월드보스는 아직 준비 중이에요. 선생님이 서버를 연결하면 열려요!']);return}
   if(!navigator.onLine){await say(['월드보스는 <b>인터넷(와이파이·데이터)</b>이 켜져 있어야 참여할 수 있어요.','다 같이 데미지를 모으고 실시간 랭킹을 보려면 서버에 바로 올려야 하거든요. 인터넷을 켜고 다시 와 주세요!']);return}
   const L=await wbFetch(w.wk,1);if(!L){await say(['서버에 연결이 안 돼요. 인터넷을 확인하고 잠시 뒤 다시 해 주세요.']);return}if(wbTotal(L)>=WB_HP){toast('이번 주 보스는 이미 쓰러졌어요! 포획 시도를 해 봐요');wbOpen();return}
-  w.tries[day]=(w.tries[day]||0)+1;save();closePanel(1);const n=wbBoss(),boss=mkMon(n,Math.min(100,Math.max(30,topLv()+8)));boss.hpx=60;boss.hp=stOf(boss)[0];const hp0=boss.hp;BS.wbHp0=hp0;
+  w.tries[day]=(w.tries[day]||0)+1;save();closePanel(1);const n=wbBoss(),boss=mkMon(n,Math.min(100,Math.max(30,topLv()+8)));const left=Math.max(1000,WB_HP-wbTotal(L));boss.hpx=1;boss.hpx=Math.max(1,left/stOf(boss)[0]);boss.hp=stOf(boss)[0];const hp0=boss.hp;BS.wbHp0=hp0;
   const keepP=G.party;G.party=SQ;BS.wbT=0;BS.wb=1;
   try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','월드보스 '+META[n].name,['이번 주의 월드보스, 전설의 '+META[n].name+'(이)가 나타났다!','모두의 데미지를 합쳐서 쓰러뜨리자! 내 포켓몬 '+SQ.length+'마리 · 제한 시간 '+WB_TLIM+'초 · 다 쓰러지면 끝!'])}catch(e){}
   let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{G.party=keepP;BS.wb=0}
@@ -3112,7 +3112,13 @@ try{HUB.push({k:'wb',n:'월드보스 (매주)',d:'매주 월요일 새 전설 �
 // 연결 코드 넣기 (운영자): 콘솔 대신 주소 ?wb=JD1-… 로도
 try{const q=new URLSearchParams(location.search).get('wb');if(q&&q.startsWith('JD1-')){localStorage.setItem('pka-wbcode',q);history.replaceState(null,'',location.pathname)}}catch(e){}
 // 월드보스는 엄청 크게 · 우리 포켓몬은 조금 작게
-{const _b=bsc;bsc=function(S,mine){const k=_b(S,mine);if(!BS.wb)return k;return mine?k*.8:k*2.8}}
+{const _b=bsc;bsc=function(S,mine){const k=_b(S,mine);if(!BS.wb)return k;return mine?k*.8:k*2.4}}
+// 월드보스 땐 화면 확대(카메라 줌·흔들림) 끄기 · 아이패드 두 손가락 확대 막기 · 끝나면 화면 배율 되돌리기
+{const _u=actUpdate;actUpdate=function(dt){_u(dt);if(BS.wb){ACT.zp=0;ACT.bx=0;ACT.by=0}}}
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+function vpReset(){try{const m=document.querySelector('meta[name=viewport]');if(!m)return;const c=m.content;m.content=c+',minimum-scale=1';setTimeout(()=>{m.content=c},60);scrollTo(0,0)}catch(e){}}
+{const _bt=battle;battle=async function(){try{return await _bt.apply(this,arguments)}finally{vpReset()}}}
+addEventListener('resize',()=>{try{if(visualViewport&&visualViewport.scale>1.01)vpReset()}catch(e){}})
 
 // 남은 시간 실시간 째깍 (보스 화면)
 setInterval(()=>{try{const t=document.querySelector('.wbT');if(!t)return;const ms=wbNextReset();t.textContent=String(Math.floor(ms%864e5/36e5)).padStart(2,'0')+':'+String(Math.floor(ms%36e5/6e4)).padStart(2,'0')+':'+String(Math.floor(ms%6e4/1e3)).padStart(2,'0');const d=document.querySelector('.wbD');if(d)d.textContent=Math.floor(ms/864e5)+'일'}catch(e){}},1000);
