@@ -3221,12 +3221,12 @@ async function rankOpen(b){if(!G)return;b=b||G.rkTab||'dex';G.rkTab=b;
     const load=async()=>{const h=p.querySelector('#rkB');if(!h)return;
       if(b==='wb'){const w=wbS();const L=await wbFetch(w.wk,1);if(!p.isConnected)return;const me=L?L.findIndex(x=>x.id===G.pid):-1;
         h.innerHTML=`<div class="rkme"><span>이번 주 내 데미지 <b>${(w.dmg||0).toLocaleString()}</b></span><span>내 순위 <b>${me>=0?(me+1)+'위':'-'}</b></span></div><p class="hhint">이번 주 월드보스 누적 데미지 · 보스 체력의 몇 %를 깎았는지 · 매주 월요일 초기화</p>
-          <div class="rkl">${L?L.slice(0,50).map((x,i)=>row(x,i,x.dmg.toLocaleString()+' <small>'+(x.dmg/WB_HP*100).toFixed(1)+'%</small>')).join('')||'<p class="hhint">아직 아무도 안 싸웠어요</p>':'<p class="hhint">인터넷이 꺼져 있거나 서버에 연결이 안 돼요</p>'}</div><div class="wbt"><button id="rkR">새로고침</button><button class="main" id="rkW">월드보스 가기</button></div>`;
+          ${L&&L.length?podium(L,x=>x.dmg.toLocaleString()+' <small>'+(x.dmg/WB_HP*100).toFixed(1)+'%</small>'):''}<div class="rkl">${L?L.slice(3,50).map((x,i)=>row(x,i+3,x.dmg.toLocaleString()+' <small>'+(x.dmg/WB_HP*100).toFixed(1)+'%</small>')).join('')||(L.length?'':'<p class="hhint">아직 아무도 안 싸웠어요</p>'):'<p class="hhint">인터넷이 꺼져 있거나 서버에 연결이 안 돼요</p>'}</div><div class="wbt"><button id="rkR">새로고침</button><button class="main" id="rkW">월드보스 가기</button></div>`;
         h.querySelector('#rkW').onclick=()=>{closePanel(1);wbOpen()}}
       else{if(b!=='tower'&&navigator.onLine&&wbCfg()&&RKB[b].v()>0)await rankPush(b).catch(()=>{});// 획득 수 · 진행도는 열 때 내 기록을 자동으로 올려요
         const L=await rankFetch(b);if(!p.isConnected)return;const me=L?L.findIndex(x=>x.id===G.pid):-1,mv=Math.floor(RKB[b].v());
         h.innerHTML=`<div class="rkme"><span>내 기록 <b>${mv.toLocaleString()}${RKB[b].u}</b></span><span>내 순위 <b>${me>=0?(me+1)+'위':'등록 전'}</b></span></div><p class="hhint">${RKB[b].d}${b==='tower'?' · 「랭킹 등록하기」를 눌러야 올라가요':' · 랭킹을 열면 내 기록이 자동으로 올라가요'}</p>
-          <div class="rkl">${L?L.slice(0,50).map((x,i)=>row(x,i,x.v.toLocaleString()+RKB[b].u)).join('')||'<p class="hhint">아직 아무도 없어요. 첫 번째로 올라가 봐요!</p>':'<p class="hhint">'+(wbCfg()?'인터넷이 꺼져 있거나 서버에 연결이 안 돼요':'서버 연결 전이에요')+'</p>'}</div>
+          ${L&&L.length?podium(L,x=>x.v.toLocaleString()+RKB[b].u):''}<div class="rkl">${L?L.slice(3,50).map((x,i)=>row(x,i+3,x.v.toLocaleString()+RKB[b].u)).join('')||(L.length?'':'<p class="hhint">아직 아무도 없어요. 첫 번째로 올라가 봐요!</p>'):'<p class="hhint">'+(wbCfg()?'인터넷이 꺼져 있거나 서버에 연결이 안 돼요':'서버 연결 전이에요')+'</p>'}</div>
           <div class="wbt"><button id="rkR">새로고침</button>${b==='tower'?'<button class="main" id="rkP">랭킹 등록하기 (내 최고 기록)</button>':''}</div>`;
         const pp=h.querySelector('#rkP');if(pp)pp.onclick=async()=>{if(await rankPush(b))load()}}
       h.querySelector('#rkR').onclick=()=>{sfx('tap');h.innerHTML='<p class="hhint">불러오는 중…</p>';load()};
@@ -3243,6 +3243,27 @@ async function rankOpen(b){if(!G)return;b=b||G.rkTab||'dex';G.rkTab=b;
 .rkm{font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkm small{background:#1c2550;color:#ffd23f;padding:1px 6px;font-size:11px;margin-left:4px}
 .rkr em{font-style:normal;font-weight:700;font-size:16px;text-align:right}.rkr em small{display:block;font-size:11px;opacity:.7}`;document.head.appendChild(c)})();
 try{const h=HUB.find(x=>x.k==='rank');if(h){h.d='획득 수 · 진행도 · 월드보스 · 격투 탑 랭킹. 이름 왼쪽에 친구들의 대표 포켓몬이 나와요. 사이드메뉴 「랭킹」에서 바로 볼 수 있어요.';h.go=[['랭킹 보기',()=>rankOpen()]]}}catch(e){}
+
+// ===== 1 · 2 · 3위 시상대 (특별한 프레임 · 왕관 · 메달) =====
+function podium(L,val){const T=L.slice(0,3);const ord=[1,0,2].filter(i=>T[i]);const md=['1ST','2ND','3RD'];
+  return `<div class="pod">${ord.map(i=>{const x=T[i],r=rkSplit(x.name),me=x.id===G.pid;return `<div class="pdc p${i+1}${me?' me':''}"><div class="pdf">${i===0?'<i class="crown"></i>':''}<span class="pdi">${r.rep&&THUMB[r.rep]?`<img src="${THUMB[r.rep]}" alt="">`:'<i></i>'}</span><u>${md[i]}</u></div><b>${esc(r.name)}${me?' <small>나</small>':''}</b><em>${val(x)}</em><div class="pdb">${i+1}</div></div>`}).join('')}</div>`}
+(function(){const c=document.createElement('style');c.textContent=`
+.pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:14px 4px 6px;font-family:'Galmuri11',sans-serif;color:#1c2550}
+.pdc{flex:1;max-width:220px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.pdf{position:relative;width:86px;height:86px;display:grid;place-items:center;background:#fffaf0}
+.pdi img{width:74px;height:74px;object-fit:contain;image-rendering:pixelated}.pdi i{display:block;width:40px;height:40px;background:#c8d0e0}
+.pdf u{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);text-decoration:none;font-size:12px;font-weight:700;padding:2px 8px;color:#fff;white-space:nowrap}
+.pdc b{margin-top:10px;font-size:16px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pdc b small{background:#1c2550;color:#ffd23f;padding:1px 5px;font-size:10px}
+.pdc em{font-style:normal;font-weight:700;font-size:14px}.pdc em small{display:block;font-size:11px;opacity:.7}
+.pdb{width:100%;display:grid;place-items:center;font:900 30px 'Galmuri11',sans-serif;color:#fff;text-shadow:2px 2px 0 #1c2550;box-shadow:0 3px 0 #1c2550,0 -3px 0 #1c2550,3px 0 0 #1c2550,-3px 0 0 #1c2550}
+.p1 .pdb{height:92px;background:linear-gradient(#ffe680,#ffb020)}.p2 .pdb{height:66px;background:linear-gradient(#f0f4fa,#a8b4c8)}.p3 .pdb{height:48px;background:linear-gradient(#f6d0a8,#c07838)}
+.p1 .pdf{width:104px;height:104px;box-shadow:0 0 0 4px #ffb020,0 0 0 8px #1c2550,0 0 24px #ffd23f;animation:podGold 2.4s ease-in-out infinite}.p1 .pdi img{width:92px;height:92px}
+.p1 .pdf u{background:linear-gradient(#ffcf3a,#e09000)}.p2 .pdf{box-shadow:0 0 0 4px #c8d2e0,0 0 0 8px #1c2550,0 0 16px #e0e8f8}.p2 .pdf u{background:#8a98b0}.p3 .pdf{box-shadow:0 0 0 4px #d08848,0 0 0 8px #1c2550,0 0 14px #f0a060aa}.p3 .pdf u{background:#a8602a}
+.p1 .pdf::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,#fff8 50%,transparent 65%);background-size:250% 100%;animation:pxShine 2.4s linear infinite;pointer-events:none}
+@keyframes podGold{50%{box-shadow:0 0 0 4px #ffd23f,0 0 0 8px #1c2550,0 0 36px #ffd23f}}
+.crown{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:44px;height:28px;background:linear-gradient(#ffe680,#ffb020);clip-path:polygon(0 100%,0 25%,25% 60%,50% 0,75% 60%,100% 25%,100% 100%);filter:drop-shadow(0 2px 0 #1c2550);animation:crownB 1.6s ease-in-out infinite}
+@keyframes crownB{50%{transform:translateX(-50%) translateY(-4px)}}
+.pdc.me .pdb{outline:3px dashed #ff2aa0;outline-offset:2px}`;document.head.appendChild(c)})();
 
 // ===== 추천 편성: 상대 타입에 맞춰 내 포켓몬(파티+보관함) 중 제일 좋은 6마리 =====
 // 점수 = 레벨 · 공격(특공) · 체력 × 가진 기술로 상대에게 줄 수 있는 최고 상성(자속 보너스 포함) × 상대 기술 상성으로 받는 피해
@@ -3899,7 +3920,7 @@ function spAdd(n,why){if(!G||!n)return;const s=spS(),l0=spLv();s.xp+=n;save();co
 // 단계별 보상
 function spRew(l){if(l===SP_LV)return[['spxsc',1],['pack:P3',1]];if(l===25)return[['cube2',1],['pack:P2',1]];if(l===20)return[['pack:P3',1],['pxsc',1]];if(l===15)return[['pack:P2',1],['egg',1]];if(l===10)return[['pack:P2',1],['pxsc',1]];if(l===5)return[['pack:P',3]];
   return[[['ball',10],['pack:P',1],['great',5],['potion',5],['pack:M',1],['cube',1],['egg',1],['hyper',3],['pxsc',1],['candy',1]][(l-1)%10]]}
-const spRN=([k,n])=>k.startsWith('pack:')?PKT[k.slice(5)].n+' ×'+n:(ITEMS[k]?ITEMS[k].n:k)+' ×'+n;
+let spRN=([k,n])=>k.startsWith('pack:')?PKT[k.slice(5)].n+' ×'+n:(ITEMS[k]?ITEMS[k].n:k)+' ×'+n;
 function spGive(l){const s=spS();if(s.got[l]||spLv()<l)return false;s.got[l]=1;for(const [k,n] of spRew(l)){if(k.startsWith('pack:'))packAdd(Array(n).fill(k.slice(5)),'시즌 패스');else addItem(k,n)}save();return true}
 function spOpen(){if(!G)return;const s=spS(),lv=spLv(),d=new Date(Date.now()+9*3600e3),last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate(),left=last-d.getUTCDate()+1;
   const can=[...Array(SP_LV)].map((_,i)=>i+1).filter(l=>l<=lv&&!s.got[l]);
@@ -4119,6 +4140,23 @@ const c=document.createElement('style');c.textContent=`
 #bStop i{border-radius:0!important}
 .toast,#toast{font-family:'Galmuri11',sans-serif}
 `;document.head.appendChild(c)})();
+
+// ===== 아이콘이 없던 것들에 아이콘 (힉스필드 그림 ui/ic_*.webp) =====
+const HUBIC={story:'ic_badge',mg:'ic_quest',shop:'ic_shop',rm:'ic_badge',card:'ic_gift',dex:'ic_dex',team:'ic_star',wild:'ic_auto',portal:'ic_portal',rank:'ic_rank',gear:'ic_bag',wb:'ic_fast',trash:'ic_trash',prefix:'ic_scroll',stop:'ic_stop',wx:'ic_wx',egg:'ic_egg',season:'ic_season',diff:'ic_menu'};
+// 아이템 아이콘
+try{ITEMS.pxsc.e='<img class="ic" src="ui/ic_scroll.webp">';ITEMS.spxsc.e='<img class="ic" src="ui/ic_scroll.webp" style="filter:hue-rotate(280deg) saturate(1.8) drop-shadow(0 0 4px #ff2aa0)">';ITEMS.egg.e='<img class="ic" src="ui/ic_egg.webp">'}catch(e){}
+// 컨텐츠 카드 앞에 아이콘
+{const _h=hubOpen;hubOpen=function(tab){const r=_h.apply(this,arguments);try{const p=document.querySelector('.panel');if(p&&(tab||HUB.tab||'c')==='c'){const cs=p.querySelectorAll('.hcard');HUB.forEach((h,i)=>{const c=cs[i];if(!c||c.querySelector('.hic'))return;const f=HUBIC[h.k]||'ic_star';c.insertAdjacentHTML('afterbegin',`<img class="hic" src="ui/${f}.webp" alt="">`);c.classList.add('hasic')})}}catch(e){}return r}}
+// 사이드메뉴 · 떠 있는 버튼
+(function(){const go=()=>{const sw=(id,f)=>{const b=document.getElementById(id);if(!b)return;const s=b.querySelector('svg');if(s)s.outerHTML=`<img class="sic" src="ui/${f}.webp" alt="">`};sw('bTrash','ic_trash');sw('bRank','ic_rank')};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+// 시즌 패스 보상 칸에 아이콘
+try{spRN=([k,n])=>{const ic=k.startsWith('pack:')?`<img class="ic" src="${PKT[k.slice(5)].img}">`:(ITEMS[k]?ITEMS[k].e:'');const nm0=k.startsWith('pack:')?PKT[k.slice(5)].n:(ITEMS[k]?ITEMS[k].n:k);return `<i class="spi">${ic}<span>${nm0} ×${n}</span></i>`}}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`
+.panel .hcard.hasic{display:grid;grid-template-columns:56px 1fr;column-gap:12px;align-items:start}.panel .hcard.hasic>*:not(.hic){grid-column:2}.hic{grid-row:1 / span 6;width:56px;height:56px;filter:drop-shadow(0 3px 0 #1c255055)}
+#bStop i{background:url(ui/ic_stop.webp) center/cover!important;transform:none!important;border:0!important;width:34px!important;height:34px!important}
+#bPortal i{display:block;width:34px;height:34px;background:url(ui/ic_portal.webp) center/cover;animation:pspin 4s linear infinite}@keyframes pspin{to{transform:rotate(360deg)}}
+.spi{display:flex;align-items:center;gap:6px;font-style:normal;margin:2px 0}.spi .ic{width:26px;height:26px;object-fit:contain;flex:none}.spi span{line-height:1.2}
+#wxBadge i{width:20px!important;height:20px!important;background:url(ui/ic_wx.webp) center/cover!important;box-shadow:none!important}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
