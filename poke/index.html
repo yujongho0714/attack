@@ -1362,6 +1362,7 @@ function drawOver(dt){cx.setTransform(1,0,0,1,0,0);cx.filter='none';cx.globalAlp
       cx.save();cx.strokeStyle='#ffffffa0';cx.lineWidth=Math.max(1,s*.04);for(let i=0;i<4;i++){const t=((NOW*1.6+i/4)%1);const yy=Y-up-s*.2+i*s*.22;cx.globalAlpha=(1-t)*.8;cx.beginPath();cx.moveTo(X+s*1.4-t*s*2.2,yy);cx.lineTo(X+s*.9-t*s*2.2,yy);cx.stroke()}cx.restore();
       cx.save();cx.translate(X+s/2,Y-up+bob);cx.scale(1,1+Math.sin(NOW*10)*.05);drawPm(cx,MOUNT,'walk',ROWOF[P.dir],NOW,0,0,s/10*pmScale(MOUNT));cx.restore();drawMe(P.dir,0,X,Y-up-s*.95+bob,s,.7)}
     else drawMe(P.dir,wf,X,Y,s)}});
+  if(typeof stopEnts==='function')try{stopEnts(ents,A,s,camX,camY)}catch(e){}
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.f());
   if(A.res&&A.hi&&A.hi.complete&&A.hi.naturalWidth)cx.drawImage(A.hi,-camX,-camY,A.W*s,A.H*s);
   if(A.th.cave&&!A.town){const g=cx.createRadialGradient(cv.width/2,cv.height/2-(VH*.06*DPR),s*2,cv.width/2,cv.height/2,s*7);g.addColorStop(0,'#0000');g.addColorStop(1,'#000a');cx.fillStyle=g;cx.fillRect(0,0,cv.width,cv.height)}
@@ -3294,6 +3295,84 @@ function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax();
 try{HUB.push({k:'diff',n:'난이도 · 환생',d:'쉬움 · 보통 · 어려움 · 지옥 · 나이트메어. 높을수록 상대가 세고 더 높은 등급 포켓몬이 나오지만 보상이 커요. 챔피언이 되면 환생해서 더 높은 난이도로 처음부터!',st:()=>DNAME[DIFF()]+(G.rebirth?' · 환생 '+G.rebirth:''),go:[['난이도 · 환생',()=>diffOpen()]]})}catch(e){}
 // 트레이너도 난이도가 높을수록 더 강한(높은 등급) 포켓몬을 써요
 {const _tt=typeTeam;typeTeam=function(t,maxB,n,lvs,seed){return _tt(t,maxB+DIFF()*30,n,lvs,seed)}}
+
+// ===== 포케스탑: 길가에 가끔 생겨요 · 가까이 가서 원판을 손가락으로 돌리면 볼 · 상처약 · 열매가 나와요 =====
+// 열매: 오랭열매(체력 +30) · 시트러스열매(체력 +80) · 라즈열매(가지고 있으면 볼 던질 때 자동으로 먼저 줘서 잡기 쉬워짐)
+const berrySvg=c=>`<svg class="ic" viewBox="0 0 16 16"><path d="M8 3c2-2 4-1 4-1-1 1-2 2-4 2" fill="#3c9a3c"/><circle cx="8" cy="9.5" r="5.5" fill="${c}" stroke="#0006"/><circle cx="6" cy="8" r="1.4" fill="#fff8"/></svg>`;
+ITEMS.oran={n:'오랭열매',e:berrySvg('#3a7bea'),heal:30};
+ITEMS.sitrus={n:'시트러스열매',e:berrySvg('#f0c83a'),heal:80};
+ITEMS.razz={n:'라즈열매',e:berrySvg('#e0407a'),razz:1};
+try{ITD.oran={s:'포켓몬 체력을 30 회복',use:'배틀 중 가방이나 메뉴 가방에서 써요',good:'상처약처럼 쓸 수 있어요',who:'조금 다친 포켓몬',tip:'포케스탑에서 나와요'};
+  ITD.sitrus={s:'포켓몬 체력을 80 회복',use:'배틀 중 가방이나 메뉴 가방에서 써요',good:'좋은상처약보다 조금 더 회복',who:'많이 다친 포켓몬',tip:'포케스탑에서 가끔 나와요'};
+  ITD.razz={s:'볼을 던질 때 먼저 줘서 잡힐 확률 1.5배',use:'가방에 있기만 하면 볼 던질 때 1개씩 자동으로 써요',good:'희귀한 포켓몬을 잡을 때 좋아요',who:'잡고 싶은 포켓몬이 있을 때',tip:'포케스탑에서 나와요'}}catch(e){}
+{const _tb=throwBall;throwBall=async function(f,it){if(it&&it.ball&&it.ball<255&&G.bag.razz>0&&G.opt.razz!==false){G.bag.razz--;it=Object.assign({},it,{ball:it.ball*1.5});try{await msg('<b>라즈열매</b>를 먼저 줬다! 잡기 쉬워졌다',FAST()?300:600)}catch(e){}}return _tb.call(this,f,it)}}
+
+const PS_MAX=50,PS_CD=300,PS_LIFE=420;// 하루 50번 · 돌린 스탑은 5분 쉬어요 · 안 돌리면 7분 뒤 사라져요
+const STOPS={};
+function psS(){G.ps=G.ps||{};if(G.ps.d!==dayKey()){G.ps.d=dayKey();G.ps.n=0}return G.ps}
+const psNow=()=>Date.now()/1000;
+const psReady=st=>!st.cd||psNow()>st.cd;
+function psList(){const a=G.a;STOPS[a]=(STOPS[a]||[]).filter(st=>st.cd?psNow()<st.cd+60:psNow()-st.t<PS_LIFE);return STOPS[a]}
+function psSpawn(){if(!G||SCENE!=='over'||P.busy||EVB.n)return;const A=curA();if(!A||(A.town&&!A.res&&G.a===18))return;const L=psList();if(L.length>=2||psS().n>=PS_MAX)return;if(R()>.3)return;
+  const ok=[T_.G,T_.PATH,T_.SAND,T_.TG];for(let k=0;k<40;k++){const x=P.x+ri(-8,8),y=P.y+ri(-7,7);if(Math.abs(x-P.x)+Math.abs(y-P.y)<3)continue;
+    if(!A.M[y]||A.M[y][x]==null||!ok.includes(A.M[y][x])||!canGo(A,x,y,'walk'))continue;if(A.wAt&&A.wAt[x+','+y])continue;if(L.some(s=>Math.abs(s.x-x)+Math.abs(s.y-y)<4))continue;
+    L.push({x,y,t:psNow(),cd:0});return}}
+setInterval(()=>{try{psSpawn()}catch(e){}},15000);
+// 그리기 (4_over.js drawOver 안에서 불러요)
+function stopEnts(ents,A,s,camX,camY){if(!G)return;for(const st of psList()){const rd=psReady(st);ents.push({y:st.y-.02,f:()=>{const X=st.x*s-camX+s/2,Y=st.y*s-camY;const c1=rd?'#38b6ff':'#b06cff',c2=rd?'#1a6fd0':'#6a35b8';
+  cx.save();cx.fillStyle='#0004';cx.beginPath();cx.ellipse(X,Y+s*.92,s*.32,s*.1,0,0,7);cx.fill();
+  cx.fillStyle='#d8dde8';cx.fillRect(X-s*.05,Y+s*.25,s*.1,s*.68);cx.fillStyle='#8a92a6';cx.fillRect(X-s*.05,Y+s*.25,s*.03,s*.68);
+  const bob=Math.sin(NOW*3+st.x)*s*.05,cy=Y+s*.02+bob,w=Math.abs(Math.cos(NOW*(rd?2.2:.8)+st.y))*s*.42+s*.06,h=s*.38;
+  cx.fillStyle=c2;cx.beginPath();cx.moveTo(X,cy-h);cx.lineTo(X+w,cy);cx.lineTo(X,cy+h);cx.lineTo(X-w,cy);cx.closePath();cx.fill();
+  cx.fillStyle=c1;cx.beginPath();cx.moveTo(X,cy-h*.78);cx.lineTo(X+w*.78,cy);cx.lineTo(X,cy+h*.78);cx.lineTo(X-w*.78,cy);cx.closePath();cx.fill();
+  cx.fillStyle='#fff';cx.beginPath();cx.arc(X,cy,s*.07,0,7);cx.fill();
+  if(rd){const t=(NOW*.8+st.x*.1)%1;cx.globalAlpha=(1-t)*.7;cx.strokeStyle=c1;cx.lineWidth=Math.max(1,s*.04);cx.beginPath();cx.ellipse(X,Y+s*.9,s*(.3+t*.5),s*(.1+t*.16),0,0,7);cx.stroke()}
+  cx.restore()}})}}
+// 나오는 물건
+function psLoot(){const b=G.badges+(G.ub||0),T=[['ball',30,1,3],['potion',20,1,2],['oran',14,1,2],['razz',12,1,2]];
+  if(b>=2)T.push(['great',14,1,2],['spotion',10,1,1],['sitrus',6,1,1]);if(b>=5)T.push(['hyper',6,1,2],['hpotion',4,1,1]);if(b>=3)T.push(['candy',1.5,1,1]);
+  const n=3+(b>=4?1:0)+(R()<.2?1:0),out={};const tot=T.reduce((a,t)=>a+t[1],0);
+  for(let i=0;i<n;i++){let u=R()*tot;for(const t of T){u-=t[1];if(u<=0){out[t[0]]=(out[t[0]]||0)+ri(t[2],t[3]);break}}}return out}
+function psGive(st){const s=psS();if(s.n>=PS_MAX){toast('오늘 포케스탑은 다 돌렸어요 (하루 '+PS_MAX+'번)');return null}s.n++;st.cd=psNow()+PS_CD;const L=psLoot();for(const k in L)addItem(k,L[k]);save();return L}
+const psTxt=L=>Object.keys(L).map(k=>ITEMS[k].n+' ×'+L[k]).join(', ');
+// 가까이 가면 「돌리기」 버튼 · 자동 중엔 지나가면서 알아서 돌려요
+let PSNEAR=null;
+setInterval(()=>{try{if(!G||SCENE!=='over'){PSNEAR=null;psBtn();return}const L=psList();const d=st=>Math.max(Math.abs(st.x-P.x),Math.abs(st.y-P.y));
+  const near=L.filter(psReady).sort((a,b)=>d(a)-d(b))[0];PSNEAR=near&&d(near)<=(AUTO.on?2:1)?near:null;
+  if(PSNEAR&&AUTO.on&&!document.getElementById('psOv')&&!P.busy&&!DLG.on&&!PANEL){const st=PSNEAR;PSNEAR=null;const r=psGive(st);if(r){sfx('get');toast('포케스탑을 돌렸어요! '+psTxt(r)+' (오늘 '+psS().n+'/'+PS_MAX+')')}}
+  psBtn()}catch(e){}},400);
+function psBtn(){let b=document.getElementById('bStop');if(!PSNEAR||document.getElementById('psOv')){if(b)b.remove();return}
+  if(!b){b=document.createElement('button');b.id='bStop';b.innerHTML='<i></i><b>포케스탑</b><small>돌리기</small>';b.onclick=()=>{sfx('tap');if(PSNEAR)psOpen(PSNEAR)};document.body.appendChild(b)}}
+// 원판 돌리기 화면
+function psOpen(st){if(document.getElementById('psOv'))return;const o=document.createElement('div');o.id='psOv';const pic=isTown(G.a)?`ui/wm/a${String(G.a).padStart(2,'0')}.webp`:'';
+  o.innerHTML=`<div class="psBox"><b class="psT">${areaName(G.a)} 포케스탑</b><small class="psH">원판을 손가락으로 옆으로 쓱 밀어서 돌려요</small>
+    <div class="psDisc" id="psD"><div class="psIn" style="${pic?`background-image:url(${pic})`:''}"></div></div><div class="psOut" id="psO"></div>
+    <div class="wbt"><button id="psX">닫기</button></div><small class="psH">오늘 ${psS().n}/${PS_MAX}번</small></div>`;
+  document.body.appendChild(o);psBtn();const D=o.querySelector('#psD');let ang=0,vel=0,drag=null,done=0,raf=0;
+  const close=()=>{cancelAnimationFrame(raf);o.remove();psBtn()};o.querySelector('#psX').onclick=()=>{sfx('tap');close()};
+  const spin=()=>{ang+=vel;vel*=.96;D.style.transform=`rotate(${ang}deg)`;if(Math.abs(vel)>.3||drag)raf=requestAnimationFrame(spin)};
+  const finish=()=>{if(done)return;done=1;const L=psGive(st);D.classList.add('used');if(!L){close();return}sfx('get');
+    o.querySelector('#psO').innerHTML=Object.keys(L).map((k,i)=>`<span style="animation-delay:${i*.12}s">${ITEMS[k].e}<b>${ITEMS[k].n}</b><small>×${L[k]}</small></span>`).join('');
+    o.querySelector('#psX').textContent='받기';o.querySelector('.psH').textContent='얻었어요! 가방에 넣었어요'};
+  D.addEventListener('pointerdown',e=>{if(done)return;drag={x:e.clientX,t:performance.now(),sum:0};D.setPointerCapture(e.pointerId);cancelAnimationFrame(raf);raf=requestAnimationFrame(spin)});
+  D.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x;drag.x=e.clientX;drag.sum+=Math.abs(dx);vel=dx*.9;ang+=dx*.6});
+  const up=()=>{if(!drag)return;const sum=drag.sum;drag=null;if(sum>90&&Math.abs(vel)>2){vel=Math.sign(vel)*Math.max(18,Math.abs(vel)*1.6);sfx('tap');setTimeout(finish,650)}else o.querySelector('.psH').textContent='조금 더 세게 쓱 밀어 봐요!';raf=requestAnimationFrame(spin)};
+  D.addEventListener('pointerup',up);D.addEventListener('pointercancel',up)}
+(function(){const c=document.createElement('style');c.textContent=`
+#bStop{position:fixed;left:50%;bottom:30%;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 16px;border-radius:14px;border:2px solid #fff;background:linear-gradient(#38b6ff,#1a6fd0);color:#fff;box-shadow:0 4px 14px #0006;animation:psBob 1.2s ease-in-out infinite}
+#bStop i{width:26px;height:26px;transform:rotate(45deg);background:linear-gradient(135deg,#bfe8ff,#38b6ff);border:2px solid #fff;border-radius:4px}#bStop b{font-size:14px}#bStop small{font-size:11px;opacity:.9}
+@keyframes psBob{50%{transform:translateX(-50%) translateY(-5px)}}
+#psOv{position:fixed;inset:0;z-index:80;background:#0009;display:flex;align-items:center;justify-content:center}
+.psBox{width:min(340px,92vw);background:#16233a;border:2px solid #38b6ff;border-radius:18px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;color:#fff}
+.psT{font-size:17px}.psH{font-size:12px;opacity:.85;text-align:center}
+.psDisc{width:200px;height:200px;border-radius:50%;background:conic-gradient(#38b6ff 0 25%,#1a6fd0 0 50%,#38b6ff 0 75%,#1a6fd0 0);border:6px solid #e6f6ff;box-shadow:0 0 24px #38b6ff99;touch-action:none;display:flex;align-items:center;justify-content:center;cursor:grab}
+.psDisc.used{background:conic-gradient(#b06cff 0 25%,#6a35b8 0 50%,#b06cff 0 75%,#6a35b8 0);border-color:#f0e4ff;box-shadow:0 0 24px #b06cff99}
+.psIn{width:120px;height:120px;border-radius:50%;background:#2a4a70 center/cover;border:4px solid #fff;pointer-events:none}
+.psOut{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:10px}
+.psOut span{display:flex;flex-direction:column;align-items:center;gap:2px;background:#ffffff14;border-radius:10px;padding:6px 8px;animation:psPop .45s both}
+.psOut .ic{width:30px;height:30px}.psOut b{font-size:12px}.psOut small{font-size:11px;opacity:.8}
+@keyframes psPop{0%{transform:translateY(-60px) scale(.3);opacity:0}70%{transform:translateY(4px) scale(1.1);opacity:1}100%{transform:none}}`;document.head.appendChild(c)})();
+try{HUB.push({k:'stop',n:'포케스탑 (하루 50번)',d:'길가에 가끔 파란 포케스탑이 생겨요. 가까이 가서 「돌리기」를 누르고 원판을 손가락으로 쓱 밀면 몬스터볼 · 상처약 · 열매가 나와요. 배지가 많을수록 좋은 볼 · 이상한사탕도! 돌린 스탑은 보라색이 되고 5분 쉬어요. 자동 사냥 중엔 지나가면서 알아서 돌려요.',st:()=>'오늘 '+psS().n+'/'+PS_MAX+'번'})}catch(e){}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
