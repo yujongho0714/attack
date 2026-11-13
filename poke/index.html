@@ -449,6 +449,40 @@ canvas.gth{image-rendering:pixelated;background:radial-gradient(#eef4ff,#c8d4ee)
 
 /* 내 포켓몬은 왼쪽에 있으니 내 이름표도 왼쪽, 상대는 오른쪽 */
 body #bM{left:calc(10px + env(safe-area-inset-left))!important;right:auto!important}body #bF{right:calc(10px + env(safe-area-inset-right))!important;left:auto!important}
+
+/* ===== 시작화면 새 단장 (힉스필드 배경 · 금빛 로고 · 게임 패널) ===== */
+#title{background:#1a2a4a url(arena/title2.webp) center/cover no-repeat!important}
+#title::before{background:linear-gradient(90deg,#0a102400 0%,#0a102400 52%,#0a102455 72%,#0a102499 100%),linear-gradient(#0000 70%,#0a102466 100%)!important}
+#title::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 22% 18%,#fff6 0,#fff0 40%)}
+#title h1{font:900 clamp(34px,10.5vh,70px)/.92 'Galmuri11',var(--ff,system-ui),sans-serif!important;background:linear-gradient(#fffbe0 0%,#ffe36a 38%,#ffb21f 62%,#ff8a1a 100%);-webkit-background-clip:text;background-clip:text;color:transparent!important;-webkit-text-stroke:5px #1c2550;paint-order:stroke fill;text-shadow:none!important;filter:drop-shadow(0 6px 0 #1c2550) drop-shadow(0 12px 18px #0009);letter-spacing:0!important;transform:rotate(-4deg)}
+#title h1::before{width:clamp(44px,13vh,74px)!important;height:clamp(44px,13vh,74px)!important;box-shadow:0 0 0 4px #fff,0 0 30px #fff8,0 6px 0 4px #1c2550;animation:tball 4s ease-in-out infinite}
+@keyframes tball{0%,100%{transform:rotate(-10deg) translateY(0)}50%{transform:rotate(10deg) translateY(-6px)}}
+#title h1::after{content:'ADVENTURE';display:block;margin-top:8px;font:900 clamp(11px,2.6vh,16px)/1 'Galmuri11',sans-serif;letter-spacing:.5em;color:#fff;-webkit-text-stroke:0;background:#1c2550;border:2px solid #ffd23f;border-radius:999px;padding:5px 6px 5px 14px;width:max-content;margin-left:auto;margin-right:auto;-webkit-text-fill-color:#fff}
+#title>p{background:#1c2550e0!important;border:2px solid #ffd23f;color:#fff}
+#title .tb{background:#f4ead2 url(ui/panel.webp) center/100% 100% no-repeat!important;border:0!important;border-radius:14px!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:18px 16px 22px!important;box-shadow:0 14px 34px #000b!important;color:#2c3050}
+#title .tb input{border:3px solid #c8a24a!important;background:#fffaf0!important;border-radius:12px!important;box-shadow:inset 0 3px 0 #0001;color:#2c3050;font-weight:800}
+#title .tb button{border:3px solid #1c2550!important;border-radius:12px!important;box-shadow:0 4px 0 #1c2550!important;background:linear-gradient(#fffdf4,#f1e6c8)!important;color:#1c2550!important;transition:transform .08s}
+#title .tb button:active{transform:translateY(3px);box-shadow:0 1px 0 #1c2550!important}
+#title .tb button.main,#title #tMode button.on{background:linear-gradient(#ffe680,#ffc21f 60%,#f0a010)!important}
+#title .tb small{color:#4a5070}
+#title .adm summary{color:#6a5a30!important;font-weight:800}
+#tFull{background:linear-gradient(#ffe680,#ffc21f)!important;border:3px solid #1c2550!important;color:#1c2550!important;box-shadow:0 4px 0 #1c2550!important}
+@media (orientation:landscape){
+ #title.on{grid-template-columns:1fr minmax(320px,40vw)!important}
+ #title h1{grid-column:1!important;grid-row:1 / span 8!important;align-self:start;justify-self:start;margin:1vh 0 0 4vw!important}
+ #title>p,#title>#tInfo,#title>#tOff,#title>#tFull{grid-column:2!important}
+ #title .tb{grid-column:2!important;grid-row:auto!important;max-height:calc(100vh - 150px)!important}
+ #title>#tInfo,#title>#tOff{font-size:12px;line-height:1.3}
+}
+
+@media (orientation:landscape) and (max-height:520px){
+ #title.on{align-content:start!important;padding-top:8px!important;row-gap:4px!important}
+ #title>p{display:none!important}#title>#tInfo,#title>#tOff{font-size:10px!important}
+ #title>#tFull{padding:6px!important;font-size:14px!important}
+ #title .tb{max-height:calc(100vh - 112px)!important;padding:12px 12px 16px!important}
+ #title h1{font-size:clamp(26px,9vh,48px)!important;margin-top:3vh!important;-webkit-text-stroke:3px #1c2550!important}
+ #title h1::before{width:9vh!important;height:9vh!important}
+}
 </style><script src="lib/pixelfx.js" defer></script><script src="lib/qrcode.js" defer></script></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
