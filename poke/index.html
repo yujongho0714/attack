@@ -4661,6 +4661,11 @@ document.addEventListener('focusout',e=>{if(e.target&&/INPUT|TEXTAREA|SELECT/.te
 // 미니맵 높이가 지역마다 달라서 날씨 · 알 부화기가 미니맵 뒤로 숨던 것 → 미니맵 바로 아래에 차례로 붙여요
 setInterval(()=>{try{const m=document.getElementById('mini');let y=null;if(m&&getComputedStyle(m).display!=='none'){const r=m.getBoundingClientRect();if(r.height)y=r.bottom+8}
   for(const id of ['wxBadge','egHud']){const e=document.getElementById(id);if(!e)continue;if(y==null||getComputedStyle(e).display==='none'){if(y==null)e.style.top='';continue}e.style.top=y+'px';const rr=e.getBoundingClientRect();y=rr.bottom+6}}catch(e){}},300);
+// ===== 자동 이동이 두 지역 사이를 왔다 갔다 하면 멈춰요 · 같은 알림이 쌓이지 않게 =====
+{const _t=toast;toast=function(t){try{const box=bt('toasts');const s=String(t),area=/^(📍\s*)?\S+(마을|시티|도로|섬|리그|로드|동굴)$/.test(s.replace(/<[^>]+>/g,'').trim());
+  for(const d of [...box.children]){const x=d.innerHTML;if(x===s||(area&&d.dataset.area))d.remove()}while(box.children.length>=3)box.firstChild.remove();_t.apply(this,arguments);const l=box.lastChild;if(l&&area)l.dataset.area=1}catch(e){_t.apply(this,arguments)}}}
+{let last=-1;const H=[];setInterval(()=>{try{if(!G)return;if(G.a!==last){if(last>=0)H.push([Date.now(),G.a]);last=G.a;while(H.length&&Date.now()-H[0][0]>20000)H.shift();
+  if(AUTO.on&&H.length>=5){const s=new Set(H.slice(-5).map(x=>x[1]));if(s.size<=2){H.length=0;autoStop();if(G.nav)G.nav=null;save();setTimeout(()=>toast('길을 못 찾아서 자동 이동을 멈췄어요 · 월드맵에서 다시 골라 주세요'),300)}}}}catch(e){}},250)}
 
 // ===== 확률 정보: 확률로 정해지는 건 전부 「뭐가 나오는지 · 몇 %인지」 볼 수 있게 (지금 난이도 기준으로 계산) =====
 const ODN=['쉬움','보통','어려움','지옥','나이트메어'];
