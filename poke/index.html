@@ -4458,6 +4458,19 @@ fuseAll=()=>fuseAllR(null,0);
 .panel button.fAllBig,.panel button.fRowAll{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;color:#1c2550!important}
 .panel button.fAllBig{box-shadow:0 4px 0 #1c2550,0 -4px 0 #1c2550,4px 0 0 #1c2550,-4px 0 0 #1c2550,0 9px 0 #0005,0 0 18px #ffd23f!important;font-size:22px!important;min-height:66px}
 .panel button.fRowAll{margin-left:auto!important}`;document.head.appendChild(c)})();
+// ===== 기종별 화면 맞추기 =====
+// 아이폰: 돌린 뒤에 화면 크기가 늦게 바뀌거나 페이지가 살짝 밀려서 위가 비고 오른쪽이 잘려요 → 몇 번 다시 재고, 밀린 화면은 제자리로
+(function(){const c=document.createElement('style');c.textContent=`html,body{position:fixed;inset:0;width:100%;height:100%;overscroll-behavior:none}#cv{width:100%!important;height:100%!important}`;document.head.appendChild(c)})();
+function vpSize(){const v=window.visualViewport;const w=Math.round(v&&v.scale<=1.01?v.width:document.documentElement.clientWidth||innerWidth),h=Math.round(v&&v.scale<=1.01?v.height:document.documentElement.clientHeight||innerHeight);return[w||innerWidth,h||innerHeight]}
+{const _r=resize;resize=function(){_r.apply(this,arguments);try{const [w,h]=vpSize();if(w&&h&&(w!==VW||h!==VH)){VW=w;VH=h;cv.width=VW*DPR;cv.height=VH*DPR;TS=Math.max(26,Math.floor(Math.min(VW/11,VH/15)))}if(scrollY||scrollX)scrollTo(0,0)}catch(e){}try{sideFit()}catch(e){}}}
+const reFit=()=>{resize();[120,350,700,1200].forEach(t=>setTimeout(resize,t))};
+addEventListener('orientationchange',reFit);try{visualViewport.addEventListener('resize',reFit)}catch(e){}addEventListener('pageshow',reFit);
+setInterval(()=>{try{const [w,h]=vpSize();if(Math.abs(w-VW)>2||Math.abs(h-VH)>2||scrollY)resize()}catch(e){}},800);
+// 오른쪽 메뉴: 화면이 낮으면(가로로 든 폰) A 버튼과 안 겹치게 크기를 줄여요
+function sideFit(){const s=document.getElementById('side');if(!s||getComputedStyle(s).display==='none')return;s.style.transform='';const r=s.getBoundingClientRect();if(!r.height)return;
+  const a=document.getElementById('bA');let bottom=VH-8;if(a&&getComputedStyle(a).display!=='none'){const ar=a.getBoundingClientRect();if(ar.left<r.right&&ar.right>r.left)bottom=ar.top-6}
+  const k=Math.max(.5,Math.min(1,(bottom-r.top)/r.height,(VW*.5)/r.width));s.style.transformOrigin='top right';s.style.transform=k<.999?`scale(${k.toFixed(3)})`:''}
+setInterval(()=>{try{sideFit()}catch(e){}},1500);setTimeout(()=>{try{sideFit()}catch(e){}},300);
 
 // ===== 확률 정보: 확률로 정해지는 건 전부 「뭐가 나오는지 · 몇 %인지」 볼 수 있게 (지금 난이도 기준으로 계산) =====
 const ODN=['쉬움','보통','어려움','지옥','나이트메어'];
