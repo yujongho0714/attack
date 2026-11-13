@@ -421,11 +421,29 @@ small.itd{display:block;color:#5a4a20;font-weight:700;font-size:11px}
 #wbHud>b{font-size:14px;color:#ffe066}.wbhb{height:10px;border-radius:5px;background:#0008;margin:3px 0;overflow:hidden}.wbhb i{display:block;height:100%;background:linear-gradient(90deg,#ff3b3b,#ffb03b);transition:width .3s}#wbHud span b{color:#ffe066}
 .wbrk{float:right;font-size:11px!important;padding:3px 10px!important}.wbr em small{font-weight:700;color:#a05a00}
 .rtg{font-style:normal;color:#fff;border-radius:5px;padding:0 6px;font-size:11px}.mgrec{border:3px solid #1c2550;border-radius:12px;background:#fff;font-weight:900;padding:8px 14px;color:#1c2550}
+.gsum{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px 0}.gsum span{background:#1c2550;color:#fff;border-radius:10px;padding:4px 8px;display:flex;justify-content:space-between;align-items:center}.gsum b{color:#ffe066}
+.geq{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}.gs{display:flex;gap:8px;align-items:center;background:#fff;border:3px solid var(--gc,#ccc);border-radius:12px;padding:6px;cursor:pointer;box-shadow:0 0 8px var(--gc)}.gs.empty{justify-content:space-between;opacity:.6;border-style:dashed;box-shadow:none}.gs ul,.gb ul,.gco{margin:2px 0 0 14px;padding:0;font-size:11px;font-weight:700}.gs b{display:block}.gs u{text-decoration:none;font-weight:900;color:#e0a020;font-size:12px}
+canvas.gth{image-rendering:pixelated;background:radial-gradient(#eef4ff,#c8d4ee);border-radius:8px;flex:none}
+.gbag{display:flex;flex-direction:column;gap:5px}.gb{display:flex;gap:8px;align-items:center;background:#fff;border:3px solid var(--gc);border-radius:12px;padding:6px}.gb>div{flex:1}.gb.on{background:#fff9e0}.gb em{font-style:normal;font-weight:900;color:#1c6a30}
+.gsf{background:#fff;border-radius:12px;padding:10px;border:2px solid #e6dcc0}.gsfh{display:flex;gap:10px;align-items:center}.gsfh b{font-size:17px}.gsfh small{display:block}
+.stars{display:flex;flex-wrap:wrap;gap:2px;margin:6px 0}.stars i{width:14px;height:14px;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);background:#ccc}.stars i.on{background:#ffc83a}.stars i.hi{outline:0}.stars i.on.hi{background:#ff7a3a}
+.gsfr{display:flex;gap:6px;margin:8px 0}.gsfr span{flex:1;text-align:center;background:#f2f2f2;border-radius:8px;padding:6px;font-weight:800}.gsfr .ok{background:#e8f8ea;color:#1c6a30}.gsfr .br{background:#ffe8e8;color:#c02020}
+.gcube{display:flex;gap:10px;align-items:center;background:#fff;border:3px solid var(--gc);border-radius:12px;padding:8px;box-shadow:0 0 12px var(--gc)}
+.cubei{display:inline-block;width:22px;height:22px;border-radius:5px;transform:rotate(45deg) scale(.8);vertical-align:middle}.cubei.c1{background:linear-gradient(135deg,#c8a0ff,#6a3ad0)}.cubei.c2{background:linear-gradient(135deg,#ffe07a,#e08a1a)}
+#sfOv{position:fixed;inset:0;z-index:90;background:#000a;display:flex;align-items:center;justify-content:center}#sfOv .sfb{background:#1c2550;border:4px solid #ffd23f;border-radius:18px;padding:22px 36px;text-align:center;color:#fff;min-width:260px;animation:sfp .9s ease-in-out}
+#sfOv .sfs{font:900 26px var(--ff,sans-serif);color:#ffe066}#sfOv .sfr{font:900 20px var(--ff,sans-serif);margin-top:8px;min-height:26px}#sfOv.ok .sfb{border-color:#7dff8a;box-shadow:0 0 40px #7dff8a}#sfOv.br .sfb{border-color:#ff3b3b;box-shadow:0 0 40px #ff3b3b;animation:shk .25s 3}#sfOv.fail .sfb{border-color:#999}
+@keyframes sfp{50%{transform:scale(1.08);box-shadow:0 0 50px #ffd23f}}
+.sqg{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:5px;margin:6px 0}.sq{position:relative;background:#fff;border:3px solid var(--rc);border-radius:10px;padding:3px;display:flex;flex-direction:column;align-items:center;font-size:10px;overflow:hidden}.sq img{width:40px;height:40px;image-rendering:pixelated}.sq b{position:absolute;left:3px;top:1px;font-size:10px;color:#a05a00}.sq small{line-height:1.1;text-align:center;font-weight:700}.sq i{position:absolute;left:0;bottom:0;height:4px;background:#3ad66a}.sq.dead{filter:grayscale(1);opacity:.6}
+.wbh{background:linear-gradient(90deg,#10162ae6,#10162a88 60%,#10162a55),url(ui/wb_bg.webp) center/cover!important}
+.stars img{width:16px;height:16px;filter:grayscale(1) brightness(.55);opacity:.6}.stars img.on{filter:none;opacity:1;animation:stp 1.4s ease-in-out infinite}.stars img.on.hi{filter:hue-rotate(-30deg) saturate(1.6)}@keyframes stp{50%{transform:scale(1.15)}}
+.gsf{background:linear-gradient(#fffaf0e8,#fffaf0f2),url(ui/sf_bg.webp) center/cover!important}.gsfh{background:linear-gradient(90deg,#10162acc,#10162a66),url(ui/sf_bg.webp) center/cover;color:#fff;border-radius:10px;padding:8px}.gsfh b{color:#ffe066}
+#sfOv .sfb{background:linear-gradient(#10162acc,#10162aee),url(ui/sf_bg.webp) center/cover!important}.sfst{width:72px;height:72px;animation:sfsp .9s ease-in-out}@keyframes sfsp{0%{transform:scale(.4) rotate(-90deg)}70%{transform:scale(1.25) rotate(10deg)}100%{transform:scale(1)}}#sfOv.br .sfst{filter:grayscale(1) brightness(.5)}
+.cub{display:flex!important;flex-direction:column;align-items:center}.cub img{width:44px;height:44px}.cub small{font-weight:700}.gcube img.ic,.iih img[src*="cube"]{image-rendering:auto}
 </style><script src="lib/pixelfx.js" defer></script><script src="lib/qrcode.js" defer></script></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동(AUTO)</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
-<div id="side"><button id="bWB"><img class="sic" src="ui/ic_star.webp" alt="" style="filter:hue-rotate(-40deg) saturate(2)"><span>월드보스</span></button><button id="bQr"><img class="sic" src="ui/ic_gift.webp" alt=""><span>QR 옮기기</span></button><button id="bHub"><img class="sic" src="ui/ic_quest.webp" alt=""><span>컨텐츠</span></button><button id="bBadge"><img class="sic" src="ui/ic_badge.webp" alt=""><span>배지</span></button><button id="bBag"><img class="sic" src="ui/ic_bag.webp" alt=""><span>가방</span></button><button id="bShop"><img class="sic" src="ui/ic_shop.webp" alt=""><span>상점</span></button><button id="bFuse"><img class="sic" src="ui/ic_fuse.webp" alt=""><span>합성</span></button><button id="bGiftS"><img class="sic" src="ui/ic_gift.webp" alt=""><span>선물</span></button><button id="bTeam"><img class="sic" src="ui/ic_star.webp" alt=""><span>편성</span></button><button id="bHunt"><img class="sic" src="ui/ic_hunt.webp" alt=""><span>자동사냥</span></button><button id="bHeal"><img class="sic" src="items/HYPERPOTION.png" alt="" style="image-rendering:pixelated"><span>치료</span></button><button id="bWorld"><img class="sic" src="ui/ic_map.webp" alt=""><span>월드맵</span></button><button id="bDex"><img class="sic" src="ui/ic_dex.webp" alt=""><span>도감</span></button><button id="bMenu2"><img class="sic" src="ui/ic_menu.webp" alt=""><span>메뉴</span></button><button id="bFly"><img class="sic" src="ui/ic_fly.webp" alt=""><span>날기</span></button><button id="bFast"><img class="sic" src="ui/ic_fast.webp" alt=""><span>빠르게</span></button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
+<div id="side"><button id="bGear"><img class="sic" src="ui/ic_fuse.webp" alt="" style="filter:hue-rotate(160deg)"><span>장비</span></button><button id="bWB"><img class="sic" src="ui/ic_star.webp" alt="" style="filter:hue-rotate(-40deg) saturate(2)"><span>월드보스</span></button><button id="bQr"><img class="sic" src="ui/ic_gift.webp" alt=""><span>QR 옮기기</span></button><button id="bHub"><img class="sic" src="ui/ic_quest.webp" alt=""><span>컨텐츠</span></button><button id="bBadge"><img class="sic" src="ui/ic_badge.webp" alt=""><span>배지</span></button><button id="bBag"><img class="sic" src="ui/ic_bag.webp" alt=""><span>가방</span></button><button id="bShop"><img class="sic" src="ui/ic_shop.webp" alt=""><span>상점</span></button><button id="bFuse"><img class="sic" src="ui/ic_fuse.webp" alt=""><span>합성</span></button><button id="bGiftS"><img class="sic" src="ui/ic_gift.webp" alt=""><span>선물</span></button><button id="bTeam"><img class="sic" src="ui/ic_star.webp" alt=""><span>편성</span></button><button id="bHunt"><img class="sic" src="ui/ic_hunt.webp" alt=""><span>자동사냥</span></button><button id="bHeal"><img class="sic" src="items/HYPERPOTION.png" alt="" style="image-rendering:pixelated"><span>치료</span></button><button id="bWorld"><img class="sic" src="ui/ic_map.webp" alt=""><span>월드맵</span></button><button id="bDex"><img class="sic" src="ui/ic_dex.webp" alt=""><span>도감</span></button><button id="bMenu2"><img class="sic" src="ui/ic_menu.webp" alt=""><span>메뉴</span></button><button id="bFly"><img class="sic" src="ui/ic_fly.webp" alt=""><span>날기</span></button><button id="bFast"><img class="sic" src="ui/ic_fast.webp" alt=""><span>빠르게</span></button><button id="bOp" style="display:none"><b>🛠</b>운영자</button></div>
 <div id="pad" style="display:none"><button data-d="3">▲</button><button data-d="1">◀</button><button data-d="2">▶</button><button data-d="0">▼</button></div><div id="joyZ"><div id="joyB"><i id="joyK"></i></div></div><button id="bA">A<br><small>조사</small></button>
 <div id="bF"></div><div id="bM"></div><div id="bMenu"></div><div id="bTx"></div>
 <div id="dlg"></div><div id="toasts"></div><div id="fade"></div>
@@ -1798,7 +1816,7 @@ async function enterBld(b){P.busy=1;await fade(.6);await fade(0);P.busy=0;const 
   else if(b.kind==='gym'){back();await gym(G.a/2)}
   else if(b.kind==='league'){back();await league()}
   hud()}
-function healAll(){for(const m of G.party)m.hp=stOf(m)[0]}
+function healAll(){for(const m of G.party)m.hp=stOf(m)[0];for(const m of G.box||[])if(m.hp<stOf(m)[0])m.hp=stOf(m)[0]}
 function shopList(all){return Object.keys(ITEMS).filter(k=>ITEMS[k].p&&(all||(ITEMS[k].b||0)<=G.badges))}
 function shop(fromCenter,all){return new Promise(r=>{const L=shopList(all);openPanel('🛒 '+(all?'어디서나 상점':fromCenter?'포켓몬센터 상점':'프렌들리숍')+' · 💰 '+G.money+'원',L.map(k=>`<div class="row"><span>${ITEMS[k].e} <b>${ITEMS[k].n}</b>${itShort(k)} <small>${ITEMS[k].p}원 · 가진 것 ${G.bag[k]||0}</small></span><span><button data-b="${k}" data-n="1">1개</button><button data-b="${k}" data-n="5">5개</button></span></div>`).join(''),r,p=>{
   p.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{const k=x.dataset.b,n=+x.dataset.n;buyAsk(k,n,ITEMS[k].p,(n2)=>{const c=ITEMS[k].p*n2;G.money-=c;addItem(k,n2);sfx('get');toast(ITEMS[k].n+' ×'+n2+' 샀어요');shop0()})})});const shop0=()=>{closePanel(1);shop(fromCenter,all).then(r)}})}
@@ -2590,24 +2608,25 @@ const TOWNF=[
  {d:'리그로 가는 마지막 도시',f:['포켓몬센터','준비물 가게 · 볼 전부 할인'],sale:{ball:.85,great:.85,hyper:.85}}];
 // 타입 부적 아이템
 for(const g of GYM){if(g.league)continue;const k='ch_'+g.t;ITEMS[k]={n:TN[g.t]+'의 부적',e:`<i class="tyi ic" style="${tyIco(g.t)}"></i>`,charm:g.t,tp:4000+GYM.indexOf(g)*1500}}
-const hasCharm=t=>(G.bag['ch_'+t]||0)>0;
-{const _dc=dmgCalc;dmgCalc=function(a,d,m,c){const r=_dc(a,d,m,c);try{if(G.party.includes(a)&&hasCharm(m.type))r.d=Math.floor(r.d*1.1)}catch(e){}return r}}
+// 부적은 포켓몬에게 먹여요 (토템처럼 영구) · 1개마다 그 타입 기술 위력 +5% · 포켓몬 1마리에 먹일 수 있는 수는 난이도별
+const CHMAX=[3,5,7,9,12],chMax=()=>CHMAX[Math.min(CHMAX.length-1,DIFF())],chFed=m=>Object.values(m.ch||{}).reduce((a,b)=>a+b,0);
+{const _dc=dmgCalc;dmgCalc=function(a,d,m,c){const r=_dc(a,d,m,c);try{if(a&&a.ch&&a.ch[m.type])r.d=Math.floor(r.d*(1+.05*a.ch[m.type]))}catch(e){}return r}}
 if(!ITEMS.master)ITEMS.master={n:'마스터볼',e:'<img class="ic" src="items/MASTERBALL.png">',ball:255,col:'#8a3ab0'};
 const townIdx=a=>isTown(a)?a/2:-1;
 function townGoods(a){const k=townIdx(a);if(k<0)return[];const T=TOWNF[k],L=[];
-  if(k>0){const t=GYM[k-1].t,ck='ch_'+t;L.push({k:ck,p:ITEMS[ck].tp,tag:'부적',one:1})}
+  if(k>0){const t=GYM[k-1].t,ck='ch_'+t;L.push({k:ck,p:ITEMS[ck].tp,tag:'부적 · 먹이기'})}
   for(const i in T.sale)if(ITEMS[i]&&ITEMS[i].p)L.push({k:i,p:Math.round(ITEMS[i].p*T.sale[i]/10)*10,tag:Math.round((1-T.sale[i])*100)+'% 할인'});
   for(const i in T.only||{})L.push({k:i,p:T.only[i],tag:'여기서만'});return L}
 function townHtml(a){const k=townIdx(a);if(k<0)return'';const T=TOWNF[k],G2=townGoods(a);
   return `<div class="wtown"><p>${T.d}</p><ul>${T.f.map(x=>`<li>${x}</li>`).join('')}${k>0?`<li>체육관 · ${GYM[k-1].n} (${TN[GYM[k-1].t]} 타입)</li>`:''}</ul>
-  ${G2.length?`<b class="wsp">특산품</b><div class="wgoods">${G2.map(g=>`<span>${ITEMS[g.k].e}<b>${ITEMS[g.k].n}</b><small>${g.p}원 · ${g.tag}</small></span>`).join('')}</div>${k>0?`<small>${TN[GYM[k-1].t]}의 부적: 가방에 있기만 해도 ${TN[GYM[k-1].t]} 타입 기술 위력 +10%</small>`:''}<small class="wnt">${G.a===a?'이 마을 상점(또는 포켓몬센터)에서 살 수 있어요':'이 마을 상점에 가야 살 수 있어요'}</small>`:''}</div>`}
+  ${G2.length?`<b class="wsp">특산품</b><div class="wgoods">${G2.map(g=>`<span>${ITEMS[g.k].e}<b>${ITEMS[g.k].n}</b><small>${g.p}원 · ${g.tag}</small></span>`).join('')}</div>${k>0?`<small>${TN[GYM[k-1].t]}의 부적: 포켓몬에게 먹이면 그 포켓몬의 ${TN[GYM[k-1].t]} 타입 기술 위력 +5% (영구 · 1마리에 최대 ${chMax()}개)</small>`:''}<small class="wnt">${G.a===a?'이 마을 상점(또는 포켓몬센터)에서 살 수 있어요':'이 마을 상점에 가야 살 수 있어요'}</small>`:''}</div>`}
 function townShop(a,more){return new Promise(r=>{const L=townGoods(a);
   openPanel(areaName(a)+' 특산품 · '+G.money+'원',`<div class="wtown"><p>${TOWNF[townIdx(a)].d}</p></div>${L.map(g=>{const own=G.bag[g.k]||0,lock=g.one&&own>0;return `<div class="row"><span>${ITEMS[g.k].e} <b>${ITEMS[g.k].n}</b>${itShort(g.k)} <small>${g.p}원 · ${g.tag} · 가진 것 ${own}</small></span><span>${lock?'<small class="ok">가지고 있어요</small>':`<button data-tb="${g.k}" data-n="1">1개</button>${g.one?'':`<button data-tb="${g.k}" data-n="5">5개</button>`}`}</span></div>`}).join('')}<div class="wbt"><button class="main" id="tMore">다른 물건도 보기</button></div>`,r,p=>{
     p.querySelectorAll('[data-tb]').forEach(x=>x.onclick=()=>{const g=L.find(g=>g.k===x.dataset.tb),n=+x.dataset.n;buyAsk(g.k,n,g.p,n2=>{const c=g.p*n2;G.money-=c;addItem(g.k,n2);sfx('get');toast(ITEMS[g.k].n+' ×'+n2+' 샀어요');save();closePanel(1);townShop(a,more).then(r)},g.one?1:0)});
     p.querySelector('#tMore').onclick=()=>{closePanel(1);more().then(r)}})})}
 {const _s=shop;shop=function(fc,all){if(!all&&SCENE==='over'&&townGoods(G.a).length)return townShop(G.a,()=>_s(fc,all));return _s(fc,all)}}
 // ---------- 치료하러 가기 ----------
-const hurt=()=>G&&G.party.filter(m=>m.hp<stOf(m)[0]);
+const hurt=()=>G&&[...G.party,...(typeof wbSquad==='function'?wbSquad().filter(m=>!G.party.includes(m)):[])].filter(m=>m.hp<stOf(m)[0]);
 function healGo(){if(!G||!G.party.length)return;if(SCENE!=='over'){toast('배틀이 끝나면 갈 수 있어요');return}const H=hurt();if(!H.length){toast('모두 건강해요!');return}
   AUTO.healGo=1;AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;AUTO.gt=null;const g=healGoal();toast((H.filter(m=>m.hp<=0).length?'쓰러진 '+H.filter(m=>m.hp<=0).length+'마리 · ':'')+areaName(g.a)+' '+(g.door==='home'?'우리 집':'포켓몬센터')+'(으)로 치료하러 가요');hud();guideUpd()}
 {const _o=objective;objective=function(){if(AUTO.healGo&&G&&G.party.length){const g=healGoal();return{t:'치료하러 가기 · '+areaName(g.a)+' '+(g.door==='home'?'우리 집':'포켓몬센터'),g}}return _o()}}
@@ -2719,21 +2738,22 @@ const ITD={
  dmax:{s:'거다이맥스 시키는 밴드',use:'거다이맥스 할 수 있는 포켓몬에게 써요',good:'체력 1.5배 · 나머지 능력치 1.12배 · 등급이 환상이 돼요 (능력치 +20%)',who:'리자몽 · 피카츄 · 잠만보 같은 거다이맥스 포켓몬',form:'gmax'},
  sstone:{s:'포켓몬을 반짝이는 색으로',use:'아무 포켓몬 1마리에게 써요',good:'이로치(특별한 색)가 돼요 · 이미 이로치면 다른 색으로',who:'제일 아끼는 포켓몬',tip:'능력치는 그대로예요. 모습만 특별해져요.'}};
 function itD(k){const it=ITEMS[k]||{};if(ITD[k])return ITD[k];
-  if(it.charm){const t=TN[it.charm];return{s:t+' 타입 기술 위력 +10%',use:'쓸 필요 없어요. 가방에 있기만 하면 돼요',good:'내 포켓몬이 '+t+' 타입 기술을 쓰면 데미지 1.1배',who:t+' 타입 기술을 가진 모든 포켓몬',tip:'1개만 있으면 충분해요. '+(TOWNS[GYM.findIndex(g=>g.t===it.charm)+1]||'')+'에서 팔아요.'}}
+  if(it.charm){const t=TN[it.charm];return{s:'포켓몬에게 먹이면 '+t+' 타입 기술 위력 +5% (영구)',use:'가방에서 「먹이기」를 누르고 포켓몬을 골라요. 먹인 부적은 사라지고 효과는 계속 남아요',good:'그 포켓몬이 '+t+' 타입 기술을 쓸 때마다 데미지가 늘어요. 여러 개 먹이면 계속 쌓여요',who:t+' 타입 기술을 쓰는 주력 포켓몬',tip:'포켓몬 1마리에 부적은 모두 합쳐 최대 '+chMax()+'개 (쉬움 3 · 보통 5 · 어려움 7 · 지옥 9 · 나이트메어 12). '+(TOWNS[GYM.findIndex(g=>g.t===it.charm)+1]||'')+'에서 팔아요.'}}
   return{s:it.n||k,use:'',good:'',who:''}}
 const itShort=k=>`<small class="itd">${itD(k).s}</small>`;
 function itCanUse(k){const it=ITEMS[k],L=[...G.party,...G.box];
   if(it.form)return L.filter(m=>formsOf(m).some(f=>f.k===it.form||(it.form==='gmax'&&f.k==='emax')));
   if(it.heal)return G.party.filter(m=>m.hp>0&&m.hp<stOf(m)[0]);
+  if(it.charm)return G.party.filter(m=>chFed(m)<chMax());
   if(it.lv)return G.party.slice();return null}
 function itemInfo(k,onUse){const it=ITEMS[k],D=itD(k),can=itCanUse(k);
   let mine='';if(can){mine=can.length?`<div class="iiw"><b>지금 쓸 수 있는 내 포켓몬</b><div>${can.slice(0,8).map(m=>`<span><img src="${THUMB[m.n]||''}">${nm(m)}</span>`).join('')}${can.length>8?` 외 ${can.length-8}마리`:''}</div></div>`:`<div class="iiw no">${it.form?'내 포켓몬 중에는 쓸 수 있는 애가 없어요':it.heal?'다친 포켓몬이 없어요 (쓰러진 포켓몬은 포켓몬센터로)':'쓸 포켓몬이 없어요'}</div>`}
   const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>가진 것 ${G.bag[k]||0}개</small></div></div>
    <p class="iis">${D.s}</p><dl>${D.use?`<dt>어디에 써요?</dt><dd>${D.use}</dd>`:''}${D.good?`<dt>뭐가 좋아요?</dt><dd>${D.good}</dd>`:''}${D.who?`<dt>누구한테 좋아요?</dt><dd>${D.who}</dd>`:''}${D.tip?`<dt>꿀팁</dt><dd>${D.tip}</dd>`:''}</dl>${mine}
-   <div class="wbt">${onUse&&!it.charm&&!it.ball?`<button class="main" id="iiU">사용하기</button>`:''}<button id="iiX">닫기</button></div></div>`;
+   <div class="wbt">${onUse&&!it.ball?`<button class="main" id="iiU">${it.charm?'먹이기':'사용하기'}</button>`:''}<button id="iiX">닫기</button></div></div>`;
   document.body.appendChild(d);const x=()=>d.remove();d.onclick=e=>{if(e.target===d)x()};d.querySelector('#iiX').onclick=()=>{sfx('tap');x()};const u=d.querySelector('#iiU');if(u)u.onclick=()=>{x();onUse()}}
 // 가방에서 아이템을 누르면 먼저 설명 → "사용하기"를 눌러야 써요
-let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];itemInfo(k,()=>{const go=m=>{ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
+let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];if(it.charm){itemInfo(k,()=>{const L=itCanUse(k);if(!L.length){toast('먹일 수 있는 포켓몬이 없어요 (1마리 최대 '+chMax()+'개)');return}itPick(L,it,m=>{if(!(G.bag[k]>0))return;G.bag[k]--;m.ch=m.ch||{};m.ch[it.charm]=(m.ch[it.charm]||0)+1;save();sfx('badge');toast(nm(m)+'(이)가 '+it.n+'을(를) 먹었어요! '+TN[it.charm]+' 기술 +'+m.ch[it.charm]*5+'% ('+chFed(m)+'/'+chMax()+')');try{menuOpen()}catch(e){}})});return}itemInfo(k,()=>{const go=m=>{ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
 let ITPICK=null;
 function itPick(L,it,go){const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>누구에게 쓸까요?</small></div></div>${L.map((m,i)=>{const S=stOf(m);return `<button class="iip" data-i="${i}"><img src="${THUMB[m.n]||''}"><span><b>${nm(m)}</b> Lv.${m.lv}<small>체력 ${m.hp}/${S[0]}</small><i style="width:${m.hp/S[0]*100}%"></i></span></button>`}).join('')}<div class="wbt"><button id="iiX">취소</button></div></div>`;
   document.body.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('#iiX').onclick=()=>d.remove();d.querySelectorAll('.iip').forEach(b=>b.onclick=()=>{d.remove();go(L[+b.dataset.i])})}
@@ -3010,7 +3030,7 @@ try{TOWNF[9]={d:'',f:[],sale:{}};TOWNF.push(
 // ===== 월드보스: 매주 전설 포켓몬 · 모두의 데미지를 합쳐서 쓰러뜨리기 · 랭킹 · 처치 완료 → 포획 시도 5번 =====
 // 서버: 출결 Firebase(Firestore) pokeBoss/{주}/players/{기기id} = {name, dmg, t} · 연결 코드가 없으면 내 폰 기록만
 const WBCODE='';// 출결 연결 코드(JD1-…)를 받으면 여기에 넣어요
-const WB_HP=1500000,WB_TRY=3,WB_THROW=5,WB_TLIM=90;
+const WB_HP=1500000,WB_TRY=3,WB_THROW=5,WB_TLIM=180,WB_SQ=20;
 // 지금은 전설만 · 나중에 신화(4) · 환상(5) · 유일(6) 보스로 넓혀요
 const WB_TIER=3,WB_DEX=[150,249,250,384,382,383,483,484,487,643,644,716,717,791,792,888,889,146,145,144,243,244,245,380,381,385,386,638,639,640,800];
 function wbCfg(){try{const c=WBCODE||localStorage.getItem('pka-wbcode')||'';if(!c.startsWith('JD1-'))return null;const [projectId,apiKey]=atob(c.slice(4).replace(/-/g,'+').replace(/_/g,'/')).split('|');return projectId&&apiKey?{projectId,apiKey}:null}catch(e){return null}}
@@ -3029,22 +3049,22 @@ setInterval(()=>{try{if(G&&G.wb&&G.wb.pend)wbPush()}catch(e){}},30000);addEventL
 // 전체 데미지 (서버 없으면 내 데미지만)
 const wbTotal=L=>L?L.reduce((a,b)=>a+b.dmg,0):(G.wb?G.wb.dmg:0);
 // ---------- 보스전 ----------
-async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY){toast('오늘 도전은 다 했어요 (하루 '+WB_TRY+'번)');return}if(SCENE!=='over'){toast('밖에서만 도전할 수 있어요');return}if(!G.party.some(m=>m.hp>0)){toast('먼저 포켓몬을 치료해요');return}
+async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY){toast('오늘 도전은 다 했어요 (하루 '+WB_TRY+'번)');return}if(SCENE!=='over'){toast('밖에서만 도전할 수 있어요');return}const SQ=wbSquad();if(!SQ.length){toast('월드보스 편성이 없어요. 추천 편성을 먼저 해요');return}if(!SQ.some(m=>m.hp>0)){await say(['월드보스 편성 '+SQ.length+'마리가 모두 쓰러졌어요.','「치료」 버튼으로 포켓몬센터에 다녀오면 같은 편성으로 다시 도전할 수 있어요!']);return}
   if(!wbCfg()){await say(['월드보스는 아직 준비 중이에요. 선생님이 서버를 연결하면 열려요!']);return}
   if(!navigator.onLine){await say(['월드보스는 <b>인터넷(와이파이·데이터)</b>이 켜져 있어야 참여할 수 있어요.','다 같이 데미지를 모으고 실시간 랭킹을 보려면 서버에 바로 올려야 하거든요. 인터넷을 켜고 다시 와 주세요!']);return}
   const L=await wbFetch(w.wk,1);if(!L){await say(['서버에 연결이 안 돼요. 인터넷을 확인하고 잠시 뒤 다시 해 주세요.']);return}if(wbTotal(L)>=WB_HP){toast('이번 주 보스는 이미 쓰러졌어요! 포획 시도를 해 봐요');wbOpen();return}
   w.tries[day]=(w.tries[day]||0)+1;save();closePanel(1);const n=wbBoss(),boss=mkMon(n,Math.min(100,Math.max(30,topLv()+8)));boss.hpx=60;boss.hp=stOf(boss)[0];const hp0=boss.hp;BS.wbHp0=hp0;
-  const keep=G.party.map(m=>m.hp);BS.wbT=0;BS.wb=1;
-  try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','월드보스 '+META[n].name,['이번 주의 월드보스, 전설의 '+META[n].name+'(이)가 나타났다!','모두의 데미지를 합쳐서 쓰러뜨리자! 제한 시간 '+WB_TLIM+'초!'])}catch(e){}
-  const r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'gym_psychic'});BS.wb=0;
-  const dmg=Math.max(0,hp0-Math.max(0,boss.hp));G.party.forEach((m,i)=>{if(m.hp<=0)m.hp=Math.max(1,Math.round((keep[i]||1)*.5))});w.dmg+=dmg;save();
+  const keepP=G.party;G.party=SQ;BS.wbT=0;BS.wb=1;
+  try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','월드보스 '+META[n].name,['이번 주의 월드보스, 전설의 '+META[n].name+'(이)가 나타났다!','모두의 데미지를 합쳐서 쓰러뜨리자! 내 포켓몬 '+SQ.length+'마리 · 제한 시간 '+WB_TLIM+'초 · 다 쓰러지면 끝!'])}catch(e){}
+  let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{G.party=keepP;BS.wb=0}
+  const dmg=Math.max(0,hp0-Math.max(0,boss.hp));w.dmg+=dmg;save();
   const ok=await wbPush();sfx('badge');await say(['월드보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!','이번 주 내 누적 데미지 '+w.dmg.toLocaleString()+(wbCfg()?(ok?' · 랭킹에 올렸어요':' · 인터넷이 되면 자동으로 올려요'):'')]);wbOpen()}
 // 시간 제한: 지나면 보스가 날아가 버려요 (내 포켓몬은 다치지 않게 되돌려요)
 {const _u=actUpdate;actUpdate=function(dt){_u(dt);try{if(BS.wb&&ACT.on&&!ACT.pause){BS.wbT=(BS.wbT||0)+dt;if(BS.wbT>WB_TLIM&&!BS.wbEnd){BS.wbEnd=1;toast('시간 끝! 보스가 하늘로 날아갔다');for(const m of G.party)m.hp=0}}else if(!BS.wb)BS.wbEnd=0}catch(e){}}}
 {const _bl=blackout;blackout=async function(){if(BS.wbEnd||(G&&G.wb&&BS.wb)){BS.wbEnd=0;return}return _bl.apply(this,arguments)}}
 // ---------- 처치 완료 → 포획 시도 5번 ----------
 async function wbCatch(){const w=wbS();if(!navigator.onLine){await say(['포획 시도도 인터넷이 켜져 있어야 해요!']);return}if(w.done){toast('이번 주 포획 시도는 끝났어요');return}if(!w.dmg){toast('이번 주 보스와 싸운 친구만 포획 시도를 할 수 있어요');return}
-  const n=wbBoss();closePanel(1);const B=mgOpen('월드보스 포획 · '+META[n].name,'stages/gym_psychic.webp');
+  const n=wbBoss();closePanel(1);const B=mgOpen('월드보스 포획 · '+META[n].name,'ui/wb_bg.webp');
   const draw=msg=>{const left=WB_THROW-w.throws;const balls=['ball','great','hyper','master'].filter(k=>ITEMS[k]&&(G.bag[k]||0)>0);
     B.innerHTML=`<div class="saf"><div class="sinfo">남은 기회 <b>${left}</b> / ${WB_THROW}</div><div class="smon"><img src="${THUMB[n]||''}"><b>${META[n].name}</b> ${RARS(n)} <small>쓰러진 월드보스</small></div><p class="mgt">${msg}</p>
     <div class="sact"><button class="main" data-b="free">보스볼 던지기<small>공짜 · 잡히는 정도 ×1</small></button>${balls.map(k=>`<button data-b="${k}">${ITEMS[k].n}<small>가진 것 ${G.bag[k]} · ×${ITEMS[k].ball>=100?'무조건':ITEMS[k].ball}</small></button>`).join('')}</div></div>`;
@@ -3108,6 +3128,15 @@ function rankOpen(b){b=b||'tower';const tabs=`<div class="tabs"><button data-rk=
     const load=async()=>{const L=await rankFetch(b);const h=p.querySelector('#rkB');if(!h)return;h.innerHTML=body(L);h.querySelector('#rkP').onclick=async()=>{if(await rankPush(b))load()};h.querySelector('#rkR').onclick=()=>{sfx('tap');load()}};load()})}
 try{HUB.push({k:'rank',n:'랭킹',d:'월드보스 누적 데미지 · 격투 탑 이번 주 최고층 · 모험 진행도 랭킹. 격투 탑과 모험 진행도는 「랭킹 등록하기」를 눌러 내 최고 기록을 올려요 (인터넷 필요).',st:()=>'모험 '+advScore()+'점',go:[['랭킹 보기',()=>rankOpen('tower')]]})}catch(e){}
 
+// 월드보스 편성: 최대 20마리 (파티 + 보관함) · 쓰러진 포켓몬은 치료하고 오면 같은 편성으로 다시
+function wbSquad(){const all=[...G.party,...G.box];return (G.wbSq||[]).map(u=>all.find(m=>m.uid===u)).filter(Boolean)}
+function wbSquadOpen(){return new Promise(done=>{const n=wbBoss(),T=META[n].types;const P=[...G.party,...G.box].map(m=>({m,s:recScore(m,T)})).sort((a,b)=>b.s-a.s).slice(0,WB_SQ).map(x=>x.m);const cur=wbSquad();const curAlive=cur.filter(m=>m.hp>0).length;
+  openPanel('월드보스 편성 · 최대 '+WB_SQ+'마리',`<p class="hhint">상대 ${META[n].name} (${T.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')})에 강한 순서로 <b>${P.length}마리</b>를 골랐어요. 한 마리가 쓰러지면 다음 포켓몬이 나와요. 다 쓰러지거나 ${WB_TLIM}초가 지나면 끝!</p>
+   <div class="sqg">${P.map((m,i)=>{const rr=rarOf(m.n),dead=m.hp<=0;return `<div class="sq${dead?' dead':''}" style="--rc:${RARC[rr]}"><img src="${faceUrl(m.n,dead?'Pain':'Normal')}"><b>${i+1}</b><small>${nm(m)}</small><small>Lv.${m.lv}</small><i style="width:${Math.max(0,m.hp/stOf(m)[0]*100)}%"></i></div>`}).join('')}</div>
+   <div class="wbt"><button class="main" id="sqRec">추천 편성 ${P.length}마리로 입장</button>${cur.length?`<button id="sqOld" ${curAlive?'':'disabled'}>지난번 편성으로 입장 (${curAlive}/${cur.length} 살아 있음)</button>`:''}</div>
+   ${P.some(m=>m.hp<=0)?'<p class="wbpd">쓰러진 포켓몬은 싸울 수 없어요. 「치료」로 포켓몬센터에 다녀오면 다시 싸워요.</p>':''}`,()=>done(false),p=>{
+    p.querySelector('#sqRec').onclick=()=>{G.wbSq=P.map(m=>m.uid);save();sfx('get');closePanel(1);done(true)};const o=p.querySelector('#sqOld');if(o)o.onclick=()=>{closePanel(1);done(true)}})})}
+
 // ===== 추천 편성: 상대 타입에 맞춰 내 포켓몬(파티+보관함) 중 제일 좋은 6마리 =====
 // 점수 = 레벨 · 공격(특공) · 체력 × 가진 기술로 상대에게 줄 수 있는 최고 상성(자속 보너스 포함) × 상대 기술 상성으로 받는 피해
 function recScore(m,foeTypes){const S=stOf(m),M=META[m.n];const atk=Math.max(S[1],S[3]),bulk=Math.sqrt(S[0]*(S[2]+S[4])/2);let best=1;
@@ -3125,11 +3154,75 @@ function recOpen(title,foeTypes,need){return new Promise(done=>{const P=recPick(
     p.querySelector('#rcOk').onclick=()=>{sfx('get');const pick=P.map(x=>x.m),rest=[...G.party,...G.box].filter(m=>!pick.includes(m));G.party=pick;G.box=rest;save();try{refreshSpr()}catch(e){}closePanel(1);toast('추천 편성을 적용했어요');done(true)};
     const n=p.querySelector('#rcNo');if(n)n.onclick=()=>{closePanel(1);done(false)}})})}
 // 월드보스: 추천 편성을 해야 입장
-{const _f=wbFight;wbFight=async function(){const n=wbBoss();const ok=await recOpen('월드보스 '+META[n].name,META[n].types,1);if(!ok)return;return _f()}}
+{const _f=wbFight;wbFight=async function(){const w=wbS();if((w.tries[dayKey()]||0)>=WB_TRY){toast('오늘 도전은 다 했어요 (하루 '+WB_TRY+'번)');return}const ok=await wbSquadOpen();if(!ok)return;return _f()}}
 // 격투 탑 화면에 추천 편성 버튼
 {const _t=towerOpen;towerOpen=function(){_t();try{const B=document.querySelector('#mg .twr');if(B&&!B.querySelector('#tRec')){const b=document.createElement('button');b.id='tRec';b.textContent='추천 편성 (강한 순)';b.className='mgrec';b.onclick=async()=>{mgClose();await recOpen('격투 탑',null,0);if(G.a===12)towerOpen()};B.insertBefore(b,B.querySelector('#tGo'))}}catch(e){}}}
 // 편성 화면에도 추천 편성 버튼
 {const _to=teamOpen;teamOpen=function(){_to();setTimeout(()=>{const p=document.querySelector('.panel');if(!p||p.querySelector('#tmRec'))return;const h=p.querySelector('h4');if(!h)return;const b=document.createElement('button');b.id='tmRec';b.className='wbrk';b.textContent='추천 편성';b.onclick=async()=>{closePanel(1);await recOpen('강한 순',null,0);teamOpen()};h.appendChild(b)},30)}}
+
+// ===== 장비: 출결 캐릭터 장비 → 내 캐릭터에 장착하면 모든 포켓몬에게 (월드보스에서만) =====
+// 아이템마다 옵션 3개(공격력·체력·방어력·회피·크리티컬 확률·크리티컬 데미지) · 등급(레어→에픽→유니크→레전드리)은 큐브로
+// 강화(스타포스)는 부위마다 하나: 무기 하나를 12강 하면 다른 무기도 12강 · 25강까지 · 15강부터 파괴 가능 · 파괴되면 골드로 복구
+const GOPT=[{k:'atk',n:'공격력'},{k:'hp',n:'체력'},{k:'def',n:'방어력'},{k:'eva',n:'회피'},{k:'crt',n:'크리티컬 확률'},{k:'cdm',n:'크리티컬 데미지'}];
+const GRANGE={atk:[[3,6],[6,9],[9,12],[12,15]],hp:[[3,6],[6,9],[9,12],[12,15]],def:[[3,6],[6,9],[9,12],[12,15]],eva:[[1,3],[3,5],[5,7],[7,9]],crt:[[2,4],[4,6],[6,8],[8,10]],cdm:[[5,10],[10,15],[15,20],[20,25]]};
+const GGR=['레어','에픽','유니크','레전드리'],GGC=['#4aa4ff','#a35ae8','#f0b020','#3ad66a'],SFMAX=25,GFIX=30000;
+const goN=k=>GOPT.find(o=>o.k===k).n;
+function gRoll(g){const ks=GOPT.map(o=>o.k);const o=[];for(let i=0;i<3;i++){const k=ks[ri(0,ks.length-1)];const [a,b]=GRANGE[k][Math.max(0,g-(i?(R()<.5?1:0):0))];o.push([k,ri(a,b)])}return o}
+function gItem(key){G.gear=G.gear||{};if(!G.gear[key])G.gear[key]={g:R()<.15?1:0,o:null};const it=G.gear[key];if(!it.o)it.o=gRoll(it.g);return it}
+function gSF(cat){G.sf=G.sf||{};return G.sf[cat]=G.sf[cat]||{s:0,b:0}}
+const sfMul=s=>1+.06*s;
+function gearStats(){const t={atk:0,hp:0,def:0,eva:0,crt:0,cdm:0};if(!G||!G.me||!G.me.eq)return t;for(const cat in G.me.eq){const key=G.me.eq[cat];if(!key)continue;const sf=gSF(cat);if(sf.b)continue;const it=gItem(key),m=sfMul(sf.s);for(const [k,v] of it.o)t[k]+=v*m}
+  for(const k in t)t[k]=Math.round(t[k]*10)/10;return t}
+// 스타포스 확률 · 비용
+function sfRate(s){const ok=s<3?.95-.05*s:s<10?.85-.05*(s-3):s<15?.5-.03*(s-10):s<22?.3:[.03,.02,.01][s-22]||.01;const br=s>=15?Math.min(.1,.02+.01*(s-15)):0;return{ok,br,fail:1-ok-br,drop:s>=15&&s!==15&&s!==20}}
+const sfCost=s=>Math.round(50*(s+1)*(s+1)/10)*10;
+// 큐브
+if(!ITEMS.cube)ITEMS.cube={n:'수상한 큐브',e:'<img class="ic" src="ui/cube1.webp">',p:3000};
+if(!ITEMS.cube2)ITEMS.cube2={n:'명장의 큐브',e:'<img class="ic" src="ui/cube2.webp">',p:15000};
+try{ITD.cube={s:'장비 옵션 3개를 새로 바꿔요',use:'장비 → 큐브 탭에서 장비를 골라 써요',good:'옵션이 다시 나오고, 낮은 확률로 등급이 레어 → 에픽으로 올라가요',who:'월드보스에 쓰는 장비',tip:'에픽까지만 올라가요. 더 높이는 명장의 큐브!'};
+  ITD.cube2={s:'장비 옵션을 바꾸고 등급을 올려요',use:'장비 → 큐브 탭에서 써요',good:'옵션 3개 새로 · 등급 상승 확률이 높고 레전드리까지 올라가요',who:'제일 아끼는 장비',tip:'레어→에픽 12% · 에픽→유니크 5% · 유니크→레전드리 2%'}}catch(e){}
+function gearTh(c){const it=meItem(c.dataset.t);if(!it||!it.v.walk_f)return;meImg(it.s).then(im=>{if(!im)return;const v=it.v.walk_f,f=v[4][0],w=c.width,h=c.height,k=Math.min(w/v[2],h/v[3]);const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,w,h);g.drawImage(im,f[0],f[1],v[2],v[3],(w-v[2]*k)/2,(h-v[3]*k)/2,v[2]*k,v[3]*k)})}
+const gTh=(key,w,h)=>`<canvas class="gth" data-t="${key}" width="${w||44}" height="${h||56}"></canvas>`;
+const gOpts=it=>it.o.map(([k,v])=>`<li>${goN(k)} +${v}%</li>`).join('');
+async function gearOpen(tab,sel){if(!G)return;tab=tab||'eq';await dressPack();
+  if(!G.me){openPanel('장비',`<div class="hcard"><b>내 출결 캐릭터가 아직 없어요</b><p>출석 앱의 「QR로 한 번에 받기」를 QR 옮기기(카메라 또는 앨범)로 가져오면 내 캐릭터와 장비가 들어와요.</p><div class="wbt"><button class="main" id="gQr">QR 옮기기</button></div></div>`,null,p=>{p.querySelector('#gQr').onclick=()=>{closePanel(1);xferOpen()}});return}
+  const T=gearStats(),eq=G.me.eq||{};const tabs=`<div class="tabs">${[['eq','장비창'],['bag','아이템'],['sf','강화'],['cube','큐브']].map(([k,n])=>`<button data-gt="${k}" class="${k===tab?'on':''}">${n}</button>`).join('')}</div>`;
+  const sum=`<div class="gsum">${GOPT.map(o=>`<span><small>${o.n}</small><b>+${T[o.k]}%</b></span>`).join('')}</div><p class="wbpd">장비 효과는 내 캐릭터가 데리고 있는 <b>모든 포켓몬</b>에게 들어가요 · <b>월드보스에서만</b> 적용돼요</p>`;
+  let body='';
+  if(tab==='eq')body=sum+`<div class="geq">${ME_CATS.map(c=>{const k=eq[c],sf=gSF(c);if(!k)return `<div class="gs empty"><small>${ME_KO[c]}</small><i>비어 있음</i></div>`;const it=gItem(k);return `<div class="gs" style="--gc:${GGC[it.g]}" data-go="${c}">${gTh(k)}<div><small>${ME_KO[c]} · <b style="color:${GGC[it.g]}">${GGR[it.g]}</b></small><b>${esc((meItem(k)||{}).n||k)}</b><u>${sf.b?'파괴됨 · 복구 필요':'★'+sf.s}</u><ul>${gOpts(it)}</ul></div></div>`}).join('')}</div>`;
+  if(tab==='bag'){const c=sel||ME_CATS.find(c=>G.me.own.some(k=>k.startsWith(c+':')))||'weapon';const L=G.me.own.filter(k=>k.startsWith(c+':'));
+    body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ${G.me.own.filter(k=>k.startsWith(x+':')).length}</button>`).join('')}</div><div class="gbag">${L.map(k=>{const it=gItem(k),on=eq[c]===k;return `<div class="gb${on?' on':''}" style="--gc:${GGC[it.g]}">${gTh(k)}<div><b>${esc((meItem(k)||{}).n||k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><ul>${gOpts(it)}</ul></div>${on?'<em>장착 중</em>':`<button data-ge="${k}">장착</button>`}</div>`}).join('')||'<small>이 부위 장비가 없어요. 출석 앱에서 모아요!</small>'}</div>`}
+  if(tab==='sf'){const c=sel||'weapon',sf=gSF(c),r=sfRate(sf.s),cost=sfCost(sf.s);
+    body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ★${gSF(x).s}${gSF(x).b?'(파괴)':''}</button>`).join('')}</div>
+    <div class="gsf"><div class="gsfh">${eq[c]?gTh(eq[c],64,80):''}<div><b>${ME_KO[c]} 강화 ★${sf.s} / ${SFMAX}</b><small>이 부위의 모든 장비가 같은 강화 단계예요 (무기 하나 12강 → 다른 무기도 12강)</small><div class="stars">${Array.from({length:SFMAX},(_,i)=>`<img src="ui/star.webp" class="${i<sf.s?'on':''}${i>=15?' hi':''}">`).join('')}</div><small>옵션 효과 ×${sfMul(sf.s).toFixed(2)} → 다음 ×${sfMul(sf.s+1).toFixed(2)}</small></div></div>
+    ${sf.b?`<p class="wbpd">장비가 파괴됐어요! 복구하면 ★${sf.s}로 다시 쓸 수 있어요.</p><div class="wbt"><button class="main" id="gFix" ${G.money>=GFIX?'':'disabled'}>복구하기 · ${GFIX.toLocaleString()}원</button></div>`:sf.s>=SFMAX?'<p class="wbpd">최고 강화예요!</p>':`<div class="gsfr"><span class="ok">성공 <b>${Math.round(r.ok*100)}%</b></span><span>실패 <b>${Math.round(r.fail*100)}%</b>${r.drop?' (★-1)':''}</span>${r.br?`<span class="br">파괴 <b>${(r.br*100).toFixed(0)}%</b></span>`:''}</div>
+    <div class="wbt"><button class="main" id="gSf" ${G.money>=cost?'':'disabled'}>강화하기 · ${cost.toLocaleString()}원</button></div><p class="hhint">가진 돈 ${G.money.toLocaleString()}원 · 15강부터는 파괴될 수 있어요 (파괴되면 골드로 복구)</p>`}</div>`}
+  if(tab==='cube'){const c=sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])||'weapon';const k=eq[c];const it=k?gItem(k):null;
+    body=`<div class="wch">${ME_CATS.filter(x=>eq[x]).map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]}</button>`).join('')}</div>${it?`<div class="gcube" style="--gc:${GGC[it.g]}">${gTh(k,64,80)}<div><b>${esc((meItem(k)||{}).n||k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><ul class="gco">${gOpts(it)}</ul></div></div>
+     <div class="wbt"><button class="main cub" data-cu="cube" ${(G.bag.cube||0)>0?'':'disabled'}><img src="ui/cube1.webp">수상한 큐브<small>${G.bag.cube||0}개</small></button><button class="main cub" data-cu="cube2" ${(G.bag.cube2||0)>0?'':'disabled'}><img src="ui/cube2.webp">명장의 큐브<small>${G.bag.cube2||0}개</small></button></div><p class="hhint">큐브는 상점 · 월드보스 · 격투 탑 · 출석에서 얻어요. 수상한 큐브는 에픽까지, 명장의 큐브는 레전드리까지 올라가요.</p>`:'<small>장착한 장비가 없어요</small>'}`}
+  openPanel('장비 · 내 캐릭터',tabs+body,null,p=>{p.querySelectorAll('canvas.gth').forEach(gearTh);
+    p.querySelectorAll('[data-gt]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen(b.dataset.gt)});p.querySelectorAll('[data-gc]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen(tab,b.dataset.gc)});
+    p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen('bag',b.dataset.go)});
+    p.querySelectorAll('[data-ge]').forEach(b=>b.onclick=async()=>{const k=b.dataset.ge,c=k.split(':')[0];G.me.eq[c]=k;save();try{await meBuild()}catch(e){}sfx('get');gearOpen('bag',c)});
+    const sfb=p.querySelector('#gSf');if(sfb)sfb.onclick=()=>sfTry(sel||'weapon');const fx=p.querySelector('#gFix');if(fx)fx.onclick=()=>{const sf=gSF(sel||'weapon');if(G.money<GFIX)return;G.money-=GFIX;sf.b=0;save();sfx('badge');toast('복구했어요! ★'+sf.s);gearOpen('sf',sel||'weapon')};
+    p.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>cubeUse(b.dataset.cu,sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])))})}
+async function sfTry(c){const sf=gSF(c),cost=sfCost(sf.s);if(sf.b||sf.s>=SFMAX||G.money<cost)return;G.money-=cost;const r=sfRate(sf.s),u=R();
+  const ov=document.createElement('div');ov.id='sfOv';ov.innerHTML=`<div class="sfb"><img class="sfst" src="ui/star.webp"><div class="sfs">★${sf.s} → ★${sf.s+1}</div><div class="sfr"></div></div>`;document.body.appendChild(ov);sfx('tap');await sleep(900);
+  let res;if(u<r.ok){sf.s++;res='ok'}else if(u<r.ok+r.br){sf.b=1;sf.s=Math.min(sf.s,12);res='br'}else{if(r.drop)sf.s=Math.max(0,sf.s-1);res='fail'}save();
+  const t=ov.querySelector('.sfr');ov.classList.add(res);t.textContent=res==='ok'?'강화 성공! ★'+sf.s:res==='br'?'장비가 파괴됐어요… (골드로 복구 가능)':'강화 실패'+(r.drop?' · ★'+sf.s:'');sfx(res==='ok'?'badge':'tap');try{navigator.vibrate&&navigator.vibrate(res==='ok'?[30,30,60]:res==='br'?[200]:60)}catch(e){}
+  await sleep(1100);ov.remove();gearOpen('sf',c)}
+function cubeUse(kind,c){const k=G.me.eq[c];if(!k||!(G.bag[kind]>0))return;const it=gItem(k);G.bag[kind]--;const old=GGR[it.g];
+  const up=kind==='cube'?(it.g===0&&R()<.06):(R()<[.12,.05,.02,0][it.g]);if(up)it.g=Math.min(kind==='cube'?1:3,it.g+1);it.o=gRoll(it.g);save();sfx(up?'badge':'get');toast(up?'등급 상승! '+old+' → '+GGR[it.g]:'옵션이 바뀌었어요');gearOpen('cube',c)}
+// 월드보스에서만: 공격력·크리티컬은 내 공격에, 방어력·회피는 맞을 때, 체력은 최대 체력에
+{const _dc=dmgCalc;dmgCalc=function(a,d,m,c){const r=_dc(a,d,m,c);try{if(BS.wb&&r&&r.d>0){const T=gearStats();if(G.party.includes(a)){r.d=Math.round(r.d*(1+T.atk/100));if(R()<T.crt/100)r.d=Math.round(r.d*1.5*(1+T.cdm/100))}
+  else if(G.party.includes(d)){if(R()<T.eva/100)r.d=0;else r.d=Math.round(r.d*(1-Math.min(.6,T.def/100)))}}}catch(e){}return r}}
+{const _bt=battle;battle=async function(o){if(o&&o.wb){const T=gearStats();for(const m of G.party){const f=m.hp/stOf(m)[0];m.hpx=1+T.hp/100;m.hp=Math.round(stOf(m)[0]*f)}try{return await _bt.apply(this,arguments)}finally{for(const m of G.party){const f=m.hp/stOf(m)[0];delete m.hpx;m.hp=Math.max(m.hp>0?1:0,Math.round(stOf(m)[0]*f))}}}return _bt.apply(this,arguments)}}
+// 큐브 얻는 곳: 매일 출석 1개 · 월드보스 도전 1개 · 월드보스 주간 보상 · 상점
+{const _rc=rewardCheck;rewardCheck=function(){const before=G&&G.lastLogin;const r=_rc.apply(this,arguments);try{if(G&&before!==G.lastLogin){addItem('cube',1);toast('출석 보너스: 수상한 큐브 1개')}}catch(e){}return r}}
+{const _wf=wbFight;wbFight=async function(){const d0=G.wb?G.wb.dmg:0;const r=await _wf.apply(this,arguments);try{if(G.wb&&G.wb.dmg>d0){addItem('cube',1);toast('월드보스 도전 보상: 수상한 큐브 1개')}}catch(e){}return r}}
+{const _wp=wbPayout;wbPayout=async function(){const o=G.wb&&G.wb.last;const r=await _wp.apply(this,arguments);try{if(o&&G.wb.paid[o.wk]){addItem('cube2',WBC.list&&WBC.list.findIndex(x=>x.id===G.pid)<10?3:1);addItem('cube',5)}}catch(e){}return r}}
+(function(){const go=()=>{const b=document.getElementById('bGear');if(b)b.onclick=()=>{sfx('tap');gearOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+try{HUB.push({k:'gear',n:'장비 · 강화 · 큐브',d:'출결 캐릭터의 장비를 내 캐릭터에 장착하면 모든 포켓몬이 강해져요 (월드보스에서만). 옵션 3개 · 스타포스 강화(25강, 15강부터 파괴 가능, 골드로 복구) · 큐브로 옵션·등급 바꾸기.',st:()=>{const T=gearStats();return '공격력 +'+T.atk+'%'},go:[['장비 열기',()=>gearOpen()]]})}catch(e){}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
