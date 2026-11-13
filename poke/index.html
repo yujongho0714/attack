@@ -3290,11 +3290,11 @@ try{const h=HUB.find(x=>x.k==='team');if(h)h.d+=' 체육관 · 리그 · 재대�
 {const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(teamDrag,30)}}
 function teamDrag(){const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelector('.tg');if(!tg)return;const cards=[...tg.querySelectorAll('.tm.p')];if(cards.length<2)return;
   cards.forEach((c,i)=>{c.dataset.pi=i;const f=c.querySelector('.tmf');if(f&&!f.querySelector('.tno'))f.insertAdjacentHTML('beforeend',`<span class="tno">${i+1}</span>`)});
-  if(!p.querySelector('.tdh')){const h=p.querySelector('.pb h4');if(h)h.insertAdjacentHTML('afterend','<p class="hhint tdh">포켓몬을 <b>꾹 누른 채로 끌면</b> 출전 순서를 바꿀 수 있어요 · 1번이 제일 먼저 나가요</p>')}
+  if(!p.querySelector('.tdh')){const h=p.querySelector('.pb h4');if(h)h.insertAdjacentHTML('afterend','<p class="hhint tdh">포켓몬을 <b>꾹 누른 채로 끌면</b> 출전 다른 카드 위에 놓으면 서로 자리가 바뀌어요 · 1번이 제일 먼저 나가요</p>')}
   const pb=p.querySelector('.pb');let st=null;
   const stopTouch=e=>{if(st&&st.on)e.preventDefault()};document.addEventListener('touchmove',stopTouch,{passive:false});
   const end=()=>{if(!st)return;clearTimeout(st.tm);const s=st;st=null;cards.forEach(c=>c.classList.remove('tdo'));if(s.gh)s.gh.remove();dimOff();s.el.classList.remove('tpress');if(s.el)s.el.classList.remove('tdg');if(pb)pb.style.overflow='';
-    if(s.on&&s.to!=null&&s.to!==s.i){const m=G.party.splice(s.i,1)[0];G.party.splice(s.to,0,m);save();try{refreshSpr()}catch(e){}sfx('get');toast(nm(m)+' → '+(s.to+1)+'번째로 출전');document.removeEventListener('touchmove',stopTouch);teamOpen()}};
+    if(s.on&&s.to!=null&&s.to!==s.i){const m=G.party[s.i],o=G.party[s.to];G.party[s.i]=o;G.party[s.to]=m;save();try{refreshSpr()}catch(e){}sfx('get');toast(nm(m)+' ↔ '+nm(o)+' 자리 바꿈');document.removeEventListener('touchmove',stopTouch);teamOpen()}};
   cards.forEach(c=>{c.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const i=+c.dataset.pi;c.classList.add('tpress');st={i,x:e.clientX,y:e.clientY,el:c,on:0,to:null,id:e.pointerId};
     st.tm=setTimeout(()=>{if(!st)return;st.on=1;sfx('tap');try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}c.classList.add('tdg');c.classList.remove('tpress');dimOn();if(pb)pb.style.overflow='hidden';
       const r=c.getBoundingClientRect(),g=c.cloneNode(true);g.classList.remove('tdg');g.classList.add('tgh');g.style.pointerEvents='none';g.style.width=r.width+'px';g.style.height=r.height+'px';st.ox=st.x-r.left;st.oy=st.y-r.top;g.style.left=(st.x-st.ox)+'px';g.style.top=(st.y-st.oy)+'px';document.body.appendChild(g);st.gh=g},280)})});
@@ -3312,14 +3312,14 @@ function teamDrag(){const p=document.querySelector('.panel');if(!p)return;const 
 // ---------- 공용: 카드들을 꾹 눌러 끌어서 순서 바꾸기 (추천 편성 · 월드보스 편성) · 놓으면 화면에서 바로 자리 이동 ----------
 function domDrag(box,sel){if(!box)return;const P=box.closest('.panel');let st=null;const cards=()=>[...box.querySelectorAll(sel)];
   const renum=()=>cards().forEach((c,i)=>{const n=c.querySelector('.rno');if(n)n.textContent=i+1});
-  if(P&&!P.querySelector('.tdh2')){box.insertAdjacentHTML('beforebegin','<p class="hhint tdh2">카드를 <b>꾹 누른 채로 끌면</b> 순서를 바꿀 수 있어요 · 1번이 제일 먼저 나가요</p>')}
+  if(P&&!P.querySelector('.tdh2')){box.insertAdjacentHTML('beforebegin','<p class="hhint tdh2">카드를 <b>꾹 누른 채로 끌면</b> 다른 카드 위에 놓으면 서로 자리가 바뀌어요 · 1번이 제일 먼저 나가요</p>')}
   const stopTouch=e=>{if(st&&st.on)e.preventDefault()};document.addEventListener('touchmove',stopTouch,{passive:false});
   box.addEventListener('pointerdown',e=>{const c=e.target.closest(sel);if(!c||e.target.closest('button'))return;c.classList.add('tpress');st={el:c,x:e.clientX,y:e.clientY,on:0,to:null};
     st.tm=setTimeout(()=>{if(!st)return;st.on=1;sfx('tap');try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}c.classList.add('tdg');c.classList.remove('tpress');dimOn();const r=c.getBoundingClientRect(),g=c.cloneNode(true);g.classList.remove('tdg');g.classList.add('tgh');g.style.pointerEvents='none';g.style.width=r.width+'px';g.style.height=r.height+'px';st.ox=st.x-r.left;st.oy=st.y-r.top;g.style.left=(st.x-st.ox)+'px';g.style.top=(st.y-st.oy)+'px';document.body.appendChild(g);st.gh=g},280)});
   const mv2=e=>{if(!st)return;if(!st.on){if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){clearTimeout(st.tm);st.el.classList.remove('tpress');st=null}return}e.preventDefault();st.gh.style.left=(e.clientX-st.ox)+'px';st.gh.style.top=(e.clientY-st.oy)+'px';
     st.gh.style.display='none';const t=document.elementFromPoint(e.clientX,e.clientY);st.gh.style.display='';const tc=t&&t.closest&&t.closest(sel);cards().forEach(c=>c.classList.toggle('tdo',c===tc&&c!==st.el));st.to=tc&&box.contains(tc)?tc:st.to};document.addEventListener('pointermove',mv2,{passive:false});
   const end=()=>{if(!st)return;clearTimeout(st.tm);const s=st;st=null;cards().forEach(c=>c.classList.remove('tdo'));if(s.gh)s.gh.remove();dimOff();s.el.classList.remove('tpress');s.el.classList.remove('tdg');
-    if(s.on&&s.to&&s.to!==s.el){const L=cards(),a=L.indexOf(s.el),b=L.indexOf(s.to);if(a<b)s.to.after(s.el);else s.to.before(s.el);renum();sfx('get')}};
+    if(s.on&&s.to&&s.to!==s.el){const ph=document.createElement('i');s.to.before(ph);s.el.before(s.to);ph.replaceWith(s.el);renum();sfx('get')}};
   document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
   const ob=new MutationObserver(()=>{if(!box.isConnected){document.removeEventListener('touchmove',stopTouch);document.removeEventListener('pointermove',mv2);document.removeEventListener('pointerup',end);document.removeEventListener('pointercancel',end);ob.disconnect()}});ob.observe(document.body,{childList:true,subtree:false})}
 // 화면에서 바꾼 순서대로 배열을 다시 줄 세워요 (data-ri = 원래 자리)
