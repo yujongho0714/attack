@@ -3260,6 +3260,26 @@ function recOpen(title,foeTypes,need){return new Promise(done=>{const P=recPick(
 // 편성 화면에도 추천 편성 버튼
 {const _to=teamOpen;teamOpen=function(){_to();setTimeout(()=>{const p=document.querySelector('.panel');if(!p||p.querySelector('#tmRec'))return;const h=p.querySelector('h4');if(!h)return;const b=document.createElement('button');b.id='tmRec';b.className='wbrk';b.textContent='추천 편성';b.onclick=async()=>{closePanel(1);await recOpen('강한 순',null,0);teamOpen()};h.appendChild(b)},30)}}
 
+// ===== 배틀 배경을 지역마다 다르게 (풀밭 = 축구장만 나오던 것 고침) · 밤에는 밤 배경 =====
+const BGPOOL=['forest','beach','ruins','swamp','city','desert','forest','meadow'];
+function pickBg(o){const a=G?G.a:0,h=+new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul',hour:'numeric',hour12:false});const night=h>=20||h<6;
+  let b=o.bg;if(b==='town'||(!b&&isTown(a)))b=['city','ruins','forest','beach'][(a/2|0)%4];
+  else if(!b||b==='meadow'){const k=(a*7+(o.trainer?3:0))%BGPOOL.length;b=BGPOOL[k];if(b==='meadow'&&R()<.6)b='forest'}
+  if(night&&!['cave','league','champ','worldboss','stadium'].includes(b)&&!/^gym_/.test(b)&&R()<.7)b='night';return b}
+{const _b=battle;battle=function(o){try{if(o&&!o.wb&&(!o.bg||o.bg==='meadow'||o.bg==='town'))o.bg=pickBg(o)}catch(e){}return _b.apply(this,arguments)}}
+
+// ===== 체육관 · 리그 · 재대결 · 상위 체육관 · 히든 포탈 들어가기 전에 「추천 편성」 물어보기 =====
+// 자동(AUTO) 중에는 안 물어봐요 · 「다음부터 안 물어보기」를 누르면 편성 화면에서만 써요
+async function recAsk(title,types){if(!G||AUTO.on||G.opt&&G.opt.recAsk===false||![...G.party,...G.box].some(m=>m.hp>0))return;
+  const P=recPick(types).map(x=>x.m),cur=new Set(G.party);if(P.length===G.party.length&&P.every(m=>cur.has(m)))return;
+  const p=recOpen(title,types,0);setTimeout(()=>{const w=document.querySelector('.panel .wbt');if(w&&!w.querySelector('#rcNever')){const b=document.createElement('button');b.id='rcNever';b.textContent='다음부터 안 물어보기';b.onclick=()=>{G.opt=G.opt||{};G.opt.recAsk=false;save();toast('이제 안 물어봐요 · 편성 화면 「추천 편성」 버튼은 그대로 있어요');closePanel()};w.appendChild(b)}},40);await p}
+{const _g=gym;gym=async function(k){try{const g=GYM[k-1];if(G.badges===k-1)await recAsk(g.n+' ('+TN[g.t]+' 체육관)',[g.t])}catch(e){}return _g.apply(this,arguments)}}
+{const _l=league;league=async function(){try{if(G.badges>=8)await recAsk('포켓몬 리그',null)}catch(e){}return _l.apply(this,arguments)}}
+{const _r=rematch;rematch=async function(i){try{if(SCENE==='over'&&rmLeft(i)>0)await recAsk(GYM[i].n+' 재대결',[GYM[i].t])}catch(e){}return _r.apply(this,arguments)}}
+{const _u=ugym;ugym=async function(i){try{const g=GYM[9+i];if((G.ub||0)===i)await recAsk(g.n+' ('+TN[g.t]+' 상위 체육관)',[g.t])}catch(e){}return _u.apply(this,arguments)}}
+{const _h=hpEnter;hpEnter=async function(){try{if(HPOPEN)await recAsk('히든 포탈',null)}catch(e){}return _h.apply(this,arguments)}}
+try{const h=HUB.find(x=>x.k==='team');if(h)h.d+=' 체육관 · 리그 · 재대결 · 히든 포탈 · 월드보스 · 격투 탑에 들어가기 전에 상대에 맞춘 「추천 편성」을 골라 줘요.'}catch(e){}
+
 // ===== 편성: 출전 포켓몬을 꾹 누른 채로 끌어서 출전 순서 바꾸기 (맨 앞이 먼저 나가요) =====
 {const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(teamDrag,30)}}
 function teamDrag(){const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelector('.tg');if(!tg)return;const cards=[...tg.querySelectorAll('.tm.p')];if(cards.length<2)return;
