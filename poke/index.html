@@ -2066,13 +2066,13 @@ const CardPack=(()=>{
   function bolt(c,x1,y1,x2,y2,w){c.beginPath();c.moveTo(x1,y1);const n=8;for(let i=1;i<n;i++){const t=i/n;c.lineTo(x1+(x2-x1)*t+(Math.random()-.5)*40,y1+(y2-y1)*t+(Math.random()-.5)*40)}c.lineTo(x2,y2);c.lineWidth=w;c.stroke()}
 
   async function open(o){
-    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(6,o.rar|0)),PR=Math.min(3,RF);let R=PR;while(R>0&&Math.random()<.3)R--;let CS=RF;while(CS>0&&Math.random()<.3)CS--;
-    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=await loadImg(o.base+'pk'+t+'.webp',800);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>frmI[t]=v);
+    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(6,o.rar|0)),PR=RF;let R=PR;while(R>0&&Math.random()<.3)R--;let CS=RF;while(CS>0&&Math.random()<.3)CS--;
+    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=(await loadImg(o.base+'pk'+t+'.webp',800))||(t>3?await loadImg(o.base+'pk3.webp',800):null);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>frmI[t]=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
       let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false,SW=null,PWs=200,cutK=0;const NEED=RF>=2?TAPS[RF]:0;let ubT=0,ubF=0;
-      let C=COL[R],C2=COL2[R];function setR(x,keep){ubF=R;R=x;C=COL[R];C2=COL2[R];if(!keep)pk=pkI[Math.min(3,R)]||pk}
+      let C=COL[R],C2=COL2[R];function setR(x,keep){ubF=R;R=x;C=COL[R];C2=COL2[R];if(!keep)pk=pkI[R]||pk}
       function upFx(){flash=1;shake=26;burst(40+R*12,6+R,C,70);burst(16,8,'#fff',50);S.rev(R);ubT=performance.now()+1100;if(R>=2)bolts=1;try{navigator.vibrate&&navigator.vibrate([30,40,90])}catch(e){}}
       function burst(n,sp,col,life){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=sp*(.3+Math.random());P.push({x:W/2,y:H*.48,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(R>=3?2:0),l:life*(.6+Math.random()*.6),L:life,s:2+Math.random()*4*(1+R*.4),c:col||C,k:Math.random()<.3?'star':'dot',conf:R>=3&&Math.random()<.5})}}
       function setPh(p){ph=p;pt=performance.now()}
@@ -3791,7 +3791,7 @@ async function sfAuto(c){const sf=gSF(c);if(sf.none||sf.b||sf.s>=15)return;close
 
 // ===== 카드팩 가방 · 히든 포탈 · 스탯 부적 =====
 // 카드팩은 받자마자 열리지 않고 가방에 쌓여요. 1장 · 10장 · 원하는 만큼 골라서 열고, 한 장씩 손가락으로 잘라요.
-const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅~전설 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'},P4:{n:'신화 카드팩',img:'cardpack/pk3.webp',f:'hue-rotate(300deg) saturate(1.6)'},P5:{n:'환상 카드팩',img:'cardpack/pk3.webp',f:'hue-rotate(140deg) saturate(1.6)'},P6:{n:'유일 카드팩',img:'cardpack/pk3.webp',f:'hue-rotate(260deg) saturate(2) brightness(1.15)'}};
+const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅~전설 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'},P4:{n:'신화 카드팩',img:'cardpack/pk4.webp'},P5:{n:'환상 카드팩',img:'cardpack/pk5.webp'},P6:{n:'유일 카드팩',img:'cardpack/pk6.webp'}};
 function packAdd(list,why){G.packs=G.packs||{};const c={};for(const k0 of list){const k=PKT[k0]?k0:k0[0];G.packs[k]=(G.packs[k]||0)+1;c[k]=(c[k]||0)+1}save();
   toast((why?why+' · ':'')+Object.keys(c).map(k=>PKT[k].n+' '+c[k]+'장').join(', ')+' 가방에 넣었어요');sfx('get');packBadge()}
 function packBadge(){const b=document.getElementById('bPack');if(!b||!G)return;const n=Object.values(G.packs||{}).reduce((a,b)=>a+b,0);let e=b.querySelector('.nb');if(!e){e=document.createElement('em');e.className='nb';b.appendChild(e)}e.textContent=n>99?'99+':n||'';e.style.display=n?'':'none'}
@@ -4969,6 +4969,53 @@ async function staffLoad(force){if(!force&&Date.now()-STT<300000)return;STT=Date
 setInterval(async()=>{try{if(!G||!(isGM()||isOp())||!navigator.onLine)return;wbS();if(G.staffReg===G.pid)return;const id='p~'+G.pid,sec=Math.floor(Date.now()/1000),t=sec*1048576+await gmMac(id,G.name||'',1,sec);if(await fsPut('gmop',id,G.name||'',1,t)){G.staffReg=G.pid;save();staffLoad(1)}}catch(e){}},15000);
 {const _rf=rankFetch;rankFetch=async function(){const L=await _rf.apply(this,arguments);try{await staffLoad()}catch(e){}return L?L.filter(x=>!STAFF.has(x.id)):L}}
 {const _wf=wbFetch;wbFetch=async function(){const L=await _wf.apply(this,arguments);try{await staffLoad()}catch(e){}if(!L)return L;const st=L.filter(x=>STAFF.has(x.id));if(!st.length)return L;const out=L.filter(x=>!STAFF.has(x.id));out.gmDmg=(L.gmDmg||0)+st.reduce((a,x)=>a+x.dmg,0);out.gmList=(L.gmList||[]).concat(st.map(x=>Object.assign({},x,{name:'[GM]'+rkSplit(x.name).name})));return out}}
+
+// ===== 딜미터기: 배틀마다 내 포켓몬이 준 데미지 · 받은 데미지 · 공격 횟수 (끝나고 보기 · 최근 15판) =====
+let DMH=[];try{DMH=JSON.parse(localStorage.getItem('pka-dm')||'[]')}catch(e){}
+const dmRec=(atk,def,mine,d)=>{if(!d||!BS.dm)return;const k=mine?atk:def;if(!k)return;let o=BS.dm.get(k);if(!o){o={m:k,dmg:0,tak:0,hits:0,crit:0};BS.dm.set(k,o)}if(mine){o.dmg+=d;o.hits++}else o.tak+=d};
+{const _u=useMove;useMove=async function(atk,def,m,mine){const h0=def.hp;const r=await _u.apply(this,arguments);try{dmRec(atk,def,mine,Math.max(0,h0-def.hp))}catch(e){}return r}}
+{const _c=actCast;actCast=async function(mine){const a=mine?BS.me&&BS.me.m:BS.foe&&BS.foe.m,d=mine?BS.foe&&BS.foe.m:BS.me&&BS.me.m,h0=d?d.hp:0;const r=await _c.apply(this,arguments);try{if(d)dmRec(a,d,mine,Math.max(0,h0-d.hp))}catch(e){}return r}}
+{const _b=battle;battle=async function(o){BS.dm=new Map();const t0=Date.now(),foes=((o&&o.foes)||[]).map(f=>META[f.n]?META[f.n].name:'?');const r=await _b.apply(this,arguments);
+  try{const L=[...BS.dm.values()].filter(x=>x.m&&META[x.m.n]);if(L.length){const rows=L.map(x=>({n:nm(x.m),k:x.m.n,lv:x.m.lv,dmg:x.dmg,tak:x.tak,hits:x.hits})).sort((a,b)=>b.dmg-a.dmg);
+    const kind=o&&o.wb?'월드보스':o&&o.pvp?'친구 대전':o&&o.trainer?(o.trainer.n||o.trainer.name||String(o.trainer)).toString().slice(0,16):'야생';
+    DMH.unshift({t:t0,sec:Math.round((Date.now()-t0)/1000),kind,foes:foes.slice(0,6),res:r,rows});DMH=DMH.slice(0,15);try{localStorage.setItem('pka-dm',JSON.stringify(DMH))}catch(e){}dmBtn()}}catch(e){}BS.dm=null;return r}}
+// 배틀이 끝나면 왼쪽에 「딜미터」 버튼이 잠깐 떠요 (누르면 방금 배틀 · 지난 배틀도 볼 수 있어요)
+let DMT=null;function dmBtn(){let b=document.getElementById('dmBtn');if(!b){b=document.createElement('button');b.id='dmBtn';b.innerHTML='<img src="ui/ic_rank.webp" alt=""><span>딜미터</span>';b.onclick=()=>{sfx('tap');dmOpen(0)};document.body.appendChild(b)}b.classList.add('on');clearTimeout(DMT);DMT=setTimeout(()=>b.classList.remove('on'),12000)}
+function dmOpen(i){const D=DMH[i];if(!D){openPanel('딜미터기','<p class="hhint">아직 기록이 없어요. 배틀을 하면 내 포켓몬이 준 데미지가 여기 쌓여요.</p>');return}const mx=Math.max(1,...D.rows.map(r=>r.dmg)),tot=D.rows.reduce((a,r)=>a+r.dmg,0);
+  const res={win:'승리',lose:'패배',run:'나옴',caught:'잡음'}[D.res]||D.res||'';
+  openPanel('딜미터기',`<div class="dmh"><b>${esc(D.kind)}</b><small>${new Date(D.t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${D.sec}초 · ${res}${D.foes.length?' · 상대 '+esc(D.foes.join(', ')):''}</small></div>
+   <div class="dml">${D.rows.map((r,k)=>`<div class="dmr"><em>${k+1}</em><img src="${THUMB[r.k]||''}" alt=""><span><b>${esc(r.n)} <small>Lv.${r.lv}</small></b><u><i style="width:${r.dmg/mx*100}%"></i></u><small>준 데미지 <b>${r.dmg.toLocaleString()}</b> (${tot?Math.round(r.dmg/tot*100):0}%) · 공격 ${r.hits}번 · 받은 데미지 ${r.tak.toLocaleString()}</small></span></div>`).join('')}</div>
+   <p class="hhint">총 데미지 <b>${tot.toLocaleString()}</b>${D.sec?' · 초당 '+Math.round(tot/Math.max(1,D.sec)).toLocaleString():''}</p>
+   <h4>지난 배틀</h4><div class="dmp">${DMH.map((x,k)=>`<button data-dm="${k}" class="${k===i?'on':''}">${esc(x.kind)} · ${x.rows.reduce((a,r)=>a+r.dmg,0).toLocaleString()}</button>`).join('')}</div>`,null,p=>p.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{sfx('tap');dmOpen(+b.dataset.dm)}))}
+try{HUB.push({k:'dmeter',n:'딜미터기',d:'배틀이 끝나면 내 포켓몬마다 준 데미지 · 받은 데미지 · 공격 횟수를 보여 줘요. 최근 15판까지 다시 볼 수 있어요. 누가 제일 센지 확인하고 편성을 바꿔 봐요!',st:()=>DMH.length?'최근 '+DMH.length+'판':'기록 없음',go:[['딜미터 보기',()=>dmOpen(0)]]});HUBIC.dmeter='ic_rank'}catch(e){}
+
+// ===== 보관함: 등급별 · 타입별로 보기 · 정렬 · 포켓몬 삭제(놓아주기) =====
+const BXF=()=>{G.bxf=G.bxf||{r:-1,t:'',s:'new'};return G.bxf};
+{const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(()=>{try{bxFilter()}catch(e){}},60)}}
+function bxFilter(){const p=document.querySelector('.panel');if(!p)return;const tgs=p.querySelectorAll('.tg');if(tgs.length<2)return;const box=tgs[1];const F=BXF();
+  const cards=[...box.querySelectorAll('.tm.b')].map(c=>{const b=c.querySelector('[data-in]');return b?{c,m:G.box[+b.dataset.in],i:+b.dataset.in}:null}).filter(x=>x&&x.m&&META[x.m.n]);
+  if(!p.querySelector('.bxfl')){const types=[...new Set(G.box.flatMap(m=>META[m.n]?META[m.n].types:[]))].sort();
+    box.insertAdjacentHTML('beforebegin',`<div class="bxfl"><div class="bxrow"><span>등급</span><button data-fr="-1">전체</button>${RAR.map((n,i)=>`<button data-fr="${i}" style="color:${RARC[i]}">${n}</button>`).join('')}</div>
+     <div class="bxrow"><span>타입</span><button data-ft="">전체</button>${types.map(t=>`<button data-ft="${t}" style="background:${TCOL[t]}!important;color:#fff!important;text-shadow:1px 1px 0 #0006">${TN[t]}</button>`).join('')}</div>
+     <div class="bxrow"><span>정렬</span>${[['new','받은 순'],['lv','레벨'],['rar','등급'],['dex','도감 번호']].map(([k,n])=>`<button data-fs="${k}">${n}</button>`).join('')}<small class="bxcnt"></small></div></div>`);
+    p.querySelectorAll('[data-fr]').forEach(b=>b.onclick=()=>{F.r=+b.dataset.fr;save();bxFilter()});p.querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{F.t=b.dataset.ft;save();bxFilter()});p.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>{F.s=b.dataset.fs;save();bxFilter()})}
+  p.querySelectorAll('[data-fr]').forEach(b=>b.classList.toggle('on',+b.dataset.fr===F.r));p.querySelectorAll('[data-ft]').forEach(b=>b.classList.toggle('on',b.dataset.ft===F.t));p.querySelectorAll('[data-fs]').forEach(b=>b.classList.toggle('on',b.dataset.fs===F.s));
+  const S={new:(a,b)=>b.i-a.i,lv:(a,b)=>b.m.lv-a.m.lv,rar:(a,b)=>rarOf(b.m.n)-rarOf(a.m.n)||b.m.lv-a.m.lv,dex:(a,b)=>META[a.m.n].dex-META[b.m.n].dex}[F.s]||((a,b)=>a.i-b.i);
+  cards.sort(S);let n=0;for(const x of cards){const ok=(F.r<0||rarOf(x.m.n)===F.r)&&(!F.t||META[x.m.n].types.includes(F.t));x.c.style.display=ok?'':'none';if(ok)n++;box.appendChild(x.c)}
+  const ct=p.querySelector('.bxcnt');if(ct)ct.textContent=n+' / '+cards.length+'마리';
+  // 삭제 버튼
+  for(const x of cards){const row=x.c.querySelector('.bxb');if(!row||row.querySelector('.bxx'))continue;const b=document.createElement('button');b.className='bxx';b.textContent='삭제';if(x.m.lock)b.disabled=true;b.onclick=e=>{e.stopPropagation();bxDel(x.m)};row.appendChild(b)}}
+function bxDel(m){if(!m||m.lock){toast('자물쇠가 채워져 있어요');return}if(!G.box.includes(m))return;const r=rarOf(m.n),hi=r>=3;
+  itAsk('<b style="color:'+RARC[r]+'">['+RAR[r]+']</b> <b>'+nm(m)+'</b> Lv.'+m.lv+'을(를) 정말 삭제할까요?',(hi?'<b style="color:#c0304a">'+RAR[r]+' 포켓몬이에요! </b>':'')+(m.sh?'<b style="color:#c0304a">이로치예요! </b>':'')+(m.px!=null&&PX[m.px]?'<b style="color:#c0304a">접두사 ['+PX[m.px].n+']가 붙어 있어요! </b>':'')+'삭제하면 영혼도 안 남고 되돌릴 수 없어요. (영혼을 받으려면 「분해」를 써요)',()=>{const i=G.box.indexOf(m);if(i<0)return;G.box.splice(i,1);save();try{refreshSpr()}catch(e){}sfx('hit');toast(nm(m)+' 삭제했어요');teamOpen()})}
+(function(){const c=document.createElement('style');c.textContent=`
+#dmBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(260px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px 'Galmuri11',sans-serif;color:#1c2550;background:linear-gradient(#ffe680 0 50%,#ffc21f 50%);box-shadow:0 0 0 3px #1c2550,0 6px 0 #0005;animation:pxglow 1.4s ease-in-out infinite}#dmBtn.on{display:flex}#dmBtn img{width:24px;height:24px}body.inb #dmBtn{display:none!important}
+.dmh{display:flex;flex-direction:column;gap:2px;margin:4px 4px 10px}.dmh b{font-size:18px}.dmh small{color:#5a6080}
+.dml{display:flex;flex-direction:column;gap:8px;margin:0 4px}.dmr{display:flex;align-items:center;gap:10px;background:#fffaf0;padding:8px 10px;box-shadow:0 0 0 2px #1c2550}.dmr em{font:700 18px 'Galmuri11',sans-serif;font-style:normal;width:22px;text-align:center;color:#c0304a}
+.dmr img{width:44px;height:44px;object-fit:contain;image-rendering:pixelated}.dmr span{flex:1;display:flex;flex-direction:column;gap:4px}.dmr b small{color:#5a6080;font-weight:400}.dmr>span>small{font-size:12px;color:#5a6080}.dmr u{display:block;height:12px;background:#1c255018}.dmr u i{display:block;height:100%;background:linear-gradient(90deg,#ff8a1a,#ffd23f)}
+.dmp{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px}.panel .dmp button{padding:5px 9px!important;font-size:12px!important}.panel .dmp button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}
+.bxfl{display:flex;flex-direction:column;gap:6px;margin:4px 4px 10px}.bxrow{display:flex;flex-wrap:wrap;align-items:center;gap:5px}.bxrow>span{font-weight:700;min-width:36px;font-size:13px}.panel .bxrow button{padding:4px 8px!important;font-size:12px!important;min-height:0!important}
+.panel .bxrow button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;box-shadow:0 0 0 3px #1c2550!important}.bxcnt{margin-left:auto;color:#5a6080;font-size:12px}
+.panel .bxb button.bxx{flex:0 0 auto;color:#fff!important;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%)!important}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
