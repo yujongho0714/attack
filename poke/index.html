@@ -4666,6 +4666,11 @@ setInterval(()=>{try{const m=document.getElementById('mini');let y=null;if(m&&ge
   for(const d of [...box.children]){const x=d.innerHTML;if(x===s||(area&&d.dataset.area))d.remove()}while(box.children.length>=3)box.firstChild.remove();_t.apply(this,arguments);const l=box.lastChild;if(l&&area)l.dataset.area=1}catch(e){_t.apply(this,arguments)}}}
 {let last=-1;const H=[];setInterval(()=>{try{if(!G)return;if(G.a!==last){if(last>=0)H.push([Date.now(),G.a]);last=G.a;while(H.length&&Date.now()-H[0][0]>20000)H.shift();
   if(AUTO.on&&H.length>=5){const s=new Set(H.slice(-5).map(x=>x[1]));if(s.size<=2){H.length=0;autoStop();if(G.nav)G.nav=null;save();setTimeout(()=>toast('길을 못 찾아서 자동 이동을 멈췄어요 · 월드맵에서 다시 골라 주세요'),300)}}}}catch(e){}},250)}
+// ===== 지역에 들어올 때 출구 칸 바깥쪽(막힌 구석)에 서면 안쪽으로 옮겨요 (노랑시티 ← 10번도로 등) =====
+function resRef(A,arr){const c=A.bld.find(b=>b.kind==='center'||b.kind==='home'||b.kind==='league');if(c)return c.door;for(const e of [A.exP,A.exN])if(e&&e.arr&&(e.arr.x!==arr.x||e.arr.y!==arr.y))return e.arr;return A.spawn||null}
+function resFix(A,x,y){if(!A||!A.res||!A.wAt)return null;const ref=resRef(A,{x,y});if(!ref)return null;const ok=(x,y)=>(x===ref.x&&y===ref.y)||!!bfs(A,x,y,(X,Y)=>X===ref.x&&Y===ref.y,'walk');if(ok(x,y))return null;
+  for(let d=1;d<=8;d++)for(let dy=-d;dy<=d;dy++)for(let dx=-d;dx<=d;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==d)continue;const X=x+dx,Y=y+dy;if(!canGo(A,X,Y,'walk')||A.wAt[X+','+Y])continue;if(ok(X,Y))return[X,Y]}return null}
+{const _g=goRes;goRes=async function(to){const r=await _g.apply(this,arguments);try{const A=curA();const f=resFix(A,P.x,P.y);if(f){P.x=f[0];P.y=f[1];P.mv=null;P.trail=[];P.queue=null;save()}}catch(e){}return r}}
 
 // ===== 확률 정보: 확률로 정해지는 건 전부 「뭐가 나오는지 · 몇 %인지」 볼 수 있게 (지금 난이도 기준으로 계산) =====
 const ODN=['쉬움','보통','어려움','지옥','나이트메어'];
