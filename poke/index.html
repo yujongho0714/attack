@@ -3782,7 +3782,7 @@ function soulAdd(f){const M=META[f.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P'
 try{const h=HUB.find(x=>x.k==='card');if(h){h.n='카드팩 · 영혼 합성';h.d='이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 영혼을 얻어요 (같은 포켓몬은 최대 5마리까지 잡을 수 있어요). 같은 등급 영혼 2개를 합치면 10% 확률로 한 등급 위 포켓몬! 매일 접속하면 카드팩 3장, 7일째는 포켓몬팩 10장 + 기술팩 10장.';h.st=()=>'영혼 · 중복 '+((G.dupes||[]).filter(x=>x.kind==='P').length)+'개'}}catch(e){}
 
 // ===== 운영자(GM): 번호 010-2252-0714 · 이름은 「GM」 · 랭킹에는 안 나와요 (월드보스 데미지는 같이 깎아요) =====
-const GMNUM='01022520714';const isGM=()=>!!(G&&String(G.num||'').replace(/\D/g,'')===GMNUM);
+const GMNUM='01022520714';let isGM=()=>!!(G&&String(G.num||'').replace(/\D/g,'')===GMNUM);
 const isGMName=raw=>{const n=rkSplit(String(raw||'')).name.trim();return n==='GM'||n==='유종호'||n.startsWith('[GM]')};
 {const _n=rkName;rkName=function(){return isGM()?'[GM]'+(G.name||'유종호').slice(0,8):_n.apply(this,arguments)}}
 {const _rp=rankPush;rankPush=async function(){if(isGM()){toast('운영자(GM)는 랭킹에 올라가지 않아요');return false}return _rp.apply(this,arguments)}}
@@ -4471,6 +4471,16 @@ function sideFit(){const s=document.getElementById('side');if(!s||getComputedSty
   const a=document.getElementById('bA');let bottom=VH-8;if(a&&getComputedStyle(a).display!=='none'){const ar=a.getBoundingClientRect();if(ar.left<r.right&&ar.right>r.left)bottom=ar.top-6}
   const k=Math.max(.5,Math.min(1,(bottom-r.top)/r.height,(VW*.5)/r.width));s.style.transformOrigin='top right';s.style.transform=k<.999?`scale(${k.toFixed(3)})`:''}
 setInterval(()=>{try{sideFit()}catch(e){}},1500);setTimeout(()=>{try{sideFit()}catch(e){}},300);
+// ===== 화면 확대 막기 (아이폰은 확대 금지 설정을 무시해요) =====
+// 두 번 탭 · 두 손가락 벌리기 · 글씨가 작은 입력창을 누를 때 저절로 확대되던 것
+(function(){const c=document.createElement('style');c.textContent=`*{touch-action:manipulation}html{-webkit-text-size-adjust:100%;text-size-adjust:100%}input,select,textarea{font-size:max(16px,1em)!important}#cv,canvas{touch-action:none}`;document.head.appendChild(c)})();
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault()},{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+{let last=0;document.addEventListener('touchend',e=>{const n=Date.now();const t=e.target;if(n-last<320&&!(t&&t.closest&&t.closest('input,textarea,select'))){e.preventDefault();try{t&&t.click&&t.click()}catch(_){}}last=n},{passive:false})}
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+// 그래도 확대되면 바로 원래대로
+setInterval(()=>{try{const v=window.visualViewport;if(v&&v.scale>1.01&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))vpReset();if(scrollX||scrollY)scrollTo(0,0)}catch(e){}},700);
+document.addEventListener('focusout',e=>{if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))setTimeout(()=>{try{vpReset();resize()}catch(_){}},150)});
 
 // ===== 확률 정보: 확률로 정해지는 건 전부 「뭐가 나오는지 · 몇 %인지」 볼 수 있게 (지금 난이도 기준으로 계산) =====
 const ODN=['쉬움','보통','어려움','지옥','나이트메어'];
@@ -4523,6 +4533,82 @@ try{HUB.push({k:'odds',n:'확률 정보',d:'카드팩 · 합성 · 포케스탑 
 .panel button.odBtn{display:inline-flex!important;align-items:center;gap:6px;float:right;margin:0 2px 6px 8px!important;padding:6px 12px!important;font:700 14px 'Galmuri11',sans-serif!important;background:linear-gradient(#ffffff 0 50%,#e4ecff 50%)!important;color:#1c2550!important}
 .odBtn img{width:22px;height:22px;image-rendering:pixelated}`;document.head.appendChild(c)})();
 try{for(const [k,t] of [['stop','stop'],['egg','egg'],['card','fuse'],['gear','gear'],['prefix','px']]){const h=HUB.find(x=>x.k===k);if(h&&h.go&&!h.go.some(g=>g[0]==='확률 보기'))h.go.push(['확률 보기',()=>oddsOpen(t)])}}catch(e){}
+
+// ===== 운영자(GM) 계정: 비밀번호로 들어가요 · 닉네임을 골라 무엇이든 선물 =====
+// 비밀번호는 코드에 그대로 넣지 않고 SHA-256 값만 넣어요
+const GMH='de8618ed6355759127fb8bafb40f40beb55490df730c81b06a1eeebef7bfa633';
+const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+const gmNumIs=()=>!!(G&&String(G.num||'').replace(/\D/g,'')===GMNUM);
+let GMOK=false,GMASK=0;
+(async()=>{try{const v=LS.get('pka-gmok','');if(v&&v===hex(await sha(GMH+'|'+GMNUM)))GMOK=true}catch(e){}})();
+{const _g=isGM;isGM=()=>_g()&&GMOK}
+function gmPw(){return new Promise(done=>{const o=document.createElement('div');o.id='gmPw';o.innerHTML=`<div class="gmw"><div class="gmt">운영자(GM) 계정</div><p>이 번호는 운영자 계정이에요. 비밀번호를 넣어 주세요.</p><input type="password" id="gmIn" autocomplete="off" placeholder="비밀번호"><p class="gme"></p><div class="gmb"><button id="gmNo">그냥 할래요</button><button id="gmYes" class="main">들어가기</button></div></div>`;document.body.appendChild(o);
+  const inp=o.querySelector('#gmIn');setTimeout(()=>{try{inp.focus()}catch(e){}},50);
+  const go=async()=>{const h=hex(await sha(inp.value));if(h===GMH){GMOK=true;LS.set('pka-gmok',hex(await sha(GMH+'|'+GMNUM)));o.remove();sfx('badge');toast('운영자(GM)로 들어왔어요');done(true)}else{o.querySelector('.gme').textContent='비밀번호가 틀렸어요';sfx('hit')}};
+  o.querySelector('#gmYes').onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});o.querySelector('#gmNo').onclick=()=>{o.remove();done(false)}})}
+setInterval(async()=>{try{if(!G||GMOK||GMASK||!gmNumIs()||SCENE!=='over'||DLG.on||PANEL||document.getElementById('gmPw'))return;GMASK=1;await gmPw()}catch(e){}},2000);
+// ---------- 선물 보내기 · 받기 (서버: 랭킹 서버의 gift-<월> 칸을 써요) ----------
+const gmBoard=off=>{const d=new Date(Date.now()+9*36e5);d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()-(off||0));return 'gift-'+d.toISOString().slice(0,7)};
+async function gmMac(id,name,v,sec){const h=await sha(GBSEC+'|GMG|'+id+'|'+name+'|'+v+'|'+sec);return ((h[0]<<12)|(h[1]<<4)|(h[2]>>4))>>>0}
+async function gmSend(to,kind,key,v){const c=wbCfg();if(!c){toast('서버 연결 전이에요');return false}if(!isGM()){toast('운영자만 보낼 수 있어요');return false}
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'~'+kind+'~'+key,name=String(to).slice(0,12),sec=Math.floor(Date.now()/1000),t=sec*1048576+await gmMac(id,name,v,sec);
+  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${gmBoard(0)}/players/${encodeURIComponent(id)}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:name},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});if(!r.ok)throw 0;return true}catch(e){toast('보내기 실패 · 인터넷을 확인해 주세요');return false}}
+const gmLabel=(kind,key,v)=>kind==='m'?(META[key]?META[key].name:key)+' Lv.'+(v&127)+((v>>7)&1?' 이로치':'')+((v>>8)?' ['+(PX[(v>>8)-1]||{}).n+']':''):kind==='i'?(ITEMS[key]?ITEMS[key].n:key)+' ×'+v:kind==='p'?(PKT[key]?PKT[key].n:key)+' ×'+v:kind==='g'?v.toLocaleString()+'원':'?';
+let GMBUSY=0;
+async function gmRecv(){if(GMBUSY||!G||!G.name||!navigator.onLine)return;const c=wbCfg();if(!c)return;GMBUSY=1;G.gmg=G.gmg||{};const got=[];
+  try{for(const off of [0,1]){const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${gmBoard(off)}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)continue;const j=await r.json();
+    for(const d of j.documents||[]){const id=decodeURIComponent(d.name.split('/').pop());if(G.gmg[id])continue;const name=(d.fields.name||{}).stringValue||'',v=+((d.fields.v||{}).integerValue||0),t=+((d.fields.t||{}).integerValue||0);
+      const all=name==='*모두';if(!all&&name!==String(G.name).slice(0,12))continue;const sec=Math.floor(t/1048576),mac=t%1048576;if(Date.now()/1000-sec>45*86400)continue;if(all&&G.t0&&sec*1000<G.t0-86400e3)continue;
+      if(await gmMac(id,name,v,sec)!==mac)continue;const [,kind,key]=id.split('~');G.gmg[id]=1;got.push([kind,key,v])}}}catch(e){}
+  if(got.length){save();closePanel(1);const L=[];for(const [kind,key,v] of got){try{
+      if(kind==='m'&&META[key]){const m=mkMon(key,Math.max(1,Math.min(100,v&127)));if((v>>7)&1)m.sh=1;if(v>>8)m.px=(v>>8)-1;m.gift=1;m.hp=stOf(m)[0];const M=META[key];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m))soulFrom(m);else if(G.party.length<6)G.party.push(m);else G.box.push(m);try{await CardPack.open({rar:rarOf(key),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(key,'Joyous')})}catch(e){}}
+      else if(kind==='i'&&ITEMS[key])addItem(key,v);else if(kind==='p'&&PKT[key])packAdd(Array(Math.min(200,v)).fill(key),'운영자 선물');else if(kind==='g')G.money+=v;else continue;L.push(gmLabel(kind,key,v))}catch(e){}}
+    save();try{refreshSpr();hud()}catch(e){}sfx('badge');await say(['<b>운영자(GM) 선물</b>이 도착했어요!',L.join('<br>')])}GMBUSY=0}
+setInterval(()=>{try{if(G&&SCENE==='over'&&!DLG.on&&!PANEL)gmRecv()}catch(e){}},60000);setTimeout(()=>{try{gmRecv()}catch(e){}},15000);
+// ---------- 운영자 선물 창 ----------
+const GMF={to:'',all:0,tab:'m',sel:null,q:'',lv:50,sh:0,px:0,n:1,names:null};
+async function gmOpen(){if(!isGM()){toast('운영자만 쓸 수 있어요');return}if(!GMF.names){GMF.names=[];try{const L=await rankFetch('dex');GMF.names=[...new Set((L||[]).map(x=>rkSplit(x.name).name.trim()).filter(n=>n&&!isGMName(n)))].slice(0,60)}catch(e){}}gmDraw()}
+function gmDraw(){const F=GMF;let list='';const q=F.q.trim();
+  if(F.tab==='m'){const L=SPECIES.filter(s=>META[s]&&(!q||META[s].name.includes(q))).slice(0,48);list=`<div class="gmg">${L.map(s=>`<button class="gmc${F.sel===s?' on':''}" data-s="${encodeURIComponent(s)}"><img src="${THUMB[s]||''}" alt="" loading="lazy"><b>${META[s].name}</b><small style="color:${RARC[rarOf(s)]}">${RAR[rarOf(s)]}</small></button>`).join('')}</div>`}
+  else if(F.tab==='i'){const L=Object.keys(ITEMS).filter(k=>ITEMS[k].n&&(!q||ITEMS[k].n.includes(q)));list=`<div class="gmg">${L.map(k=>`<button class="gmc${F.sel===k?' on':''}" data-s="${encodeURIComponent(k)}"><span class="gmi">${ITEMS[k].e||''}</span><b>${ITEMS[k].n}</b></button>`).join('')}</div>`}
+  else if(F.tab==='p'){list=`<div class="gmg">${Object.keys(PKT).map(k=>`<button class="gmc${F.sel===k?' on':''}" data-s="${k}"><img src="${PKT[k].img}" alt=""><b>${PKT[k].n}</b></button>`).join('')}</div>`}
+  const opt=F.tab==='m'?`<div class="gmo"><span>레벨</span><button data-lv="-10">−10</button><button data-lv="-1">−</button><b>${F.lv}</b><button data-lv="1">＋</button><button data-lv="10">+10</button><button data-sh="1" class="${F.sh?'on':''}">이로치 ${F.sh?'켜짐':'꺼짐'}</button>
+     <select id="gmPx"><option value="0">접두사 없음</option>${PX.map((p,i)=>`<option value="${i+1}" ${F.px===i+1?'selected':''}>[${PXG[p.g]}] ${p.n}</option>`).join('')}</select></div>`
+   :F.tab==='g'?`<div class="gmo"><span>금액</span><b>${F.n.toLocaleString()}원</b>${[10000,100000,1000000].map(x=>`<button data-n="${x}">+${x/10000}만</button>`).join('')}<button data-n0="1">0으로</button></div>`
+   :`<div class="gmo"><span>개수</span><button data-n="-10">−10</button><button data-n="-1">−</button><b>${F.n}</b><button data-n="1">＋</button><button data-n="10">+10</button></div>`;
+  const ready=(F.all||F.to.trim())&&(F.tab==='g'?F.n>0:F.sel);
+  openPanel('운영자 선물 (GM)',`<div class="gmto"><span>받는 사람</span><input id="gmTo" value="${esc(F.to)}" placeholder="닉네임" ${F.all?'disabled':''}><button data-all="1" class="${F.all?'on':''}">모두에게</button></div>
+    ${F.names&&F.names.length?`<div class="gmnm">${F.names.map(n=>`<button data-nm="${esc(n)}" class="${F.to===n?'on':''}">${esc(n)}</button>`).join('')}</div>`:''}
+    <div class="tabs">${[['m','포켓몬'],['i','아이템'],['p','카드팩'],['g','돈']].map(([k,n])=>`<button data-tb="${k}" class="${F.tab===k?'on':''}">${n}</button>`).join('')}</div>
+    ${F.tab==='m'||F.tab==='i'?`<input id="gmQ" class="gmq" value="${esc(F.q)}" placeholder="이름으로 찾기">`:''}${list}${opt}
+    <div class="wbt"><button class="main" id="gmGo" ${ready?'':'disabled'}>${ready?esc(F.all?'모두':F.to)+'에게 '+esc(gmLabel(F.tab,F.sel,gmV()))+' 보내기':'받는 사람과 선물을 골라요'}</button></div>
+    <p class="hhint">받는 친구가 게임을 켜고 인터넷이 되면 1분 안에 들어가요. 닉네임이 똑같아야 해요. 「모두에게」는 모든 친구가 한 번씩 받아요.</p>`,null,p=>{
+    const to=p.querySelector('#gmTo');if(to)to.oninput=()=>{F.to=to.value;const g=p.querySelector('#gmGo');if(g){const r=(F.all||F.to.trim())&&(F.tab==='g'?F.n>0:F.sel);g.disabled=!r;g.textContent=r?(F.all?'모두':F.to)+'에게 '+gmLabel(F.tab,F.sel,gmV())+' 보내기':'받는 사람과 선물을 골라요'}};
+    const qi=p.querySelector('#gmQ');if(qi){qi.oninput=()=>{F.q=qi.value;clearTimeout(qi._t);qi._t=setTimeout(()=>{gmDraw();setTimeout(()=>{const x=document.querySelector('#gmQ');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length)}},30)},350)}}
+    p.querySelectorAll('[data-nm]').forEach(b=>b.onclick=()=>{F.to=b.dataset.nm;F.all=0;gmDraw()});p.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{F.all=F.all?0:1;gmDraw()});
+    p.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{F.tab=b.dataset.tb;F.sel=null;F.q='';F.n=F.tab==='g'?0:1;gmDraw()});p.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{F.sel=decodeURIComponent(b.dataset.s);gmDraw()});
+    p.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{F.lv=Math.max(1,Math.min(100,F.lv+ +b.dataset.lv));gmDraw()});p.querySelectorAll('[data-sh]').forEach(b=>b.onclick=()=>{F.sh=F.sh?0:1;gmDraw()});
+    const px=p.querySelector('#gmPx');if(px)px.onchange=()=>{F.px=+px.value;gmDraw()};
+    p.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{F.n=Math.max(F.tab==='g'?0:1,Math.min(F.tab==='g'?1e9:999,F.n+ +b.dataset.n));gmDraw()});p.querySelectorAll('[data-n0]').forEach(b=>b.onclick=()=>{F.n=0;gmDraw()});
+    const go=p.querySelector('#gmGo');if(go)go.onclick=()=>{const to=F.all?'*모두':F.to.trim(),lab=gmLabel(F.tab,F.sel,gmV());itAsk((F.all?'모두':esc(to))+'에게 보낼까요?',esc(lab),async()=>{if(await gmSend(to,F.tab,F.tab==='g'?'money':F.sel,gmV())){sfx('get');toast('보냈어요! '+(F.all?'모두':to)+' · '+lab)}})}})}
+const gmV=()=>GMF.tab==='m'?(GMF.lv&127)+(GMF.sh?128:0)+GMF.px*256:GMF.n;
+// 운영자에게만 보이는 버튼
+setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&isGM()&&SCENE==='over'&&!document.body.classList.contains('inb');if(!on){if(b)b.style.display='none';return}
+  if(!b){b=document.createElement('button');b.id='gmBtn';b.innerHTML='<img src="ui/ic_gift.webp" alt=""><span>GM 선물</span>';b.onclick=()=>{sfx('tap');gmOpen()};document.body.appendChild(b)}b.style.display=''}catch(e){}},1000);
+(function(){const c=document.createElement('style');c.textContent=`
+#gmPw{position:fixed;inset:0;z-index:300;background:#0a1024d8;display:flex;align-items:center;justify-content:center;font-family:'Galmuri11',sans-serif}
+.gmw{width:min(420px,92vw);background:#fff8e6;box-shadow:0 0 0 4px #1c2550,0 0 0 8px #ffd23f,0 20px 40px #000a;color:#1c2550}.gmt{background:linear-gradient(#2c3a80,#1c2550);color:#ffd23f;font-size:18px;font-weight:700;padding:10px 14px}
+.gmw p{margin:12px 16px 6px;font-size:14px}.gme{color:#c0304a;min-height:18px}
+#gmIn,#gmTo,.gmq{font:700 20px 'Galmuri11',sans-serif;color:#1c2550;background:#fffdf4;border:0;border-radius:0;padding:9px 12px;outline:0;box-shadow:0 0 0 3px #1c2550,0 0 0 6px #ffd23f;-webkit-appearance:none}
+#gmIn{display:block;width:calc(100% - 44px);margin:8px 16px}
+.gmb{display:flex;gap:10px;justify-content:flex-end;padding:8px 16px 16px}.gmb button{font:700 16px 'Galmuri11',sans-serif;border:0;padding:10px 16px;color:#1c2550;cursor:pointer;background:linear-gradient(#fff 0 50%,#e4ecff 50%);box-shadow:0 3px 0 #1c2550,0 -3px 0 #1c2550,3px 0 0 #1c2550,-3px 0 0 #1c2550}.gmb .main{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)}
+.gmto{display:flex;align-items:center;gap:10px;margin:6px 4px 10px}.gmto span{font-weight:700}#gmTo{flex:1;min-width:0}.gmq{display:block;width:calc(100% - 24px);margin:8px 6px}
+.gmnm{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px 10px}.panel .gmnm button{padding:5px 9px!important;font-size:13px!important}
+.gmg{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 4px;max-height:44vh;overflow:auto;padding:4px}
+.panel button.gmc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px!important;font-size:13px!important}.gmc img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}.gmc small{font-size:11px}.gmi .ic,.gmi img{width:36px;height:36px}
+.panel button.gmc.on,.panel .gmo button.on,.panel .gmto button.on,.panel .gmnm button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}
+.gmo{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 4px}.gmo b{min-width:56px;text-align:center;font-size:18px}.gmo span{font-weight:700}#gmPx{font:700 14px 'Galmuri11',sans-serif;padding:8px;border:0;box-shadow:0 0 0 3px #1c2550;background:#fffdf4;max-width:100%}
+#gmBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(200px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px 'Galmuri11',sans-serif;color:#ffd23f;background:#c0304a;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#gmBtn img{width:26px;height:26px}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
