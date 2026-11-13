@@ -4609,6 +4609,44 @@ setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&isGM()&&
 .panel button.gmc.on,.panel .gmo button.on,.panel .gmto button.on,.panel .gmnm button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}
 .gmo{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 4px}.gmo b{min-width:56px;text-align:center;font-size:18px}.gmo span{font-weight:700}#gmPx{font:700 14px 'Galmuri11',sans-serif;padding:8px;border:0;box-shadow:0 0 0 3px #1c2550;background:#fffdf4;max-width:100%}
 #gmBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(200px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px 'Galmuri11',sans-serif;color:#ffd23f;background:#c0304a;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#gmBtn img{width:26px;height:26px}`;document.head.appendChild(c)})();
+
+// ===== 포켓몬 분해 · 잠금 =====
+// 받은 포켓몬은 분해해서 영혼으로 바꿔야 합성에 써요 · 분해하면 그 포켓몬의 영혼 10개
+// 중복만 분해돼요 (같은 포켓몬이 2마리 이상일 때 · 마지막 1마리는 안 돼요) · 출전 중 · 자물쇠 채운 포켓몬은 분해 안 돼요
+const BXSOUL=10;
+const bxDex=m=>{try{return META[m.n].dex}catch(e){return -1}};
+const bxScore=m=>{let s=m.lv||1;try{if(m.px!=null&&PX[m.px])s+=(PX[m.px].g+1)*1000}catch(e){}if(m.sh)s+=600;s+=(m.lb||0)*60;return s};
+const bxCnt=d=>[...G.party,...G.box].filter(m=>bxDex(m)===d).length;
+const bxCan=m=>!!(m&&!m.lock&&G.box.includes(m)&&bxCnt(bxDex(m))>=2);
+// 일괄 분해할 포켓몬: 같은 포켓몬끼리 묶어서 출전 중 · 잠금 · 제일 좋은 1마리는 남겨요
+function bxAllList(){const grp=new Map();for(const m of [...G.party,...G.box]){const d=bxDex(m);if(!grp.has(d))grp.set(d,[]);grp.get(d).push(m)}const out=[];
+  for(const L of grp.values()){if(L.length<2)continue;const keep=new Set(L.filter(m=>m.lock||G.party.includes(m)));if(!keep.size)keep.add(L.slice().sort((a,b)=>bxScore(b)-bxScore(a))[0]);for(const m of L)if(!keep.has(m)&&G.box.includes(m))out.push(m)}return out}
+function bxDo(list){if(!list.length)return 0;G.dupes=G.dupes||[];for(const m of list){const i=G.box.indexOf(m);if(i<0||m.lock)continue;G.box.splice(i,1);const d=bxDex(m),r=rarOf(m.n);for(let k=0;k<BXSOUL;k++)G.dupes.push({kind:'P',id:d,rar:r,lv:m.lv,sh:0,soul:1})}save();try{refreshSpr()}catch(e){}return list.length}
+const bxWarn=L=>{const sh=L.filter(m=>m.sh).length,px=L.filter(m=>m.px!=null).length;return (sh||px)?`<br><b style="color:#c0304a">주의! ${[sh?'이로치 '+sh+'마리':'',px?'접두사 '+px+'마리':''].filter(Boolean).join(' · ')}가 들어 있어요.</b> 지키고 싶으면 자물쇠를 먼저 채워요.`:''};
+function bxOne(m){if(!bxCan(m)){toast(m&&m.lock?'자물쇠가 채워져 있어요':'같은 포켓몬이 1마리뿐이라 분해할 수 없어요');return}
+  itAsk('<b>'+nm(m)+'</b> Lv.'+m.lv+'을(를) 정말 분해할까요?','분해하면 되돌릴 수 없어요. '+META[m.n].name+'의 영혼 '+BXSOUL+'개를 받아요.'+bxWarn([m]),()=>{bxDo([m]);sfx('get');toast(META[m.n].name+'의 영혼 +'+BXSOUL);teamOpen()})}
+function bxAll(){const L=bxAllList();if(!L.length){toast('분해할 중복 포켓몬이 없어요');return}
+  itAsk('중복 포켓몬 <b>'+L.length+'마리</b>를 정말 분해할까요?','같은 포켓몬끼리 제일 좋은 1마리 · 출전 중 · 자물쇠 채운 포켓몬은 남겨요. 영혼 '+(L.length*BXSOUL)+'개를 받아요. 되돌릴 수 없어요.'+bxWarn(L),()=>{const n=bxDo(L);sfx('badge');toast(n+'마리 분해 · 영혼 +'+n*BXSOUL);teamOpen()})}
+const LOCKI='<svg class="lki" viewBox="0 0 10 12" aria-hidden="true"><path d="M3 5V3.5a2 2 0 0 1 4 0V5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="1.5" y="5" width="7" height="6" fill="currentColor"/></svg>';
+{const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel');if(!p)return;const tgs=p.querySelectorAll('.tg');if(tgs.length<2)return;
+  const deco=(card,m)=>{if(!m||card.querySelector('.bxb'))return;card.classList.toggle('lk',!!m.lock);const f=card.querySelector('.tmf');if(f&&m.lock&&!f.querySelector('.lkb'))f.insertAdjacentHTML('beforeend','<span class="lkb">'+LOCKI+'</span>');
+    const w=document.createElement('div');w.className='bxb';w.innerHTML=`<button class="bxl${m.lock?' on':''}">${LOCKI}<span>${m.lock?'잠금 풀기':'잠그기'}</span></button>${G.box.includes(m)?`<button class="bxd" ${bxCan(m)?'':'disabled'}>분해</button>`:''}`;
+    w.querySelector('.bxl').onclick=e=>{e.stopPropagation();m.lock=m.lock?0:1;save();sfx('tap');toast(nm(m)+(m.lock?' 잠갔어요 · 분해 · 교환 안 돼요':' 잠금을 풀었어요'));teamOpen()};
+    const d=w.querySelector('.bxd');if(d)d.onclick=e=>{e.stopPropagation();bxOne(m)};card.appendChild(w)};
+  tgs[0].querySelectorAll('.tm.p').forEach((c,i)=>deco(c,G.party[i]));tgs[1].querySelectorAll('.tm.b').forEach(c=>{const b=c.querySelector('[data-in]');if(b)deco(c,G.box[+b.dataset.in])});
+  const h=[...p.querySelectorAll('.pb h4')].find(x=>x.textContent.includes('보관함'));const n=bxAllList().length;
+  if(h&&!p.querySelector('.bxAll')){h.insertAdjacentHTML('afterend',`<div class="bxtop"><button class="bxAll" ${n?'':'disabled'}>일괄 분해 · 중복 ${n}마리 → 영혼 ${n*BXSOUL}개</button><small>분해하면 영혼 ${BXSOUL}개 · 중복만 · 출전 중 · 잠근 포켓몬은 빼고 · 영혼은 합성에 써요</small></div>`);p.querySelector('.bxAll').onclick=()=>{sfx('tap');bxAll()}}}catch(e){}},45)}}
+// 잠긴 포켓몬은 교환(QR로 보내기)도 막아요
+{const _ts=tradeSend;tradeSend=async function(m){if(m&&m.lock){toast('자물쇠가 채워진 포켓몬은 보낼 수 없어요');return}return _ts.apply(this,arguments)}}
+try{const h=HUB.find(x=>x.k==='card');if(h)h.d='받은 포켓몬은 보관함에서 「분해」하면 그 포켓몬의 영혼 '+BXSOUL+'개가 돼요 (중복만 · 자물쇠 채운 포켓몬은 안 돼요). 이미 잡은 포켓몬을 쓰러뜨려도 영혼 1개. 같은 등급 영혼 2개를 합치면 10% 확률로 한 등급 위 포켓몬!'}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`
+.lki{width:12px;height:14px;display:inline-block;vertical-align:-2px}
+.tm .tmf .lkb{position:absolute;right:-4px;top:-4px;width:22px;height:22px;display:grid;place-items:center;background:#ffd23f;color:#1c2550;box-shadow:0 0 0 2px #1c2550}
+.tm.lk{box-shadow:inset 0 0 0 3px #ffd23f}
+.panel .tm:has(.bxb){flex-wrap:wrap}.bxb{display:flex;gap:6px;margin-top:6px;flex:0 0 100%;width:100%;order:9}.panel .bxb button{flex:1;display:inline-flex!important;align-items:center;justify-content:center;gap:4px;padding:5px 6px!important;font-size:12px!important;min-height:0!important}
+.panel .bxb button.bxl.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}.panel .bxb button.bxd{color:#c0304a!important}
+.bxtop{display:flex;flex-direction:column;gap:4px;margin:0 4px 10px}.bxtop small{font-size:12px;color:#5a6080}
+.panel button.bxAll{padding:10px 14px!important;font-size:16px!important;color:#fff!important;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%)!important}.panel button.bxAll:disabled{filter:grayscale(1);opacity:.6}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
