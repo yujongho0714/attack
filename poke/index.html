@@ -1400,6 +1400,7 @@ function drawOver(dt){cx.setTransform(1,0,0,1,0,0);cx.filter='none';cx.globalAlp
       cx.save();cx.translate(X+s/2,Y-up+bob);cx.scale(1,1+Math.sin(NOW*10)*.05);drawPm(cx,MOUNT,'walk',ROWOF[P.dir],NOW,0,0,s/10*pmScale(MOUNT));cx.restore();drawMe(P.dir,0,X,Y-up-s*.95+bob,s,.7)}
     else drawMe(P.dir,wf,X,Y,s)}});
   if(typeof stopEnts==='function')try{stopEnts(ents,A,s,camX,camY)}catch(e){}
+  if(typeof meLabelEnt==='function')try{meLabelEnt(ents,px,py,s,camX,camY)}catch(e){}
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.f());
   if(A.res&&A.hi&&A.hi.complete&&A.hi.naturalWidth)cx.drawImage(A.hi,-camX,-camY,A.W*s,A.H*s);
   if(A.th.cave&&!A.town){const g=cx.createRadialGradient(cv.width/2,cv.height/2-(VH*.06*DPR),s*2,cv.width/2,cv.height/2,s*7);g.addColorStop(0,'#0000');g.addColorStop(1,'#000a');cx.fillStyle=g;cx.fillRect(0,0,cv.width,cv.height)}
@@ -3688,6 +3689,62 @@ try{HUB.push({k:'prefix',n:'접두사 (100가지)',d:'내 포켓몬마다 접두
 (function(){const c=document.createElement('style');c.textContent=`
 .pxg{display:block;font-size:11px;line-height:1.3;color:#2c3050;margin-top:2px}.pxg u{text-decoration:none;background:var(--pc);color:#fff;padding:0 5px;margin-right:4px;font-weight:700}
 .pxbk{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:4px}.pxbk span{background:#fffaf0;padding:6px 8px;box-shadow:inset 4px 0 0 var(--pc),0 2px 0 #1c2550,0 -2px 0 #1c2550,2px 0 0 #1c2550,-2px 0 0 #1c2550}.pxbk b{display:block;color:var(--pc);font-size:15px}.pxbk small{font-size:12px;color:#4a5070}`;document.head.appendChild(c)})();
+
+// ===== 내 캐릭터 접두사: 머리 위에 [접두사] + 이름 · 효과는 내 모든 포켓몬에게 절반만큼 =====
+function mePx(){if(!G)return null;if(G.mepx==null){G.mepx=pxRoll();save()}return PX[G.mepx]}
+{const _s2=stOf;const IX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};stOf=function(m){const S=_s2(m);if(!m||m.px==null||!G)return S;const p=mePx();if(!p)return S;const o=S.slice?S.slice():S;for(const k in p.e)if(IX[k]!=null)o[IX[k]]=Math.round(o[IX[k]]*(1+p.e[k]/200));return o}}
+{const _dc2=dmgCalc;dmgCalc=function(a,d,mv0,crit){const r=_dc2.apply(this,arguments);try{if(a&&a.px!=null&&G){const p=mePx();if(p&&r&&r.d>0){if(crit&&p.e.cdm)r.d=Math.round(r.d*(1+p.e.cdm/200));else if(!crit&&p.e.crt&&R()<p.e.crt/200)r.d=Math.round(r.d*1.5)}}}catch(e){}return r}}
+function meLabelEnt(ents,px,py,s,camX,camY){if(!G)return;const p=mePx();const name=(typeof isGM==='function'&&isGM()?'[GM] ':'')+(G.name||'');ents.push({y:py+.02,f:()=>{const X=px*s-camX+s/2,Y=py*s-camY-s*.08;cx.save();cx.textAlign='center';cx.textBaseline='bottom';
+  const f1=Math.max(9,Math.round(s*.3)),f2=Math.max(10,Math.round(s*.36));cx.lineJoin='round';
+  cx.font=`700 ${f2}px Galmuri11, sans-serif`;cx.lineWidth=Math.max(3,s*.12);cx.strokeStyle='#1c2550';cx.fillStyle='#fff';cx.strokeText(name,X,Y);cx.fillText(name,X,Y);
+  if(p){const t='['+p.n+']';cx.font=`700 ${f1}px Galmuri11, sans-serif`;const y2=Y-f2-1;if(p.g>=3){cx.shadowColor=PXC[p.g];cx.shadowBlur=8+4*Math.sin(NOW*4)}cx.lineWidth=Math.max(3,s*.11);cx.strokeStyle='#1c2550';cx.strokeText(t,X,y2);cx.shadowBlur=0;
+    if(p.g>=5){const w=cx.measureText(t).width,gr=cx.createLinearGradient(X-w/2,0,X+w/2,0);const h=(NOW*80)%360;for(let i=0;i<=4;i++)gr.addColorStop(i/4,`hsl(${(h+i*70)%360},95%,65%)`);cx.fillStyle=gr}else cx.fillStyle=PXC[p.g];cx.fillText(t,X,y2)}
+  cx.restore()}})}
+
+// ===== 접두사 바꾸기: 접두사 주문서 1개 또는 골드 (포켓몬 5,000원 · 내 캐릭터 10,000원) =====
+ITEMS.pxsc={n:'접두사 주문서',e:'<img class="ic" src="ui/star.webp" style="filter:hue-rotate(200deg) saturate(1.6)">'};
+try{ITD.pxsc={s:'포켓몬이나 내 캐릭터의 접두사를 새로 뽑아요 (공짜)',use:'편성 카드 또는 장비 창의 「접두사 바꾸기」에서 자동으로 써요',good:'골드 없이 다시 뽑을 수 있어요',who:'더 좋은 접두사를 원하는 친구',tip:'포케스탑 · 히든 포탈에서 가끔 나와요'}}catch(e){}
+{const _pl=psLoot;psLoot=function(){const L=_pl.apply(this,arguments);if(R()<.04)L.pxsc=(L.pxsc||0)+1;return L}}
+const PXCOST={mon:5000,me:10000};
+function pxReroll(target){return new Promise(done=>{const me=target==='me',m=me?null:target,cur=me?mePx():pxOf(m),cost=me?PXCOST.me:PXCOST.mon,sc=G.bag.pxsc||0;
+  const o=document.createElement('div');o.id='pxOv';o.innerHTML=`<div class="pxwin2"><div class="pxt2">접두사 바꾸기 · ${me?'내 캐릭터 '+esc(G.name||''):esc(nm(m))}</div><div class="pxcur" style="--pc:${PXC[cur.g]}"><u>${PXG[cur.g]}</u><b>${cur.n}</b><small>${pxTxt(cur)}${me?' (내 모든 포켓몬에게 절반)':''}</small></div>
+    <p class="pxh2">새로 뽑으면 지금 접두사는 사라져요. 등급 확률: 노말 55% · 희귀 25% · 영웅 12% · 전설 5% · 신화 2% · 환상 0.8% · 유일 0.2%</p>
+    <div class="wbt"><button class="main" id="pxS" ${sc?'':'disabled'}>주문서로 뽑기 (가진 ${sc}개)</button><button class="main" id="pxG" ${G.money>=cost?'':'disabled'}>${cost.toLocaleString()}원으로 뽑기</button><button id="pxX">닫기</button></div></div>`;document.body.appendChild(o);
+  const close=()=>{o.remove();done()};o.querySelector('#pxX').onclick=()=>{sfx('tap');close()};
+  const go=async how=>{if(how==='s'){if(!(G.bag.pxsc>0))return;G.bag.pxsc--}else{if(G.money<cost)return;G.money-=cost}const nx=pxRoll();const box=o.querySelector('.pxcur');o.querySelectorAll('button').forEach(b=>b.disabled=true);
+    for(let i=0;i<14;i++){const q=PX[ri(0,PX.length-1)];box.style.setProperty('--pc',PXC[q.g]);box.innerHTML=`<u>${PXG[q.g]}</u><b>${q.n}</b><small>…</small>`;sfx('tap');await sleep(60+i*12)}
+    if(me)G.mepx=nx;else m.px=nx;save();const q=PX[nx];box.style.setProperty('--pc',PXC[q.g]);box.className='pxcur pxf'+q.g;box.innerHTML=`<u>${PXG[q.g]}</u><b>${q.n}</b><small>${pxTxt(q)}</small>`;sfx(q.g>=3?'badge':'get');toast('새 접두사: ['+PXG[q.g]+'] '+q.n);
+    setTimeout(()=>{o.remove();done();if(!me)try{teamOpen()}catch(e){}},1400)};
+  o.querySelector('#pxS').onclick=()=>go('s');o.querySelector('#pxG').onclick=()=>go('g')})}
+// 편성 카드: 접두사 등급 프레임 + 바꾸기 버튼
+{const _to2=teamOpen;teamOpen=function(){_to2.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');
+  const put=(cards,L)=>cards.forEach((c,i)=>{const m=L[i],x=pxOf(m);if(!x)return;c.classList.add('pxf'+x.g);const g=c.querySelector('.pxg');if(g&&!g.querySelector('.pxrb')){const b=document.createElement('button');b.className='pxrb';b.textContent='접두사 바꾸기';b.onclick=e=>{e.stopPropagation();sfx('tap');pxReroll(m)};g.appendChild(b)}});
+  if(tg[0])put([...tg[0].querySelectorAll('.tm.p')],G.party);if(tg[1])put([...tg[1].querySelectorAll('.tm.b')],G.box)},90)}}
+// 장비 창 맨 위에 내 캐릭터 접두사
+{const _go=gearOpen;gearOpen=function(){const r=_go.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p||p.querySelector('.mepx'))return;const x=mePx();const pb=p.querySelector('.pb');if(!pb||!x)return;
+  pb.insertAdjacentHTML('afterbegin',`<div class="mepx pxf${x.g}" style="--pc:${PXC[x.g]}"><span><small>내 캐릭터 접두사</small><b>[${x.n}] ${esc(G.name||'')}</b><em><u>${PXG[x.g]}</u> ${pxTxt(x)} · 내 모든 포켓몬에게 절반만큼</em></span><button class="main" id="mePxR">접두사 바꾸기</button></div>`);
+  p.querySelector('#mePxR').onclick=()=>{sfx('tap');pxReroll('me').then(()=>{closePanel(1);gearOpen()})}},80);return r}}
+try{const h=HUB.find(x=>x.k==='prefix');if(h){h.d+=' 내 캐릭터도 접두사가 있어서 머리 위 이름 위에 보이고, 내 모든 포켓몬에게 절반만큼 효과가 들어가요. 「접두사 주문서」(포케스탑 · 히든 포탈) 또는 골드로 다시 뽑을 수 있어요.';h.go.push(['내 캐릭터 접두사',()=>pxReroll('me')])}}catch(e){}
+(function(){const c=document.createElement('style');c.textContent=`
+#pxOv{position:fixed;inset:0;z-index:95;background:#0a1024c0;display:flex;align-items:center;justify-content:center;padding:12px}
+.pxwin2{width:min(460px,94vw);background:#fff8e6;box-shadow:0 0 0 4px #c8a24a,0 0 0 8px #1c2550,0 16px 40px #000a;font-family:'Galmuri11',sans-serif;color:#1c2550;padding-bottom:12px}
+.pxt2{background:linear-gradient(#2c3a80,#1c2550);color:#ffd23f;padding:10px 14px;font-size:17px;font-weight:700}
+.pxcur{margin:14px;padding:14px;text-align:center;background:#fff;box-shadow:0 0 0 3px var(--pc);display:flex;flex-direction:column;gap:4px;align-items:center}.pxcur u{text-decoration:none;background:var(--pc);color:#fff;padding:2px 8px;font-size:12px}.pxcur b{font-size:26px;color:var(--pc)}.pxcur small{font-size:13px;color:#4a5070}
+.pxh2{margin:0 14px 6px;font-size:12px;color:#6b7280}.pxwin2 .wbt{padding:0 10px}
+.pxrb{display:block;margin-top:4px!important;padding:3px 8px!important;font-size:11px!important;white-space:nowrap}
+#pxOv .wbt{display:flex;gap:6px;flex-wrap:wrap}#pxOv .wbt button{flex:1;min-width:120px;font-family:'Galmuri11',sans-serif;font-weight:700;border:0;margin:4px;padding:10px 8px;color:#1c2550;background:linear-gradient(#fffdf4 0 50%,#f1e6c8 50%);box-shadow:0 3px 0 #1c2550,0 -3px 0 #1c2550,3px 0 0 #1c2550,-3px 0 0 #1c2550,inset 0 -5px 0 #0001,0 7px 0 #0003}#pxOv .wbt button.main{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)}#pxOv .wbt button:disabled{filter:grayscale(.8);opacity:.55}#pxOv .wbt button:active{transform:translateY(3px)}
+.mepx{display:flex;align-items:center;gap:10px;margin:6px 4px 12px;padding:10px 12px;background:#fffaf0;box-shadow:0 0 0 3px var(--pc)}.mepx span{flex:1;display:flex;flex-direction:column}.mepx small{font-size:11px;color:#6b7280}.mepx b{font-size:18px;color:var(--pc)}.mepx em{font-style:normal;font-size:12px}.mepx em u{text-decoration:none;background:var(--pc);color:#fff;padding:0 5px}
+/* 접두사 등급 프레임 */
+.panel .tm.pxf1,.pxf1{box-shadow:0 0 0 3px #4aa8ff,inset 0 0 0 2px #4aa8ff55!important}
+.panel .tm.pxf2,.pxf2{box-shadow:0 0 0 3px #c070ff,0 0 12px #c070ff99!important}
+.panel .tm.pxf3,.pxf3{box-shadow:0 0 0 3px #ffb020,0 0 0 6px #1c2550,0 0 16px #ffb020cc!important;background-image:linear-gradient(110deg,transparent 30%,#fff5c0 45%,transparent 60%)!important;background-size:250% 100%!important;animation:pxShine 2.6s linear infinite}
+.panel .tm.pxf4,.pxf4{box-shadow:0 0 0 3px #ff3b6b,0 0 0 6px #1c2550,0 0 18px #ff3b6b!important;animation:pxPulse 1.4s ease-in-out infinite}
+.panel .tm.pxf5,.pxf5{animation:pxRb5 3s linear infinite!important}
+.panel .tm.pxf6,.pxf6{animation:pxRb6 2s linear infinite!important}
+@keyframes pxShine{from{background-position:120% 0}to{background-position:-120% 0}}
+@keyframes pxPulse{50%{filter:brightness(1.15)}}
+@keyframes pxRb5{0%,100%{box-shadow:0 0 0 4px #14c8b8,0 0 0 7px #1c2550,0 0 20px #14c8b8}33%{box-shadow:0 0 0 4px #4aa8ff,0 0 0 7px #1c2550,0 0 20px #4aa8ff}66%{box-shadow:0 0 0 4px #9cf06a,0 0 0 7px #1c2550,0 0 20px #9cf06a}}
+@keyframes pxRb6{0%,100%{box-shadow:0 0 0 4px #ff2aa0,0 0 0 7px #ffd23f,0 0 0 10px #1c2550,0 0 26px #ff2aa0}25%{box-shadow:0 0 0 4px #ffb020,0 0 0 7px #ff2aa0,0 0 0 10px #1c2550,0 0 30px #ffb020}50%{box-shadow:0 0 0 4px #14c8b8,0 0 0 7px #ffd23f,0 0 0 10px #1c2550,0 0 26px #14c8b8}75%{box-shadow:0 0 0 4px #c070ff,0 0 0 7px #ff2aa0,0 0 0 10px #1c2550,0 0 30px #c070ff}}`;document.head.appendChild(c)})();
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
