@@ -3194,10 +3194,10 @@ try{HUB.push({k:'rank',n:'랭킹',d:'월드보스 누적 데미지 · 격투 탑
 function wbSquad(){const all=[...G.party,...G.box];return (G.wbSq||[]).map(u=>all.find(m=>m.uid===u)).filter(Boolean)}
 function wbSquadOpen(){return new Promise(done=>{const n=wbBoss(),T=META[n].types;const P=[...G.party,...G.box].map(m=>({m,s:recScore(m,T)})).sort((a,b)=>b.s-a.s).slice(0,WB_SQ).map(x=>x.m);const cur=wbSquad();const curAlive=cur.filter(m=>m.hp>0).length;
   openPanel('월드보스 편성 · 최대 '+WB_SQ+'마리',`<p class="hhint">상대 ${META[n].name} (${T.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')})에 강한 순서로 <b>${P.length}마리</b>를 골랐어요. 한 마리가 쓰러지면 다음 포켓몬이 나와요. 다 쓰러지거나 ${WB_TLIM}초가 지나면 끝!</p>
-   <div class="sqg">${P.map((m,i)=>{const rr=rarOf(m.n),dead=m.hp<=0;return `<div class="sq${dead?' dead':''}" style="--rc:${RARC[rr]}"><img src="${faceUrl(m.n,dead?'Pain':'Normal')}"><b>${i+1}</b><small>${nm(m)}</small><small>Lv.${m.lv}</small><i style="width:${Math.max(0,m.hp/stOf(m)[0]*100)}%"></i></div>`}).join('')}</div>
+   <div class="sqg">${P.map((m,i)=>{const rr=rarOf(m.n),dead=m.hp<=0;return `<div class="sq${dead?' dead':''}" data-ri="${i}" style="--rc:${RARC[rr]}"><img src="${faceUrl(m.n,dead?'Pain':'Normal')}"><b class="rno">${i+1}</b><small>${nm(m)}</small><small>Lv.${m.lv}</small><i style="width:${Math.max(0,m.hp/stOf(m)[0]*100)}%"></i></div>`}).join('')}</div>
    <div class="wbt"><button class="main" id="sqRec">추천 편성 ${P.length}마리로 입장</button>${cur.length?`<button id="sqOld" ${curAlive?'':'disabled'}>지난번 편성으로 입장 (${curAlive}/${cur.length} 살아 있음)</button>`:''}</div>
    ${P.some(m=>m.hp<=0)?'<p class="wbpd">쓰러진 포켓몬은 싸울 수 없어요. 「치료」로 포켓몬센터에 다녀오면 다시 싸워요.</p>':''}`,()=>done(false),p=>{
-    p.querySelector('#sqRec').onclick=()=>{G.wbSq=P.map(m=>m.uid);save();sfx('get');closePanel(1);done(true)};const o=p.querySelector('#sqOld');if(o)o.onclick=()=>{closePanel(1);done(true)}})})}
+    domDrag(p.querySelector('.sqg'),'.sq');p.querySelector('#sqRec').onclick=()=>{domOrder(p.querySelector('.sqg'),P);G.wbSq=P.map(m=>m.uid);save();sfx('get');closePanel(1);done(true)};const o=p.querySelector('#sqOld');if(o)o.onclick=()=>{closePanel(1);done(true)}})})}
 
 // 월드보스 중에 저장될 때는 원래 파티로 저장 (중간에 앱을 꺼도 파티가 20마리로 바뀌지 않게 · 도전 횟수는 시작할 때 이미 빠져요)
 {const _sv=save;save=function(){if(BS&&BS.wb&&BS.wbKeep&&G){const p=G.party;G.party=BS.wbKeep;try{return _sv.apply(this,arguments)}finally{G.party=p}}return _sv.apply(this,arguments)}}
@@ -3255,9 +3255,9 @@ function recWhy(m,foeTypes){if(!foeTypes||!foeTypes.length)return'강한 순';le
 // 추천 편성 화면 · need=1이면 적용해야 다음으로 넘어가요
 function recOpen(title,foeTypes,need){return new Promise(done=>{const P=recPick(foeTypes);const cur=new Set(G.party);const same=P.length===G.party.length&&P.every(x=>cur.has(x.m));
   openPanel('추천 편성 · '+title,`<p class="hhint">${foeTypes&&foeTypes.length?'상대 타입 '+foeTypes.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')+' 에 강한 순서로 골랐어요.':'레벨과 능력치가 강한 순서로 골랐어요.'}${need?' <b>추천 편성을 적용해야 입장할 수 있어요.</b>':''}</p>
-   <div class="tg">${P.map(({m},i)=>{const rr=rarOf(m.n),inP=cur.has(m);return `<div class="tm p rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${i+1}. ${nm(m)}</b> <small>Lv.${m.lv}</small><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><small>${recWhy(m,foeTypes)}${inP?'':' · 보관함에서 옴'}</small></div></div>`}).join('')}</div>
+   <div class="tg">${P.map(({m},i)=>{const rr=rarOf(m.n),inP=cur.has(m);return `<div class="tm p rr${rr}" data-ri="${i}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b><span class="rno">${i+1}</span>. ${nm(m)}</b> <small>Lv.${m.lv}</small><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><small>${recWhy(m,foeTypes)}${inP?'':' · 보관함에서 옴'}</small></div></div>`}).join('')}</div>
    <div class="wbt"><button class="main" id="rcOk">${same?'이미 추천 편성이에요 · 입장':'추천 편성 적용'+(need?'하고 입장':'')}</button>${need?'':'<button id="rcNo">그대로 둘래요</button>'}</div>`,()=>done(false),p=>{
-    p.querySelector('#rcOk').onclick=()=>{sfx('get');const pick=P.map(x=>x.m),rest=[...G.party,...G.box].filter(m=>!pick.includes(m));G.party=pick;G.box=rest;save();try{refreshSpr()}catch(e){}closePanel(1);toast('추천 편성을 적용했어요');done(true)};
+    domDrag(p.querySelector('.tg'),'.tm.p');p.querySelector('#rcOk').onclick=()=>{domOrder(p.querySelector('.tg'),P);sfx('get');const pick=P.map(x=>x.m),rest=[...G.party,...G.box].filter(m=>!pick.includes(m));G.party=pick;G.box=rest;save();try{refreshSpr()}catch(e){}closePanel(1);toast('추천 편성을 적용했어요');done(true)};
     const n=p.querySelector('#rcNo');if(n)n.onclick=()=>{closePanel(1);done(false)}})})}
 // 월드보스: 추천 편성을 해야 입장
 {const _f=wbFight;wbFight=async function(){const w=wbS();if((w.tries[dayKey()]||0)>=WB_TRY){toast('오늘 도전은 다 했어요 (하루 '+WB_TRY+'번)');return}const ok=await wbSquadOpen();if(!ok)return;return _f()}}
@@ -3308,6 +3308,26 @@ function teamDrag(){const p=document.querySelector('.panel');if(!p)return;const 
 .tm.p .tmf{position:relative}.tno{position:absolute;left:-4px;top:-4px;min-width:22px;height:22px;display:grid;place-items:center;background:#1c2550;color:#ffd23f;font:700 13px 'Galmuri11',sans-serif;box-shadow:0 0 0 2px #ffd23f}
 .tm.p.tdg{opacity:.35}.tm.p.tdo{outline:4px dashed #ffc21f;outline-offset:2px}
 .tgh{position:fixed!important;z-index:200;pointer-events:none;transform:rotate(-3deg) scale(1.05);box-shadow:0 14px 30px #0008!important;opacity:.95}`;document.head.appendChild(c)})();
+
+// ---------- 공용: 카드들을 꾹 눌러 끌어서 순서 바꾸기 (추천 편성 · 월드보스 편성) · 놓으면 화면에서 바로 자리 이동 ----------
+function domDrag(box,sel){if(!box)return;const P=box.closest('.panel');let st=null;const cards=()=>[...box.querySelectorAll(sel)];
+  const renum=()=>cards().forEach((c,i)=>{const n=c.querySelector('.rno');if(n)n.textContent=i+1});
+  if(P&&!P.querySelector('.tdh2')){box.insertAdjacentHTML('beforebegin','<p class="hhint tdh2">카드를 <b>꾹 누른 채로 끌면</b> 순서를 바꿀 수 있어요 · 1번이 제일 먼저 나가요</p>')}
+  const stopTouch=e=>{if(st&&st.on)e.preventDefault()};document.addEventListener('touchmove',stopTouch,{passive:false});
+  box.addEventListener('pointerdown',e=>{const c=e.target.closest(sel);if(!c||e.target.closest('button'))return;st={el:c,x:e.clientX,y:e.clientY,on:0,to:null};
+    st.tm=setTimeout(()=>{if(!st)return;st.on=1;sfx('tap');try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}c.classList.add('tdg');const r=c.getBoundingClientRect(),g=c.cloneNode(true);g.classList.remove('tdg');g.classList.add('tgh');g.style.pointerEvents='none';g.style.width=r.width+'px';g.style.height=r.height+'px';st.ox=st.x-r.left;st.oy=st.y-r.top;g.style.left=(st.x-st.ox)+'px';g.style.top=(st.y-st.oy)+'px';document.body.appendChild(g);st.gh=g},280)});
+  const mv2=e=>{if(!st)return;if(!st.on){if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){clearTimeout(st.tm);st=null}return}e.preventDefault();st.gh.style.left=(e.clientX-st.ox)+'px';st.gh.style.top=(e.clientY-st.oy)+'px';
+    st.gh.style.display='none';const t=document.elementFromPoint(e.clientX,e.clientY);st.gh.style.display='';const tc=t&&t.closest&&t.closest(sel);cards().forEach(c=>c.classList.toggle('tdo',c===tc&&c!==st.el));st.to=tc&&box.contains(tc)?tc:st.to};document.addEventListener('pointermove',mv2,{passive:false});
+  const end=()=>{if(!st)return;clearTimeout(st.tm);const s=st;st=null;cards().forEach(c=>c.classList.remove('tdo'));if(s.gh)s.gh.remove();s.el.classList.remove('tdg');
+    if(s.on&&s.to&&s.to!==s.el){const L=cards(),a=L.indexOf(s.el),b=L.indexOf(s.to);if(a<b)s.to.after(s.el);else s.to.before(s.el);renum();sfx('get')}};
+  document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
+  const ob=new MutationObserver(()=>{if(!box.isConnected){document.removeEventListener('touchmove',stopTouch);document.removeEventListener('pointermove',mv2);document.removeEventListener('pointerup',end);document.removeEventListener('pointercancel',end);ob.disconnect()}});ob.observe(document.body,{childList:true,subtree:false})}
+// 화면에서 바꾼 순서대로 배열을 다시 줄 세워요 (data-ri = 원래 자리)
+function domOrder(box,arr){if(!box)return;const idx=[...box.querySelectorAll('[data-ri]')].map(c=>+c.dataset.ri);if(idx.length!==arr.length)return;const copy=arr.slice();idx.forEach((ri,k)=>{arr[k]=copy[ri]})}
+(function(){const c=document.createElement('style');c.textContent=`.sqg .sq,.panel .tg .tm.p{touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.sq.tdg{opacity:.35}.sq.tdo{outline:4px dashed #ffc21f;outline-offset:2px}`;document.head.appendChild(c)})();
+// 그림을 끌면 브라우저가 「그림 끌기」로 가로채서 드래그가 끊겨요 → 창 안 그림은 끌기 막기
+document.addEventListener('dragstart',e=>{if(e.target&&e.target.closest&&e.target.closest('.panel'))e.preventDefault()});
+(function(){const c=document.createElement('style');c.textContent=`.panel img{-webkit-user-drag:none;user-drag:none}`;document.head.appendChild(c)})();
 
 // ===== 장비: 출결 캐릭터 장비 → 내 캐릭터에 장착하면 모든 포켓몬에게 (월드보스에서만) =====
 // 아이템마다 옵션 3개(공격력·체력·방어력·회피·크리티컬 확률·크리티컬 데미지) · 등급(레어→에픽→유니크→레전드리)은 큐브로
