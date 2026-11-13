@@ -2067,7 +2067,7 @@ const CardPack=(()=>{
 
   async function open(o){
     o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(6,o.rar|0)),PR=Math.min(3,RF);let R=PR;while(R>0&&Math.random()<.3)R--;let CS=RF;while(CS>0&&Math.random()<.3)CS--;
-    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=await loadImg(o.base+'pk'+t+'.webp',800);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>frmI[t]=v);
+    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=await loadImg(o.base+'pk'+t+'.webp',800);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>frmI[t]=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
