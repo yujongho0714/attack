@@ -3668,7 +3668,9 @@ const PXRAW=[
  [5,'환상의','atk spa spe.5'],[5,'꿈꾸는','spa spd hp.5'],[5,'무지개빛','crt cdm atk.5'],[5,'은하의','spa spe crt.5'],[5,'시간의','spe1.3 atk.6'],[5,'공간의','def spd hp.6'],
  [6,'유일한','atk spa hp spe.5'],[6,'창조신의','hp def spd atk.5'],[6,'절대자의','atk crt cdm'],[6,'전지전능한','atk spa spe crt.5 cdm.5']];
 const PX=PXRAW.map(([g,n,s],i)=>{const e={};for(const t of s.split(' ')){const m=t.match(/^([a-z]+)([\d.]*)$/);e[m[1]]=+(PXB*(m[2]?+m[2]:1)*PXM[g]).toFixed(1)}return{i,g,n,e}});
-function pxRoll(){let u=R()*PXW.reduce((a,b)=>a+b,0),g=0;for(;g<PXW.length;g++){u-=PXW[g];if(u<0)break}g=Math.min(g,6);const L=PX.filter(p=>p.g===g);return L[ri(0,L.length-1)].i}
+// 난이도별 최고 등급: 쉬움 희귀 · 보통 영웅 · 어려움 전설 · 지옥 환상 · 나이트메어 유일 (환생 1번마다 한 칸 더 · 최대 유일)
+const PXCAP=[1,2,3,5,6];const pxCap=()=>{try{return Math.min(6,PXCAP[Math.min(4,DIFF())]+(G&&G.rebirth||0))}catch(e){return 2}};
+function pxRoll(){const cap=pxCap(),W=PXW.slice(0,cap+1);let u=R()*W.reduce((a,b)=>a+b,0),g=0;for(;g<W.length;g++){u-=W[g];if(u<0)break}g=Math.min(g,cap);const L=PX.filter(p=>p.g===g);return L[ri(0,L.length-1)].i}
 const pxOf=m=>m&&m.px!=null?PX[m.px]:null;
 const pxTxt=p=>Object.keys(p.e).map(k=>PXS[k]+' +'+p.e[k]+'%').join(' · ');
 // 내 포켓몬에게 접두사 주기 (새로 들어온 포켓몬도 몇 초 안에)
@@ -3684,7 +3686,7 @@ setInterval(()=>{try{pxAssign()}catch(e){}},2500);
 {const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');const put=(cards,L)=>cards.forEach((c,i)=>{const m=L[i],x=pxOf(m);if(!x||c.querySelector('.pxg'))return;const ti=c.querySelector('.ti');if(ti)ti.insertAdjacentHTML('beforeend',`<small class="pxg" style="--pc:${PXC[x.g]}"><u>${PXG[x.g]}</u> ${pxTxt(x)}</small>`)});
   if(tg[0])put([...tg[0].querySelectorAll('.tm.p')],G.party);if(tg[1])put([...tg[1].querySelectorAll('.tm.b')],G.box)},60)}}
 function pxBook(){const body=PXG.map((g,i)=>`<h4 style="color:${PXC[i]}">${g} · ${(PXW[i]/10).toFixed(1)}%</h4><div class="pxbk">${PX.filter(p=>p.g===i).map(p=>`<span style="--pc:${PXC[i]}"><b>${p.n}</b><small>${pxTxt(p)}</small></span>`).join('')}</div>`).join('');
-  openPanel('접두사 도감 · 100가지',`<p class="hhint">내 포켓몬은 들어올 때 접두사가 하나씩 붙어요. 등급이 높을수록 능력치가 많이 올라가요. 이름 앞에 보여요 (예: 「용맹한 파이리」).</p>${body}`)}
+  openPanel('접두사 도감 · 100가지',`<p class="hhint">내 포켓몬은 들어올 때 접두사가 하나씩 붙어요. 등급이 높을수록 능력치가 많이 올라가요. <b>난이도별 최고 등급</b>: 쉬움 희귀 · 보통 영웅 · 어려움 전설 · 지옥 환상 · 나이트메어 유일 (환생할 때마다 한 칸 위까지). 지금은 <b>${PXG[pxCap()]}</b>까지. 이름 앞에 보여요 (예: 「용맹한 파이리」).</p>${body}`)}
 try{HUB.push({k:'prefix',n:'접두사 (100가지)',d:'내 포켓몬마다 접두사가 하나씩 붙어요. 노말 · 희귀 · 영웅 · 전설 · 신화 · 환상 · 유일 7등급, 등급이 높을수록 체력 · 공격 · 스피드 · 크리티컬 같은 능력치가 더 올라가요.',st:()=>{const c=[0,0,0,0,0,0,0];[...G.party,...G.box].forEach(m=>{const p=pxOf(m);if(p)c[p.g]++});return c.map((n,i)=>n?PXG[i]+' '+n:'').filter(Boolean).join(' · ')||'아직 없음'},go:[['접두사 도감',()=>pxBook()]]})}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`
 .pxg{display:block;font-size:11px;line-height:1.3;color:#2c3050;margin-top:2px}.pxg u{text-decoration:none;background:var(--pc);color:#fff;padding:0 5px;margin-right:4px;font-weight:700}
@@ -3708,7 +3710,7 @@ try{ITD.pxsc={s:'포켓몬이나 내 캐릭터의 접두사를 새로 뽑아요 
 const PXCOST={mon:5000,me:10000};
 function pxReroll(target){return new Promise(done=>{const me=target==='me',m=me?null:target,cur=me?mePx():pxOf(m),cost=me?PXCOST.me:PXCOST.mon,sc=G.bag.pxsc||0;
   const o=document.createElement('div');o.id='pxOv';o.innerHTML=`<div class="pxwin2"><div class="pxt2">접두사 바꾸기 · ${me?'내 캐릭터 '+esc(G.name||''):esc(nm(m))}</div><div class="pxcur" style="--pc:${PXC[cur.g]}"><u>${PXG[cur.g]}</u><b>${cur.n}</b><small>${pxTxt(cur)}${me?' (내 모든 포켓몬에게 절반)':''}</small></div>
-    <p class="pxh2">새로 뽑으면 지금 접두사는 사라져요. 등급 확률: 노말 55% · 희귀 25% · 영웅 12% · 전설 5% · 신화 2% · 환상 0.8% · 유일 0.2%</p>
+    <p class="pxh2">새로 뽑으면 지금 접두사는 사라져요. 지금 난이도(${DNAME[DIFF()]})에서는 <b>${PXG[pxCap()]}</b> 등급까지 나와요 · 어려운 난이도일수록, 환생할수록 더 높은 등급!</p>
     <div class="wbt"><button class="main" id="pxS" ${sc?'':'disabled'}>주문서로 뽑기 (가진 ${sc}개)</button><button class="main" id="pxG" ${G.money>=cost?'':'disabled'}>${cost.toLocaleString()}원으로 뽑기</button><button id="pxX">닫기</button></div></div>`;document.body.appendChild(o);
   const close=()=>{o.remove();done()};o.querySelector('#pxX').onclick=()=>{sfx('tap');close()};
   const go=async how=>{if(how==='s'){if(!(G.bag.pxsc>0))return;G.bag.pxsc--}else{if(G.money<cost)return;G.money-=cost}const nx=pxRoll();const box=o.querySelector('.pxcur');o.querySelectorAll('button').forEach(b=>b.disabled=true);
