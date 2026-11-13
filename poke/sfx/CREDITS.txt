@@ -1,2 +1,1 @@
-Sound effects in poke/sfx are from ranked.pokemonbattlegrounds.com (fan game), used for non-commercial play only.
-Type color palettes adapted from the same site.
+Sounds: pokemonbattlegrounds (non-commercial fan use)
