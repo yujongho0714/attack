@@ -3098,7 +3098,7 @@ async function wbPush(){const c=wbCfg(),w=wbS();if(!c||!w.dmg)return false;try{c
   const r=await fetch(u,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:(G.name||'트레이너').slice(0,12)},dmg:{integerValue:String(Math.floor(w.dmg))},t:{integerValue:String(Date.now())}}})});w.pend=!r.ok;save();return r.ok}catch(e){w.pend=1;save();return false}}
 setInterval(()=>{try{if(G&&G.wb&&G.wb.pend)wbPush()}catch(e){}},30000);addEventListener('online',()=>{try{if(G&&G.wb&&G.wb.pend)wbPush()}catch(e){}});
 // 전체 데미지 (서버 없으면 내 데미지만)
-const wbTotal=L=>L?L.reduce((a,b)=>a+b.dmg,0):(G.wb?G.wb.dmg:0);
+let wbTotal=L=>L?L.reduce((a,b)=>a+b.dmg,0):(G.wb?G.wb.dmg:0);
 // ---------- 보스전 ----------
 async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY){toast('오늘 도전은 다 했어요 (하루 '+WB_TRY+'번)');return}if(SCENE!=='over'){toast('밖에서만 도전할 수 있어요');return}const SQ=wbSquad();if(!SQ.length){toast('월드보스 편성이 없어요. 추천 편성을 먼저 해요');return}if(!SQ.some(m=>m.hp>0)){await say(['월드보스 편성 '+SQ.length+'마리가 모두 쓰러졌어요.','「치료」 버튼으로 포켓몬센터에 다녀오면 같은 편성으로 다시 도전할 수 있어요!']);return}
   if(!wbCfg()){await say(['월드보스는 아직 준비 중이에요. 선생님이 서버를 연결하면 열려요!']);return}
@@ -3205,7 +3205,7 @@ function wbSquadOpen(){return new Promise(done=>{const n=wbBoss(),T=META[n].type
 // ===== 랭킹 (사이드메뉴): 획득수 · 진행도 · 월드보스 · 격투 탑 · 이름 왼쪽에 대표 포켓몬 =====
 // 대표 포켓몬은 데리고 다니는 포켓몬(없으면 파티 첫 번째). 서버 칸을 늘리지 않으려고 이름 뒤에 「#번호」로 붙여 보내요 (이름 8자 + #2자리)
 const repTag=()=>{try{const m=(typeof folMon==='function'&&folMon())||G.party[0];if(!m)return'';const d=META[m.n].dex;return '#'+d.toString(36)+(m.shiny?'*':'')}catch(e){return''}};
-const rkName=()=>{const t=repTag();return ((G.name||'트레이너').slice(0,12-t.length))+t};
+let rkName=()=>{const t=repTag();return ((G.name||'트레이너').slice(0,12-t.length))+t};
 function rkSplit(raw){const i=raw.lastIndexOf('#');if(i<0)return{name:raw,rep:null};const tag=raw.slice(i+1),sh=tag.endsWith('*'),d=parseInt(sh?tag.slice(0,-1):tag,36);return{name:raw.slice(0,i),rep:BYDEX[d]||null,sh}}
 // 보내는 이름에 대표 포켓몬 붙이기 (월드보스 · 랭킹 둘 다)
 {const _wp=wbPush;wbPush=async function(){const n0=G.name;try{G.name=rkName();return await _wp.apply(this,arguments)}finally{G.name=n0}}}
@@ -3599,6 +3599,39 @@ function psOpen(st){if(document.getElementById('psOv'))return;const o=document.c
 .psOut .ic{width:30px;height:30px}.psOut b{font-size:12px}.psOut small{font-size:11px;opacity:.8}
 @keyframes psPop{0%{transform:translateY(-60px) scale(.3);opacity:0}70%{transform:translateY(4px) scale(1.1);opacity:1}100%{transform:none}}`;document.head.appendChild(c)})();
 try{HUB.push({k:'stop',n:'포케스탑 (하루 20번)',d:'길가에 가끔 파란 포케스탑이 생겨요. 가까이 가서 「돌리기」를 누르고 원판을 손가락으로 쓱 밀면 몬스터볼 · 상처약 · 열매가 나와요. 배지가 많을수록 좋은 볼 · 이상한사탕도! 가끔 수상한 큐브, 배지 5개부터는 명장의 큐브도 나와요. 돌린 스탑은 보라색이 되고 5분 쉬어요. 자동 사냥 중엔 지나가면서 알아서 돌려요.',st:()=>'오늘 '+psS().n+'/'+PS_MAX+'번'})}catch(e){}
+
+// ===== 영혼 시스템 =====
+// 이미 잡은 포켓몬은 다시 잡지 않아요 (같은 포켓몬은 한 마리만 출전) → 쓰러뜨리면 그 포켓몬의 「영혼」 1개
+// 영혼은 합성 재료: 같은 등급 영혼 2개(서로 다른 포켓몬이어도 OK)를 합치면 10% 확률로 한 등급 위 포켓몬 · 한계 돌파 재료로도 써요
+// 잡기는 몬스터볼이 떨어질 때까지 계속 해 볼 수 있어요 (실패하면 2.5초 뒤 다시)
+const owned=f=>{try{return !!(G&&f&&G.dex.c[META[f.n].dex])&&!f.shiny&&!META[f.n].form&&!(AUTO.hunt&&AUTO.hunt.n===f.n&&!G.dex.c[META[f.n].dex])}catch(e){return false}};
+const soulN=dex=>(G.dupes||[]).filter(x=>x.kind==='P'&&x.id===dex).length;
+function soulAdd(f){const M=META[f.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P',id:M.dex,rar:rarOf(f.n),lv:f.lv,sh:0,soul:1});save();toast(M.name+'의 영혼 +1 (가진 영혼 '+soulN(M.dex)+'개) · 합성에서 써요')}
+{const _w=wantCatch;wantCatch=function(f){if(owned(f))return false;return _w.apply(this,arguments)}}
+{const _a=wantAsk;wantAsk=function(){const f=BS.foe&&BS.foe.m;if(owned(f))return false;if(Date.now()-(BS.thT||0)<2500)return false;return _a.apply(this,arguments)}}
+{const _ab=autoBallFor;autoBallFor=function(f){if(owned(f)||Date.now()-(BS.thT||0)<2500)return null;return _ab.apply(this,arguments)}}
+{const _cf=catchFlow;catchFlow=function(){const f=BS.foe&&BS.foe.m;if(!BS.trainer&&owned(f)){toast('이미 잡은 포켓몬이에요! 쓰러뜨리면 '+META[f.n].name+'의 영혼을 얻어요');return Promise.resolve(null)}return _cf.apply(this,arguments)}}
+{const _tb=throwBall;throwBall=async function(f,it){if(!BS.trainer&&owned(f)&&it&&it.ball){try{const k=Object.keys(ITEMS).find(k=>ITEMS[k].n===it.n);if(k)G.bag[k]=(G.bag[k]||0)+1}catch(e){}await msg('이미 잡은 포켓몬이에요! 쓰러뜨리면 영혼을 얻어요',600);return false}
+  const ok=await _tb.apply(this,arguments);if(!ok){BS.asked=0;BS.thT=Date.now()}return ok}}
+{const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{if(o&&!o.trainer&&!o.wb&&r==='win')for(const f of o.foes||[])if(f.hp<=0&&owned(f))soulAdd(f)}catch(e){}return r}}
+// 같은 포켓몬은 한 마리만 출전 (추천 편성도 같은 포켓몬은 한 번만 골라요)
+{const _rp=recPick;recPick=function(t){const all=[...G.party,...G.box].map(m=>({m,s:recScore(m,t)})).sort((a,b)=>b.s-a.s),seen=new Set(),out=[];for(const x of all){const d=META[x.m.n].dex;if(seen.has(d))continue;seen.add(d);out.push(x);if(out.length>=6)break}return out}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-in]');if(!b||!G)return;const m=G.box[+b.dataset.in];if(!m)return;const d=META[m.n].dex;
+  if(G.party.length<6&&G.party.some(x=>META[x.n].dex===d)){e.stopImmediatePropagation();e.preventDefault();toast('같은 포켓몬은 한 마리만 출전할 수 있어요')}},true);
+// 합성 화면을 영혼 합성으로
+{const _f=fuseOpen;fuseOpen=function(){_f.apply(this,arguments);try{const p=document.querySelector('.panel');if(!p)return;const h=p.querySelector('.ph b');if(h)h.textContent='영혼 합성 · 카드팩';
+  const n=(G.dupes||[]).filter(x=>x.soul).length;const pb=p.querySelector('.pb');pb.insertAdjacentHTML('afterbegin',`<p class="hhint"><b>영혼 합성</b> · 이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 <b>영혼</b>을 얻어요 (지금 영혼 ${n}개). 같은 등급 영혼 2개를 합치면 (파이리 영혼 + 꼬부기 영혼도 OK) <b>10%</b> 확률로 <b>한 등급 위 포켓몬</b>! 카드팩 중복 카드도 영혼처럼 써요.</p>`);
+  const w=document.createTreeWalker(pb,NodeFilter.SHOW_TEXT);const R2=[['🎴 포켓몬 재료','포켓몬 영혼'],['📀 기술 재료','기술 카드'],['중복 카드 2장','영혼 2개 · 중복 카드 2장'],['2장 합성','2개 합성']];let t;while(t=w.nextNode()){let v=t.nodeValue;for(const [a,b] of R2)v=v.split(a).join(b);if(v!==t.nodeValue)t.nodeValue=v}}catch(e){}}}
+try{const h=HUB.find(x=>x.k==='card');if(h){h.n='카드팩 · 영혼 합성';h.d='이미 잡은 포켓몬은 다시 잡지 않고, 쓰러뜨리면 그 포켓몬의 영혼을 얻어요. 같은 등급 영혼 2개를 합치면 10% 확률로 한 등급 위 포켓몬! 매일 접속하면 카드팩 3장, 7일째는 포켓몬팩 10장 + 기술팩 10장.';h.st=()=>'영혼 · 중복 '+((G.dupes||[]).filter(x=>x.kind==='P').length)+'개'}}catch(e){}
+
+// ===== 운영자(GM): 번호 010-2252-0714 · 이름은 「GM」 · 랭킹에는 안 나와요 (월드보스 데미지는 같이 깎아요) =====
+const GMNUM='01022520714';const isGM=()=>!!(G&&String(G.num||'').replace(/\D/g,'')===GMNUM);
+const isGMName=raw=>rkSplit(String(raw||'')).name==='GM';
+{const _n=rkName;rkName=function(){return isGM()?'GM':_n.apply(this,arguments)}}
+{const _rp=rankPush;rankPush=async function(){if(isGM()){toast('운영자(GM)는 랭킹에 올라가지 않아요');return false}return _rp.apply(this,arguments)}}
+{const _t=wbTotal;wbTotal=function(L){return _t.apply(this,arguments)+((L&&L.gmDmg)||0)}}
+{const _wf=wbFetch;wbFetch=async function(){const L=await _wf.apply(this,arguments);if(!L)return L;const gm=L.filter(x=>isGMName(x.name));if(!gm.length)return L;const out=L.filter(x=>!isGMName(x.name));out.gmDmg=gm.reduce((a,x)=>a+x.dmg,0);return out}}
+{const _rf=rankFetch;rankFetch=async function(){const L=await _rf.apply(this,arguments);return L?L.filter(x=>!isGMName(x.name)):L}}
 
 // ===== 시작 화면 · 포켓몬 불러오기 · 반복 =====
 async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');const C=LS.get('pka-meta',{});let dirty=0,i=0;META={};THUMB={};
