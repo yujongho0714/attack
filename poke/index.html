@@ -3260,6 +3260,29 @@ function recOpen(title,foeTypes,need){return new Promise(done=>{const P=recPick(
 // 편성 화면에도 추천 편성 버튼
 {const _to=teamOpen;teamOpen=function(){_to();setTimeout(()=>{const p=document.querySelector('.panel');if(!p||p.querySelector('#tmRec'))return;const h=p.querySelector('h4');if(!h)return;const b=document.createElement('button');b.id='tmRec';b.className='wbrk';b.textContent='추천 편성';b.onclick=async()=>{closePanel(1);await recOpen('강한 순',null,0);teamOpen()};h.appendChild(b)},30)}}
 
+// ===== 편성: 출전 포켓몬을 꾹 누른 채로 끌어서 출전 순서 바꾸기 (맨 앞이 먼저 나가요) =====
+{const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(teamDrag,30)}}
+function teamDrag(){const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelector('.tg');if(!tg)return;const cards=[...tg.querySelectorAll('.tm.p')];if(cards.length<2)return;
+  cards.forEach((c,i)=>{c.dataset.pi=i;const f=c.querySelector('.tmf');if(f&&!f.querySelector('.tno'))f.insertAdjacentHTML('beforeend',`<span class="tno">${i+1}</span>`)});
+  if(!p.querySelector('.tdh')){const h=p.querySelector('.pb h4');if(h)h.insertAdjacentHTML('afterend','<p class="hhint tdh">포켓몬을 <b>꾹 누른 채로 끌면</b> 출전 순서를 바꿀 수 있어요 · 1번이 제일 먼저 나가요</p>')}
+  const pb=p.querySelector('.pb');let st=null;
+  const stopTouch=e=>{if(st&&st.on)e.preventDefault()};document.addEventListener('touchmove',stopTouch,{passive:false});
+  const end=()=>{if(!st)return;clearTimeout(st.tm);const s=st;st=null;cards.forEach(c=>c.classList.remove('tdo'));if(s.gh)s.gh.remove();if(s.el)s.el.classList.remove('tdg');if(pb)pb.style.overflow='';
+    if(s.on&&s.to!=null&&s.to!==s.i){const m=G.party.splice(s.i,1)[0];G.party.splice(s.to,0,m);save();try{refreshSpr()}catch(e){}sfx('get');toast(nm(m)+' → '+(s.to+1)+'번째로 출전');document.removeEventListener('touchmove',stopTouch);teamOpen()}};
+  cards.forEach(c=>{c.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const i=+c.dataset.pi;st={i,x:e.clientX,y:e.clientY,el:c,on:0,to:null,id:e.pointerId};
+    st.tm=setTimeout(()=>{if(!st)return;st.on=1;sfx('tap');try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}c.classList.add('tdg');if(pb)pb.style.overflow='hidden';
+      const r=c.getBoundingClientRect(),g=c.cloneNode(true);g.className+=' tgh';g.style.width=r.width+'px';g.style.height=r.height+'px';st.ox=st.x-r.left;st.oy=st.y-r.top;g.style.left=(st.x-st.ox)+'px';g.style.top=(st.y-st.oy)+'px';document.body.appendChild(g);st.gh=g},280)})});
+  const mv=e=>{if(!st)return;if(!st.on){if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>10){clearTimeout(st.tm);st=null}return}e.preventDefault();
+    st.gh.style.left=(e.clientX-st.ox)+'px';st.gh.style.top=(e.clientY-st.oy)+'px';st.gh.style.display='none';const t=document.elementFromPoint(e.clientX,e.clientY);st.gh.style.display='';
+    const tc=t&&t.closest&&t.closest('.tm.p');cards.forEach(c=>c.classList.toggle('tdo',c===tc&&c!==st.el));st.to=tc?+tc.dataset.pi:st.to};
+  p.addEventListener('pointermove',mv,{passive:false});p.addEventListener('pointerup',end);p.addEventListener('pointercancel',end);
+  const ob=new MutationObserver(()=>{if(!p.isConnected){document.removeEventListener('touchmove',stopTouch);ob.disconnect()}});ob.observe(document.body,{childList:true})}
+(function(){const c=document.createElement('style');c.textContent=`
+.tm.p{touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.tm.p .tmf{position:relative}.tno{position:absolute;left:-4px;top:-4px;min-width:22px;height:22px;display:grid;place-items:center;background:#1c2550;color:#ffd23f;font:700 13px 'Galmuri11',sans-serif;box-shadow:0 0 0 2px #ffd23f}
+.tm.p.tdg{opacity:.35}.tm.p.tdo{outline:4px dashed #ffc21f;outline-offset:2px}
+.tgh{position:fixed!important;z-index:200;pointer-events:none;transform:rotate(-3deg) scale(1.05);box-shadow:0 14px 30px #0008!important;opacity:.95}`;document.head.appendChild(c)})();
+
 // ===== 장비: 출결 캐릭터 장비 → 내 캐릭터에 장착하면 모든 포켓몬에게 (월드보스에서만) =====
 // 아이템마다 옵션 3개(공격력·체력·방어력·회피·크리티컬 확률·크리티컬 데미지) · 등급(레어→에픽→유니크→레전드리)은 큐브로
 // 강화(스타포스)는 부위마다 하나: 무기 하나를 12강 하면 다른 무기도 12강 · 25강까지 · 15강부터 파괴 가능 · 파괴되면 골드로 복구
