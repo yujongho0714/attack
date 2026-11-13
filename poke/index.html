@@ -1498,7 +1498,7 @@ function bindMenu(){bt('bMenu').querySelectorAll('button').forEach(b=>b.onclick=
   else if(a==='mon'){bt('bMenu').innerHTML=G.party.map((m,i)=>`<button data-p="${i}" ${m.hp<=0||m===BS.me.m?'disabled':''}>${nm(m)} Lv.${m.lv} ${Math.ceil(m.hp)}/${stOf(m)[0]}</button>`).join('')+'<button data-a="back">↩ 뒤로</button>';
     bt('bMenu').querySelectorAll('[data-p]').forEach(x=>x.onclick=()=>done({t:'switch',i:+x.dataset.p}));bt('bMenu').querySelector('[data-a=back]').onclick=menuMain}
   else if(a==='run'){if(BS.trainer){if(BS.noQuit){msg('이 배틀은 중간에 나갈 수 없어요!').then(menuMain)}else quitAsk().then(y=>{if(y)done({t:'quit'});else menuMain()})}else done({t:'run'})}})}
-function quitAsk(){return new Promise(r=>{let ok=0;itAsk('배틀을 그만두고 나갈까요?','이긴 걸로 치지 않아요. 포켓몬 체력은 지금 그대로예요. 다시 도전할 수 있어요.',()=>{ok=1;r(1)});setTimeout(()=>{const n=document.querySelector('#gAsk #gaN');if(n)n.addEventListener('click',()=>{if(!ok)r(0)})},30)})}
+function quitAsk(){return new Promise(r=>{let ok=0;itAsk('배틀을 그만두고 나갈까요?',BS.wb?'이번 도전은 횟수에서 빠져요 (다시 도전할 수 있어요). 대신 이번에 준 데미지는 기록되지 않아요.':'이긴 걸로 치지 않아요. 포켓몬 체력은 지금 그대로예요. 다시 도전할 수 있어요.',()=>{ok=1;r(1)});setTimeout(()=>{const n=document.querySelector('#gAsk #gaN');if(n)n.addEventListener('click',()=>{if(!ok)r(0)})},30)})}
 function done(x){if(CHOOSE){const c=CHOOSE;CHOOSE=null;c(x)}}
 function aiAct(){const me=BS.me.m,f=BS.foe.m;
   if(!BS.trainer&&wantCatch(f)){const S=stOf(f);const ball=BR().auto?autoBallFor(f):null;if(!ball&&BALLS().length&&!BS.asked){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.35&&est<f.hp-1)return{t:'move',m:weak}}if(ball){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.35&&est<f.hp-1&&!(BS.turn>=8&&f.hp/S[0]<.6))return{t:'move',m:weak};return{t:'item',k:ball}}}
@@ -1508,7 +1508,7 @@ function wantCatch(f){if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;try{BR()}catch
 function choose(sub){return new Promise(r=>{if((AUTO.on&&!AUTO.guide)||G.autoBattle){setTimeout(()=>r(aiAct()),FAST()?250:600);return}CHOOSE=r;menuMain();if(sub){const b=bt('bMenu').querySelector('[data-a='+sub+']');if(b)b.click()}})}
 async function sendMe(m,first){const S=await getSpr(sprKey(m));BS.me={m,S,st:'idle',t:0,in:0};bbox();await msg((first?'가랏! ':'돌아와! … 가랏! ')+'<b>'+nm(m)+'</b>!',FAST()?400:800,[m.n,'Determined'])}
 async function sendFoe(m){const S=await getSpr(sprKey(m));BS.foe={m,S,st:'idle',t:0,in:0};G.dex.s[META[m.n].dex]=1;bbox()}
-async function battle(o){BS.asked=0;BS.noQuit=!!(o&&o.wb);BS.catchK=1;BS.capMsg=0;if(o.trainer&&!o.scaled&&DIFF()>0)for(const f of o.foes){f.lv=Math.min(100,Math.round(f.lv*(1+DLV[DIFF()]*.75)));f.exp=expAt(f.lv);f.hp=stOf(f)[0]}SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
+async function battle(o){BS.asked=0;BS.noQuit=0;BS.catchK=1;BS.capMsg=0;if(o.trainer&&!o.scaled&&DIFF()>0)for(const f of o.foes){f.lv=Math.min(100,Math.round(f.lv*(1+DLV[DIFF()]*.75)));f.exp=expAt(f.lv);f.hp=stOf(f)[0]}SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
   BS.tt=0;BS.foes=o.foes;BS.marks=[];await flashIn();const foes=o.foes;let fi=0;await sendFoe(foes[0]);bt('bM').innerHTML='';
   await msg(o.trainer?'<b>'+o.trainer+'</b>(이)가 승부를 걸어왔다!':'앗! 야생 <b>'+nm(foes[0])+'</b>(이)가 나타났다!',FAST()?500:1000);
   if(o.trainer)await msg(o.trainer+'(은)는 <b>'+nm(foes[0])+'</b>(을)를 내보냈다!',FAST()?400:800);
@@ -2130,7 +2130,7 @@ const CardPack=(()=>{
             c.save();c.globalAlpha=1-k;c.translate(W/2,H*.48+k*H*.6);c.drawImage(pk,0,pk.height*cut,pk.width,pk.height*(1-cut),-pw/2,-phh/2+phh*cut,pw,phh*(1-cut));c.restore()}
           if(e>250&&!rev){rev=1;flash=1;S.rev(R);burst(30+Math.min(R,3)*40,5+Math.min(R,3)*2,C,70);if(o.sh)burst(40,7,'#fff',80);if(R>=2)bolts=1}
           if(e>500)setPh('card')}
-        if(ph==='card'||ph==='show'){const k=Math.min(1,e/(R>=3?1400:R>=2?1000:600));const ease=1-Math.pow(1-k,3);
+        if(ph==='card'||ph==='show'){const k=ph==='show'?1:Math.min(1,e/(R>=3?1400:R>=2?1000:600));const ease=1-Math.pow(1-k,3);
           // 빛줄기
           c.save();c.translate(W/2,H*.48);c.rotate(now/(R>=3?900:2000));c.globalAlpha=.25+R*.08;c.fillStyle=R>=3?'#ffe08a':C;for(let i=0;i<(8+R*4);i++){c.rotate(Math.PI*2/(8+R*4));c.beginPath();c.moveTo(0,0);c.lineTo(Math.max(W,H),-40-R*15);c.lineTo(Math.max(W,H),40+R*15);c.fill()}c.restore();c.globalAlpha=1;
           if(bolts&&(ph==='card'||Math.random()<.04)){c.strokeStyle='rgba(220,180,255,.9)';c.shadowColor='#c070ff';c.shadowBlur=18;for(let i=0;i<2;i++){const a=Math.random()*Math.PI*2;bolt(c,W/2,H*.48,W/2+Math.cos(a)*W*.6,H*.48+Math.sin(a)*H*.5,3)}c.shadowBlur=0;if(Math.random()<.3)S.zap()}
@@ -3112,6 +3112,7 @@ async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY
   const keepP=G.party;G.party=SQ;BS.wbT=0;BS.wb=1;BS.wbKeep=keepP;
   try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','월드보스 '+META[n].name,['이번 주의 월드보스, 전설의 '+META[n].name+'(이)가 나타났다!','모두의 데미지를 합쳐서 쓰러뜨리자! 내 포켓몬 '+SQ.length+'마리 · 제한 시간 '+WB_TLIM+'초 · 다 쓰러지면 끝!'])}catch(e){}
   let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{G.party=keepP;BS.wb=0;BS.wbKeep=null}
+  if(r==='run'){w.tries[day]=Math.max(0,(w.tries[day]||1)-1);save();toast('도중에 나왔어요 · 도전 횟수는 그대로예요');wbOpen();return}
   const dmg=Math.max(0,hp0-Math.max(0,boss.hp));w.dmg+=dmg;w.best=Math.max(w.best||0,dmg);save();
   const ok=await wbPush();sfx('badge');await say(['월드보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!','이번 주 내 누적 데미지 '+w.dmg.toLocaleString()+(wbCfg()?(ok?' · 랭킹에 올렸어요':' · 인터넷이 되면 자동으로 올려요'):'')]);wbOpen()}
 // 시간 제한: 지나면 보스가 날아가 버려요 (내 포켓몬은 다치지 않게 되돌려요)
@@ -3530,8 +3531,8 @@ function packOpenUI(sel){if(!G)return;G.packs=G.packs||{};const ks=Object.keys(P
     const go=p.querySelector('#pkGo');if(go)go.onclick=()=>{closePanel(1);packRun(sel,q)}};
   openPanel('카드팩 가방',`<div id="pkB"></div>`,null,draw)}
 let PKSTOP=0;
-async function packRun(k,n){PKSTOP=0;const kind=k[0],rar=k.length>1?+k.slice(1):null;const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
-  let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;await grant(rollItem(kind,rar),PKT[k].n);done++}}finally{st.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
+async function packRun(k,n){PKSTOP=0;const kind=k[0],rar=k.length>1?+k.slice(1):null;const bk=document.createElement('div');bk.id='pkBack';document.body.appendChild(bk);const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
+  let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;await grant(rollItem(kind,rar),PKT[k].n);done++}}finally{st.remove();bk.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
 (function(){const go=()=>{const b=document.getElementById('bPack');if(b)b.onclick=()=>{sfx('tap');packOpenUI()};packBadge()};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // ---------- 스탯 부적 (히든 포탈에서만) · 먹이면 그 포켓몬만 영구 강화 · 먹이기 한도는 타입 부적과 같이 ----------
 const STC=[['sc_atk',[1,2,3,4],'공격력','%'],['sc_hp',[1,2,3,4],'체력','%'],['sc_def',[1,2,3,4],'방어력','%'],['sc_crt',[1],'크리티컬 확률','%'],['sc_cdm',[1],'크리티컬 데미지','%']];
@@ -4338,6 +4339,8 @@ let RKAUTO=0;
 async function rankAuto(){if(RKAUTO||!G||!navigator.onLine||!wbCfg()||(typeof isGM==='function'&&isGM()))return;RKAUTO=1;const T=toast;G.rkLast=G.rkLast||{};
   try{for(const b of ['dex','adv']){if(!RKB[b])continue;const v=Math.floor(RKB[b].v());if(v<=0||G.rkLast[b]===v)continue;toast=()=>{};let ok=false;try{ok=await rankPush(b)}finally{toast=T}if(ok){G.rkLast[b]=v;save()}}}catch(e){}finally{toast=T;RKAUTO=0}}
 setTimeout(()=>{try{rankAuto()}catch(e){}},20000);setInterval(()=>{try{if(G&&SCENE==='over')rankAuto()}catch(e){}},180000);
+// 카드팩 여러 장 열 때 장과 장 사이에 맵이 비치지 않게 검은 뒷판
+(function(){const c=document.createElement('style');c.textContent=`#pkBack{position:fixed;inset:0;z-index:99990;background:radial-gradient(#1c2550,#05081a)}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};

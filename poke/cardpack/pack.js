@@ -77,7 +77,7 @@ const CardPack=(()=>{
             c.save();c.globalAlpha=1-k;c.translate(W/2,H*.48+k*H*.6);c.drawImage(pk,0,pk.height*cut,pk.width,pk.height*(1-cut),-pw/2,-phh/2+phh*cut,pw,phh*(1-cut));c.restore()}
           if(e>250&&!rev){rev=1;flash=1;S.rev(R);burst(30+Math.min(R,3)*40,5+Math.min(R,3)*2,C,70);if(o.sh)burst(40,7,'#fff',80);if(R>=2)bolts=1}
           if(e>500)setPh('card')}
-        if(ph==='card'||ph==='show'){const k=Math.min(1,e/(R>=3?1400:R>=2?1000:600));const ease=1-Math.pow(1-k,3);
+        if(ph==='card'||ph==='show'){const k=ph==='show'?1:Math.min(1,e/(R>=3?1400:R>=2?1000:600));const ease=1-Math.pow(1-k,3);
           // 빛줄기
           c.save();c.translate(W/2,H*.48);c.rotate(now/(R>=3?900:2000));c.globalAlpha=.25+R*.08;c.fillStyle=R>=3?'#ffe08a':C;for(let i=0;i<(8+R*4);i++){c.rotate(Math.PI*2/(8+R*4));c.beginPath();c.moveTo(0,0);c.lineTo(Math.max(W,H),-40-R*15);c.lineTo(Math.max(W,H),40+R*15);c.fill()}c.restore();c.globalAlpha=1;
           if(bolts&&(ph==='card'||Math.random()<.04)){c.strokeStyle='rgba(220,180,255,.9)';c.shadowColor='#c070ff';c.shadowBlur=18;for(let i=0;i<2;i++){const a=Math.random()*Math.PI*2;bolt(c,W/2,H*.48,W/2+Math.cos(a)*W*.6,H*.48+Math.sin(a)*H*.5,3)}c.shadowBlur=0;if(Math.random()<.3)S.zap()}
