@@ -2986,8 +2986,8 @@ function xferOpen(){openPanel('QR 옮기기',`<div class="hcard"><b>받기 (카�
   <div class="hcard"><b>보내기 (다른 폰으로 내 기록 전부)</b><p>캐릭터 · 포켓몬 전부 · 기술 · 가방 · 돈 · 배지 · 도감까지 그대로 옮겨요. 받는 폰에서 「카메라로 QR 찍기」로 이 화면을 비추면 돼요.</p><div class="wbt"><button id="xE">내 기록 QR 보여 주기</button></div></div>`,null,p=>{p.querySelector('#xS').onclick=()=>{closePanel(1);xferScan()};p.querySelector('#xE').onclick=()=>{closePanel(1);xferSend()}})}
 (function(){const go=()=>{const b=document.getElementById('bQr');if(b)b.onclick=()=>{sfx('tap');xferOpen()};const t=document.getElementById('tQr');if(t)t.onclick=()=>{sfx('tap');xferScan()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // 출석 앱 QR로 온 포켓몬은 선물 가방에 쌓아 두지 않고 바로 동료로 (기술 카드는 가방에서 가르칠 포켓몬 골라요)
-{const _ga=gbApply;gbApply=async function(link){const before=(G&&G.gifts||[]).length;const r=await _ga(link);try{if(G&&(G.gifts||[]).some(g=>g.kind==='P')){const L=G.gifts.filter(g=>g.kind==='P');let box=0;for(const g of L){const n=BYDEX[g.id];if(!n)continue;const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(G.party.length<6)G.party.push(m);else{G.box.push(m);box++}}
-  G.gifts=G.gifts.filter(g=>g.kind!=='P');save();try{refreshSpr()}catch(e){}closePanel(1);toast('포켓몬 '+L.length+'마리가 바로 동료가 됐어요'+(box?' ('+box+'마리 보관함)':''))}}catch(e){}return r}}
+{const _ga=gbApply;gbApply=async function(link){const before=(G&&G.gifts||[]).length;const r=await _ga(link);try{if(G&&(G.gifts||[]).some(g=>g.kind==='P')){const L=G.gifts.filter(g=>g.kind==='P');let box=0;for(const g of L){const n=BYDEX[g.id];if(!n)continue;const m=mkMon(n,Math.max(g.lv,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(!G.party.length)G.party.push(m);else{G.box.push(m);box++}}
+  G.gifts=G.gifts.filter(g=>g.kind!=='P');save();try{refreshSpr()}catch(e){}closePanel(1);toast('포켓몬 '+L.length+'마리가 보관함에 들어갔어요 · 편성에서 「출전하기」로 데려가요')}}catch(e){}return r}}
 // ===== 앨범(사진)에서 QR 가져오기 · QR 해독기(jsQR)는 필요할 때만 불러와요 =====
 let JSQRP=null;const jsqrLoad=()=>JSQRP||(JSQRP=new Promise((ok,no)=>{if(typeof jsQR!=='undefined')return ok();const s=document.createElement('script');s.src='lib/jsQR.js';s.onload=()=>ok();s.onerror=no;document.head.appendChild(s)}));
 async function qrFromSource(src,w,h){// src: ImageBitmap/video/canvas
@@ -3099,9 +3099,9 @@ async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY
   if(!navigator.onLine){await say(['월드보스는 <b>인터넷(와이파이·데이터)</b>이 켜져 있어야 참여할 수 있어요.','다 같이 데미지를 모으고 실시간 랭킹을 보려면 서버에 바로 올려야 하거든요. 인터넷을 켜고 다시 와 주세요!']);return}
   const L=await wbFetch(w.wk,1);if(!L){await say(['서버에 연결이 안 돼요. 인터넷을 확인하고 잠시 뒤 다시 해 주세요.']);return}if(wbTotal(L)>=WB_HP){toast('이번 주 보스는 이미 쓰러졌어요! 포획 시도를 해 봐요');wbOpen();return}
   w.tries[day]=(w.tries[day]||0)+1;save();closePanel(1);const n=wbBoss(),boss=mkMon(n,Math.min(100,Math.max(30,topLv()+8)));const left=Math.max(1000,WB_HP-wbTotal(L));boss.hpx=1;boss.hpx=Math.max(1,left/stOf(boss)[0]);boss.hp=stOf(boss)[0];const hp0=boss.hp;BS.wbHp0=hp0;
-  const keepP=G.party;G.party=SQ;BS.wbT=0;BS.wb=1;
+  const keepP=G.party;G.party=SQ;BS.wbT=0;BS.wb=1;BS.wbKeep=keepP;
   try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','월드보스 '+META[n].name,['이번 주의 월드보스, 전설의 '+META[n].name+'(이)가 나타났다!','모두의 데미지를 합쳐서 쓰러뜨리자! 내 포켓몬 '+SQ.length+'마리 · 제한 시간 '+WB_TLIM+'초 · 다 쓰러지면 끝!'])}catch(e){}
-  let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{G.party=keepP;BS.wb=0}
+  let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{G.party=keepP;BS.wb=0;BS.wbKeep=null}
   const dmg=Math.max(0,hp0-Math.max(0,boss.hp));w.dmg+=dmg;save();
   const ok=await wbPush();sfx('badge');await say(['월드보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!','이번 주 내 누적 데미지 '+w.dmg.toLocaleString()+(wbCfg()?(ok?' · 랭킹에 올렸어요':' · 인터넷이 되면 자동으로 올려요'):'')]);wbOpen()}
 // 시간 제한: 지나면 보스가 날아가 버려요 (내 포켓몬은 다치지 않게 되돌려요)
@@ -3193,6 +3193,9 @@ function wbSquadOpen(){return new Promise(done=>{const n=wbBoss(),T=META[n].type
    ${P.some(m=>m.hp<=0)?'<p class="wbpd">쓰러진 포켓몬은 싸울 수 없어요. 「치료」로 포켓몬센터에 다녀오면 다시 싸워요.</p>':''}`,()=>done(false),p=>{
     p.querySelector('#sqRec').onclick=()=>{G.wbSq=P.map(m=>m.uid);save();sfx('get');closePanel(1);done(true)};const o=p.querySelector('#sqOld');if(o)o.onclick=()=>{closePanel(1);done(true)}})})}
 
+// 월드보스 중에 저장될 때는 원래 파티로 저장 (중간에 앱을 꺼도 파티가 20마리로 바뀌지 않게 · 도전 횟수는 시작할 때 이미 빠져요)
+{const _sv=save;save=function(){if(BS&&BS.wb&&BS.wbKeep&&G){const p=G.party;G.party=BS.wbKeep;try{return _sv.apply(this,arguments)}finally{G.party=p}}return _sv.apply(this,arguments)}}
+
 // ===== 랭킹 (사이드메뉴): 획득수 · 진행도 · 월드보스 · 격투 탑 · 이름 왼쪽에 대표 포켓몬 =====
 // 대표 포켓몬은 데리고 다니는 포켓몬(없으면 파티 첫 번째). 서버 칸을 늘리지 않으려고 이름 뒤에 「#번호」로 붙여 보내요 (이름 8자 + #2자리)
 const repTag=()=>{try{const m=(typeof folMon==='function'&&folMon())||G.party[0];if(!m)return'';const d=META[m.n].dex;return '#'+d.toString(36)+(m.shiny?'*':'')}catch(e){return''}};
@@ -3266,9 +3269,9 @@ const GGR=['레어','에픽','유니크','레전드리'],GGC=['#4aa4ff','#a35ae8
 const goN=k=>GOPT.find(o=>o.k===k).n;
 function gRoll(g){const ks=GOPT.map(o=>o.k);const o=[];for(let i=0;i<3;i++){const k=ks[ri(0,ks.length-1)];const [a,b]=GRANGE[k][Math.max(0,g-(i?(R()<.5?1:0):0))];o.push([k,ri(a,b)])}return o}
 function gItem(key){G.gear=G.gear||{};if(!G.gear[key]){const nm0=((meItem(key)||{}).n||'');G.gear[key]={g:/5성|전설|레전/.test(nm0)?1:R()<.15?1:0,o:null}}const it=G.gear[key];if(!it.o)it.o=gRoll(it.g);return it}
-// 강화는 장비마다 따로 (예전 부위별 강화는 그때 끼고 있던 장비로 옮겨요)
-function gSF(x){G.sfi=G.sfi||{};if(!G.sfMig&&G.me&&G.me.eq){G.sfMig=1;try{for(const c in (G.sf||{})){const k=G.me&&G.me.eq&&G.me.eq[c];if(k&&!G.sfi[k])G.sfi[k]={s:G.sf[c].s||0,b:G.sf[c].b||0}}}catch(e){}}
-  const k=x&&x.includes(':')?x:(G.me&&G.me.eq&&G.me.eq[x]);if(!k)return{s:0,b:0,none:1};return G.sfi[k]=G.sfi[k]||{s:0,b:0}}
+// 강화는 부위마다 하나: 무기 하나를 12강 하면 다른 무기도 12강 (아이템별로 했던 기록은 부위에서 제일 높은 단계로 합쳐요)
+function gSF(x){G.sf=G.sf||{};if(!G.sfMerge){G.sfMerge=1;try{for(const k in (G.sfi||{})){const c=k.split(':')[0],v=G.sfi[k],cur=G.sf[c]||{s:0,b:0};if((v.s||0)>(cur.s||0))G.sf[c]={s:v.s,b:0}}}catch(e){}}
+  const c=x&&x.includes(':')?x.split(':')[0]:x;if(!c)return{s:0,b:0,none:1};return G.sf[c]=G.sf[c]||{s:0,b:0}}
 const sfMul=s=>1+.06*s;
 function gearStats(){const t={atk:0,hp:0,def:0,eva:0,crt:0,cdm:0};if(!G||!G.me||!G.me.eq)return t;for(const cat in G.me.eq){const key=G.me.eq[cat];if(!key)continue;const sf=gSF(cat);if(sf.b)continue;const it=gItem(key),m=sfMul(sf.s);for(const [k,v] of it.o)t[k]+=v*m}
   for(const k in t)t[k]=Math.round(t[k]*10)/10;return t}
@@ -3296,8 +3299,8 @@ async function gearOpen(tab,sel){if(!G)return;tab=tab||'eq';await dressPack();
     body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ${G.me.own.filter(k=>k.startsWith(x+':')).length}</button>`).join('')}</div><div class="gbag">${L.map(k=>{const it=gItem(k),on=eq[c]===k;return `<div class="gb${on?' on':''}" style="--gc:${GGC[it.g]}">${gTh(k)}<div><b>${esc((meItem(k)||{}).n||k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><u>${gSF(k).b?'파괴됨':'★'+gSF(k).s}</u><ul>${gOpts(it,k)}</ul></div>${on?'<em>장착 중</em>':`<span class="gbb"><button data-ge="${k}">장착</button><button class="gdel" data-gd="${k}">버리기</button></span>`}</div>`}).join('')||'<small>이 부위 장비가 없어요. 출석 앱에서 모아요!</small>'}</div>`}
   if(tab==='sf'){const c=sel||'weapon',sf=gSF(c),r=sfRate(sf.s),cost=sfCost(sf.s);
     body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ★${gSF(x).s}${gSF(x).b?'(파괴)':''}</button>`).join('')}</div>
-    <div class="gsf"><div class="gsfh">${eq[c]?gTh(eq[c],64,80):''}<div><b>${ME_KO[c]} 강화 ★${sf.s} / ${SFMAX}</b><small>지금 끼고 있는 장비만 강화돼요. 장비마다 강화 단계가 따로예요 (다른 장비를 강화하려면 먼저 장착해요)</small><div class="stars">${Array.from({length:SFMAX},(_,i)=>`<img src="ui/star.webp" class="${i<sf.s?'on':''}${i>=15?' hi':''}">`).join('')}</div><small>옵션 효과 ×${sfMul(sf.s).toFixed(2)} → 다음 ×${sfMul(sf.s+1).toFixed(2)}</small></div></div>${(()=>{const ek=eq[c];if(!ek)return '<p class="hhint">이 부위에 장착한 장비가 없어요. 장착하면 강화 효과가 들어가요.</p>';const it=gItem(ek),m0=sf.b?0:sfMul(sf.s),nx=sf.s<SFMAX,m1=sfMul(sf.s+1);
-      return `<div class="gsft"><b>강화하면 이렇게 바뀌어요 · ${esc((meItem(ek)||{}).n||ek)}</b><table><tr><th>옵션</th><th>기본</th><th>지금 ★${sf.s}</th>${nx?`<th>성공하면 ★${sf.s+1}</th>`:''}</tr>${it.o.map(([k,v])=>`<tr><td>${goN(k)}</td><td>+${v}%</td><td>+${r1(v*m0)}%</td>${nx?`<td class="gup">+${r1(v*m1)}% <small>(+${r1(v*m1-v*m0)})</small></td>`:''}</tr>`).join('')}</table><small>이 장비에만 ★${sf.s}가 들어가요${sf.b?' · 지금은 파괴돼서 효과가 0이에요':''}</small></div>`})()}
+    <div class="gsf"><div class="gsfh">${eq[c]?gTh(eq[c],64,80):''}<div><b>${ME_KO[c]} 강화 ★${sf.s} / ${SFMAX}</b><small>이 부위의 모든 장비가 같은 강화 단계예요 (무기 하나 12강 → 다른 무기도 12강)</small><div class="stars">${Array.from({length:SFMAX},(_,i)=>`<img src="ui/star.webp" class="${i<sf.s?'on':''}${i>=15?' hi':''}">`).join('')}</div><small>옵션 효과 ×${sfMul(sf.s).toFixed(2)} → 다음 ×${sfMul(sf.s+1).toFixed(2)}</small></div></div>${(()=>{const ek=eq[c];if(!ek)return '<p class="hhint">이 부위에 장착한 장비가 없어요. 장착하면 강화 효과가 들어가요.</p>';const it=gItem(ek),m0=sf.b?0:sfMul(sf.s),nx=sf.s<SFMAX,m1=sfMul(sf.s+1);
+      return `<div class="gsft"><b>강화하면 이렇게 바뀌어요 · ${esc((meItem(ek)||{}).n||ek)}</b><table><tr><th>옵션</th><th>기본</th><th>지금 ★${sf.s}</th>${nx?`<th>성공하면 ★${sf.s+1}</th>`:''}</tr>${it.o.map(([k,v])=>`<tr><td>${goN(k)}</td><td>+${v}%</td><td>+${r1(v*m0)}%</td>${nx?`<td class="gup">+${r1(v*m1)}% <small>(+${r1(v*m1-v*m0)})</small></td>`:''}</tr>`).join('')}</table><small>이 부위의 다른 장비로 바꿔 껴도 같은 ★${sf.s}가 들어가요${sf.b?' · 지금은 파괴돼서 효과가 0이에요':''}</small></div>`})()}
     ${sf.b?`<p class="wbpd">장비가 파괴됐어요! 복구하면 ★${sf.s}로 다시 쓸 수 있어요.</p><div class="wbt"><button class="main" id="gFix" ${G.money>=GFIX?'':'disabled'}>복구하기 · ${GFIX.toLocaleString()}원</button></div>`:sf.s>=SFMAX?'<p class="wbpd">최고 강화예요!</p>':`<div class="gsfr"><span class="ok">성공 <b>${Math.round(r.ok*100)}%</b></span><span>실패 <b>${Math.round(r.fail*100)}%</b>${r.drop?' (★-1)':''}</span>${r.br?`<span class="br">파괴 <b>${(r.br*100).toFixed(0)}%</b></span>`:''}</div>
     <div class="wbt"><button class="main" id="gSf" ${G.money>=cost&&!sf.none?'':'disabled'}>강화하기 (스타캐치) · ${cost.toLocaleString()}원</button>${sf.s<15&&!sf.none?`<button id="gSfA" ${G.money>=cost?'':'disabled'}>자동 강화 (★15 전까지 · 안 터져요)</button>`:''}</div><p class="hhint">가진 돈 ${G.money.toLocaleString()}원 · 15강부터는 파괴될 수 있어요 (파괴되면 골드로 복구)</p>`}</div>`}
   if(tab==='cube'){const c=sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])||'weapon';const k=eq[c];const it=k?gItem(k):null;
@@ -3337,7 +3340,7 @@ function cubeUse(kind,c){const k=G.me.eq[c];if(!k||!(G.bag[kind]>0))return;const
 {const _wf=wbFight;wbFight=async function(){const d0=G.wb?G.wb.dmg:0;const r=await _wf.apply(this,arguments);try{if(G.wb&&G.wb.dmg>d0){addItem('cube',1);toast('월드보스 도전 보상: 수상한 큐브 1개')}}catch(e){}return r}}
 {const _wp=wbPayout;wbPayout=async function(){const o=G.wb&&G.wb.last;const r=await _wp.apply(this,arguments);try{if(o&&G.wb.paid[o.wk]){addItem('cube2',WBC.list&&WBC.list.findIndex(x=>x.id===G.pid)<10?3:1);addItem('cube',5)}}catch(e){}return r}}
 (function(){const go=()=>{const b=document.getElementById('bGear');if(b)b.onclick=()=>{sfx('tap');gearOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
-try{HUB.push({k:'gear',n:'장비 · 강화 · 큐브',d:'출결 캐릭터의 장비를 내 캐릭터에 장착하면 모든 포켓몬이 강해져요 (월드보스에서만). 옵션 3개 · 스타포스 강화(장비마다 따로 · 25강, 15강부터 파괴 가능, 골드로 복구) · 큐브로 옵션·등급 바꾸기.',st:()=>{const T=gearStats();return '공격력 +'+T.atk+'%'},go:[['장비 열기',()=>gearOpen()]]})}catch(e){}
+try{HUB.push({k:'gear',n:'장비 · 강화 · 큐브',d:'출결 캐릭터의 장비를 내 캐릭터에 장착하면 모든 포켓몬이 강해져요 (월드보스에서만). 옵션 3개 · 스타포스 강화(부위마다 하나 · 25강, 15강부터 파괴 가능, 골드로 복구) · 큐브로 옵션·등급 바꾸기.',st:()=>{const T=gearStats();return '공격력 +'+T.atk+'%'},go:[['장비 열기',()=>gearOpen()]]})}catch(e){}
 
 // ---------- 버리기 · 휴지통 · 되살리기 ----------
 function itAsk(t,d,yes){const o=document.createElement('div');o.id='gAsk';o.innerHTML=`<div class="gak"><p>${t}</p><small>${d}</small><div class="wbt"><button id="gaN">아니요</button><button class="main" id="gaY">네</button></div></div>`;document.body.appendChild(o);
