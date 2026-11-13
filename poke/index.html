@@ -1611,7 +1611,7 @@ function actUI(on){let u=document.getElementById('actUI');if(!on){if(u)u.remove(
   u.innerHTML=`<div id="aStickZ"></div><div id="aStick"><i></i></div>
    <div id="aSk">${ms.map((m,i)=>{const e=BS.foe?eff(m.type,META[BS.foe.m.n].types):1;return `<button class="ask" data-i="${i}" style="--c:${TCOL[m.type]}"><i class="tyi" style="${tyIco(m.type)}"></i><b>${m.name}</b><small><u class="tyl" style="${tyLab(m.type)}"></u> ${m.pw||'-'}</small>${e>=2?'<em class="ef up">효과 굉장</em>':e===0?'<em class="ef no">효과 없음</em>':e<1?'<em class="ef dn">효과 별로</em>':''}<span class="cdv"></span></button>`}).join('')}</div>
    <button id="aRoll">🌀<small>구르기</small></button>
-   <div id="aTop">${!BS.trainer?'<button data-k="ball">잡기</button>':''}<button data-k="heal">회복약</button><button data-k="swap">교체</button>${!BS.trainer?'<button data-k="run">도망</button>':BS.noQuit?'':'<button data-k="quit">나가기</button>'}</div>`;
+   <div id="aTop"><button data-k="heal">회복약 <small id="aHealN"></small></button>${!BS.trainer?'<button data-k="run">도망</button>':BS.noQuit?'':'<button data-k="quit">나가기</button>'}</div>`;
   document.body.appendChild(u);
   const Z=u.querySelector('#aStickZ'),K=u.querySelector('#aStick'),KI=K.querySelector('i'),st=ACT.stick,RAD=()=>Math.min(VW,VH)*.13;
   const pos=(e)=>({x:e.clientX,y:e.clientY});
@@ -1634,7 +1634,7 @@ function actUI(on){let u=document.getElementById('actUI');if(!on){if(u)u.remove(
     b.addEventListener('pointerup',up);b.addEventListener('pointercancel',e=>{if(ACT.aim&&ACT.aim.pid===e.pointerId){ACT.aim=null;b.classList.remove('cxl')}})});
   u.querySelector('#aRoll').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();actRoll()});
   u.querySelectorAll('#aTop [data-k]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.k;
-    if(k==='run')actEnd({t:'run'});else if(k==='menu')actEnd({t:'menu'});else if(k==='heal')actEnd({t:'menu',sub:'bag'});else if(k==='swap')actEnd({t:'menu',sub:'mon'});else if(k==='quit'){ACT.pause=1;quitAsk().then(y=>{ACT.pause=0;if(y&&ACT.on)actEnd({t:'quit'})})}
+    if(k==='run')actEnd({t:'run'});else if(k==='menu')actEnd({t:'menu'});else if(k==='heal')actHeal();else if(k==='swap')actEnd({t:'menu',sub:'mon'});else if(k==='quit'){ACT.pause=1;quitAsk().then(y=>{ACT.pause=0;if(y&&ACT.on)actEnd({t:'quit'})})}
     else if(k==='ball'){if(!BALLS().length){toast('몬스터볼이 없어요');return}ACT.pause=1;BS.asked=0;catchFlow().then(a=>{ACT.pause=0;if(a&&ACT.on)actEnd(a)})}})}
 addEventListener('keydown',e=>{if(!ACT.on)return;ACT.keys[e.key.toLowerCase()]=1;const k=e.key.toLowerCase();const i='jkl;'.indexOf(k)>=0?'jkl;'.indexOf(k):'1234'.indexOf(k);if(i>=0){actPress(i);e.preventDefault()}if(k===' '||k==='shift'){actRoll();e.preventDefault()}});
 addEventListener('keyup',e=>{ACT.keys&&(ACT.keys[e.key.toLowerCase()]=0)});
@@ -3357,7 +3357,7 @@ try{TOWNF[9]={d:'',f:[],sale:{}};TOWNF.push(
 // ===== 월드보스: 매주 전설 포켓몬 · 모두의 데미지를 합쳐서 쓰러뜨리기 · 랭킹 · 처치 완료 → 포획 시도 5번 =====
 // 서버: 출결 Firebase(Firestore) pokeBoss/{주}/players/{기기id} = {name, dmg, t} · 연결 코드가 없으면 내 폰 기록만
 const WBCODE='JD1-anVuZ2RvLWF0dGVuZC1jMmYwNnxBSXphU3lDY2hOMUlzNk16dUp5RHlsRTU2Sy1pZDNjQmxqVUVBeUV8anVuZ2RvLWF0dGVuZC1jMmYwNi5maXJlYmFzZXN0b3JhZ2UuYXBw';// 출결 연결 코드(JD1-…)를 받으면 여기에 넣어요
-const WB_HP=1500000,WB_TRY=3,WB_THROW=5,WB_TLIM=180,WB_SQ=20;
+const WB_HP=50000,WB_TRY=3,WB_THROW=5,WB_TLIM=180,WB_SQ=20;
 // 지금은 전설만 · 나중에 신화(4) · 환상(5) · 유일(6) 보스로 넓혀요
 const WB_TIER=3,WB_DEX=[150,249,250,384,382,383,483,484,487,643,644,716,717,791,792,888,889,146,145,144,243,244,245,380,381,385,386,638,639,640,800];
 function wbCfg(){try{const c=WBCODE||localStorage.getItem('pka-wbcode')||'';if(!c.startsWith('JD1-'))return null;const [projectId,apiKey]=atob(c.slice(4).replace(/-/g,'+').replace(/_/g,'/')).split('|');return projectId&&apiKey?{projectId,apiKey}:null}catch(e){return null}}
@@ -4671,6 +4671,14 @@ function resRef(A,arr){const c=A.bld.find(b=>b.kind==='center'||b.kind==='home'|
 function resFix(A,x,y){if(!A||!A.res||!A.wAt)return null;const ref=resRef(A,{x,y});if(!ref)return null;const ok=(x,y)=>(x===ref.x&&y===ref.y)||!!bfs(A,x,y,(X,Y)=>X===ref.x&&Y===ref.y,'walk');if(ok(x,y))return null;
   for(let d=1;d<=8;d++)for(let dy=-d;dy<=d;dy++)for(let dx=-d;dx<=d;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==d)continue;const X=x+dx,Y=y+dy;if(!canGo(A,X,Y,'walk')||A.wAt[X+','+Y])continue;if(ok(X,Y))return[X,Y]}return null}
 {const _g=goRes;goRes=async function(to){const r=await _g.apply(this,arguments);try{const A=curA();const f=resFix(A,P.x,P.y);if(f){P.x=f[0];P.y=f[1];P.mv=null;P.trail=[];P.queue=null;save()}}catch(e){}return r}}
+// ===== 배틀 중 「회복약」: 누르면 지금 싸우는 포켓몬에게 바로 써요 (자동 배틀 중에도) =====
+const HEALK=()=>Object.keys(ITEMS).filter(k=>ITEMS[k].heal&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal);
+let AHT=0;
+function actHeal(){try{const m=BS.me&&BS.me.m;if(!m||m.hp<=0)return;if(Date.now()-AHT<1200)return;const mx=stOf(m)[0],miss=mx-m.hp;if(miss<=0){toast('체력이 가득해요');return}
+  const L=HEALK();if(!L.length){toast('회복약이 없어요 · 상점이나 포케스탑에서 구해요');return}const k=L.find(k=>ITEMS[k].heal>=miss)||L[L.length-1];AHT=Date.now();
+  G.bag[k]--;const h=Math.min(miss,ITEMS[k].heal);m.hp+=h;save();sfx('heal');toast(ITEMS[k].n+' · '+nm(m)+' 체력 +'+h);try{hpPop&&hpPop(true,'+'+h)}catch(e){}aHealN()}catch(e){}}
+function aHealN(){const e=document.getElementById('aHealN');if(e&&G){const n=HEALK().reduce((a,k)=>a+(G.bag[k]||0),0);e.textContent=n?'×'+n:'없음'}}
+setInterval(()=>{try{aHealN()}catch(e){}},700);
 
 // ===== 확률 정보: 확률로 정해지는 건 전부 「뭐가 나오는지 · 몇 %인지」 볼 수 있게 (지금 난이도 기준으로 계산) =====
 const ODN=['쉬움','보통','어려움','지옥','나이트메어'];
