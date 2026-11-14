@@ -2401,6 +2401,8 @@ setInterval(()=>{try{if(AUTO.on&&AUTO.guide&&!AUTO.huntOnly&&G){const t=objectiv
 // ===== 카드팩 보상 · 중복 → 몬스터볼 · 합성(2장 → 10% 다음 등급) · 배지 케이스 =====
 // 로그인: 하루 1팩 (포켓몬팩 ↔ 기술팩 번갈아) · 퀘스트(첫 포켓몬·배지·챔피언) 깨면 랜덤 팩
 // 등급: 일반·희귀·영웅·전설 + 신화(메가진화)·환상(거다이맥스)·유일(원시회귀·무한다이맥스)
+// 합성 확률 (등급별): 일반→희귀 8% · 희귀→영웅 5% · 영웅→전설 3% · 전설→신화 1.5% · 신화→환상 1% · 환상→유일 0.5%
+const FUSER=[.08,.05,.03,.015,.01,.005];const fuseP=r=>FUSER[r]!=null?FUSER[r]:.005;const fusePct=r=>(fuseP(r)*100).toFixed(1).replace(/\.0$/,'')+'%';
 const RW=[68.5,22,7,1.8,.5,.15,.05],FTIER={mega:4,gmax:5,primal:6,emax:6};const PMAX=6,MMAX=3;
 function rollRar(kind){let u=R()*100;const n=kind==='M'?4:7;for(let i=0;i<n;i++){u-=RW[i];if(u<0)return i}return 0}
 const RPOOL={P:[[],[],[],[],[],[],[]],M:[[],[],[],[]]};
@@ -2440,13 +2442,13 @@ function badgeShow(i){return new Promise(res=>{const d=document.createElement('d
   const end=()=>{d.remove();res()};setTimeout(()=>d.onclick=end,600);setTimeout(()=>{if(d.isConnected)end()},6000)})}
 // ---------- 합성 ----------
 function fuseOpen(){if(!G)return;const D=G.dupes||[];const grp={};D.forEach(x=>{const k=x.kind+x.rar;(grp[k]=grp[k]||[]).push(x)});
-  const row=(kind,r)=>{const L=grp[kind+r]||[];const mx=kind==='M'?MMAX:PMAX;const can=L.length>=2&&r<mx;return `<div class="row"><span><b style="color:${RARC[r]}">[${RAR[r]}]</b> ${kind==='P'?'🎴 포켓몬':'📀 기술'} 재료 <b>${L.length}</b>장</span><button data-f="${kind}${r}" ${can?'':'disabled'}>${r<mx?'2장 합성 → '+RAR[r+1]+' 10%':'최고 등급'}</button></div>`};
+  const row=(kind,r)=>{const L=grp[kind+r]||[];const mx=kind==='M'?MMAX:PMAX;const can=L.length>=2&&r<mx;return `<div class="row"><span><b style="color:${RARC[r]}">[${RAR[r]}]</b> ${kind==='P'?'🎴 포켓몬':'📀 기술'} 재료 <b>${L.length}</b>장</span><button data-f="${kind}${r}" ${can?'':'disabled'}>${r<mx?'2장 합성 → '+RAR[r+1]+' '+fusePct(r):'최고 등급'}</button></div>`};
   const pairs=['P','M'].reduce((a,k)=>a+[0,1,2,3,4,5].filter(r=>r<(k==='M'?MMAX:PMAX)).reduce((b,r)=>b+((grp[k+r]||[]).length>>1),0),0);const ld=G.loginDays||0;
-  openPanel('🎴 카드팩 · 합성',`<div class="lgd"><b>📅 출석 ${ld}일째</b> · 매일 카드팩 3장, 7일째 날은 포켓몬팩 10 + 기술팩 10!<div class="qbar"><i style="width:${(ld%7)/7*100}%"></i></div><small>다음 보너스까지 ${7-ld%7}일</small></div><button class="it" id="fAll" style="width:100%;background:#ffd23f;margin:4px 0 8px" ${pairs?'':'disabled'}>⚡ 일괄 합성 (${pairs}번 한꺼번에)</button><p style="margin:0 0 6px"><b>중복 카드 2장</b>(같은 종류·같은 등급)을 합치면 <b>10%</b> 확률로 <b>한 등급 위</b> 카드가 나와요!<br><small>실패하면 재료 2장은 사라지고 몬스터볼 2개를 받아요.</small></p>
+  openPanel('🎴 카드팩 · 합성',`<div class="lgd"><b>📅 출석 ${ld}일째</b> · 매일 카드팩 3장, 7일째 날은 포켓몬팩 10 + 기술팩 10!<div class="qbar"><i style="width:${(ld%7)/7*100}%"></i></div><small>다음 보너스까지 ${7-ld%7}일</small></div><button class="it" id="fAll" style="width:100%;background:#ffd23f;margin:4px 0 8px" ${pairs?'':'disabled'}>⚡ 일괄 합성 (${pairs}번 한꺼번에)</button><p style="margin:0 0 6px"><b>중복 카드 2장</b>(같은 종류·같은 등급)을 합치면 <b>등급별 확률</b>(일반 8% · 희귀 5% · 영웅 3% · 전설 1.5% · 신화 1% · 환상 0.5%)로 <b>한 등급 위</b> 카드가 나와요!<br><small>실패하면 재료 2장은 사라지고 몬스터볼 2개를 받아요.</small></p>
     ${[0,1,2,3,4,5,6].map(r=>row('P',r)).join('')}${[0,1,2,3].map(r=>row('M',r)).join('')}<p style="font-size:12.5px;margin:6px 0 0">🔥 <b style="color:#ff3b6b">신화</b> = 메가진화 · 🌌 <b style="color:#14c8b8">환상</b> = 거다이맥스 · 👑 <b style="color:#ff2aa0">유일</b> = 원시회귀·무한다이맥스 (포켓몬팩·합성에서만)</p><p style="margin:10px 0 0;font-size:13px;opacity:.8">📅 매일 접속하면 카드팩 1장 (포켓몬팩 ↔ 기술팩 번갈아) · 🎯 퀘스트를 깨면 랜덤 카드팩 · 🔁 중복은 몬스터볼 5개 + 합성 재료</p>`,null,p=>{
     p.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>fuseDo(b.dataset.f[0],+b.dataset.f[1]));const fa=p.querySelector('#fAll');if(fa)fa.onclick=fuseAll})}
 async function fuseAll(){const D=G.dupes||[];const out=[];let fails=0;
-  for(const kind of ['P','M'])for(let r=0;r<(kind==='M'?MMAX:PMAX);r++){let L=D.filter(x=>x.kind===kind&&x.rar===r);while(L.length>=2){const a=L.shift(),b=L.shift();[a,b].forEach(x=>D.splice(D.indexOf(x),1));if(R()<(window.FUSEP||.1))out.push(rollItem(kind,r+1));else{out.push({fail:1,kind,rar:r});fails++}}}
+  for(const kind of ['P','M'])for(let r=0;r<(kind==='M'?MMAX:PMAX);r++){let L=D.filter(x=>x.kind===kind&&x.rar===r);while(L.length>=2){const a=L.shift(),b=L.shift();[a,b].forEach(x=>D.splice(D.indexOf(x),1));if(R()<fuseP(r))out.push(rollItem(kind,r+1));else{out.push({fail:1,kind,rar:r});fails++}}}
   if(!out.length)return;addItem('ball',fails*2);save();closePanel(1);await multiOpen(out,'⚡ 일괄 합성 '+out.length+'번 · 성공 '+(out.length-fails)+' · 실패 '+fails+(fails?' (몬스터볼 +'+fails*2+')':''));fuseOpen()}
 // 여러 장 한꺼번에 뒤집기 (스킵 가능) → 조용히 가방/합성 재료로
 function multiOpen(list,title){return new Promise(done=>{const d=document.createElement('div');d.id='multiOv';
@@ -2456,11 +2458,11 @@ function multiOpen(list,title){return new Promise(done=>{const d=document.create
   const end=()=>{if(fin)return;fin=1;cs.forEach((_,k)=>flip(k));save();try{hud()}catch(e){}msg.innerHTML=`🎁 선물 가방에 ${list.filter(g=>!g.fail).length-dups}장${dups?` · 🔁 중복 ${dups}장 → 몬스터볼 +${dups*5} · 합성 재료`:''}`;sk.textContent='닫기';sk.onclick=()=>{d.remove();done()}};
   const tick=()=>{if(fin)return;flip(i++);if(i<cs.length)setTimeout(tick,list.length>8?180:320);else end()};sk.onclick=end;setTimeout(tick,500)})}
 async function fuseDo(kind,r){const D=G.dupes||[];const idx=[];D.forEach((x,i)=>{if(x.kind===kind&&x.rar===r&&idx.length<2)idx.push(i)});if(idx.length<2||r>=(kind==='M'?MMAX:PMAX))return;
-  const mats=idx.map(i=>D[i]);idx.reverse().forEach(i=>D.splice(i,1));const ok=R()<(window.FUSEP||.1);const res=ok?rollItem(kind,r+1):null;save();closePanel(1);
+  const mats=idx.map(i=>D[i]);idx.reverse().forEach(i=>D.splice(i,1));const ok=R()<fuseP(r);const res=ok?rollItem(kind,r+1):null;save();closePanel(1);
   await fuseShow(kind,r,mats,ok,res);if(ok)await grant(res,'합성 성공!');else{addItem('ball',2);save();toast('💨 아쉽게 실패… 몬스터볼 2개를 받았어요');}fuseOpen()}
 function cardFace(kind,id,f){if(kind==='P'){const n=f&&META[f]?f:BYDEX[id];return n?`<img src="${faceUrl(n,'Normal')}">`+(f?`<b class="fk">${META[f].form==='mega'?'MEGA':META[f].form==='primal'?'원시':'G-MAX'}</b>`:''):'❔'}const m=GMOVES[id];const v=m&&mv(m[0]);return `<em style="background:${v?TCOL[v.type]:'#888'}">${v?v.name:'?'}</em>`}
 function fuseShow(kind,r,mats,ok,res){return new Promise(done=>{rpoolInit();const nx=Math.min(kind==='M'?MMAX:PMAX,r+1);const pool=RPOOL[kind][nx].length?RPOOL[kind][nx]:RPOOL[kind][r];
-  const d=document.createElement('div');d.id='fuseOv';d.innerHTML=`<div class="fb"><h3>🧪 합성 중… <small>${RAR[r]} 2장 → <b style="color:${RARC[nx]}">${RAR[nx]}</b> 10%</small></h3>
+  const d=document.createElement('div');d.id='fuseOv';d.innerHTML=`<div class="fb"><h3>🧪 합성 중… <small>${RAR[r]} 2장 → <b style="color:${RARC[nx]}">${RAR[nx]}</b> ${fusePct(r)}</small></h3>
     <div class="mats">${mats.map(m=>`<div class="fc" style="border-color:${RARC[r]}">${cardFace(kind,m.id,m.f)}</div>`).join('<span>+</span>')}</div>
     <div class="slot"><div class="reel"></div><div class="win"></div></div><div class="msg">두근두근…</div><button class="skip">⏭ 스킵</button></div>`;document.body.appendChild(d);
   const reel=d.querySelector('.reel'),msg=d.querySelector('.msg'),sk=d.querySelector('.skip');const N=28;const items=[];
@@ -3112,7 +3114,7 @@ const HUB=[
  {k:'mg',n:'마을 놀거리',d:'블루시티 낚시 · 회색시티 화석 발굴 · 연분홍시티 사파리존 · 노랑시티 격투 탑. 그 마을에 가면 화면 아래에 버튼이 생겨요.',st:()=>{const t=(G.mg&&G.mg.tw)||{};return '격투 탑 최고 '+(t.best||0)+'층'},list:1},
  {k:'shop',n:'마을 특산품',d:'마을마다 그 마을에서만 싸게 파는 물건과 체육관 타입 부적(그 타입 기술 위력 +10%)이 있어요. 노랑시티는 이상한사탕을 팔아요.',st:()=>'',town:1},
  {k:'rm',n:'관장 재대결',d:'이긴 관장과 배지마다 하루 5번까지 다시 싸워요 (배지 2개면 하루 10번). 상대 레벨이 내 레벨보다 높게 맞춰지고, 돈과 카드팩을 받아요.',st:()=>{const n=GYM.reduce((a,g,i)=>a+(i<G.badges?Math.max(0,rmLeft(i)):0),0);return '오늘 남은 재대결 '+n+'번'},go:[['배지 · 관장 보기',()=>badgeOpen()]]},
- {k:'card',n:'카드팩 · 합성',d:'매일 접속하면 카드팩 3장(포켓몬·기술 번갈아), 7일째 날은 포켓몬팩 10장 + 기술팩 10장! 퀘스트를 깨도 받아요. 중복 카드 2장으로 합성하면 10% 확률로 다음 등급!',st:()=>'중복 카드 '+((G.dupes||[]).length)+'장',go:[['합성하러 가기',()=>fuseOpen()],['선물함',()=>giftOpen()]]},
+ {k:'card',n:'카드팩 · 합성',d:'매일 접속하면 카드팩 3장(포켓몬·기술 번갈아), 7일째 날은 포켓몬팩 10장 + 기술팩 10장! 퀘스트를 깨도 받아요. 중복 카드 2장으로 합성하면 등급별 확률(일반 8% ~ 환상 0.5%)로 다음 등급!',st:()=>'중복 카드 '+((G.dupes||[]).length)+'장',go:[['합성하러 가기',()=>fuseOpen()],['선물함',()=>giftOpen()]]},
  {k:'dex',n:'도감 · 포켓몬 찾기',d:'못 잡은 포켓몬을 눌러 "잡으러 자동 이동". 월드맵에서 이름이나 등급(일반~유일)으로 검색해 나오는 곳을 찾아요.',st:()=>'잡음 '+Object.keys(G.dex.c).length+'/'+SPECIES.length,go:[['도감 열기',()=>dexOpen()],['월드맵 검색',()=>{WM.sel=G.a;worldOpen()}]]},
  {k:'team',n:'편성 · 보관함',d:'최대 6마리가 함께 싸워요. 나머지는 보관함에서 "출전하기"로 바꿔 넣을 수 있어요.',st:()=>'파티 '+G.party.length+'/6 · 보관함 '+G.box.length,go:[['편성 열기',()=>teamOpen()]]},
  {k:'wild',n:'자동 사냥 · 희귀 포켓몬',d:'높은 등급일수록 잘 안 나오고 잘 안 잡혀요. 어려움 난이도는 희귀 포켓몬·이로치가 더 잘 나오고 상금도 많아요.',st:()=>DNAME[DIFF()]+' 난이도',go:[['월드맵',()=>{WM.sel=G.a;worldOpen()}]]}];
@@ -4622,7 +4624,7 @@ setTimeout(()=>{try{rankAuto()}catch(e){}},20000);setInterval(()=>{try{if(G&&SCE
 (function(){const c=document.createElement('style');c.textContent=`#pkBack{position:fixed;inset:0;z-index:99990;background:radial-gradient(#1c2550,#05081a)}`;document.head.appendChild(c)})();
 // ===== 일괄 합성: 눈에 잘 띄는 큰 버튼 + 등급마다 「전부 합성」 =====
 async function fuseAllR(kind,r){const D=G.dupes||[];const out=[];let fails=0;
-  for(const k of ['P','M'])for(let q=0;q<(k==='M'?MMAX:PMAX);q++){if(kind&&(k!==kind||q!==r))continue;let L=D.filter(x=>x.kind===k&&x.rar===q);while(L.length>=2){const a=L.shift(),b=L.shift();[a,b].forEach(x=>D.splice(D.indexOf(x),1));if(R()<(window.FUSEP||.1))out.push(rollItem(k,q+1));else{out.push({fail:1,kind:k,rar:q});fails++}}}
+  for(const k of ['P','M'])for(let q=0;q<(k==='M'?MMAX:PMAX);q++){if(kind&&(k!==kind||q!==r))continue;let L=D.filter(x=>x.kind===k&&x.rar===q);while(L.length>=2){const a=L.shift(),b=L.shift();[a,b].forEach(x=>D.splice(D.indexOf(x),1));if(R()<fuseP(q))out.push(rollItem(k,q+1));else{out.push({fail:1,kind:k,rar:q});fails++}}}
   if(!out.length){toast('합성할 영혼이 2개 이상 있어야 해요');return}addItem('ball',fails*2);save();closePanel(1);sfx('badge');
   await multiOpen(out,'일괄 합성 '+out.length+'번 · 성공 '+(out.length-fails)+' · 실패 '+fails+(fails?' (몬스터볼 +'+fails*2+')':''));fuseOpen()}
 fuseAll=()=>fuseAllR(null,0);
@@ -4699,8 +4701,8 @@ const ODTABS={
    <h4>영웅~전설 카드팩</h4>${odRows([[RAR[2],.9,RARC[2]],[RAR[3],.1,RARC[3]]])}
    <h4>전설 카드팩</h4>${odRows([[RAR[3],1,RARC[3]]])}<h4>신화 · 환상 · 유일 카드팩</h4>${odRows([4,5,6].map(i=>[RAR[i]+' 카드팩 → '+RAR[i],1,RARC[i]]))}<p class="hhint">운영자 선물로만 받아요. 난이도와 상관없이 그 등급이 나와요.</p>
    <p class="hhint">이미 가진 카드가 나오면 몬스터볼 5개 + 합성 재료가 돼요.</p>`}],
- fuse:['합성',()=>`<p class="odnow">같은 등급 영혼(또는 중복 카드) <b>2개</b>를 합치면</p>${odRows(RAR.slice(0,PMAX).map((n,i)=>[n+' → '+RAR[i+1],(window.FUSEP||.1),RARC[i+1]]))}
-   <p class="hhint">실패(90%)하면 재료 2개는 사라지고 몬스터볼 2개를 받아요. 성공하면 위 등급 포켓몬 중 하나가 똑같은 확률로 나와요. 기술 카드는 전설까지 합성돼요. 일괄 합성도 한 번 한 번 똑같은 확률이에요.</p>`],
+ fuse:['합성',()=>`<p class="odnow">같은 등급 영혼(또는 중복 카드) <b>2개</b>를 합치면</p>${odRows(RAR.slice(0,PMAX).map((n,i)=>[n+' → '+RAR[i+1],fuseP(i),RARC[i+1]]))}
+   <p class="hhint">실패하면 재료 2개는 사라지고 몬스터볼 2개를 받아요. 성공하면 위 등급 포켓몬 중 하나가 똑같은 확률로 나와요. 기술 카드는 전설까지 합성돼요. 일괄 합성도 한 번 한 번 똑같은 확률이에요.</p>`],
  stop:['포케스탑',()=>{const b=G.badges+(G.ub||0),T=[['ball',30],['potion',20],['oran',14],['razz',12]];if(b>=2)T.push(['great',14],['spotion',10],['sitrus',6]);if(b>=5)T.push(['hyper',6],['hpotion',4]);if(b>=3)T.push(['candy',1.5]);T.push(['cube',2.5]);if(b>=5)T.push(['cube2',.4]);const t=T.reduce((a,x)=>a+x[1],0);
    return `<p class="odnow">지금 배지 ${b}개 기준 · 한 번 돌리면 <b>${3+(b>=4?1:0)}개</b> (20% 확률로 1개 더)</p><h4>한 개마다 나올 확률</h4>${odRows(T.map(([k,w])=>[ITEMS[k]?ITEMS[k].n:k,w/t]))}
    <h4>한 번 돌릴 때 덤으로</h4>${odRows([['포켓몬 알',.06],['접두사 주문서',.04]])}<p class="hhint">배지 2개 · 3개 · 5개를 모으면 더 좋은 물건이 목록에 들어와요. 하루 ${typeof PS_MAX!=='undefined'?PS_MAX:20}번.</p>`}],
@@ -4883,7 +4885,7 @@ const LOCKI='<svg class="lki" viewBox="0 0 10 12" aria-hidden="true"><path d="M3
   if(h&&!p.querySelector('.bxAll')){h.insertAdjacentHTML('afterend',`<div class="bxtop"><button class="bxAll" ${n?'':'disabled'}>일괄 분해 · 중복 ${n}마리 → 영혼 ${n*BXSOUL}개</button><small>분해하면 영혼 ${BXSOUL}개 · 중복만 · 출전 중 · 잠근 포켓몬은 빼고 · 영혼은 합성에 써요</small></div>`);p.querySelector('.bxAll').onclick=()=>{sfx('tap');bxAll()}}}catch(e){}},45)}}
 // 잠긴 포켓몬은 교환(QR로 보내기)도 막아요
 {const _ts=tradeSend;tradeSend=async function(m){if(m&&m.lock){toast('자물쇠가 채워진 포켓몬은 보낼 수 없어요');return}return _ts.apply(this,arguments)}}
-try{const h=HUB.find(x=>x.k==='card');if(h)h.d='받은 포켓몬은 보관함에서 「분해」하면 그 포켓몬의 영혼 '+BXSOUL+'개가 돼요 (중복만 · 자물쇠 채운 포켓몬은 안 돼요). 이미 잡은 포켓몬을 쓰러뜨려도 영혼 1개. 같은 등급 영혼 2개를 합치면 10% 확률로 한 등급 위 포켓몬!'}catch(e){}
+try{const h=HUB.find(x=>x.k==='card');if(h)h.d='받은 포켓몬은 보관함에서 「분해」하면 그 포켓몬의 영혼 '+BXSOUL+'개가 돼요 (중복만 · 자물쇠 채운 포켓몬은 안 돼요). 이미 잡은 포켓몬을 쓰러뜨려도 영혼 1개. 같은 등급 영혼 2개를 합치면 등급별 확률(일반 8% ~ 환상 0.5%)로 한 등급 위 포켓몬!'}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`
 .lki{width:12px;height:14px;display:inline-block;vertical-align:-2px}
 .tm .tmf .lkb{position:absolute;right:-4px;top:-4px;width:22px;height:22px;display:grid;place-items:center;background:#ffd23f;color:#1c2550;box-shadow:0 0 0 2px #1c2550}
