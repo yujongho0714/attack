@@ -4857,6 +4857,8 @@ setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&(isGM()|
 #gmBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(200px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px 'Galmuri11',sans-serif;color:#ffd23f;background:#c0304a;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#gmBtn img{width:26px;height:26px}`;document.head.appendChild(c)})();
 // 신화 · 환상 · 유일 카드팩 그림 색
 (function(){const st=()=>{try{document.querySelectorAll('img').forEach(i=>{if(i.dataset.pkf)return;const k=Object.keys(PKT).find(k=>PKT[k].f&&i.closest&&(i.closest('[data-pk="'+k+'"]')||i.closest('[data-s="'+k+'"]')));if(k){i.style.filter=PKT[k].f;i.dataset.pkf=1}})}catch(e){}};setInterval(st,700)})();
+// 보내기 버튼은 목록이 길어도 항상 창 아래에 붙어 있게
+(function(){const c=document.createElement('style');c.textContent=`.panel .pb .wbt:has(#gmGo){position:sticky;bottom:-19px;z-index:5;margin:8px -4px -18px;padding:10px 8px 26px;background:linear-gradient(#efe2bdee,#e6d6a8);box-shadow:0 -3px 0 #1c2550,0 -10px 14px #0002}.panel .pb .wbt:has(#gmGo) #gmGo{width:100%;font-size:17px;padding:12px}`;document.head.appendChild(c)})();
 
 // ===== 포켓몬 분해 · 잠금 =====
 // 받은 포켓몬은 분해해서 영혼으로 바꿔야 합성에 써요 · 분해하면 그 포켓몬의 영혼 10개
