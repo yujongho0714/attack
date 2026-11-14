@@ -1431,7 +1431,7 @@ function mkMon(n,lv){const M=META[n];const iv=[0,0,0,0,0,0].map(()=>ri(0,31));co
   for(const [l,id] of learnset(M))if(l<=lv){m.moves.push(id);if(m.moves.length>4)m.moves.shift()}m.hp=stOf(m)[0];askEvo(M.dex);return m}
 // 등급 보너스: 일반 0% · 희귀 +4% · 영웅 +8% · 전설 +12% · 신화 +16% · 환상 +20% · 유일 +25% (체력은 절반만)
 const RSTAT=[0,.04,.08,.12,.16,.20,.25];const rstat=n=>{try{return RSTAT[rarOf(n)]||0}catch(e){return 0}};
-let stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=rstat(m.n)+(m.lb||0)*.04;if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.st){const t=m.st;if(t.hp)s[0]=Math.round(s[0]*(1+t.hp/100));if(t.atk){s[1]=Math.round(s[1]*(1+t.atk/100));s[3]=Math.round(s[3]*(1+t.atk/100))}if(t.def){s[2]=Math.round(s[2]*(1+t.def/100));s[4]=Math.round(s[4]*(1+t.def/100))}}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}return s};
+let stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=(RSTAT[rarM(m)]||0)+(m.lb||0)*.04;if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.st){const t=m.st;if(t.hp)s[0]=Math.round(s[0]*(1+t.hp/100));if(t.atk){s[1]=Math.round(s[1]*(1+t.atk/100));s[3]=Math.round(s[3]*(1+t.atk/100))}if(t.def){s[2]=Math.round(s[2]*(1+t.def/100));s[4]=Math.round(s[4]*(1+t.def/100))}}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}return s};
 const alive=()=>G.party.filter(m=>m.hp>0);
 const BS={on:0,me:null,foe:null,fx:[],bg:'meadow',ball:null};const bt=id=>document.getElementById(id);
 function boxHtml(m,mine){const S=stOf(m),r=Math.max(0,m.hp/S[0]);const col=r>.5?'#3be06a':r>.2?'#ffc83a':'#ff4a3a';const M=META[m.n];const ex=mine?(m.exp-expAt(m.lv))/Math.max(1,expAt(m.lv+1)-expAt(m.lv)):0;
@@ -1507,7 +1507,7 @@ function aiAct(){const me=BS.me.m,f=BS.foe.m;
   if(!BS.trainer&&wantCatch(f)){const S=stOf(f);const ball=BR().auto?autoBallFor(f):null;if(!ball&&BALLS().length&&!BS.asked){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.35&&est<f.hp-1)return{t:'move',m:weak}}if(ball){const weak=bestMove(me,f,'weak');const est=dmgCalc(me,f,weak,0).d;if(f.hp/S[0]>.35&&est<f.hp-1&&!(BS.turn>=8&&f.hp/S[0]<.6))return{t:'move',m:weak};return{t:'item',k:ball}}}
   const S=stOf(me);if(me.hp/S[0]<.25){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p&&BS.healUsed<2){BS.healUsed++;return{t:'item',k:p}}}
   return{t:'move',m:bestMove(me,f)}}
-function wantCatch(f){if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;try{BR()}catch(e){}if(G.party.length+G.box.length>=900)return false;if(G.opt.catchNew===false)return false;return !G.dex.c[META[f.n].dex]||(typeof rarOf==='function'&&rarOf(f.n)>=2)||!!f.shiny}
+function wantCatch(f){if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;try{BR()}catch(e){}if(G.party.length+G.box.length>=900)return false;if(G.opt.catchNew===false)return false;return !G.dex.c[META[f.n].dex]||(typeof rarOf==='function'&&rarM(f)>=2)||!!f.shiny}
 function choose(sub){return new Promise(r=>{if((AUTO.on&&!AUTO.guide)||G.autoBattle){setTimeout(()=>r(aiAct()),FAST()?250:600);return}CHOOSE=r;menuMain();if(sub){const b=bt('bMenu').querySelector('[data-a='+sub+']');if(b)b.click()}})}
 async function sendMe(m,first){const S=await getSpr(sprKey(m));BS.me={m,S,st:'idle',t:0,in:0};bbox();await msg((first?'가랏! ':'돌아와! … 가랏! ')+'<b>'+nm(m)+'</b>!',FAST()?400:800,[m.n,'Determined'])}
 async function sendFoe(m){const S=await getSpr(sprKey(m));BS.foe={m,S,st:'idle',t:0,in:0};G.dex.s[META[m.n].dex]=1;bbox()}
@@ -1542,7 +1542,7 @@ function forcePick(){return new Promise(r=>{bt('bTx').innerHTML='다음 포켓�
 async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FAST()?300:600);const fp=side(0),mp=side(1);BS.ball={x:mp.x,y:mp.y,col:it.col};
   for(let i=0;i<=20;i++){const u=i/20;BS.ball.x=mp.x+(fp.x-mp.x)*u;BS.ball.y=mp.y-VW*.1+(fp.y-VW*.12-mp.y+VW*.1)*u-Math.sin(u*Math.PI)*VH*.18;BS.ball.rot=u*12;await sleep(18)}
   BS.foe.white=1;await sleep(160);BS.foe.hide=1;BS.foe.white=0;BS.flash=.15;for(let i=0;i<10;i++){BS.ball.y+=VH*.012;await sleep(16)}
-  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarOf(f.n)]*(BS.catchK||1)*[1,.8,.65,.55,.45][DIFF()]);BS.catchK=1;const sh=Math.pow(p,.25);
+  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45][DIFF()]);BS.catchK=1;const sh=Math.pow(p,.25);
   let n=0;for(;n<3;n++){await sleep(380);if(R()>sh)break;for(let k=0;k<8;k++){BS.ball.rot=Math.sin(k/8*6.28)*.5;await sleep(28)}BS.ball.rot=0;sfx('tap')}
   await sleep(300);if(n>=3&&R()<sh){sfx('get');await msg('신난다! <b>'+nm(f)+'</b>(을)를 잡았다!',1300,[f.n,'Happy']);BS.ball=null;return true}
   BS.ball=null;BS.foe.hide=0;BS.foe.in=.3;await msg(['안 돼! 포켓몬이 볼에서 나와 버렸다!','아쉽다! 조금만 더 하면 잡을 수 있었는데!','으앗! 잡은 줄 알았는데!'][Math.min(2,n)]);return false}
@@ -2295,10 +2295,10 @@ function formUse(itemKey){const it=ITEMS[itemKey];const L=[];[...G.party,...G.bo
   if(!L.length){say(['이 아이템으로 바뀔 수 있는 포켓몬이 없어요.<br><small>메가진화 '+Object.values(FORMS).flat().filter(f=>f[1]==='mega').length+'종 · 원시회귀 3종 · 거다이맥스 '+Object.values(FORMS).flat().filter(f=>f[1]==='gmax').length+'종이 있어요</small>']);return}
   openPanel(it.n+' 쓰기',`<p>누구를 바꿀까요? <b>한 번 바뀌면 계속 그 모습</b>이에요.</p>${L.map((x,i)=>`<div class="row"><span>${nm(x.m)} Lv.${x.m.lv} → <b>${META[x.f.fk].name}</b></span><button data-f="${i}">변신!</button></div>`).join('')}`,menuOpen,p=>{
     p.querySelectorAll('[data-f]').forEach(b=>b.onclick=async()=>{const {m,f}=L[+b.dataset.f];G.bag[itemKey]--;closePanel(1);await formChange(m,f.fk)})})}
-async function formChange(m,fk){const old=nm(m),r=m.hp/stOf(m)[0];try{BGM.play('evo')}catch(e){}sfx('lv');
+async function formChange(m,fk){const old=nm(m),r=m.hp/stOf(m)[0];const r0=rarM(m);try{BGM.play('evo')}catch(e){}sfx('lv');
   const fl=document.createElement('div');fl.style.cssText='position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(circle,#fff,#ffd23f 40%,#ff6af0 70%,transparent);opacity:0;transition:opacity .5s';document.body.appendChild(fl);requestAnimationFrame(()=>fl.style.opacity='1');await sleep(700);
-  m.n=fk;m.hp=Math.max(1,Math.round(stOf(m)[0]*r));G.dex.s[META[fk].dex]=1;G.forms=G.forms||{};G.forms[fk]=1;save();await refreshSpr();fl.style.opacity='0';setTimeout(()=>fl.remove(),600);
-  await say([{t:'✨ '+old+'(이)가 <b>'+META[fk].name+'</b>(으)로 '+(META[fk].form==='mega'?'메가진화':META[fk].form==='primal'?'원시회귀':'거다이맥스')+'했다!<br><small>이제 계속 이 모습이에요. 능력치도 올랐어요!</small>',f:[META[fk].base,'Joyous']}]);try{BGM.area()}catch(e){}}
+  m.n=fk;m.fr=Math.min(FTIER[META[fk].form]||4,r0+1);m.hp=Math.max(1,Math.round(stOf(m)[0]*r));G.dex.s[META[fk].dex]=1;G.forms=G.forms||{};G.forms[fk]=1;save();await refreshSpr();fl.style.opacity='0';setTimeout(()=>fl.remove(),600);
+  await say([{t:'✨ '+old+'(이)가 <b>'+META[fk].name+'</b>(으)로 '+(META[fk].form==='mega'?'메가진화':META[fk].form==='primal'?'원시회귀':'거다이맥스')+'했다!<br><small>이제 계속 이 모습이에요. 등급이 <b>'+RAR[r0]+' → '+RAR[m.fr]+'</b>(으)로 한 단계 올랐어요!</small>',f:[META[fk].base,'Joyous']}]);try{BGM.area()}catch(e){}}
 // ---------- 이로치 여러 색 ----------
 const SHC=[null,{n:'✨이로치'},{n:'🥇황금'},{n:'🥈은빛'},{n:'🌑그림자'},{n:'💎크리스탈'},{n:'🌈무지개'}];
 const SHW=[0,40,15,15,12,10,8];// 나올 확률 비율
@@ -2476,16 +2476,18 @@ function fuseShow(kind,r,mats,ok,res){return new Promise(done=>{rpoolInit();cons
 
 // ===== 포획: 등급별 출현·포획 확률 · 볼 고르기(스와이프·진동) · 타이밍(팡야처럼) · 자동일 때 볼 규칙 =====
 const rarOf=n=>{const M=META[n];if(!M)return 0;if(M.form)return FTIER[M.form]||4;return RARP[M.dex]||0};
+// 포켓몬 한 마리의 등급: 돌(메가스톤 · 다이맥스 밴드 · 원시의 구슬)로 바꾼 폼은 원래 등급에서 한 단계만 올라가요 (m.fr)
+const rarM=m=>{try{if(!m)return 0;if(m.fr!=null&&META[m.n]&&META[m.n].form)return m.fr;return rarOf(m.n)}catch(e){return 0}};
 const ENCW=[1,.4,.14,.04,.02,.01,.005],CATW=[1,.55,.3,.12,.08,.05,.03];
 const BALLS=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]&&(G.bag[k]||0)>0);
 // 자동일 때 볼 규칙 (기본: 자동은 볼 안 씀)
 const BR=()=>{G.opt.br=G.opt.br||{auto:1,great:2,hyper:3};if(!G.opt.acV){G.opt.acV=1;G.opt.br.auto=1;G.opt.catchNew=true}if(G.opt.acV<2){G.opt.acV=2;G.opt.br.great=Math.max(2,G.opt.br.great||0);G.opt.br.hyper=Math.max(3,G.opt.br.hyper||0)}return G.opt.br};// 슈퍼볼은 영웅부터 · 하이퍼볼은 전설부터
-function autoBallFor(f){const r=rarOf(f.n),b=BR();if(!b.auto)return null;const can=k=>(G.bag[k]||0)>0;
+function autoBallFor(f){const r=rarM(f),b=BR();if(!b.auto)return null;const can=k=>(G.bag[k]||0)>0;
   if(can('hyper')&&r>=b.hyper)return'hyper';if(can('great')&&r>=b.great)return'great';if(can('ball'))return'ball';return null}
 function wantAsk(){const f=BS.foe&&BS.foe.m;if(!f||BS.trainer||BS.asked||f.hp<=0)return false;if(!BALLS().length)return false;if(f.hp/stOf(f)[0]>.35)return false;
   if(autoActive()&&!wantCatch(f))return false;return true}
 // ---------- 볼 고르기 + 타이밍 ----------
-function catchFlow(){return new Promise(done=>{BS.asked=1;const f=BS.foe.m,r=rarOf(f.n),auto=autoActive();
+function catchFlow(){return new Promise(done=>{BS.asked=1;const f=BS.foe.m,r=rarM(f),auto=autoActive();
   if(auto&&BR().auto){const k=autoBallFor(f);BS.catchK=1;done(k?{t:'item',k}:null);return}
   let L=BALLS(),i=Math.max(0,L.indexOf(r>=2&&L.includes('hyper')?'hyper':r>=1&&L.includes('great')?'great':'ball'));
   const d=document.createElement('div');d.id='catchOv';const vib=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
@@ -2571,7 +2573,7 @@ function teachTo(m,id,after){const gi=(G.gifts||[]).findIndex(g=>g.kind==='M'&&G
   openPanel('잊을 기술 고르기',m.moves.map((x,k)=>`<div class="row"><span>${mv(x).name} <small>${TN[mv(x).type]} · 위력 ${mv(x).pw||'-'}</small></span><button data-f="${k}">잊기</button></div>`).join(''),()=>recOpen(id),q=>q.querySelectorAll('[data-f]').forEach(c=>c.onclick=()=>{m.moves[+c.dataset.f]=id;fin()}))}
 
 // ===== 포켓몬 편성 (출전 최대 6마리 · 나머지는 보관함) =====
-function teamOpen(){if(!G)return;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarOf(m.n);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${m.lv}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}<div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
+function teamOpen(){if(!G)return;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${m.lv}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}<div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
   openPanel('포켓몬 편성 · 출전 '+G.party.length+' / 6',`<h4>출전 중 (최대 6마리)</h4><div class="tg">${G.party.map((m,i)=>row(m,i,'p')).join('')}${Array(6-G.party.length).fill('<div class="tm empty">빈 자리</div>').join('')}</div>
     <h4>보관함 ${G.box.length}마리</h4><div class="tg">${G.box.length?G.box.map((m,i)=>row(m,i,'b')).join(''):'<small>보관함이 비어 있어요</small>'}</div>`,null,p=>{
     p.querySelectorAll('[data-out]').forEach(b=>b.onclick=()=>{if(G.party.length<=1){toast('한 마리는 꼭 출전해야 해요');return}const m=G.party.splice(+b.dataset.out,1)[0];G.box.unshift(m);save();refreshSpr();toast(nm(m)+' 편성 해제 → 보관함');teamOpen()});
@@ -3478,7 +3480,7 @@ try{HUB.push({k:'rank',n:'랭킹',d:'월드보스 누적 데미지 · 격투 탑
 function wbSquad(){const all=[...G.party,...G.box];return (G.wbSq||[]).map(u=>all.find(m=>m.uid===u)).filter(Boolean)}
 function wbSquadOpen(){return new Promise(done=>{const n=wbBoss(),T=META[n].types;const P=[...G.party,...G.box].map(m=>({m,s:recScore(m,T)})).sort((a,b)=>b.s-a.s).slice(0,WB_SQ).map(x=>x.m);const cur=wbSquad();const curAlive=cur.filter(m=>m.hp>0).length;
   openPanel('월드보스 편성 · 최대 '+WB_SQ+'마리',`<p class="hhint">상대 ${META[n].name} (${T.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')})에 강한 순서로 <b>${P.length}마리</b>를 골랐어요. 한 마리가 쓰러지면 다음 포켓몬이 나와요. 다 쓰러지거나 ${WB_TLIM}초가 지나면 끝!</p>
-   <div class="sqg">${P.map((m,i)=>{const rr=rarOf(m.n),dead=m.hp<=0;return `<div class="sq${dead?' dead':''}" data-ri="${i}" style="--rc:${RARC[rr]}"><img src="${faceUrl(m.n,dead?'Pain':'Normal')}"><b class="rno">${i+1}</b><small>${nm(m)}</small><small>Lv.${m.lv}</small><i style="width:${Math.max(0,m.hp/stOf(m)[0]*100)}%"></i></div>`}).join('')}</div>
+   <div class="sqg">${P.map((m,i)=>{const rr=rarM(m),dead=m.hp<=0;return `<div class="sq${dead?' dead':''}" data-ri="${i}" style="--rc:${RARC[rr]}"><img src="${faceUrl(m.n,dead?'Pain':'Normal')}"><b class="rno">${i+1}</b><small>${nm(m)}</small><small>Lv.${m.lv}</small><i style="width:${Math.max(0,m.hp/stOf(m)[0]*100)}%"></i></div>`}).join('')}</div>
    <div class="wbt"><button class="main" id="sqRec">추천 편성 ${P.length}마리로 입장</button>${cur.length?`<button id="sqOld" ${curAlive?'':'disabled'}>지난번 편성으로 입장 (${curAlive}/${cur.length} 살아 있음)</button>`:''}</div>
    ${P.some(m=>m.hp<=0)?'<p class="wbpd">쓰러진 포켓몬은 싸울 수 없어요. 「치료」로 포켓몬센터에 다녀오면 다시 싸워요.</p>':''}`,()=>done(false),p=>{
     domDrag(p.querySelector('.sqg'),'.sq');p.querySelector('#sqRec').onclick=()=>{domOrder(p.querySelector('.sqg'),P);G.wbSq=P.map(m=>m.uid);save();sfx('get');closePanel(1);done(true)};const o=p.querySelector('#sqOld');if(o)o.onclick=()=>{closePanel(1);done(true)}})})}
@@ -3591,7 +3593,7 @@ function recWhy(m,foeTypes){if(!foeTypes||!foeTypes.length)return'강한 순';le
 // 추천 편성 화면 · need=1이면 적용해야 다음으로 넘어가요
 function recOpen(title,foeTypes,need){return new Promise(done=>{const P=recPick(foeTypes);const cur=new Set(G.party);const same=P.length===G.party.length&&P.every(x=>cur.has(x.m));
   openPanel('추천 편성 · '+title,`<p class="hhint">${foeTypes&&foeTypes.length?'상대 타입 '+foeTypes.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')+' 에 강한 순서로 골랐어요.':'레벨과 능력치가 강한 순서로 골랐어요.'}${need?' <b>추천 편성을 적용해야 입장할 수 있어요.</b>':''}</p>
-   <div class="tg">${P.map(({m},i)=>{const rr=rarOf(m.n),inP=cur.has(m);return `<div class="tm p rr${rr}" data-ri="${i}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b><span class="rno">${i+1}</span>. ${nm(m)}</b> <small>Lv.${m.lv}</small><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><small>${recWhy(m,foeTypes)}${inP?'':' · 보관함에서 옴'}</small></div></div>`}).join('')}</div>
+   <div class="tg">${P.map(({m},i)=>{const rr=rarM(m),inP=cur.has(m);return `<div class="tm p rr${rr}" data-ri="${i}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b><span class="rno">${i+1}</span>. ${nm(m)}</b> <small>Lv.${m.lv}</small><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><small>${recWhy(m,foeTypes)}${inP?'':' · 보관함에서 옴'}</small></div></div>`}).join('')}</div>
    <div class="wbt"><button class="main" id="rcOk">${same?'이미 추천 편성이에요 · 입장':'추천 편성 적용'+(need?'하고 입장':'')}</button>${need?'':'<button id="rcNo">그대로 둘래요</button>'}</div>`,()=>done(false),p=>{
     domDrag(p.querySelector('.tg'),'.tm.p');p.querySelector('#rcOk').onclick=()=>{domOrder(p.querySelector('.tg'),P);sfx('get');const pick=P.map(x=>x.m),rest=[...G.party,...G.box].filter(m=>!pick.includes(m));G.party=pick;G.box=rest;save();try{refreshSpr()}catch(e){}closePanel(1);toast('추천 편성을 적용했어요');done(true)};
     const n=p.querySelector('#rcNo');if(n)n.onclick=()=>{closePanel(1);done(false)}})})}
@@ -3945,13 +3947,13 @@ const owned=f=>{try{return !!(G&&f&&G.dex.c[META[f.n].dex])&&!f.shiny&&!META[f.n
 const MONCAP=5;const monCnt=d=>G?[...G.party,...G.box].filter(m=>META[m.n]&&META[m.n].dex===d).length:0;
 function monCapOk(m){try{return monCnt(META[m.n].dex)<MONCAP}catch(e){return true}}
 const capFull=f=>{try{return !!(G&&f&&!BS.trainer&&monCnt(META[f.n].dex)>=MONCAP)}catch(e){return false}};
-function soulFrom(m){const M=META[m.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P',id:M.dex,rar:rarOf(m.n),lv:m.lv,sh:0,soul:1});save();toast(M.name+'은(는) 이미 '+MONCAP+'마리 · 영혼 +1')}
+function soulFrom(m){const M=META[m.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P',id:M.dex,rar:rarM(m),lv:m.lv,sh:0,soul:1});save();toast(M.name+'은(는) 이미 '+MONCAP+'마리 · 영혼 +1')}
 {const _w=wantCatch;wantCatch=function(f){if(capFull(f))return false;return _w.apply(this,arguments)}}
 {const _a0=wantAsk;wantAsk=function(){if(capFull(BS.foe&&BS.foe.m))return false;return _a0.apply(this,arguments)}}
 {const _cf=catchFlow;catchFlow=function(){const f=BS.foe&&BS.foe.m;if(capFull(f)){toast(META[f.n].name+'은(는) 이미 '+MONCAP+'마리예요 (최대) · 쓰러뜨리면 영혼을 얻어요');return Promise.resolve(null)}return _cf.apply(this,arguments)}}
 {const _tb0=throwBall;throwBall=async function(f,it){if(capFull(f)&&it&&it.ball){try{const k=Object.keys(ITEMS).find(k=>ITEMS[k].n===it.n);if(k)G.bag[k]=(G.bag[k]||0)+1}catch(e){}await msg('이미 '+MONCAP+'마리라서 더 잡을 수 없어요! 쓰러뜨리면 영혼을 얻어요',700);return false}return _tb0.apply(this,arguments)}}
 const soulN=dex=>(G.dupes||[]).filter(x=>x.kind==='P'&&x.id===dex).length;
-function soulAdd(f){const M=META[f.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P',id:M.dex,rar:rarOf(f.n),lv:f.lv,sh:0,soul:1});save();toast(M.name+'의 영혼 +1 (가진 영혼 '+soulN(M.dex)+'개) · 합성에서 써요')}
+function soulAdd(f){const M=META[f.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P',id:M.dex,rar:rarM(f),lv:f.lv,sh:0,soul:1});save();toast(M.name+'의 영혼 +1 (가진 영혼 '+soulN(M.dex)+'개) · 합성에서 써요')}
 {const _a=wantAsk;wantAsk=function(){if(Date.now()-(BS.thT||0)<2500)return false;return _a.apply(this,arguments)}}
 {const _ab=autoBallFor;autoBallFor=function(f){if(Date.now()-(BS.thT||0)<2500)return null;return _ab.apply(this,arguments)}}
 {const _tb=throwBall;throwBall=async function(f,it){const ok=await _tb.apply(this,arguments);if(!ok){BS.asked=0;BS.thT=Date.now()}return ok}}
@@ -4196,7 +4198,7 @@ async function eggHatch(i){const I=eggS(),e=I[i];if(!e)return;I.splice(i,1);save
   const eg=o.querySelector('.egg');for(let k=0;k<3;k++){eg.classList.add('wob');await sleep(650);eg.classList.remove('wob');await sleep(250);sfx('tap')}eg.classList.add('crack');await sleep(500);o.remove();
   const lv=Math.max(5,Math.min(100,(typeof topLv==='function'?topLv():10)-8));const m=mkMon(BYDEX[g.id],lv);if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(R()<.03)m.sh=1;m.egg=1;
   const M=META[m.n],nw=!G.dex.c[M.dex];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
-  try{await CardPack.open({rar:rarOf(m.n),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}
+  try{await CardPack.open({rar:rarM(m),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}
   if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m)}else{if(G.party.length<6)G.party.push(m);else G.box.push(m);toast('알에서 '+M.name+'(이)가 태어났어요!'+(nw?' (도감 새로 등록)':''))}save();try{refreshSpr()}catch(e){}}
 function eggHud(){let b=document.getElementById('egHud');const I=G?eggS():[];if(!G||SCENE!=='over'||!I.length){if(b)b.style.display='none';return}
   if(!b){b=document.createElement('button');b.id='egHud';b.onclick=()=>{sfx('tap');eggOpen()};document.body.appendChild(b)}b.style.display='';
@@ -4539,7 +4541,7 @@ async function tradeApply(t){let d;try{d=await qrUnpack(t)}catch(e){toast('교�
   G.usedT=G.usedT||{};if(G.usedT[d.t]){toast('이미 받은 포켓몬이에요 (같은 QR은 한 번만)');return}if((G.trOut||[]).some(x=>x.t===d.t)){toast('내가 보낸 QR이에요');return}
   const m=monUnpack(d.m);m.from=d.from||'친구';G.usedT[d.t]=1;const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
   if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m);save();return}G.box.push(m);save();try{refreshSpr()}catch(e){}
-  try{await CardPack.open({rar:rarOf(m.n),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)');try{spAdd(5)}catch(e){}}
+  try{await CardPack.open({rar:rarM(m),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)');try{spAdd(5)}catch(e){}}
 
 // ===== 친구 대전: 내 팀 QR을 보여 주고, 친구 팀 QR을 찍으면 그 팀과 배틀 · 이기면 승리 +1 (같은 친구는 하루 3번까지) =====
 async function pvpMine(){if(!G)return;if(typeof qrcode==='undefined'||typeof CompressionStream==='undefined'){toast('이 폰에서는 QR을 못 만들어요');return}
@@ -4861,7 +4863,7 @@ setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&(isGM()|
 // 중복만 분해돼요 (같은 포켓몬이 2마리 이상일 때 · 마지막 1마리는 안 돼요) · 출전 중 · 자물쇠 채운 포켓몬은 분해 안 돼요
 const BXSOUL=10;
 const bxDex=m=>{try{return META[m.n].dex}catch(e){return -1}};
-const bxScore=m=>{let s=(m.lv||1)+rarOf(m.n)*100000;try{if(m.px!=null&&PX[m.px])s+=(PX[m.px].g+1)*1000}catch(e){}if(m.sh)s+=600;s+=(m.lb||0)*60;return s};
+const bxScore=m=>{let s=(m.lv||1)+rarM(m)*100000;try{if(m.px!=null&&PX[m.px])s+=(PX[m.px].g+1)*1000}catch(e){}if(m.sh)s+=600;s+=(m.lb||0)*60;return s};
 // 같은 포켓몬 = 같은 종류 · 같은 폼 (메가·거다이맥스·원시 폼은 기본 포켓몬과 다른 포켓몬으로 봐요)
 const bxKey=m=>m.n;
 const bxCnt=k=>[...G.party,...G.box].filter(m=>bxKey(m)===k).length;
@@ -4869,7 +4871,7 @@ const bxCan=m=>!!(m&&!m.lock&&G.box.includes(m)&&bxCnt(bxKey(m))>=2);
 // 일괄 분해할 포켓몬: 같은 포켓몬끼리 묶어서 출전 중 · 잠금 · 제일 좋은 1마리는 남겨요
 function bxAllList(){const grp=new Map();for(const m of [...G.party,...G.box]){const d=bxKey(m);if(!grp.has(d))grp.set(d,[]);grp.get(d).push(m)}const out=[];
   for(const L of grp.values()){if(L.length<2)continue;const keep=new Set(L.filter(m=>m.lock||G.party.includes(m)));if(!keep.size)keep.add(L.slice().sort((a,b)=>bxScore(b)-bxScore(a))[0]);for(const m of L)if(!keep.has(m)&&G.box.includes(m))out.push(m)}return out}
-function bxDo(list){if(!list.length)return 0;G.dupes=G.dupes||[];for(const m of list){const i=G.box.indexOf(m);if(i<0||m.lock)continue;G.box.splice(i,1);const d=bxDex(m),r=rarOf(m.n);for(let k=0;k<BXSOUL;k++)G.dupes.push({kind:'P',id:d,rar:r,lv:m.lv,sh:0,soul:1})}save();try{refreshSpr()}catch(e){}return list.length}
+function bxDo(list){if(!list.length)return 0;G.dupes=G.dupes||[];for(const m of list){const i=G.box.indexOf(m);if(i<0||m.lock)continue;G.box.splice(i,1);const d=bxDex(m),r=rarM(m);for(let k=0;k<BXSOUL;k++)G.dupes.push({kind:'P',id:d,rar:r,lv:m.lv,sh:0,soul:1})}save();try{refreshSpr()}catch(e){}return list.length}
 const bxWarn=L=>{const sh=L.filter(m=>m.sh).length,px=L.filter(m=>m.px!=null).length;return (sh||px)?`<br><b style="color:#c0304a">주의! ${[sh?'이로치 '+sh+'마리':'',px?'접두사 '+px+'마리':''].filter(Boolean).join(' · ')}가 들어 있어요.</b> 지키고 싶으면 자물쇠를 먼저 채워요.`:''};
 function bxOne(m){if(!bxCan(m)){toast(m&&m.lock?'자물쇠가 채워져 있어요':'같은 포켓몬이 1마리뿐이라 분해할 수 없어요');return}
   itAsk('<b>'+nm(m)+'</b> Lv.'+m.lv+'을(를) 정말 분해할까요?','분해하면 되돌릴 수 없어요. '+META[m.n].name+'의 영혼 '+BXSOUL+'개를 받아요.'+bxWarn([m]),()=>{bxDo([m]);sfx('get');toast(META[m.n].name+'의 영혼 +'+BXSOUL);teamOpen()})}
@@ -4989,7 +4991,7 @@ setInterval(async()=>{try{if(!G||!(isGM()||isOp())||!navigator.onLine)return;wbS
 {const _rf=rankFetch;rankFetch=async function(){const L=await _rf.apply(this,arguments);try{await staffLoad()}catch(e){}return L?L.filter(x=>!STAFF.has(x.id)):L}}
 {const _wf=wbFetch;wbFetch=async function(){const L=await _wf.apply(this,arguments);try{await staffLoad()}catch(e){}if(!L)return L;const st=L.filter(x=>STAFF.has(x.id));if(!st.length)return L;const out=L.filter(x=>!STAFF.has(x.id));out.gmDmg=(L.gmDmg||0)+st.reduce((a,x)=>a+x.dmg,0);out.gmList=(L.gmList||[]).concat(st.map(x=>Object.assign({},x,{name:'[GM]'+rkSplit(x.name).name})));return out}}
 // ===== 보유 포켓몬 (관장님이 계정 관리에서 확인) · 하루 한 번 · 바뀌었을 때만 올려요 (등급 높은 순 100마리까지) =====
-const invEnc=()=>{const all=[...G.party,...G.box].filter(m=>META[m.n]);all.sort((a,b)=>rarOf(b.n)-rarOf(a.n)||b.lv-a.lv);return {n:all.length,s:all.slice(0,100).map(m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+m.lv+(m.sh?'s':'')+(m.px!=null?'p'+m.px:'')).join(',')}};
+const invEnc=()=>{const all=[...G.party,...G.box].filter(m=>META[m.n]);all.sort((a,b)=>rarM(b)-rarM(a)||b.lv-a.lv);return {n:all.length,s:all.slice(0,100).map(m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+m.lv+(m.sh?'s':'')+(m.px!=null?'p'+m.px:'')).join(',')}};
 const invDec=s=>s.split(',').filter(Boolean).map(x=>{const m=/^(.+)\.(\d+)(s?)(?:p(\d+))?$/.exec(x);if(!m)return null;return {n:'sc:'+m[1].replace(/_/g,'/'),lv:+m[2],sh:!!m[3],px:m[4]!=null?+m[4]:null}}).filter(x=>x&&META[x.n]);
 let INVB=0;
 async function invUpload(){if(INVB||!G||!G.pid||!navigator.onLine||!fsBase()||(typeof isGM==='function'&&isGM()))return;const E=invEnc();if(!E.n)return;const day=dayKey(),wk=wbWeek(),sig=E.s.length+':'+E.s.slice(0,60)+':'+E.n;
@@ -5037,12 +5039,12 @@ function bxFilter(){const p=document.querySelector('.panel');if(!p)return;const 
      <div class="bxrow"><span>정렬</span>${[['new','받은 순'],['lv','레벨'],['rar','등급'],['dex','도감 번호']].map(([k,n])=>`<button data-fs="${k}">${n}</button>`).join('')}<small class="bxcnt"></small></div></div>`);
     p.querySelectorAll('[data-fr]').forEach(b=>b.onclick=()=>{F.r=+b.dataset.fr;save();bxFilter()});p.querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{F.t=b.dataset.ft;save();bxFilter()});p.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>{F.s=b.dataset.fs;save();bxFilter()})}
   p.querySelectorAll('[data-fr]').forEach(b=>b.classList.toggle('on',+b.dataset.fr===F.r));p.querySelectorAll('[data-ft]').forEach(b=>b.classList.toggle('on',b.dataset.ft===F.t));p.querySelectorAll('[data-fs]').forEach(b=>b.classList.toggle('on',b.dataset.fs===F.s));
-  const S={new:(a,b)=>b.i-a.i,lv:(a,b)=>b.m.lv-a.m.lv,rar:(a,b)=>rarOf(b.m.n)-rarOf(a.m.n)||b.m.lv-a.m.lv,dex:(a,b)=>META[a.m.n].dex-META[b.m.n].dex}[F.s]||((a,b)=>a.i-b.i);
-  cards.sort(S);let n=0;for(const x of cards){const ok=(F.r<0||rarOf(x.m.n)===F.r)&&(!F.t||META[x.m.n].types.includes(F.t));x.c.style.display=ok?'':'none';if(ok)n++;box.appendChild(x.c)}
+  const S={new:(a,b)=>b.i-a.i,lv:(a,b)=>b.m.lv-a.m.lv,rar:(a,b)=>rarM(b.m)-rarM(a.m)||b.m.lv-a.m.lv,dex:(a,b)=>META[a.m.n].dex-META[b.m.n].dex}[F.s]||((a,b)=>a.i-b.i);
+  cards.sort(S);let n=0;for(const x of cards){const ok=(F.r<0||rarM(x.m)===F.r)&&(!F.t||META[x.m.n].types.includes(F.t));x.c.style.display=ok?'':'none';if(ok)n++;box.appendChild(x.c)}
   const ct=p.querySelector('.bxcnt');if(ct)ct.textContent=n+' / '+cards.length+'마리';
   // 삭제 버튼
   for(const x of cards){const row=x.c.querySelector('.bxb');if(!row||row.querySelector('.bxx'))continue;const b=document.createElement('button');b.className='bxx';b.textContent='삭제';if(x.m.lock)b.disabled=true;b.onclick=e=>{e.stopPropagation();bxDel(x.m)};row.appendChild(b)}}
-function bxDel(m){if(!m||m.lock){toast('자물쇠가 채워져 있어요');return}if(!G.box.includes(m))return;const r=rarOf(m.n),hi=r>=3;
+function bxDel(m){if(!m||m.lock){toast('자물쇠가 채워져 있어요');return}if(!G.box.includes(m))return;const r=rarM(m),hi=r>=3;
   itAsk('<b style="color:'+RARC[r]+'">['+RAR[r]+']</b> <b>'+nm(m)+'</b> Lv.'+m.lv+'을(를) 정말 삭제할까요?',(hi?'<b style="color:#c0304a">'+RAR[r]+' 포켓몬이에요! </b>':'')+(m.sh?'<b style="color:#c0304a">이로치예요! </b>':'')+(m.px!=null&&PX[m.px]?'<b style="color:#c0304a">접두사 ['+PX[m.px].n+']가 붙어 있어요! </b>':'')+'삭제하면 영혼도 안 남고 되돌릴 수 없어요. (영혼을 받으려면 「분해」를 써요)',()=>{const i=G.box.indexOf(m);if(i<0)return;G.box.splice(i,1);save();try{refreshSpr()}catch(e){}sfx('hit');toast(nm(m)+' 삭제했어요');teamOpen()})}
 (function(){const c=document.createElement('style');c.textContent=`
 #dmBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(260px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px 'Galmuri11',sans-serif;color:#1c2550;background:linear-gradient(#ffe680 0 50%,#ffc21f 50%);box-shadow:0 0 0 3px #1c2550,0 6px 0 #0005;animation:pxglow 1.4s ease-in-out infinite}#dmBtn.on{display:flex}#dmBtn img{width:24px;height:24px}body.inb #dmBtn{display:none!important}
@@ -5055,10 +5057,10 @@ function bxDel(m){if(!m||m.lock){toast('자물쇠가 채워져 있어요');retur
 .panel .bxb button.bxx{flex:0 0 auto;color:#fff!important;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%)!important}`;document.head.appendChild(c)})();
 
 // ===== 일괄 분해: 대상을 전부 보여 주고 (기본으로 다 체크) · 뺄 포켓몬만 체크를 풀어서 분해 =====
-bxAll=function(){const L=bxAllList();if(!L.length){toast('분해할 중복 포켓몬이 없어요');return}const on=new Set(L.filter(m=>rarOf(m.n)<3&&!m.sh));
+bxAll=function(){const L=bxAllList();if(!L.length){toast('분해할 중복 포켓몬이 없어요');return}const on=new Set(L.filter(m=>rarM(m)<3&&!m.sh));
   const draw=()=>{const n=on.size;openPanel('일괄 분해 · '+L.length+'마리',`<p class="hhint">같은 포켓몬끼리 제일 좋은 1마리 · 출전 중 · 자물쇠 채운 포켓몬은 이미 빠져 있어요. <b>남기고 싶은 포켓몬은 눌러서 체크를 풀어요.</b> 1마리마다 영혼 ${BXSOUL}개.</p>
     <div class="bxsel"><button data-all="1">모두 체크</button><button data-none="1">모두 풀기</button></div>
-    <div class="bxck">${L.map((m,i)=>{const r=rarOf(m.n),warn=m.sh||m.px!=null;return `<button class="bxc${on.has(m)?' on':''}${warn?' warn':''}" data-i="${i}"><i class="ck"></i><img src="${THUMB[m.n]||''}" alt=""><span><b>${esc(nm(m))}</b><small style="color:${RARC[r]}">${RAR[r]} · Lv.${m.lv}${m.sh?' · 이로치':''}${m.px!=null&&PX[m.px]?' · ['+PX[m.px].n+']':''}</small></span></button>`}).join('')}</div>
+    <div class="bxck">${L.map((m,i)=>{const r=rarM(m),warn=m.sh||m.px!=null;return `<button class="bxc${on.has(m)?' on':''}${warn?' warn':''}" data-i="${i}"><i class="ck"></i><img src="${THUMB[m.n]||''}" alt=""><span><b>${esc(nm(m))}</b><small style="color:${RARC[r]}">${RAR[r]} · Lv.${m.lv}${m.sh?' · 이로치':''}${m.px!=null&&PX[m.px]?' · ['+PX[m.px].n+']':''}</small></span></button>`}).join('')}</div>
     <div class="wbt"><button class="main" id="bxGo" ${n?'':'disabled'}>${n}마리 분해 → 영혼 ${n*BXSOUL}개</button></div>`,null,p=>{
     p.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{const m=L[+b.dataset.i];if(on.has(m))on.delete(m);else on.add(m);sfx('tap');draw()});
     p.querySelector('[data-all]').onclick=()=>{L.forEach(m=>on.add(m));draw()};p.querySelector('[data-none]').onclick=()=>{on.clear();draw()};
@@ -5183,13 +5185,13 @@ setTimeout(()=>{try{dexInfo()}catch(e){}},8000);
 let DXB={t:0,v:0};const dexBonus=()=>{if(!G||!G.dex)return 0;const n=Date.now();if(n-DXB.t>2000){DXB={t:n,v:Math.min(.08,Math.floor(Object.keys(G.dex.c).length/50)*.01)}}return DXB.v};
 {const _s=stOf;stOf=function(m){const s=_s.apply(this,arguments);try{const b=dexBonus();if(b&&G&&(G.party.includes(m)||G.box.includes(m)))return s.map(v=>Math.round(v*(1+b)))}catch(e){}return s}}
 // 크기: 신화 ×1.12 · 환상(거다이맥스) ×1.45 · 유일(원시 · 무한) ×1.3
-const GSC=[1,1,1,1,1.12,1.45,1.3];const gradeOf=m=>{try{return m&&META[m.n]?rarOf(m.n):0}catch(e){return 0}};
+const GSC=[1,1,1,1,1.12,1.45,1.3];const gradeOf=m=>{try{return m&&META[m.n]?rarM(m):0}catch(e){return 0}};
 {const _b=bsc;bsc=function(S,mine){const k=_b.apply(this,arguments);try{const m=mine?BS.me&&BS.me.m:BS.foe&&BS.foe.m;return k*(GSC[gradeOf(m)]||1)}catch(e){return k}}}
 // 기술 위력: 신화 +15% · 환상 +25% · 유일 +35%
 const GPW=[0,0,0,0,.15,.25,.35];
 {const _d=dmgCalc;dmgCalc=function(a){const r=_d.apply(this,arguments);try{const b=GPW[gradeOf(a)]||0;if(b&&r&&r.d)r.d=Math.round(r.d*(1+b))}catch(e){}return r}}
 // 기술 구성: 신화 이상은 자기 타입의 제일 센 기술을 꼭 배워요
-function gradeMoves(m){const M=META[m.n];if(!M||!M.types)return;const want=[];for(const t of M.types){const L=(TM[t]||[]).slice().sort((a,b)=>b[2]-a[2]);if(L[0])want.push(L[0][0]);if(rarOf(m.n)>=5&&L[1])want.push(L[1][0])}
+function gradeMoves(m){const M=META[m.n];if(!M||!M.types)return;const want=[];for(const t of M.types){const L=(TM[t]||[]).slice().sort((a,b)=>b[2]-a[2]);if(L[0])want.push(L[0][0]);if(rarM(m)>=5&&L[1])want.push(L[1][0])}
   m.moves=m.moves||[];for(const id of want)if(!m.moves.includes(id)){if(m.moves.length>=4){let wi=-1,wp=1e9;m.moves.forEach((x,i)=>{const v=MOVES[x];const p=v?v.pw||0:0;if(!want.includes(x)&&p<wp){wp=p;wi=i}});if(wi<0)break;m.moves.splice(wi,1)}m.moves.push(id)}}
 setInterval(()=>{try{if(!G)return;let ch=0;for(const m of [...G.party,...G.box]){if(m.gUp===m.n)continue;if(gradeOf(m)>=4){gradeMoves(m);ch=1}m.gUp=m.n}if(ch)save()}catch(e){}},3000);
 // 오라: 신화 분홍 빛 · 환상 붉은 거대 기운 · 유일 금빛 · 보라 고대 오라
@@ -5238,22 +5240,22 @@ async function lgSpr(n){try{const d=String(n).replace(/^sc:/,'');const x=await (
    const im=new Image();im.src=SCB+'sprite/'+d+'/'+a.querySelector('Name').textContent+'-Anim.png';await im.decode();const c=document.createElement('canvas');c.width=fw;c.height=fh;const g=c.getContext('2d');g.drawImage(im,0,0,fw,fh,0,0,fw,fh);const D=g.getImageData(0,0,fw,fh).data;let x0=fw,y0=fh,x1=-1,y1=-1;for(let y=0;y<fh;y++)for(let x=0;x<fw;x++)if(D[(y*fw+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}if(x1<0)return c.toDataURL();const w=x1-x0+1,h=y1-y0+1,S=Math.max(w,h)+2,c2=document.createElement('canvas');c2.width=c2.height=S;c2.getContext('2d').drawImage(c,x0,y0,w,h,(S-w)>>1,(S-h)>>1,w,h);return c2.toDataURL()}}catch(e){}return null}
 const lgImg=async n=>{const s=await Promise.race([lgSpr(n),new Promise(r=>setTimeout(()=>r(null),900))]);return s?{src:s,spr:1}:{src:THUMB[n]||'',spr:0}};
 // 만났을 때: 화면이 어두워지고 땅이 울리다가 번쩍! 실루엣이 벗겨지며 이름이 나와요
-async function legIntro(f){const I=await lgImg(f.n);return new Promise(done=>{const M=META[f.n],r=rarOf(f.n),auto=typeof autoActive==='function'&&autoActive();const pb=P.busy;P.busy=1;
+async function legIntro(f){const I=await lgImg(f.n);return new Promise(done=>{const M=META[f.n],r=rarM(f),auto=typeof autoActive==='function'&&autoActive();const pb=P.busy;P.busy=1;
   const d=lgOv('lgin',`<i class="lgbar t"></i><i class="lgbar b"></i><div class="lgray"></div><div class="lgimg${I.spr?' spr':''}"><img src="${I.src}" alt=""></div>
    <p class="lgsub">${LGSUB[r]||LGSUB[3]}</p><div class="lgttl"><em>${LGN[r]||LGN[3]}</em><b>${esc(M.name)}</b><small>Lv.${f.lv}${f.sh?' · 반짝':''} · 이(가) 나타났다!</small></div><p class="lgtap">눌러서 넘기기</p>`,r);
   lgRumble();let end=0;const fin=()=>{if(end)return;end=1;d.classList.add('out');setTimeout(()=>{d.remove();P.busy=pb;done()},350)};
   setTimeout(()=>{d.classList.add('rv');lgHorn();try{dexCry(M.dex)}catch(e){}},1250);
   setTimeout(()=>d.classList.add('tp'),900);d.onclick=()=>{if(d.classList.contains('tp'))fin()};setTimeout(fin,auto?2900:4200)})}
 // 잡았을 때: 금빛 빛줄기 · 반짝이 · 꽃가루와 함께 축하해요
-async function legCatch(f,isNew){const I=await lgImg(f.n);return new Promise(done=>{const M=META[f.n],r=rarOf(f.n),auto=typeof autoActive==='function'&&autoActive();
+async function legCatch(f,isNew){const I=await lgImg(f.n);return new Promise(done=>{const M=META[f.n],r=rarM(f),auto=typeof autoActive==='function'&&autoActive();
   let sp='';for(let i=0;i<26;i++)sp+=`<i class="lgsp" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*100).toFixed(1)}%;animation-delay:${(Math.random()*1.6).toFixed(2)}s"></i>`;
   let cf='';const CC=['#ffd23f','#ff5a7a','#4ad0ff','#7cff6a','#ffffff',lgCol(r)];for(let i=0;i<40;i++)cf+=`<i class="lgcf" style="left:${(Math.random()*100).toFixed(1)}%;background:${CC[i%CC.length]};animation-delay:${(Math.random()*1.2).toFixed(2)}s;animation-duration:${(2+Math.random()*1.5).toFixed(2)}s"></i>`;
   const d=lgOv('lgca',`<div class="lgray"></div>${sp}${cf}<div class="lgcard"><p class="lgyay">축하해요!</p><div class="lgimg${I.spr?' spr':''}"><img src="${I.src}" alt=""></div>
    <em class="lggr">${LGN[r]||LGN[3]}</em><b class="lgnm">${esc(M.name)}</b><p class="lgmsg">을(를) 잡았다!</p><small>도감 No.${String(M.dex).padStart(4,'0')} · Lv.${f.lv}${isNew?' · <u>첫 포획!</u>':''}</small><button class="lgok">좋아요!</button></div>`,r);
   lgFan();setTimeout(()=>{try{dexCry(M.dex)}catch(e){}},700);let end=0;const fin=()=>{if(end)return;end=1;d.classList.add('out');setTimeout(()=>{d.remove();done()},350)};
   d.querySelector('.lgok').onclick=e=>{e.stopPropagation();sfx('tap');fin()};if(auto)setTimeout(fin,3200);setTimeout(fin,15000)})}
-{const _b=battle;battle=async function(o){try{if(o&&!o.trainer&&!o.wb&&!o.pvp&&!o.gym&&o.foes&&o.foes.length===1&&rarOf(o.foes[0].n)>=3)await legIntro(o.foes[0])}catch(e){}return _b.apply(this,arguments)}}
-{const _c=caught;caught=async function(f){try{if(f&&rarOf(f.n)>=3){const M=META[f.n];window.PKNOCAP=1;try{await CardPack.open({rar:rarOf(f.n),sh:f.sh?1:0,kind:'P',name:M.name,sub:'Lv.'+f.lv+' · '+M.types.map(t=>TN[t]).join('/')+' · 잡았다!',img:faceUrl(f.n,'Joyous')})}finally{window.PKNOCAP=0}try{dexCry(M.dex)}catch(e){}}}catch(e){}return _c.apply(this,arguments)}}
+{const _b=battle;battle=async function(o){try{if(o&&!o.trainer&&!o.wb&&!o.pvp&&!o.gym&&o.foes&&o.foes.length===1&&rarM(o.foes[0])>=3)await legIntro(o.foes[0])}catch(e){}return _b.apply(this,arguments)}}
+{const _c=caught;caught=async function(f){try{if(f&&rarM(f)>=3){const M=META[f.n];window.PKNOCAP=1;try{await CardPack.open({rar:rarM(f),sh:f.sh?1:0,kind:'P',name:M.name,sub:'Lv.'+f.lv+' · '+M.types.map(t=>TN[t]).join('/')+' · 잡았다!',img:faceUrl(f.n,'Joyous')})}finally{window.PKNOCAP=0}try{dexCry(M.dex)}catch(e){}}}catch(e){}return _c.apply(this,arguments)}}
 (function(){const c=document.createElement('style');c.textContent=`
 .lgfx{position:fixed;inset:0;z-index:9800;overflow:hidden;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#1a1030 0,#000 70%);font-family:inherit;color:#fff;animation:lgIn .3s ease-out;image-rendering:pixelated}
 .lgfx.out{animation:lgOut .35s ease-in forwards}
@@ -5313,8 +5315,8 @@ const CHBAD=['시발','씨발','시바','씨바','ㅅㅂ','ㅆㅂ','병신','븅
 function chClean(s){let t=String(s).replace(/\s+/g,' ').trim().slice(0,60);const flat=t.replace(/[\s.\-_~!?·,]/g,'').toLowerCase();
   for(const w of CHBAD){if(flat.includes(w)){const re=new RegExp(w.split('').map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('[\\s.\\-_~!?·,]*'),'gi');t=t.replace(re,m=>'♡'.repeat(Math.min(4,m.length)))}}
   t=t.replace(/(\d[\s\-.]*){7,}/g,'(번호는 못 보내요)').replace(/https?:\/\/\S+|www\.\S+|\S+\.(com|net|kr|io|me|ly)\S*/gi,'(링크는 못 보내요)').replace(/오픈\s*채팅|카톡\s*아이디|카톡\s*id/gi,'(개인 연락은 안 돼요)');return t}
-const chKeyMon=m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+m.lv+(m.sh?'s':'')+(m.px!=null?'p'+m.px:'');
-const chDecMon=s=>{const m=/^(.+)\.(\d+)(s?)(?:p(\d+))?$/.exec(s||'');if(!m)return null;const n='sc:'+m[1].replace(/_/g,'/');return META[n]?{n,lv:+m[2],sh:!!m[3],px:m[4]!=null?+m[4]:null}:null};
+const chKeyMon=m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+m.lv+(m.sh?'s':'')+(m.px!=null?'p'+m.px:'')+(m.fr!=null&&META[m.n]&&META[m.n].form?'r'+m.fr:'');
+const chDecMon=s=>{const m=/^(.+)\.(\d+)(s?)(?:p(\d+))?(?:r(\d))?$/.exec(s||'');if(!m)return null;const n='sc:'+m[1].replace(/_/g,'/');return META[n]?{n,lv:+m[2],sh:!!m[3],px:m[4]!=null?+m[4]:null,fr:m[5]!=null?+m[5]:null}:null};
 async function chParse(d){try{const id=decodeURIComponent(d.name.split('/').pop()),f=d.fields||{};const name=(f.name||{}).stringValue||'',v=+((f.v||{}).integerValue||0),t=+((f.t||{}).integerValue||0);
   const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1);
   if(BANS.has(pid))return null;const o={id,pid,name,v,ms:parseInt(p[1],36)||v*60000,ty};if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}else if(ty==='p'){o.m=chDecMon(body);if(!o.m)return null;o.x=p[4]?chClean(new TextDecoder().decode(acUb64(p[4]))):''}else return null;return o}catch(e){return null}}
@@ -5337,11 +5339,11 @@ async function chSend(ty,text,mon){if(!G||!G.pid){toast('먼저 게임을 시작
   const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Date.now(),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
   const id='m~'+ms.toString(36)+'~'+G.pid+'~'+(ty==='p'?'p'+chKeyMon(mon)+'~'+b:'t'+b);const name=rkName();const CMo=chMon(ms),vm=CMo.v,t=sec*1048576+await gmMac(id,name,vm,sec);
   CHLAST=ms;const er=await chPut(CMo.bd,id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
-  chMerge([{id,pid:G.pid,name:name.slice(0,12),v:vm,ms,bd:CMo.bd,ty,x,m:ty==='p'?{n:mon.n,lv:mon.lv,sh:!!mon.sh,px:mon.px}:null}]);chDraw();setTimeout(chPoll,1500);return true}
+  chMerge([{id,pid:G.pid,name:name.slice(0,12),v:vm,ms,bd:CMo.bd,ty,x,m:ty==='p'?{n:mon.n,lv:mon.lv,sh:!!mon.sh,px:mon.px,fr:mon.fr}:null}]);chDraw();setTimeout(chPoll,1500);return true}
 async function chHide(o){if(!isGM())return;const k='h~'+chHK(o),sec=Math.floor(Date.now()/1000);const t=sec*1048576+await gmMac(k,'',1,sec);if(await fsPut('gmban',k,'',1,t)){CHHID.add(chHK(o));chDraw();toast('메시지를 숨겼어요 (모두에게 안 보여요)')}else toast('숨기지 못했어요')}
 const chTime=v=>{const d=new Date(v),n=new Date();const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');return d.toDateString()===n.toDateString()?hm:(d.getMonth()+1)+'/'+d.getDate()+' '+hm};
 function chName(o){const r=rkSplit(o.name);const gm=r.name.startsWith('[GM]');return `<b class="chn${gm?' gm':''}${o.pid===G.pid?' me':''}">${esc(gm?'[GM] '+r.name.slice(4):r.name)}</b>`}
-function chMonCard(m){const M=META[m.n],r=rarOf(m.n);let px='';try{if(m.px!=null&&PX[m.px])px=PX[m.px].n+' '}catch(e){}return `<button class="chmon" data-n="${encodeURIComponent(m.n)}" style="--rc:${RARC[r]}"><img src="${THUMB[m.n]||''}" alt=""><span><em>${RAR[r]}</em><b>${esc(px+M.name)}</b><small>Lv.${m.lv}${m.sh?' · <i>반짝</i>':''}</small></span></button>`}
+function chMonCard(m){const M=META[m.n],r=rarM(m);let px='';try{if(m.px!=null&&PX[m.px])px=PX[m.px].n+' '}catch(e){}return `<button class="chmon" data-n="${encodeURIComponent(m.n)}" style="--rc:${RARC[r]}"><img src="${THUMB[m.n]||''}" alt=""><span><em>${RAR[r]}</em><b>${esc(px+M.name)}</b><small>Lv.${m.lv}${m.sh?' · <i>반짝</i>':''}</small></span></button>`}
 function chRow(o){if(CHHID.has(chHK(o)))return '';return `<div class="chr${o.pid===G.pid?' me':''}" data-id="${esc(o.id)}">${chName(o)}<small class="cht">${chTime(o.ms)}</small>${isGM()?'<button class="chx" title="숨기기">숨김</button>':''}${o.ty==='p'?`<span class="chbrag">포켓몬 자랑!</span>${chMonCard(o.m)}`:''}${o.x?`<p>${esc(o.x)}</p>`:''}</div>`}
 function chDraw(onlyState){const mini=document.getElementById('chMini');if(mini){const vis=CHM.filter(o=>!CHHID.has(chHK(o))).slice(-3);
    mini.querySelector('.chml').innerHTML=vis.length?vis.map(o=>`<div>${chName(o)} ${o.ty==='p'?'<i>'+esc(META[o.m.n].name)+' 자랑!</i>':esc(o.x)}</div>`).join(''):'<div class="chem">채팅을 눌러 친구들과 이야기해요</div>';
@@ -5361,7 +5363,7 @@ function chOpen(){if(document.getElementById('chWin'))return;CHOPEN=1;CHUN=0;con
   d.querySelector('.chbr').onclick=()=>{sfx('tap');chBragPick()};d.querySelector('.chc').onclick=()=>{sfx('tap');chClose()};
   d.querySelector('#chList').onscroll=e=>{if(e.target.scrollTop<4&&navigator.onLine)chOlder()};chDraw();chPoll();chLoop()}
 function chClose(){CHOPEN=0;const d=document.getElementById('chWin');if(d)d.remove();chDraw(1);chLoop()}
-function chBragPick(){const all=[...G.party,...G.box].filter(m=>META[m.n]).sort((a,b)=>rarOf(b.n)-rarOf(a.n)||(b.sh?1:0)-(a.sh?1:0)||b.lv-a.lv).slice(0,60);if(!all.length){toast('자랑할 포켓몬이 없어요');return}
+function chBragPick(){const all=[...G.party,...G.box].filter(m=>META[m.n]).sort((a,b)=>rarM(b)-rarM(a)||(b.sh?1:0)-(a.sh?1:0)||b.lv-a.lv).slice(0,60);if(!all.length){toast('자랑할 포켓몬이 없어요');return}
   const P2=document.createElement('div');P2.id='chPick';P2.innerHTML=`<div class="chh"><b>어떤 포켓몬을 자랑할까요?</b><button class="chc">✕</button></div><input id="chBx" maxlength="30" placeholder="한마디 (안 써도 돼요)" autocomplete="off"><div class="chpl">${all.map((m,i)=>chMonCard(m).replace('class="chmon"','class="chmon" data-i="'+i+'"')).join('')}</div>`;
   document.body.appendChild(P2);const bx=P2.querySelector('#chBx');bx.onkeydown=e=>e.stopPropagation();bx.onkeyup=e=>e.stopPropagation();P2.querySelector('.chc').onclick=()=>P2.remove();
   P2.querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{sfx('tap');const m=all[+b.dataset.i];if(await chSend('p',bx.value.slice(0,30),m)){P2.remove();sfx('get')}})}
