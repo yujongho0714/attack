@@ -5804,6 +5804,8 @@ function dxAura(dt){const B=BS.me;if(!B||!B.m||!B.S||B.hide)return;const x=DMX.g
   if(R()<.12)pAdd({x:px+(R()-.5)*S*.9,y:py-S*(.2+R()*.7),vy:-S*.5,s:S*.08,s1:0,life:.5,st:stopsOf('FIRE'),k:'star',r:R()*3,glow:1})}
 {const _d4=drawBattle;drawBattle=function(dt){_d4.apply(this,arguments);try{dxUi();dxAura(dt)}catch(e){}}}
 {const _b4=battle;battle=async function(o){DMX.clear();A2D.used=0;return _b4.apply(this,arguments)}}
+// 배틀이 끝나면 왼쪽 「테라스탈」 · 「다이맥스」 단추를 숨겨요 (예전에는 월드맵에 남아서 화면을 가렸어요)
+setInterval(()=>{try{if(SCENE!=='battle'||!BS.on){for(const id of ['teraBtn','dxBtn']){const b=document.getElementById(id);if(b&&b.style.display!=='none')b.style.display='none'}}}catch(e){}},250);
 
 // ===== 기술 메뉴: 보유 포켓몬 기술 레벨 · 교체 추천 · 레벨별 연출 미리보기 (오른쪽 「기술」 단추) =====
 // 저장 기록은 건드리지 않아요 (기술을 바꾸면 쓴 횟수 m.mu는 그대로 남아서, 나중에 다시 배우면 그 레벨 그대로예요)
