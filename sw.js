@@ -1,8 +1,5 @@
-// 포켓몬 어드벤처 오프라인: 화면 파일은 새 버전을 먼저, 그림은 받아 둔 것을 먼저
-const V='pka-core-202611160040';const CORE=['./','index.html','manifest.json','poke_meta.json','icon-192.png','icon-512.png','assets.json'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(K=>Promise.all(K.filter(k=>k.startsWith('pka-core-')&&k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);if(u.origin!==location.origin)return;
-  const pg=/\/pack\.html$/.test(u.pathname);const nav=r.mode==='navigate'&&!pg;const core=r.mode==='navigate'||/\/(index\.html|poke_meta\.json|assets\.json|manifest\.json)$/.test(u.pathname)||u.pathname.endsWith('/');
-  if(core){e.respondWith(fetch(r,{cache:'no-cache'}).then(res=>{const cp=res.clone();caches.open(V).then(c=>c.put(nav?'index.html':pg?'pack.html':r,cp));return res}).catch(()=>caches.match(nav?'index.html':pg?'pack.html':r).then(x=>x||caches.match(r))))}
-  else e.respondWith(caches.match(r).then(x=>x||fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open('pka-assets').then(c=>c.put(r,cp))}return res})))});
+const V='zemita-v141',A=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','jd-dlx-fx.txt','rhythm-editor.html','manifest-editor.webmanifest','icon-editor-192.png','icon-editor-512.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(A)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;
+e.respondWith(fetch(r).then(x=>{const c=x.clone();caches.open(V).then(h=>h.put(r,c));return x}).catch(()=>caches.match(r).then(m=>m||caches.match('index.html'))))});
