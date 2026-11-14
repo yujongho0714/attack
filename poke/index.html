@@ -4261,7 +4261,7 @@ try{HUB.push({k:'egg',n:'알 부화',d:'포케스탑 · 히든 포탈에서 포�
 // 점수: 접속 하루 20 · 야생 승리 2 · 포켓몬 잡기 6 · 트레이너 승리 6 · 체육관/리그 30 · 포케스탑 3 · 히든 포탈 10 · 월드보스 20 · 알 부화 15
 PX.push({i:PX.length,g:6,n:'시즌 챔피언',e:{hp:12,atk:12,def:12,spa:12,spd:12,spe:12},lim:1});const SPX_I=PX.length-1;
 ITEMS.spxsc={n:'시즌 한정 접두사권',e:'<img class="ic" src="ui/star.webp" style="filter:hue-rotate(300deg) saturate(2) drop-shadow(0 0 4px #ff2aa0)">'};
-try{ITD.spxsc={s:'포켓몬 한 마리에게 시즌 한정 접두사 「시즌 챔피언」(모든 능력치 +12%)을 붙여요',use:'가방에서 누르고 「사용하기」 → 포켓몬 고르기',good:'뽑기로는 절대 안 나오는 한정 접두사예요',who:'제일 아끼는 주력 포켓몬',tip:'시즌 패스 30단계를 다 깨면 받아요'}}catch(e){}
+try{ITD.spxsc={s:'포켓몬 한 마리에게 시즌 한정 접두사 「시즌 챔피언」(모든 능력치 +12%)을 붙여요',use:'가방에서 누르고 「사용하기」 → 포켓몬 고르기',good:'뽑기로는 절대 안 나오는 한정 접두사예요',who:'제일 아끼는 주력 포켓몬',tip:'시즌 패스 30단계를 다 깨면 받아요 (등급 정리로 신화가 된 포켓몬 수만큼도 받아요)'}}catch(e){}
 const SP_LV=30,SP_XP=100;
 const spKey=()=>{const d=new Date(Date.now()+9*3600e3);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')};
 function spS(){G.sp=G.sp||{};if(G.sp.k!==spKey()){G.sp={k:spKey(),xp:0,got:{},day:''}}return G.sp}
@@ -5807,13 +5807,14 @@ function dxAura(dt){const B=BS.me;if(!B||!B.m||!B.S||B.hide)return;const x=DMX.g
 // 배틀이 끝나면 왼쪽 「테라스탈」 · 「다이맥스」 단추를 숨겨요 (예전에는 월드맵에 남아서 화면을 가렸어요)
 setInterval(()=>{try{if(SCENE!=='battle'||!BS.on){for(const id of ['teraBtn','dxBtn']){const b=document.getElementById(id);if(b&&b.style.display!=='none')b.style.display='none'}}}catch(e){}},250);
 
-// ===== 등급 정리: 아이템 변신(m.fr)으로 환상 · 유일이 된 포켓몬은 신화로 내리고, 한 마리당 시즌 한정 접두사권 1개 (한 세이브에 최대 5개) =====
-// 뽑기 · 운영자 선물로 받은 환상 · 유일은 m.fr이 없어서 그대로예요
+// ===== 등급 정리: 아이템 변신(m.fr)으로 환상 · 유일이 된 포켓몬은 신화로 내리고, 내린 마리 수만큼 시즌 한정 접두사권 지급 (마리마다 한 번만 · 개수 제한 없음) =====
+// 뽑기 · 합성 · 운영자 선물로 받은 환상 · 유일은 m.fr이 없어서 그대로예요. 접속해 있는 동안에도 3초마다 살펴봐요
 function fixOverRar(){if(!G||!G.party||SCENE!=='over'||BS.on||DLG.on||document.getElementById('itInfo'))return;
   const L=[...G.party,...(G.box||[])].filter(m=>m&&m.fr!=null&&m.fr>4&&META[m.n]&&META[m.n].form);if(!L.length)return;
-  const was=L.map(m=>nm(m)+' ('+RAR[m.fr]+')');L.forEach(m=>{m.fr=4;try{m.hp=Math.min(m.hp,stOf(m)[0])}catch(e){}});
-  const give=Math.max(0,Math.min(L.length,5-(G.fixRarN||0)));G.fixRarN=(G.fixRarN||0)+give;if(give)addItem('spxsc',give);save();try{refreshSpr()}catch(e){}
-  say(['<b>등급 정리</b>가 있었어요.','돌로 변신해서 환상 · 유일이 된 포켓몬 <b>'+L.length+'마리</b>를 <b>신화</b>로 내렸어요. 환상 · 유일은 뽑기에서만 나와요.<br><small>'+was.slice(0,4).join(' · ')+(was.length>4?' 외 '+(was.length-4)+'마리':'')+'</small>',give?'미안한 마음으로 <b>시즌 한정 접두사권 '+give+'개</b>를 드렸어요. 가방에서 눌러 쓰면 돼요.':'보상은 이미 받아서 이번에는 없어요.'])}
+  const was=L.map(m=>nm(m)+' ('+RAR[m.fr]+')'),U=G.fixRarU=G.fixRarU||{};let give=0;
+  L.forEach(m=>{if(!m.uid)m.uid=Date.now().toString(36)+ri(0,1e6);if(!U[m.uid]){U[m.uid]=1;give++}m.fr=4;try{m.hp=Math.min(m.hp,stOf(m)[0])}catch(e){}});
+  G.fixRarN=(G.fixRarN||0)+give;if(give)addItem('spxsc',give);save();try{refreshSpr()}catch(e){}
+  say(['<b>등급 정리</b>가 있었어요.','돌로 변신해서 환상 · 유일이 된 포켓몬 <b>'+L.length+'마리</b>를 <b>신화</b>로 내렸어요. 환상 · 유일은 뽑기 · 합성에서만 나와요.<br><small>'+was.slice(0,4).join(' · ')+(was.length>4?' 외 '+(was.length-4)+'마리':'')+'</small>',give?'대신 <b>시즌 한정 접두사권 '+give+'개</b>가 지급됐어요! 🎒 <b>가방</b>을 열어서 확인하고, 아끼는 포켓몬을 골라 써 보세요.':'보상은 이미 받아서 이번에는 없어요.'])}
 setInterval(()=>{try{fixOverRar()}catch(e){}},3000);
 
 // ===== 기술 메뉴: 보유 포켓몬 기술 레벨 · 교체 추천 · 레벨별 연출 미리보기 (오른쪽 「기술」 단추) =====
