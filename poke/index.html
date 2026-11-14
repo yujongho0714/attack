@@ -2297,8 +2297,8 @@ function formUse(itemKey){const it=ITEMS[itemKey];const L=[];[...G.party,...G.bo
     p.querySelectorAll('[data-f]').forEach(b=>b.onclick=async()=>{const {m,f}=L[+b.dataset.f];G.bag[itemKey]--;closePanel(1);await formChange(m,f.fk)})})}
 async function formChange(m,fk){const old=nm(m),r=m.hp/stOf(m)[0];const r0=rarM(m);try{BGM.play('evo')}catch(e){}sfx('lv');
   const fl=document.createElement('div');fl.style.cssText='position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(circle,#fff,#ffd23f 40%,#ff6af0 70%,transparent);opacity:0;transition:opacity .5s';document.body.appendChild(fl);requestAnimationFrame(()=>fl.style.opacity='1');await sleep(700);
-  m.n=fk;m.fr=Math.min(FTIER[META[fk].form]||4,r0+1);m.hp=Math.max(1,Math.round(stOf(m)[0]*r));G.dex.s[META[fk].dex]=1;G.forms=G.forms||{};G.forms[fk]=1;save();await refreshSpr();fl.style.opacity='0';setTimeout(()=>fl.remove(),600);
-  await say([{t:'✨ '+old+'(이)가 <b>'+META[fk].name+'</b>(으)로 '+(META[fk].form==='mega'?'메가진화':META[fk].form==='primal'?'원시회귀':'거다이맥스')+'했다!<br><small>이제 계속 이 모습이에요. 등급이 <b>'+RAR[r0]+' → '+RAR[m.fr]+'</b>(으)로 한 단계 올랐어요!</small>',f:[META[fk].base,'Joyous']}]);try{BGM.area()}catch(e){}}
+  m.n=fk;if(META[fk].form==='mega')delete m.fr;else m.fr=Math.min(FTIER[META[fk].form]||4,r0+1);m.hp=Math.max(1,Math.round(stOf(m)[0]*r));G.dex.s[META[fk].dex]=1;G.forms=G.forms||{};G.forms[fk]=1;save();await refreshSpr();fl.style.opacity='0';setTimeout(()=>fl.remove(),600);
+  await say([{t:'✨ '+old+'(이)가 <b>'+META[fk].name+'</b>(으)로 '+(META[fk].form==='mega'?'메가진화':META[fk].form==='primal'?'원시회귀':'거다이맥스')+'했다!<br><small>이제 계속 이 모습이에요. 등급이 <b>'+RAR[r0]+' → '+RAR[rarM(m)]+'</b>(으)로 올랐어요!</small>',f:[META[fk].base,'Joyous']}]);try{BGM.area()}catch(e){}}
 // ---------- 이로치 여러 색 ----------
 const SHC=[null,{n:'✨이로치'},{n:'🥇황금'},{n:'🥈은빛'},{n:'🌑그림자'},{n:'💎크리스탈'},{n:'🌈무지개'}];
 const SHW=[0,40,15,15,12,10,8];// 나올 확률 비율
@@ -3068,8 +3068,8 @@ const ITD={
  hpotion:{s:'체력 150 회복',use:'많이 다친 포켓몬 1마리에게 써요',good:'거의 다 회복돼요 · 배지 6개부터',who:'레벨 높은 포켓몬 · 관장 · 사천왕전',tip:'관장과 싸우기 전에 꼭 몇 개 챙겨요.'},
  candy:{s:'먹으면 레벨이 1 올라요',use:'포켓몬 1마리에게 먹여요',good:'싸우지 않아도 바로 레벨업 · 능력치도 같이 올라요',who:'진화 직전인 포켓몬 · 새로 잡은 약한 포켓몬',tip:'진화 레벨이 되면 바로 진화할 수 있어요. 노랑시티에서만 팔아요.'},
  mstone:{s:'메가진화 시키는 돌',use:'메가진화 할 수 있는 포켓몬에게 써요',good:'계속 메가 모습으로 바뀌어요 · 공격·방어·특공·특방·스피드 +20 · 등급이 신화가 돼요 (능력치 +16%)',who:'리자몽 · 후딘 · 갸라도스 같은 메가진화 포켓몬',form:'mega'},
- porb:{s:'원시회귀 시키는 구슬',use:'원시회귀 할 수 있는 포켓몬에게 써요',good:'능력치가 1.2배 · 등급이 유일이 돼요 (능력치 +25%)',who:'그란돈 · 가이오가',form:'primal'},
- dmax:{s:'거다이맥스 시키는 밴드',use:'거다이맥스 할 수 있는 포켓몬에게 써요',good:'체력 1.5배 · 나머지 능력치 1.12배 · 등급이 환상이 돼요 (능력치 +20%)',who:'리자몽 · 피카츄 · 잠만보 같은 거다이맥스 포켓몬',form:'gmax'},
+ porb:{s:'원시회귀 시키는 구슬',use:'원시회귀 할 수 있는 포켓몬에게 써요',good:'능력치가 1.2배 · 등급이 원래보다 한 단계 올라가요 (전설 → 신화)',who:'그란돈 · 가이오가',form:'primal'},
+ dmax:{s:'거다이맥스 시키는 밴드',use:'거다이맥스 할 수 있는 포켓몬에게 써요',good:'체력 1.5배 · 나머지 능력치 1.12배 · 등급이 원래보다 한 단계 올라가요 (예: 일반 → 희귀)',who:'리자몽 · 피카츄 · 잠만보 같은 거다이맥스 포켓몬',form:'gmax'},
  sstone:{s:'포켓몬을 반짝이는 색으로',use:'아무 포켓몬 1마리에게 써요',good:'이로치(특별한 색)가 돼요 · 이미 이로치면 다른 색으로',who:'제일 아끼는 포켓몬',tip:'능력치는 그대로예요. 모습만 특별해져요.'}};
 function itD(k){const it=ITEMS[k]||{};if(ITD[k])return ITD[k];
   if(it.charm){const t=TN[it.charm];return{s:'포켓몬에게 먹이면 '+t+' 타입 기술 위력 +5% (영구)',use:'가방에서 「먹이기」를 누르고 포켓몬을 골라요. 먹인 부적은 사라지고 효과는 계속 남아요',good:'그 포켓몬이 '+t+' 타입 기술을 쓸 때마다 데미지가 늘어요. 여러 개 먹이면 계속 쌓여요',who:t+' 타입 기술을 쓰는 주력 포켓몬',tip:'포켓몬 1마리에 부적은 모두 합쳐 최대 '+chMax()+'개 (쉬움 3 · 보통 5 · 어려움 7 · 지옥 9 · 나이트메어 12). '+(TOWNS[GYM.findIndex(g=>g.t===it.charm)+1]||'')+'에서 팔아요.'}}
