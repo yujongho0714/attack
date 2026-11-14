@@ -5532,6 +5532,38 @@ async function mlGiftOpen(){openPanel('보낸 선물 · 받았는지','<p class=
 .mlr:not(:has(img)){grid-template-columns:82px 70px 1fr auto}.mlr:not(:has(img)) span{grid-column:3}.mlr:not(:has(img)) i{grid-column:1/-1;grid-row:auto;font-weight:400;color:#5a6080}
 #mlGift{width:100%;margin:0 0 10px;padding:9px;border:0;border-radius:0;font:700 15px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#5a8aff 0 50%,#2a5ad0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer}
 .mlt{margin:0 4px 8px}`;document.head.appendChild(c)})();
+// ===== 새 버전 전 기록 (아이 폰에 남아 있던 자료로 만들어요) =====
+// 얻은 적 있는 폼(지금 있는지) · 등급별 영혼 수(분해 흔적) · QR로 보낸 포켓몬 · 챔피언 클리어 · 받은 GM 선물(받음 표시는 위 mlAck가 예전 것까지 올려요)
+function mhEnc(){const own=new Set(mlAll().map(m=>m.n));const pk=n=>String(n).replace(/^sc:/,'').replace(/\//g,'_');
+  const F=Object.keys(G.forms||{}).filter(k=>META[k]).map(k=>pk(k)+(own.has(k)?'1':'0'));
+  const S=[0,0,0,0,0,0,0];for(const x of G.dupes||[])if(x&&x.kind==='P'&&x.rar>=0&&x.rar<7)S[x.rar]++;
+  const T=(G.trOut||[]).slice(-40).map(x=>Math.floor((x.d||0)/1000-ML_T0).toString(36)+'@'+pk(x.n||''));
+  const C=Object.keys(G.clr||{});const LG=mlAll().filter(m=>m.gift&&!META[m.n].form&&rarOf(m.n)===3).length;
+  return 'F:'+F.join('|')+';S:'+S.join('|')+';T:'+T.join('|')+';C:'+C.join('|')+';L:'+LG+';D:'+Object.keys((G.dex||{}).c||{}).length+';N:'+mlAll().length+';R:'+(G.rebirth||0)+';B:'+(G.badges||0)+(G.champ?'c':'')}
+let MHB=0;
+async function mhUpload(force){if(MHB||!G||!G.pid||!navigator.onLine||!fsBase())return;const s=mhEnc(),day=dayKey();if(!force&&G.mhUp&&G.mhUp.sig===s)return;if(!force&&G.mhUp&&G.mhUp.d===day&&G.mhUp.sig.length===s.length)return;MHB=1;
+  try{const parts=[];for(let i=0;i<s.length;i+=1200)parts.push(s.slice(i,i+1200));const ts=Math.floor(Date.now()/1000).toString(36),name=String(G.name||'').split('#')[0].slice(0,12);let ok=true;
+    for(let i=0;i<parts.length;i++){const id='h~'+G.pid+'~'+ts+'~'+i+'~'+parts.length+'~'+parts[i],sec=Math.floor(Date.now()/1000),v=Math.min(100000,mlAll().length),t=sec*1048576+await gmMac(id,name,v,sec);ok=await fsPut('mhist',id,name,v,t)&&ok;if(!ok)break}
+    if(ok){G.mhUp={sig:s,d:day};save()}}catch(e){}MHB=0}
+setTimeout(()=>{try{mhUpload()}catch(e){}},30000);setInterval(()=>{try{if(G&&SCENE==='over')mhUpload()}catch(e){}},1800000);
+// 랭킹을 열 때도 올려요
+{const _ro=rankOpen;rankOpen=async function(){const r=await _ro.apply(this,arguments);try{mhUpload();mlUpload();mlAck();invUpload()}catch(e){}return r}}
+async function mhLoad(pid){const L=await fsListAll('mhist')||[];const G2={};for(const x of L){const m=/^h~([^~]+)~([^~]+)~(\d+)~(\d+)~(.*)$/.exec(x.id);if(!m||m[1]!==pid)continue;const sec=Math.floor(x.t/1048576);if(await gmMac(x.id,x.name,x.v,sec)!==x.t%1048576)continue;const g=G2[m[2]]=G2[m[2]]||{ts:parseInt(m[2],36),tot:+m[4],p:{}};g.p[m[3]]=m[5]}
+  let best=null;for(const k in G2){const g=G2[k];if(Object.keys(g.p).length<g.tot)continue;if(!best||g.ts>best.ts)best=g}if(!best)return null;let s='';for(let i=0;i<best.tot;i++)s+=best.p[i]||'';const o={ts:best.ts};for(const sec of s.split(';')){const i=sec.indexOf(':');if(i>0)o[sec.slice(0,i)]=sec.slice(i+1)}return o}
+function mhHtml(h){if(!h)return '<div class="mhb"><b>새 버전 전 기록</b><p class="hhint">아직 안 올라왔어요. 아이가 새 버전으로 게임을 켜거나 랭킹을 열면 올라와요.</p></div>';
+  const un=k=>'sc:'+k.replace(/_/g,'/');const F=(h.F||'').split('|').filter(Boolean).map(x=>({n:un(x.slice(0,-1)),own:x.slice(-1)==='1'})).filter(x=>META[x.n]);
+  const S=(h.S||'').split('|').map(Number);const T=(h.T||'').split('|').filter(Boolean).map(x=>{const [a,b]=x.split('@');return {d:(parseInt(a,36)+ML_T0)*1000,n:un(b)}}).filter(x=>META[x.n]);
+  const lost=F.filter(x=>!x.own);const B=h.B||'';
+  return `<div class="mhb"><b>새 버전 전 기록 <small>(아이 폰에 남아 있던 자료 · ${new Date(h.ts*1000).toLocaleString('ko-KR')})</small></b>
+   <p>배지 ${parseInt(B)||0}개${B.endsWith('c')?' · 챔피언':''} · 환생 ${h.R||0}번 · 도감 ${h.D||0}종 · 지금 포켓몬 ${h.N||0}마리 · 챔피언 클리어 ${(h.C||'').split('|').filter(Boolean).length}번 · 챔피언 선물 전설 지금 ${h.L||0}마리</p>
+   <p><b>얻은 적 있는 폼 ${F.length}종</b>${lost.length?` · <span class="mhx">지금 없는 폼 ${lost.length}종</span>`:' · 모두 가지고 있어요'}</p>
+   <div class="mhf">${F.map(x=>{const r=rarOf(x.n);return `<span class="${x.own?'':'no'}" style="--c:${RARC[r]}"><img src="${THUMB[x.n]||''}" alt="">${esc(META[x.n].name)}<em>${x.own?'있음':'없음'}</em></span>`}).join('')||'<small>없어요</small>'}</div>
+   <p><b>지금 남은 영혼</b> ${RAR.map((n,i)=>S[i]?`<span style="color:${RARC[i]}">${n} ${S[i]}</span>`:'').filter(Boolean).join(' · ')||'없음'} <small>(분해하면 영혼 10개 · 합성하면 줄어요)</small></p>
+   ${T.length?`<p><b>QR로 보낸 포켓몬</b> ${T.map(x=>esc(META[x.n].name)+' <small>('+new Date(x.d).toLocaleDateString('ko-KR')+')</small>').join(', ')}</p>`:''}</div>`}
+{const _mo=mlOpen;mlOpen=async function(pid,name){const hp=mhLoad(pid);await _mo.apply(this,arguments);try{const h=await hp;let ob=null;const add=()=>{const pn=document.querySelector('.panel');if(!pn||!pn.textContent.includes('포켓몬 기록 · '+(name||''))){if(ob&&!pn)ob.disconnect();return}const p=pn.querySelector('.pb');if(!p||p.querySelector('.mhb'))return;p.insertAdjacentHTML('afterbegin',mhHtml(h))};add();
+  ob=new MutationObserver(add);ob.observe(document.body,{childList:true});setTimeout(()=>ob.disconnect(),600000)}catch(e){}}}
+(function(){const c=document.createElement('style');c.textContent=`.mhb{margin:0 4px 10px;padding:8px 10px;background:#fff6dc;box-shadow:0 0 0 2px #c08a00,0 0 0 4px #1c2550;font-size:13px}.mhb>b{font-size:15px}.mhb>b small{font-size:11px;color:#5a6080;font-weight:400}.mhb p{margin:6px 0}.mhx{color:#c0304a;font-weight:900}
+.mhf{display:flex;flex-wrap:wrap;gap:6px}.mhf span{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 2px;background:#fff;box-shadow:0 0 0 2px var(--c);font-size:12px}.mhf img{width:26px;height:26px;object-fit:contain;image-rendering:pixelated}.mhf em{font-style:normal;font-weight:900;color:#2a9a40;margin-left:2px}.mhf span.no{background:#ffe2e6}.mhf span.no em{color:#c0304a}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
