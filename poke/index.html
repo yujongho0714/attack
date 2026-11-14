@@ -4858,11 +4858,13 @@ setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&(isGM()|
 // 중복만 분해돼요 (같은 포켓몬이 2마리 이상일 때 · 마지막 1마리는 안 돼요) · 출전 중 · 자물쇠 채운 포켓몬은 분해 안 돼요
 const BXSOUL=10;
 const bxDex=m=>{try{return META[m.n].dex}catch(e){return -1}};
-const bxScore=m=>{let s=m.lv||1;try{if(m.px!=null&&PX[m.px])s+=(PX[m.px].g+1)*1000}catch(e){}if(m.sh)s+=600;s+=(m.lb||0)*60;return s};
-const bxCnt=d=>[...G.party,...G.box].filter(m=>bxDex(m)===d).length;
-const bxCan=m=>!!(m&&!m.lock&&G.box.includes(m)&&bxCnt(bxDex(m))>=2);
+const bxScore=m=>{let s=(m.lv||1)+rarOf(m.n)*100000;try{if(m.px!=null&&PX[m.px])s+=(PX[m.px].g+1)*1000}catch(e){}if(m.sh)s+=600;s+=(m.lb||0)*60;return s};
+// 같은 포켓몬 = 같은 종류 · 같은 폼 (메가·거다이맥스·원시 폼은 기본 포켓몬과 다른 포켓몬으로 봐요)
+const bxKey=m=>m.n;
+const bxCnt=k=>[...G.party,...G.box].filter(m=>bxKey(m)===k).length;
+const bxCan=m=>!!(m&&!m.lock&&G.box.includes(m)&&bxCnt(bxKey(m))>=2);
 // 일괄 분해할 포켓몬: 같은 포켓몬끼리 묶어서 출전 중 · 잠금 · 제일 좋은 1마리는 남겨요
-function bxAllList(){const grp=new Map();for(const m of [...G.party,...G.box]){const d=bxDex(m);if(!grp.has(d))grp.set(d,[]);grp.get(d).push(m)}const out=[];
+function bxAllList(){const grp=new Map();for(const m of [...G.party,...G.box]){const d=bxKey(m);if(!grp.has(d))grp.set(d,[]);grp.get(d).push(m)}const out=[];
   for(const L of grp.values()){if(L.length<2)continue;const keep=new Set(L.filter(m=>m.lock||G.party.includes(m)));if(!keep.size)keep.add(L.slice().sort((a,b)=>bxScore(b)-bxScore(a))[0]);for(const m of L)if(!keep.has(m)&&G.box.includes(m))out.push(m)}return out}
 function bxDo(list){if(!list.length)return 0;G.dupes=G.dupes||[];for(const m of list){const i=G.box.indexOf(m);if(i<0||m.lock)continue;G.box.splice(i,1);const d=bxDex(m),r=rarOf(m.n);for(let k=0;k<BXSOUL;k++)G.dupes.push({kind:'P',id:d,rar:r,lv:m.lv,sh:0,soul:1})}save();try{refreshSpr()}catch(e){}return list.length}
 const bxWarn=L=>{const sh=L.filter(m=>m.sh).length,px=L.filter(m=>m.px!=null).length;return (sh||px)?`<br><b style="color:#c0304a">주의! ${[sh?'이로치 '+sh+'마리':'',px?'접두사 '+px+'마리':''].filter(Boolean).join(' · ')}가 들어 있어요.</b> 지키고 싶으면 자물쇠를 먼저 채워요.`:''};
@@ -5050,7 +5052,7 @@ function bxDel(m){if(!m||m.lock){toast('자물쇠가 채워져 있어요');retur
 .panel .bxb button.bxx{flex:0 0 auto;color:#fff!important;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%)!important}`;document.head.appendChild(c)})();
 
 // ===== 일괄 분해: 대상을 전부 보여 주고 (기본으로 다 체크) · 뺄 포켓몬만 체크를 풀어서 분해 =====
-bxAll=function(){const L=bxAllList();if(!L.length){toast('분해할 중복 포켓몬이 없어요');return}const on=new Set(L);
+bxAll=function(){const L=bxAllList();if(!L.length){toast('분해할 중복 포켓몬이 없어요');return}const on=new Set(L.filter(m=>rarOf(m.n)<3&&!m.sh));
   const draw=()=>{const n=on.size;openPanel('일괄 분해 · '+L.length+'마리',`<p class="hhint">같은 포켓몬끼리 제일 좋은 1마리 · 출전 중 · 자물쇠 채운 포켓몬은 이미 빠져 있어요. <b>남기고 싶은 포켓몬은 눌러서 체크를 풀어요.</b> 1마리마다 영혼 ${BXSOUL}개.</p>
     <div class="bxsel"><button data-all="1">모두 체크</button><button data-none="1">모두 풀기</button></div>
     <div class="bxck">${L.map((m,i)=>{const r=rarOf(m.n),warn=m.sh||m.px!=null;return `<button class="bxc${on.has(m)?' on':''}${warn?' warn':''}" data-i="${i}"><i class="ck"></i><img src="${THUMB[m.n]||''}" alt=""><span><b>${esc(nm(m))}</b><small style="color:${RARC[r]}">${RAR[r]} · Lv.${m.lv}${m.sh?' · 이로치':''}${m.px!=null&&PX[m.px]?' · ['+PX[m.px].n+']':''}</small></span></button>`}).join('')}</div>
@@ -5209,7 +5211,9 @@ function autoPick(){if(!G.party.length){toast('먼저 첫 포켓몬을 받아요
    p.querySelectorAll('[data-ap]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);
     if(b.dataset.ap==='q'){if(G.nav&&!G.nav.n&&G.nav.stay)G.nav=null;AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1;hud();toast('퀘스트 자동 진행을 시작해요')}
     else{if(G.nav&&G.nav.stay)G.nav=null;AUTO.on=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=0;try{bt('bHunt').click()}catch(e){}}})})}
-{const b=bt('bAuto');b.onclick=()=>{sfx('tap');if(AUTO.on&&!AUTO.huntOnly){autoStop();return}autoPick()}}
+// 자동 중(퀘스트 · 사냥 · 길 안내 어느 것이든)이면 누르면 바로 꺼져요 · 꺼져 있을 때만 고르는 창이 떠요
+{const b=bt('bAuto');b.onclick=()=>{sfx('tap');if(AUTO.on||G.autoBattle){autoStop();return}autoPick()}}
+{const _h=hud;hud=function(){const r=_h.apply(this,arguments);try{const b=bt('bAuto');if(AUTO.on&&AUTO.huntOnly){b.classList.add('on');b.textContent='⏸ 자동 사냥 끄기'}}catch(e){}return r}}
 (function(){const c=document.createElement('style');c.textContent=`
 .aph{margin:4px 6px 8px;font-weight:700}
 .apk{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 4px 6px}
