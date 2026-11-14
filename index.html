@@ -5807,6 +5807,15 @@ function dxAura(dt){const B=BS.me;if(!B||!B.m||!B.S||B.hide)return;const x=DMX.g
 // 배틀이 끝나면 왼쪽 「테라스탈」 · 「다이맥스」 단추를 숨겨요 (예전에는 월드맵에 남아서 화면을 가렸어요)
 setInterval(()=>{try{if(SCENE!=='battle'||!BS.on){for(const id of ['teraBtn','dxBtn']){const b=document.getElementById(id);if(b&&b.style.display!=='none')b.style.display='none'}}}catch(e){}},250);
 
+// ===== 등급 정리: 아이템 변신(m.fr)으로 환상 · 유일이 된 포켓몬은 신화로 내리고, 한 마리당 시즌 한정 접두사권 1개 (한 세이브에 최대 5개) =====
+// 뽑기 · 운영자 선물로 받은 환상 · 유일은 m.fr이 없어서 그대로예요
+function fixOverRar(){if(!G||!G.party||SCENE!=='over'||BS.on||DLG.on||document.getElementById('itInfo'))return;
+  const L=[...G.party,...(G.box||[])].filter(m=>m&&m.fr!=null&&m.fr>4&&META[m.n]&&META[m.n].form);if(!L.length)return;
+  const was=L.map(m=>nm(m)+' ('+RAR[m.fr]+')');L.forEach(m=>{m.fr=4;try{m.hp=Math.min(m.hp,stOf(m)[0])}catch(e){}});
+  const give=Math.max(0,Math.min(L.length,5-(G.fixRarN||0)));G.fixRarN=(G.fixRarN||0)+give;if(give)addItem('spxsc',give);save();try{refreshSpr()}catch(e){}
+  say(['<b>등급 정리</b>가 있었어요.','돌로 변신해서 환상 · 유일이 된 포켓몬 <b>'+L.length+'마리</b>를 <b>신화</b>로 내렸어요. 환상 · 유일은 뽑기에서만 나와요.<br><small>'+was.slice(0,4).join(' · ')+(was.length>4?' 외 '+(was.length-4)+'마리':'')+'</small>',give?'미안한 마음으로 <b>시즌 한정 접두사권 '+give+'개</b>를 드렸어요. 가방에서 눌러 쓰면 돼요.':'보상은 이미 받아서 이번에는 없어요.'])}
+setInterval(()=>{try{fixOverRar()}catch(e){}},3000);
+
 // ===== 기술 메뉴: 보유 포켓몬 기술 레벨 · 교체 추천 · 레벨별 연출 미리보기 (오른쪽 「기술」 단추) =====
 // 저장 기록은 건드리지 않아요 (기술을 바꾸면 쓴 횟수 m.mu는 그대로 남아서, 나중에 다시 배우면 그 레벨 그대로예요)
 const SKL={
