@@ -5358,7 +5358,10 @@ const chBT=r=>r===1?'b1':r===2?'b2':r===3?'b3':r<=10?'b4':r<=20?'b5':r<=30?'b6':
 function chBadge(o){return `<span class="chbd ${chBT(o.rk)}"><i>${o.rb==='d'?'획득':o.rb==='a'?'진행':'순위'}</i><b>${o.rk}위</b></span>`}
 function chName(o){const r=rkSplit(o.name);const gm=r.name.startsWith('[GM]');const ic=CHTIC[o.tier];return `<span class="chhd">${ic?`<img class="chti" src="ui/${ic}.webp" alt="">`:''}${o.rk?chBadge(o):''}${r.rep&&THUMB[r.rep]?`<img class="chpk" src="${THUMB[r.rep]}" alt="">`:''}<b class="chn${gm?' gm':''}${o.pid===G.pid?' me':''}">${esc(gm?'[GM] '+r.name.slice(4):r.name)}</b></span>`}
 function chMonCard(m){const M=META[m.n],r=rarM(m);let px='';try{if(m.px!=null&&PX[m.px])px=PX[m.px].n+' '}catch(e){}return `<button class="chmon" data-n="${encodeURIComponent(m.n)}" style="--rc:${RARC[r]}"><img src="${THUMB[m.n]||''}" alt=""><span><em>${RAR[r]}</em><b>${esc(px+M.name)}</b><small>Lv.${m.lv}${m.sh?' · <i>반짝</i>':''}</small></span></button>`}
-function chRow(o){if(CHHID.has(chHK(o)))return '';return `<div class="chr${o.pid===G.pid?' me':''}" data-id="${esc(o.id)}">${chName(o)}<small class="cht">${chTime(o.ms)}</small>${isGM()?'<button class="chx" title="숨기기">숨김</button>':''}${o.ty==='p'?`<span class="chbrag">포켓몬 자랑!</span>${chMonCard(o.m)}`:''}${o.x?`<p>${esc(o.x)}</p>`:''}</div>`}
+function chRow(o){if(CHHID.has(chHK(o)))return '';const r=rkSplit(o.name),gm=r.name.startsWith('[GM]'),ic=CHTIC[o.tier];
+  // 왼쪽 고정 칸 3개(휘장 · 순위 배지 · 대표 포켓몬) → 모든 줄의 이름과 메시지가 같은 세로선에 맞춰져요
+  return `<div class="chr${o.pid===G.pid?' me':''}" data-id="${esc(o.id)}"><div class="chic"><span class="cs1">${ic?`<img src="ui/${ic}.webp" alt="">`:''}</span><span class="cs2">${o.rk?chBadge(o):''}</span><span class="cs3">${r.rep&&THUMB[r.rep]?`<img src="${THUMB[r.rep]}" alt="">`:''}</span></div>
+   <div class="chbody"><div class="chtop"><b class="chn${gm?' gm':''}${o.pid===G.pid?' me':''}">${esc(gm?'[GM] '+r.name.slice(4):r.name)}</b><small class="cht">${chTime(o.ms)}</small>${o.ty==='p'?'<span class="chbrag">포켓몬 자랑!</span>':''}${isGM()?'<button class="chx" title="숨기기">숨김</button>':''}</div>${o.ty==='p'?chMonCard(o.m):''}${o.x?`<p>${esc(o.x)}</p>`:''}</div></div>`}
 function chDraw(onlyState){const mini=document.getElementById('chMini');if(mini){const vis=CHM.filter(o=>!CHHID.has(chHK(o))).slice(-3);
    mini.querySelector('.chml').innerHTML=vis.length?vis.map(o=>`<div>${chName(o)} ${o.ty==='p'?'<i>'+esc(META[o.m.n].name)+' 자랑!</i>':esc(o.x)}</div>`).join(''):'<div class="chem">채팅을 눌러 친구들과 이야기해요</div>';
    mini.querySelector('.chst').textContent=navigator.onLine?(CHUN&&!CHOPEN?'새 메시지 '+Math.min(99,CHUN):'채팅'):'채팅 · 오프라인'}
@@ -5392,6 +5395,14 @@ setTimeout(()=>{try{chDraw(1);chPoll();chLoop()}catch(e){}},6000);
 #chMini .chst{font-weight:700;color:#ffd23f;font-size:11px}#chMini.un .chst{color:#fff;background:#e0483a;align-self:flex-start;padding:0 6px;animation:pxglow 1.2s ease-in-out infinite}
 #chMini .chml div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}#chMini .chml i{font-style:normal;color:#ffd23f}
 .chn{color:#8fd0ff;margin-right:4px}.chhd{display:inline-flex;align-items:center;gap:3px;vertical-align:middle;max-width:100%}.chhd>*{flex:none;vertical-align:middle!important;margin-right:0!important}.chhd .chn{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#chMini .chml div .chhd{max-width:none}
+.chr{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start}
+.chic{display:flex;align-items:center;gap:3px;height:30px}.chic>span{display:flex;align-items:center;justify-content:center;height:30px}
+.cs1{width:30px}.cs1 img{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 1px 0 #0005)}
+.cs2{width:40px}.cs2 .chbd{margin:0;vertical-align:0;height:28px;min-width:38px}.cs2 .chbd b{font-size:12px}.cs2 .chbd i{font-size:8.5px}
+.cs3{width:30px}.cs3 img{width:30px;height:30px;object-fit:contain;image-rendering:pixelated}
+.chbody{min-width:0}.chtop{display:flex;align-items:center;gap:6px;height:30px;flex-wrap:nowrap;padding-right:44px}.chtop .chn{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}.chtop .cht{margin:0;flex:none}.chtop .chbrag{margin:0;flex:none}
+.chbody p{margin:2px 0 0!important;font-size:14px;line-height:1.45}.chbody .chmon{margin-top:6px}
+.chr .chx{top:7px}
 .chbd{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 3px;margin-right:4px;vertical-align:-8px;border-radius:5px;overflow:hidden;font-family:'Galmuri11',sans-serif;line-height:1;box-shadow:0 0 0 1.5px #1c2550,inset 0 0 0 1px #ffffff99,inset 0 -3px 0 #0003;text-align:center}
 .chbd i{font-style:normal;font-size:8px;font-weight:700;letter-spacing:-.5px;color:#fff;opacity:.95;text-shadow:0 1px 0 #0006;margin-bottom:1px}
 .chbd b{font-size:11px;font-weight:900;color:#fff;-webkit-text-stroke:2.5px #1c2550;paint-order:stroke fill}
