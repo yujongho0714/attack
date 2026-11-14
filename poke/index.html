@@ -5300,7 +5300,7 @@ async function legCatch(f,isNew){const I=await lgImg(f.n);return new Promise(don
 // 인터넷이 되면 바로바로 주고받고, 안 되면 마지막으로 받은 대화만 보여요. 위로 올리면 이전 대화를 더 불러와요.
 // 내 포켓몬 자랑하기 · 나쁜 말 가리기 · 전화번호 · 링크 막기 · GM은 메시지 숨기기
 const CHB='chat';let CHM=[],CHOLD=0,CHNEW=0,CHT=null,CHBUSY=0,CHHID=new Set(),CHHT=0,CHLAST=0,CHUN=0;
-try{CHM=JSON.parse(localStorage.getItem('pka-chat')||'[]')}catch(e){CHM=[]}
+try{CHM=JSON.parse(localStorage.getItem('pka-chat')||'[]').filter(o=>o&&o.ms)}catch(e){CHM=[]}
 const chSave=()=>{try{localStorage.setItem('pka-chat',JSON.stringify(CHM.slice(-80)))}catch(e){}};
 const CHBAD=['시발','씨발','시바','씨바','ㅅㅂ','ㅆㅂ','병신','븅신','ㅂㅅ','개새','개색','새끼','색끼','ㅅㄲ','좆','존나','졸라','ㅈㄴ','지랄','ㅈㄹ','닥쳐','꺼져','미친','ㅁㅊ','엿먹','섹스','야동','느금','니애미','애미','애비','니엄','등신','썅','뒤져','디져','죽어','죽을래','자살','호로','멍청','바보','찐따','fuck','shit','bitch','sex'];
 function chClean(s){let t=String(s).replace(/\s+/g,' ').trim().slice(0,60);const flat=t.replace(/[\s.\-_~!?·,]/g,'').toLowerCase();
@@ -5310,26 +5310,29 @@ const chKeyMon=m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+m.lv+(m.
 const chDecMon=s=>{const m=/^(.+)\.(\d+)(s?)(?:p(\d+))?$/.exec(s||'');if(!m)return null;const n='sc:'+m[1].replace(/_/g,'/');return META[n]?{n,lv:+m[2],sh:!!m[3],px:m[4]!=null?+m[4]:null}:null};
 async function chParse(d){try{const id=decodeURIComponent(d.name.split('/').pop()),f=d.fields||{};const name=(f.name||{}).stringValue||'',v=+((f.v||{}).integerValue||0),t=+((f.t||{}).integerValue||0);
   const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1);
-  if(BANS.has(pid))return null;const o={id,pid,name,v,ty};if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}else if(ty==='p'){o.m=chDecMon(body);if(!o.m)return null;o.x=p[4]?chClean(new TextDecoder().decode(acUb64(p[4]))):''}else return null;return o}catch(e){return null}}
+  if(BANS.has(pid))return null;const o={id,pid,name,v,ms:parseInt(p[1],36)||v*60000,ty};if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}else if(ty==='p'){o.m=chDecMon(body);if(!o.m)return null;o.x=p[4]?chClean(new TextDecoder().decode(acUb64(p[4]))):''}else return null;return o}catch(e){return null}}
 async function chQuery(op,val,dir,lim){const B=fsBase();if(!B||!navigator.onLine)return null;try{const r=await fetch(B.u+CHB+':runQuery?key='+B.k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],where:{fieldFilter:{field:{fieldPath:'v'},op,value:{integerValue:String(val)}}},orderBy:[{field:{fieldPath:'v'},direction:dir}],limit:lim}})});if(!r.ok)return null;const j=await r.json();const out=[];for(const x of j)if(x.document){const o=await chParse(x.document);if(o)out.push(o)}return out}catch(e){return null}}
 async function chHidLoad(){if(Date.now()-CHHT<120000)return;CHHT=Date.now();try{await banLoad()}catch(e){}const L=await fsList('gmban');if(!L)return;const S=new Set();for(const x of L){if(!x.id.startsWith('h~'))continue;const sec=Math.floor(x.t/1048576);if(await gmMac(x.id,x.name,x.v,sec)!==x.t%1048576)continue;if(x.v===1)S.add(x.id.slice(2))}CHHID=S}
 const chHK=o=>o.id.split('~').slice(1,3).join('~');
-function chMerge(L){const have=new Set(CHM.map(x=>x.id));let add=0;for(const o of L)if(!have.has(o.id)){CHM.push(o);add++;if(o.pid!==G.pid)CHUN++}CHM.sort((a,b)=>a.v-b.v);if(CHM.length>400)CHM=CHM.slice(-400);if(add)chSave();return add}
+function chMerge(L){const have=new Set(CHM.map(x=>x.id));let add=0;for(const o of L)if(!have.has(o.id)){CHM.push(o);add++;if(o.pid!==G.pid)CHUN++}CHM.sort((a,b)=>a.ms-b.ms);if(CHM.length>400)CHM=CHM.slice(-400);if(add)chSave();return add}
 async function chPoll(){if(CHBUSY||!G||!navigator.onLine||!fsBase())return;CHBUSY=1;try{await chHidLoad();const last=CHM.length?CHM[CHM.length-1].v:0;
-  const L=last?await chQuery('GREATER_THAN',last,'ASCENDING',60):await chQuery('GREATER_THAN',0,'DESCENDING',40);if(L){const n=chMerge(L);if(n)chDraw()}}catch(e){}CHBUSY=0;chDraw(1)}
+  const L=last?await chQuery('GREATER_THAN_OR_EQUAL',last,'ASCENDING',60):await chQuery('GREATER_THAN',0,'DESCENDING',40);if(L){const n=chMerge(L);if(n)chDraw()}}catch(e){}CHBUSY=0;chDraw(1)}
 async function chOlder(){if(CHOLD||!CHM.length)return;CHOLD=1;const box=document.querySelector('#chList');const h0=box?box.scrollHeight:0;
-  const L=await chQuery('LESS_THAN',CHM[0].v,'DESCENDING',40);if(L&&L.length){CHUN=Math.max(0,CHUN-L.filter(o=>o.pid!==G.pid).length);chMerge(L);chDraw();if(box)box.scrollTop=box.scrollHeight-h0}else if(L)toast('더 이전 대화가 없어요');CHOLD=0}
+  const L=await chQuery('LESS_THAN_OR_EQUAL',CHM[0].v,'DESCENDING',40);const have=new Set(CHM.map(x=>x.id));const L2=L&&L.filter(o=>!have.has(o.id));if(L2&&L2.length){const L_=L2;CHUN=Math.max(0,CHUN-L_.filter(o=>o.pid!==G.pid).length);chMerge(L_);chDraw();if(box)box.scrollTop=box.scrollHeight-h0}else if(L2)toast('더 이전 대화가 없어요');CHOLD=0}
+// v는 2026년부터 지난 '분'(작은 숫자) · 실제 시각은 문서 이름 안의 ms에서 읽어요
+const chMin=ms=>Math.floor((ms-1767225600000)/60000);
+async function chPut(id,name,v,t){const B=fsBase();if(!B)return '연결 없음';try{const r=await fetch(B.u+CHB+'/players/'+encodeURIComponent(id)+'?key='+B.k+'&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:String(name).slice(0,12)},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});if(r.ok)return '';let m='';try{m=((await r.json()).error||{}).status||''}catch(e){}return r.status+(m?' '+m:'')}catch(e){return '인터넷'}}
 async function chSend(ty,text,mon){if(!G||!G.pid){toast('먼저 게임을 시작해요');return false}if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되면 채팅할 수 있어요');return false}if(BANS.has(G.pid)){toast('채팅을 쓸 수 없는 계정이에요');return false}
   if(Date.now()-CHLAST<(ty==='p'?20000:3500)){toast(ty==='p'?'자랑은 20초에 한 번씩 할 수 있어요':'조금 천천히 보내요');return false}
   const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Date.now(),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
-  const id='m~'+ms.toString(36)+'~'+G.pid+'~'+(ty==='p'?'p'+chKeyMon(mon)+'~'+b:'t'+b);const name=rkName();const t=sec*1048576+await gmMac(id,name,ms,sec);
-  CHLAST=ms;const ok=await fsPut(CHB,id,name,ms,t);if(!ok){toast('보내지 못했어요 · 잠시 뒤에 다시 해요');CHLAST=0;return false}
-  chMerge([{id,pid:G.pid,name:name.slice(0,12),v:ms,ty,x,m:ty==='p'?{n:mon.n,lv:mon.lv,sh:!!mon.sh,px:mon.px}:null}]);chDraw();setTimeout(chPoll,1500);return true}
+  const id='m~'+ms.toString(36)+'~'+G.pid+'~'+(ty==='p'?'p'+chKeyMon(mon)+'~'+b:'t'+b);const name=rkName();const vm=chMin(ms),t=sec*1048576+await gmMac(id,name,vm,sec);
+  CHLAST=ms;const er=await chPut(id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
+  chMerge([{id,pid:G.pid,name:name.slice(0,12),v:vm,ms,ty,x,m:ty==='p'?{n:mon.n,lv:mon.lv,sh:!!mon.sh,px:mon.px}:null}]);chDraw();setTimeout(chPoll,1500);return true}
 async function chHide(o){if(!isGM())return;const k='h~'+chHK(o),sec=Math.floor(Date.now()/1000);const t=sec*1048576+await gmMac(k,'',1,sec);if(await fsPut('gmban',k,'',1,t)){CHHID.add(chHK(o));chDraw();toast('메시지를 숨겼어요 (모두에게 안 보여요)')}else toast('숨기지 못했어요')}
 const chTime=v=>{const d=new Date(v),n=new Date();const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');return d.toDateString()===n.toDateString()?hm:(d.getMonth()+1)+'/'+d.getDate()+' '+hm};
 function chName(o){const r=rkSplit(o.name);const gm=r.name.startsWith('[GM]');return `<b class="chn${gm?' gm':''}${o.pid===G.pid?' me':''}">${esc(gm?'[GM] '+r.name.slice(4):r.name)}</b>`}
 function chMonCard(m){const M=META[m.n],r=rarOf(m.n);let px='';try{if(m.px!=null&&PX[m.px])px=PX[m.px].n+' '}catch(e){}return `<button class="chmon" data-n="${encodeURIComponent(m.n)}" style="--rc:${RARC[r]}"><img src="${THUMB[m.n]||''}" alt=""><span><em>${RAR[r]}</em><b>${esc(px+M.name)}</b><small>Lv.${m.lv}${m.sh?' · <i>반짝</i>':''}</small></span></button>`}
-function chRow(o){if(CHHID.has(chHK(o)))return '';return `<div class="chr${o.pid===G.pid?' me':''}" data-id="${esc(o.id)}">${chName(o)}<small class="cht">${chTime(o.v)}</small>${isGM()?'<button class="chx" title="숨기기">숨김</button>':''}${o.ty==='p'?`<span class="chbrag">포켓몬 자랑!</span>${chMonCard(o.m)}`:''}${o.x?`<p>${esc(o.x)}</p>`:''}</div>`}
+function chRow(o){if(CHHID.has(chHK(o)))return '';return `<div class="chr${o.pid===G.pid?' me':''}" data-id="${esc(o.id)}">${chName(o)}<small class="cht">${chTime(o.ms)}</small>${isGM()?'<button class="chx" title="숨기기">숨김</button>':''}${o.ty==='p'?`<span class="chbrag">포켓몬 자랑!</span>${chMonCard(o.m)}`:''}${o.x?`<p>${esc(o.x)}</p>`:''}</div>`}
 function chDraw(onlyState){const mini=document.getElementById('chMini');if(mini){const vis=CHM.filter(o=>!CHHID.has(chHK(o))).slice(-3);
    mini.querySelector('.chml').innerHTML=vis.length?vis.map(o=>`<div>${chName(o)} ${o.ty==='p'?'<i>'+esc(META[o.m.n].name)+' 자랑!</i>':esc(o.x)}</div>`).join(''):'<div class="chem">채팅을 눌러 친구들과 이야기해요</div>';
    mini.querySelector('.chst').textContent=navigator.onLine?(CHUN&&!CHOPEN?'새 메시지 '+Math.min(99,CHUN):'채팅'):'채팅 · 오프라인'}
