@@ -2602,7 +2602,7 @@ function navClear(msg){if(!G.nav)return;G.nav=null;save();if(msg)toast(msg);guid
 // 도착 · 잡으면 목표 끝
 setInterval(()=>{try{const v=G&&G.nav;if(!v||SCENE!=='over')return;
   if(v.n&&G.dex.c[META[v.n].dex]){navClear(META[v.n].name+' 잡았어요! 목표 완료');if(AUTO.on&&AUTO.huntOnly)autoStop();return}
-  if(!v.n&&G.a===v.a){navClear(areaName(v.a)+' 도착! 목표 완료');if(AUTO.on)autoStop()}}catch(e){}},800);
+  if(!v.n&&G.a===v.a){const st=v.stay&&!isTown(v.a)&&v.a!==18;navClear(areaName(v.a)+' 도착!'+(st?'':' 목표 완료'));if(st){AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=1;AUTO.hunt={a:v.a};AUTO.gt=null;G.autoQuest=0;hud();toast(areaName(v.a)+'에서 자동 사냥을 계속해요')}else if(AUTO.on)autoStop()}}catch(e){}},800);
 // ---------- 월드맵 ----------
 const WM={sel:null,q:'',r:-1,miss:0,hl:null};
 function worldOpen(sel){if(!G)return;if(sel!=null)WM.sel=sel;if(WM.sel==null)WM.sel=G.a;
@@ -3311,7 +3311,7 @@ const ULINE=[
  {pre:['그림자 속에서 너를 지켜보고 있었어.','보이지 않는 것이 제일 무서운 법이지. 시작하자!'],win:['그림자가 걷혔군… 네 빛이 더 밝았어.','상위 배지야. 황금시티로 가 봐.']},
  {pre:['강철처럼 단단한 마음이 있어야 이 배지를 받을 수 있어요.','봐주지 않을 거예요. 진짜 실력으로 와요!'],win:['정말 대단해요… 내 강철이 휘어 버렸어요.','상위 배지예요! 마지막은 용의 성채예요.']},
  {pre:['나는 용의 성채의 주인. 전설의 용들이 나와 함께 있다.','여기까지 온 트레이너는 손에 꼽지. 끝까지 버텨 봐라!'],win:['…인정하지. 너는 진짜 최강의 트레이너다.','마지막 상위 배지를 주마. 이제 섬 어디서든 전설을 찾아 봐라!']}];
-const UPW=[.15,.5,1.3,1.6,1.1,.75,.4];// 상위 지역은 높은 등급이 훨씬 잘 나와요
+const UPW=[1,.6,.35,.04,.015,.01,.005];// 상위 지역: 전설 3~8% · 신화 이상은 아주 드물게
 const formKeys=()=>Object.keys(META).filter(k=>META[k].form&&FTIER&&FTIER[META[k].form]&&THUMB[k]!==undefined);
 {const _e=encTable;encTable=function(a){if(a<UP0)return _e(a);const k=(a-1)/2,u=(a-19)/2,r=rng(G.seed*13+a*101),bias=RBIAS[k];
   const pick=(L,n,w)=>{const out=[];L=L.slice();const W=L.map(s=>META[s].types.some(t=>bias.includes(t))?4:1);for(let i=0;i<n&&L.length;i++){let tot=W.reduce((x,y)=>x+y,0),q=r()*tot,j=0;for(;j<L.length;j++){q-=W[j];if(q<=0)break}j=Math.min(j,L.length-1);out.push({n:L[j],w});L.splice(j,1);W.splice(j,1)}return out};
@@ -5084,8 +5084,8 @@ function lossGuide(F,o){const ace=F.slice().sort((a,b)=>b.lv-a.lv)[0],AT=META[ac
    <div class="lgb"><button data-go="team">편성 보기</button><button data-go="shop">회복약 사기</button><button data-go="px">접두사</button></div></details>`,null,p=>{
    p.querySelector('#lgRt').onclick=()=>{G.opt=G.opt||{};G.opt.retry=G.opt.retry?0:1;save();sfx('tap');p.querySelector('#lgRt').classList.toggle('on',!!G.opt.retry);toast('계속 도전하기 '+(G.opt.retry?'켜짐':'꺼짐'))};
    p.querySelectorAll('[data-auto]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);if(b.dataset.auto==='q'){if(G.nav)G.nav=null;AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1;hud();toast('퀘스트 자동사냥을 시작해요')}else{if(AUTO.on)autoStop();setTimeout(()=>{try{bt('bHunt').click()}catch(e){}},100)}});
-   p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.k;if(k==='lv'){if(!r0)return;closePanel(1);navSet(r0.a,null,'auto')}else if(k==='rec'){closePanel(1);try{recOpen('상성 맞춰 추천 편성',AT)}catch(e){teamOpen()}}else if(k==='catch'){if(!c0)return;closePanel(1);navSet(c0.a,c0.n,'auto')}else{closePanel(1);gearOpen('sf')}});
-   p.querySelectorAll('[data-hunt]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.hunt,null,'auto')});
+   p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.k;if(k==='lv'){if(!r0)return;closePanel(1);navSet(r0.a,null,'auto');G.nav.stay=1;save()}else if(k==='rec'){closePanel(1);try{recOpen('상성 맞춰 추천 편성',AT)}catch(e){teamOpen()}}else if(k==='catch'){if(!c0)return;closePanel(1);navSet(c0.a,c0.n,'auto')}else{closePanel(1);gearOpen('sf')}});
+   p.querySelectorAll('[data-hunt]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.hunt,null,'auto');G.nav.stay=1;save()});
    p.querySelectorAll('[data-catch]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.a,b.dataset.catch,'auto')});
    p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.go;closePanel(1);if(k==='team')teamOpen();else if(k==='shop')shop(0,1);else if(k==='px')pxBook()})})}
 (function(){const c=document.createElement('style');c.textContent=`
@@ -5197,6 +5197,24 @@ const gradeTxt=n=>{const g=rarOf(n);return g>=4?RAR[g]+' 보너스: 기술 위�
 try{const _dd=dexDev;dexDev=async function(n,isNew){await _dd.apply(this,arguments);try{const o=document.getElementById('pdx');if(!o)return;const t=gradeTxt(n),b=dexBonus();const lcd=o.querySelector('.pdxlcd');if(t&&lcd&&!lcd.querySelector('.pdxgr')){const h=lcd.querySelector('.pdxno');h.insertAdjacentHTML('afterend','<p class="pdxgr">'+t+'</p>')}
   const f=o.querySelector('.pdxfoot span');if(f)f.innerHTML+=' · 도감 효과 <b>모든 능력치 +'+Math.round(b*100)+'%</b> <small>(50종마다 +1%, 최대 +8%)</small>'}catch(e){}}}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`.pdxgr{margin:4px 0;padding:4px 8px;background:#3a1a2a;color:#ffb0d8;font-size:13px;box-shadow:0 0 0 2px #ff5ab4}.pdxfoot small{color:#ffd0d0;font-size:11px}`;document.head.appendChild(c)})();
+
+// ===== 자동(AUTO) 켤 때 고르기 =====
+// 어느 지역이든 자동을 다시 켜면 「퀘스트 진행」과 「이곳에서 자동 사냥」 중에서 골라요
+const apHuntA=()=>{let a=G.a;if(G.a>=UP0&&isTown(G.a))return G.a===26?25:areaOpen(G.a+1)?G.a+1:G.a-1;if(isTown(a)||a===18)a=Math.max(1,Math.min(17,G.a<=2*G.badges?a+1:a-1));return a};
+function autoPick(){if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}
+  let q='';try{q=objective().t||''}catch(e){}const ha=apHuntA(),here=ha===G.a;
+  openPanel('자동(AUTO) 시작',`<p class="aph">무엇을 자동으로 할까요?</p><div class="apk">
+   <button class="lgk best" data-ap="q"><b>퀘스트 진행</b><small>${esc(q)||'다음 목표를 따라가요'}</small><em>배틀까지 전부 자동</em></button>
+   <button class="lgk" data-ap="h"><b>${here?'이곳에서 자동 사냥':'가까운 곳에서 자동 사냥'}</b><small>${esc(areaName(ha))}${here?'':' (마을 옆 사냥터)'}</small><em>여기서 레벨 올리기</em></button></div>`,null,p=>{
+   p.querySelectorAll('[data-ap]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);
+    if(b.dataset.ap==='q'){if(G.nav&&!G.nav.n&&G.nav.stay)G.nav=null;AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1;hud();toast('퀘스트 자동 진행을 시작해요')}
+    else{if(G.nav&&G.nav.stay)G.nav=null;AUTO.on=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=0;try{bt('bHunt').click()}catch(e){}}})})}
+{const b=bt('bAuto');b.onclick=()=>{sfx('tap');if(AUTO.on&&!AUTO.huntOnly){autoStop();return}autoPick()}}
+(function(){const c=document.createElement('style');c.textContent=`
+.aph{margin:4px 6px 8px;font-weight:700}
+.apk{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 4px 6px}
+.apk .lgk{min-height:120px}
+@media (max-width:420px){.apk{grid-template-columns:1fr}}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
