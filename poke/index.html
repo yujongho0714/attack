@@ -2282,8 +2282,8 @@ const BGM=(()=>{const TOWN=['pallet','pewter','cerulean','vermilion','celadon','
 // ===== 메가진화 · 원시회귀 · 거다이맥스 (상시 변신) + 이로치 여러 색 =====
 const FKO={mega:'메가',primal:'원시',gmax:'거다이맥스 ',emax:'무한다이맥스 '};
 const FITEM={mega:'mstone',primal:'porb',gmax:'dmax',emax:'dmax'};
-Object.assign(ITEMS,{mstone:{n:'메가스톤',e:'<img class="ic" src="items/MEGARING.png">',form:'mega',p:30000,b:6},porb:{n:'원시의 구슬',e:'<img class="ic" src="items/LIFEORB.png">',form:'primal'},
-  dmax:{n:'다이맥스 밴드',e:'<img class="ic" src="items/DYNAMAXBAND.png">',form:'gmax',p:30000,b:7},sstone:{n:'빛나는돌',e:'<img class="ic" src="items/SHINYSTONE.png">',shinyItem:1}});
+Object.assign(ITEMS,{mstone:{n:'메가스톤',e:'<img class="ic" src="items/MEGARING.png">',form:'mega',p:30000,b:6},porb:{n:'원시의 구슬',e:'<img class="ic" src="items/LIFEORB.png">'},
+  dmax:{n:'다이맥스 밴드',e:'<img class="ic" src="items/DYNAMAXBAND.png">',p:8000,b:7},sstone:{n:'빛나는돌',e:'<img class="ic" src="items/SHINYSTONE.png">',shinyItem:1}});
 function formsInit(){for(const d in FORMS){const n=BYDEX[d];if(!n||!META[n])continue;const M=META[n];
   for(const [p,k,suf] of FORMS[d]){const fk='sc:'+p;if(META[fk])continue;const bs=(M.stats||M.s||[50,50,50,50,50,50]);let s=bs.slice();
     if(k==='mega')for(let i=1;i<6;i++)s[i]=Math.round(s[i]+20);else if(k==='primal')for(let i=1;i<6;i++)s[i]=Math.round(s[i]*1.2);else{s[0]=Math.round(s[0]*1.5);for(let i=1;i<6;i++)s[i]=Math.round(s[i]*1.12)}
@@ -2292,12 +2292,13 @@ function formsInit(){for(const d in FORMS){const n=BYDEX[d];if(!n||!META[n])cont
 const formsOf=m=>{const M=META[m.n];if(!M||M.form)return[];return(FORMS[M.dex]||[]).map(([p,k,suf])=>({fk:'sc:'+p,k,suf}))};
 // 가방에서 쓰기 → 바꿀 포켓몬 고르기
 function formUse(itemKey){const it=ITEMS[itemKey];const L=[];[...G.party,...G.box].forEach((m,i)=>{for(const f of formsOf(m))if(f.k===it.form||(it.form==='gmax'&&f.k==='emax'))L.push({m,f})});
+  try{itSortRows(itemKey,L,x=>x.m)}catch(e){}
   if(!L.length){say(['이 아이템으로 바뀔 수 있는 포켓몬이 없어요.<br><small>메가진화 '+Object.values(FORMS).flat().filter(f=>f[1]==='mega').length+'종 · 원시회귀 3종 · 거다이맥스 '+Object.values(FORMS).flat().filter(f=>f[1]==='gmax').length+'종이 있어요</small>']);return}
-  openPanel(it.n+' 쓰기',`<p>누구를 바꿀까요? <b>한 번 바뀌면 계속 그 모습</b>이에요.</p>${L.map((x,i)=>`<div class="row"><span>${nm(x.m)} Lv.${x.m.lv} → <b>${META[x.f.fk].name}</b></span><button data-f="${i}">변신!</button></div>`).join('')}`,menuOpen,p=>{
+  openPanel(it.n+' 쓰기',`<p>누구를 바꿀까요? <b>한 번 바뀌면 계속 그 모습</b>이에요.</p>${L.map((x,i)=>`<div class="row"><span>${nm(x.m)} Lv.${x.m.lv} → <b>${META[x.f.fk].name}</b>${itTag(itemKey,x.m,x.f)}</span><button data-f="${i}">변신!</button></div>`).join('')}`,menuOpen,p=>{
     p.querySelectorAll('[data-f]').forEach(b=>b.onclick=async()=>{const {m,f}=L[+b.dataset.f];G.bag[itemKey]--;closePanel(1);await formChange(m,f.fk)})})}
 async function formChange(m,fk){const old=nm(m),r=m.hp/stOf(m)[0];const r0=rarM(m);try{BGM.play('evo')}catch(e){}sfx('lv');
   const fl=document.createElement('div');fl.style.cssText='position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(circle,#fff,#ffd23f 40%,#ff6af0 70%,transparent);opacity:0;transition:opacity .5s';document.body.appendChild(fl);requestAnimationFrame(()=>fl.style.opacity='1');await sleep(700);
-  m.n=fk;if(META[fk].form==='mega')delete m.fr;else m.fr=Math.min(FTIER[META[fk].form]||4,r0+1);m.hp=Math.max(1,Math.round(stOf(m)[0]*r));G.dex.s[META[fk].dex]=1;G.forms=G.forms||{};G.forms[fk]=1;save();await refreshSpr();fl.style.opacity='0';setTimeout(()=>fl.remove(),600);
+  m.n=fk;if(r0>=4)m.fr=r0;else if(META[fk].form==='mega')delete m.fr;else m.fr=Math.min(4,r0+1);m.hp=Math.max(1,Math.round(stOf(m)[0]*r));G.dex.s[META[fk].dex]=1;G.forms=G.forms||{};G.forms[fk]=1;save();await refreshSpr();fl.style.opacity='0';setTimeout(()=>fl.remove(),600);
   await say([{t:'✨ '+old+'(이)가 <b>'+META[fk].name+'</b>(으)로 '+(META[fk].form==='mega'?'메가진화':META[fk].form==='primal'?'원시회귀':'거다이맥스')+'했다!<br><small>이제 계속 이 모습이에요. 등급이 <b>'+RAR[r0]+' → '+RAR[rarM(m)]+'</b>(으)로 올랐어요!</small>',f:[META[fk].base,'Joyous']}]);try{BGM.area()}catch(e){}}
 // ---------- 이로치 여러 색 ----------
 const SHC=[null,{n:'✨이로치'},{n:'🥇황금'},{n:'🥈은빛'},{n:'🌑그림자'},{n:'💎크리스탈'},{n:'🌈무지개'}];
@@ -2319,7 +2320,7 @@ function recolor(src,v){const w=src.width,h=src.height,c=document.createElement(
 {const _gs=getSpr;getSpr=function(n){if(typeof n==='string'&&n.includes('#')){if(SPR.has(n))return SPR.get(n);const [base,vv]=n.split('#');const v=+vv;
   const P=(async()=>{const S=await getSpr(base);if(!S)return null;const img={};for(const k in S.img){try{img[k]=recolor(S.img[k],v)}catch(e){img[k]=S.img[k]}}return{meta:S.meta,img}})();SPR.set(n,P);return P}const P=_gs(n);if(typeof n==='string'&&n.startsWith('sc:g/'))return P.then(S=>{if(S)S.meta.k=.5;return S});return P}}
 function shName(m){const v=shcOf(m);return v?SHC[v].n+' ':''}
-function shinyUse(){const L=[...G.party,...G.box];openPanel('✨ 빛나는돌',`<p>포켓몬을 <b>이로치</b>로 바꾸거나, 이미 이로치면 <b>다른 색</b>으로 바꿔요.</p>${L.map((m,i)=>`<div class="row"><span>${shName(m)}${nm(m)} Lv.${m.lv}</span><button data-s="${i}">빛내기</button></div>`).join('')}`,menuOpen,p=>{
+function shinyUse(){const L=[...G.party,...G.box];try{itSortRows('sstone',L,x=>x)}catch(e){}openPanel('✨ 빛나는돌',`<p>포켓몬을 <b>이로치</b>로 바꾸거나, 이미 이로치면 <b>다른 색</b>으로 바꿔요.</p>${L.map((m,i)=>`<div class="row"><span>${shName(m)}${nm(m)} Lv.${m.lv}${itTag('sstone',m)}</span><button data-s="${i}">빛내기</button></div>`).join('')}`,menuOpen,p=>{
   p.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{const m=L[+b.dataset.s];G.bag.sstone--;const was=m.shc;m.sh=1;let v=rollShc();if(v===was)v=v%6+1;m.shc=v;save();closePanel(1);await refreshSpr();sfx('get');await say(['✨ '+nm(m)+'(이)가 <b>'+SHC[v].n+'</b>(으)로 빛나요!']);menuOpen()})})}
 
 // ===== 퀘스트 창 · 길 안내 선 · 미니맵 =====
@@ -2401,9 +2402,9 @@ setInterval(()=>{try{if(AUTO.on&&AUTO.guide&&!AUTO.huntOnly&&G){const t=objectiv
 // ===== 카드팩 보상 · 중복 → 몬스터볼 · 합성(FUSEN장 → 등급별 확률로 다음 등급) · 배지 케이스 =====
 // 로그인: 하루 1팩 (포켓몬팩 ↔ 기술팩 번갈아) · 퀘스트(첫 포켓몬·배지·챔피언) 깨면 랜덤 팩
 // 등급: 일반·희귀·영웅·전설 + 신화(메가진화)·환상(거다이맥스)·유일(원시회귀·무한다이맥스)
-// 합성 확률 (등급별): 일반→희귀 8% · 희귀→영웅 5% · 영웅→전설 3% · 전설→신화 1.5% · 신화→환상 1% · 환상→유일 0.5%
+// 합성 확률 (등급별): 일반→희귀 8% · 희귀→영웅 5% · 영웅→전설 10% · 전설→신화 15% · 신화→환상 20% · 환상→유일 25%
 const FUSEN=5;// 합성 한 번에 드는 같은 등급 영혼(재료) 수
-const FUSER=[.08,.05,.03,.015,.01,.005];const fuseP=r=>FUSER[r]!=null?FUSER[r]:.005;const fusePct=r=>(fuseP(r)*100).toFixed(1).replace(/\.0$/,'')+'%';
+const FUSER=[.08,.05,.10,.15,.20,.25];const fuseP=r=>FUSER[r]!=null?FUSER[r]:.005;const fusePct=r=>(fuseP(r)*100).toFixed(1).replace(/\.0$/,'')+'%';
 const RW=[68.5,22,7,1.8,.5,.15,.05],FTIER={mega:4,gmax:5,primal:6,emax:6};const PMAX=6,MMAX=3;
 function rollRar(kind){let u=R()*100;const n=kind==='M'?4:7;for(let i=0;i<n;i++){u-=RW[i];if(u<0)return i}return 0}
 const RPOOL={P:[[],[],[],[],[],[],[]],M:[[],[],[],[]]};
@@ -2445,7 +2446,7 @@ function badgeShow(i){return new Promise(res=>{const d=document.createElement('d
 function fuseOpen(){if(!G)return;const D=G.dupes||[];const grp={};D.forEach(x=>{const k=x.kind+x.rar;(grp[k]=grp[k]||[]).push(x)});
   const row=(kind,r)=>{const L=grp[kind+r]||[];const mx=kind==='M'?MMAX:PMAX;const can=L.length>=FUSEN&&r<mx;return `<div class="row"><span><b style="color:${RARC[r]}">[${RAR[r]}]</b> ${kind==='P'?'🎴 포켓몬':'📀 기술'} 재료 <b>${L.length}</b>장</span><button data-f="${kind}${r}" ${can?'':'disabled'}>${r<mx?FUSEN+'장 합성 → '+RAR[r+1]+' '+fusePct(r):'최고 등급'}</button></div>`};
   const pairs=['P','M'].reduce((a,k)=>a+[0,1,2,3,4,5].filter(r=>r<(k==='M'?MMAX:PMAX)).reduce((b,r)=>b+Math.floor((grp[k+r]||[]).length/FUSEN),0),0);const ld=G.loginDays||0;
-  openPanel('🎴 카드팩 · 합성',`<div class="lgd"><b>📅 출석 ${ld}일째</b> · 매일 카드팩 3장, 7일째 날은 포켓몬팩 10 + 기술팩 10!<div class="qbar"><i style="width:${(ld%7)/7*100}%"></i></div><small>다음 보너스까지 ${7-ld%7}일</small></div><button class="it" id="fAll" style="width:100%;background:#ffd23f;margin:4px 0 8px" ${pairs?'':'disabled'}>⚡ 일괄 합성 (${pairs}번 한꺼번에)</button><p style="margin:0 0 6px"><b>중복 카드 ${FUSEN}장</b>(같은 종류·같은 등급)을 합치면 <b>등급별 확률</b>(일반 8% · 희귀 5% · 영웅 3% · 전설 1.5% · 신화 1% · 환상 0.5%)로 <b>한 등급 위</b> 카드가 나와요!<br><small>실패하면 재료 ${FUSEN}장은 사라지고 몬스터볼 2개를 받아요.</small></p>
+  openPanel('🎴 카드팩 · 합성',`<div class="lgd"><b>📅 출석 ${ld}일째</b> · 매일 카드팩 3장, 7일째 날은 포켓몬팩 10 + 기술팩 10!<div class="qbar"><i style="width:${(ld%7)/7*100}%"></i></div><small>다음 보너스까지 ${7-ld%7}일</small></div><button class="it" id="fAll" style="width:100%;background:#ffd23f;margin:4px 0 8px" ${pairs?'':'disabled'}>⚡ 일괄 합성 (${pairs}번 한꺼번에)</button><p style="margin:0 0 6px"><b>중복 카드 ${FUSEN}장</b>(같은 종류·같은 등급)을 합치면 <b>등급별 확률</b>(일반 8% · 희귀 5% · 영웅 10% · 전설 15% · 신화 20% · 환상 25%)로 <b>한 등급 위</b> 카드가 나와요!<br><small>실패하면 재료 ${FUSEN}장은 사라지고 몬스터볼 2개를 받아요.</small></p>
     ${[0,1,2,3,4,5,6].map(r=>row('P',r)).join('')}${[0,1,2,3].map(r=>row('M',r)).join('')}<p style="font-size:12.5px;margin:6px 0 0">🔥 <b style="color:#ff3b6b">신화</b> = 메가진화 · 🌌 <b style="color:#14c8b8">환상</b> = 거다이맥스 · 👑 <b style="color:#ff2aa0">유일</b> = 원시회귀·무한다이맥스 (포켓몬팩·합성에서만)</p><p style="margin:10px 0 0;font-size:13px;opacity:.8">📅 매일 접속하면 카드팩 1장 (포켓몬팩 ↔ 기술팩 번갈아) · 🎯 퀘스트를 깨면 랜덤 카드팩 · 🔁 중복은 몬스터볼 5개 + 합성 재료</p>`,null,p=>{
     p.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>fuseDo(b.dataset.f[0],+b.dataset.f[1]));const fa=p.querySelector('#fAll');if(fa)fa.onclick=fuseAll})}
 async function fuseAll(){const D=G.dupes||[];const out=[];let fails=0;
@@ -2645,7 +2646,7 @@ function bindInfo(p){p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{c
   if(k==='walk'){navSet(a,n,null);if(AUTO.on)autoStop();return}
   navSet(a,n,'auto')})}
 const ownN=n=>[...G.party,...G.box].some(m=>m.n===n);
-const FHOW={mega:'메가스톤',gmax:'다이맥스 밴드',emax:'다이맥스 밴드',primal:'원시의 구슬'};
+const FHOW={mega:'메가스톤',gmax:'포켓몬 뽑기(환상)',emax:'포켓몬 뽑기(유일)',primal:'포켓몬 뽑기(유일)'};
 function worldSearch(){const q=WM.q.trim();const FK=Object.keys(META).filter(k=>META[k].form&&FTIER[META[k].form]);
   const pool=WM.r>=4||(q&&WM.r<0)?SPECIES.concat(FK):SPECIES;
   let L=pool.filter(n=>{const M=META[n];if(q&&!M.name.includes(q))return false;if(WM.r>=0&&rarOf(n)!==WM.r)return false;if(WM.miss&&(M.form?ownN(n):G.dex.c[M.dex]))return false;return true});
@@ -3068,8 +3069,8 @@ const ITD={
  hpotion:{s:'체력 150 회복',use:'많이 다친 포켓몬 1마리에게 써요',good:'거의 다 회복돼요 · 배지 6개부터',who:'레벨 높은 포켓몬 · 관장 · 사천왕전',tip:'관장과 싸우기 전에 꼭 몇 개 챙겨요.'},
  candy:{s:'먹으면 레벨이 1 올라요',use:'포켓몬 1마리에게 먹여요',good:'싸우지 않아도 바로 레벨업 · 능력치도 같이 올라요',who:'진화 직전인 포켓몬 · 새로 잡은 약한 포켓몬',tip:'진화 레벨이 되면 바로 진화할 수 있어요. 노랑시티에서만 팔아요.'},
  mstone:{s:'메가진화 시키는 돌',use:'메가진화 할 수 있는 포켓몬에게 써요',good:'계속 메가 모습으로 바뀌어요 · 공격·방어·특공·특방·스피드 +20 · 등급이 신화가 돼요 (능력치 +16%)',who:'리자몽 · 후딘 · 갸라도스 같은 메가진화 포켓몬',form:'mega'},
- porb:{s:'원시회귀 시키는 구슬',use:'원시회귀 할 수 있는 포켓몬에게 써요',good:'능력치가 1.2배 · 등급이 원래보다 한 단계 올라가요 (전설 → 신화)',who:'그란돈 · 가이오가',form:'primal'},
- dmax:{s:'거다이맥스 시키는 밴드',use:'거다이맥스 할 수 있는 포켓몬에게 써요',good:'체력 1.5배 · 나머지 능력치 1.12배 · 등급이 원래보다 한 단계 올라가요 (예: 일반 → 희귀)',who:'이상해꽃 · 리자몽 · 버터플 · 괴력몬 · 팬텀 · 킹크랩 · 라프라스 · 고릴타 · 인텔리레온 · 우라오스 등 20종 + 무한다이노',form:'gmax'},
+ porb:{s:'배틀 중 한 번, 원시의 힘을 깨우는 구슬',use:'배틀 화면 왼쪽 「원시회귀」 단추로 써요 (쓸 때마다 구슬 1개가 사라져요)',good:'내 포켓몬이 3번 공격하는 동안(실시간 배틀은 6번) 공격 ×1.25 · 받는 피해 ×0.7이에요. 등급은 안 바뀌고 저장되지 않아요',who:'그란돈 · 가이오가',tip:'파는 곳은 없고 보상으로만 얻어요.'},
+ dmax:{s:'배틀 중 한 번, 포켓몬을 거대하게 만드는 밴드',use:'배틀 화면 왼쪽 「다이맥스」 단추로 써요 (쓸 때마다 밴드 1개가 사라져요)',good:'내 포켓몬이 3번 공격하는 동안(실시간 배틀은 6번) 공격 ×1.25 · 받는 피해 ×0.7 · 몸에 붉은 기운이 돌아요. 등급은 안 바뀌고 저장되지 않아요',who:'거다이맥스가 가능한 포켓몬 (이상해꽃 · 리자몽 · 팬텀 · 라프라스 등 20종 + 무한다이노)',tip:'배틀당 1번만 써요. 테라스탈과 같이 써도 돼요. 배지 7개부터 상점에서 8,000원이에요.'},
  sstone:{s:'포켓몬을 반짝이는 색으로',use:'아무 포켓몬 1마리에게 써요',good:'이로치(특별한 색)가 돼요 · 이미 이로치면 다른 색으로',who:'제일 아끼는 포켓몬',tip:'능력치는 그대로예요. 모습만 특별해져요.'}};
 function itD(k){const it=ITEMS[k]||{};if(ITD[k])return ITD[k];
   if(it.charm){const t=TN[it.charm];return{s:'포켓몬에게 먹이면 '+t+' 타입 기술 위력 +5% (영구)',use:'가방에서 「먹이기」를 누르고 포켓몬을 골라요. 먹인 부적은 사라지고 효과는 계속 남아요',good:'그 포켓몬이 '+t+' 타입 기술을 쓸 때마다 데미지가 늘어요. 여러 개 먹이면 계속 쌓여요',who:t+' 타입 기술을 쓰는 주력 포켓몬',tip:'포켓몬 1마리에 부적은 모두 합쳐 최대 '+chMax()+'개 (쉬움 3 · 보통 5 · 어려움 7 · 지옥 9 · 나이트메어 12). '+(TOWNS[GYM.findIndex(g=>g.t===it.charm)+1]||'')+'에서 팔아요.'}}
@@ -3083,14 +3084,43 @@ function itCanUse(k){const it=ITEMS[k],L=[...G.party,...G.box];
 function itemInfo(k,onUse){const it=ITEMS[k],D=itD(k),can=itCanUse(k);
   let mine='';if(can){mine=can.length?`<div class="iiw"><b>지금 쓸 수 있는 내 포켓몬</b><div>${can.slice(0,8).map(m=>`<span><img src="${THUMB[m.n]||''}">${nm(m)}</span>`).join('')}${can.length>8?` 외 ${can.length-8}마리`:''}</div></div>`:`<div class="iiw no">${it.form?'내 포켓몬 중에는 쓸 수 있는 애가 없어요':it.heal?'다친 포켓몬이 없어요 (쓰러진 포켓몬은 포켓몬센터로)':'쓸 포켓몬이 없어요'}</div>`}
   const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>가진 것 ${G.bag[k]||0}개</small></div></div>
-   <p class="iis">${D.s}</p><dl>${D.use?`<dt>어디에 써요?</dt><dd>${D.use}</dd>`:''}${D.good?`<dt>뭐가 좋아요?</dt><dd>${D.good}</dd>`:''}${D.who?`<dt>누구한테 좋아요?</dt><dd>${D.who}</dd>`:''}${D.tip?`<dt>꿀팁</dt><dd>${D.tip}</dd>`:''}</dl>${mine}
+   <p class="iis">${D.s}</p><dl>${D.use?`<dt>어디에 써요?</dt><dd>${D.use}</dd>`:''}${D.good?`<dt>뭐가 좋아요?</dt><dd>${D.good}</dd>`:''}${D.who?`<dt>누구한테 좋아요?</dt><dd>${D.who}</dd>`:''}${D.tip?`<dt>꿀팁</dt><dd>${D.tip}</dd>`:''}</dl>${(()=>{try{return itRecBlock(k)}catch(e){return ''}})()||mine}
    <div class="wbt">${onUse&&!it.ball?`<button class="main" id="iiU">${it.charm?'먹이기':'사용하기'}</button>`:''}<button id="iiX">닫기</button></div></div>`;
   document.body.appendChild(d);const x=()=>d.remove();d.onclick=e=>{if(e.target===d)x()};d.querySelector('#iiX').onclick=()=>{sfx('tap');x()};const u=d.querySelector('#iiU');if(u)u.onclick=()=>{x();onUse()}}
 // 가방에서 아이템을 누르면 먼저 설명 → "사용하기"를 눌러야 써요
-let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];if(it.charm){itemInfo(k,()=>{const L=itCanUse(k);if(!L.length){toast('먹일 수 있는 포켓몬이 없어요 (1마리 최대 '+chMax()+'개)');return}itPick(L,it,m=>{if(!(G.bag[k]>0))return;G.bag[k]--;m.chN=chFed(m)+1;m.ch=m.ch||{};m.ch[it.charm]=(m.ch[it.charm]||0)+1;save();sfx('badge');toast(nm(m)+'(이)가 '+it.n+'을(를) 먹었어요! '+TN[it.charm]+' 기술 +'+m.ch[it.charm]*5+'% ('+chFed(m)+'/'+chMax()+')');try{menuOpen()}catch(e){}})});return}itemInfo(k,()=>{const go=m=>{ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
+let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];if(k==='dmax'||k==='porb'){itemInfo(k);return}if(k==='pxsc'){itemInfo(k,()=>{const L=(itRec(k)||[]).slice(0,12).map(x=>x.m);if(!L.length){toast('접두사를 바꿀 포켓몬이 없어요');return}itPick(L,it,m=>{closePanel(1);pxReroll(m)})});return}if(it.charm){itemInfo(k,()=>{const L=itCanUse(k);if(!L.length){toast('먹일 수 있는 포켓몬이 없어요 (1마리 최대 '+chMax()+'개)');return}itPick(L,it,m=>{if(!(G.bag[k]>0))return;G.bag[k]--;m.chN=chFed(m)+1;m.ch=m.ch||{};m.ch[it.charm]=(m.ch[it.charm]||0)+1;save();sfx('badge');toast(nm(m)+'(이)가 '+it.n+'을(를) 먹었어요! '+TN[it.charm]+' 기술 +'+m.ch[it.charm]*5+'% ('+chFed(m)+'/'+chMax()+')');try{menuOpen()}catch(e){}})});return}itemInfo(k,()=>{const go=m=>{ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
 let ITPICK=null;
-function itPick(L,it,go){const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>누구에게 쓸까요?</small></div></div>${L.map((m,i)=>{const S=stOf(m);return `<button class="iip" data-i="${i}"><img src="${THUMB[m.n]||''}"><span><b>${nm(m)}</b> Lv.${m.lv}<small>체력 ${m.hp}/${S[0]}</small><i style="width:${m.hp/S[0]*100}%"></i></span></button>`}).join('')}<div class="wbt"><button id="iiX">취소</button></div></div>`;
+function itPick(L,it,go){const k=Object.keys(ITEMS).find(q=>ITEMS[q]===it);try{if(k)itSortRows(k,L,x=>x)}catch(e){}
+  const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>누구에게 쓸까요? (추천 순서)</small></div></div>${L.map((m,i)=>{const S=stOf(m);return `<button class="iip" data-i="${i}"><img src="${THUMB[m.n]||''}"><span><b>${nm(m)}</b> Lv.${m.lv}${k?itTag(k,m):''}<small>체력 ${m.hp}/${S[0]}</small><i style="width:${m.hp/S[0]*100}%"></i></span></button>`}).join('')}<div class="wbt"><button id="iiX">취소</button></div></div>`;
   document.body.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('#iiX').onclick=()=>d.remove();d.querySelectorAll('.iip').forEach(b=>b.onclick=()=>{d.remove();go(L[+b.dataset.i])})}
+
+// ===== 아이템 추천: 누구한테 쓰면 좋은지 순위 + 이유 (사용 전 설명 창 · 누구에게 쓸까요 목록 · 변신/빛나는돌 목록) =====
+const IT_RC={};
+function itRec(k){const it=ITEMS[k];if(!it||!G)return null;const all=[...G.party,...G.box],pi=m=>G.party.indexOf(m),E=[];
+  const add=(m,sc,why,f)=>E.push({m,f,sc,why});const mvf=id=>{try{return mv(id)}catch(e){return MOVES[id]}};
+  if(it.heal){for(const m of G.party){const S=stOf(m)[0];if(m.hp<=0||m.hp>=S)continue;const r=m.hp/S,miss=S-m.hp,small=miss<it.heal*.4;
+      add(m,(1-r)*100+(pi(m)===0?8:0)+rarM(m)*2-(small?30:0),'체력 '+Math.round(r*100)+'%'+(r<.3?' · 제일 위험해요':r<.6?' · 많이 다쳤어요':' · 조금 다쳤어요')+(small?' · 이 약은 아까워요':''))}}
+  else if(it.lv){const cap=lvCap();for(const m of G.party){if(m.lv>=cap)continue;const M=META[m.n];let sc=rarM(m)*12+(pi(m)===0?6:0)+Math.min(10,(cap-m.lv)/5),w=RAR[rarM(m)]+' 등급 · Lv.'+m.lv;
+      const ev=M&&!M.form?(EVC[M.dex]||[]).filter(([d,l])=>BYDEX[d]&&l>m.lv).sort((a,b)=>a[1]-b[1])[0]:null;
+      if(ev){const need=ev[1]-m.lv;if(need<=Math.max(1,G.bag.candy||0)){sc+=200-need;w='Lv.'+ev[1]+'에 진화해요 · 사탕 '+need+'개면 진화!'}else if(need<=5){sc+=60-need;w+=' · 진화(Lv.'+ev[1]+')까지 '+need+'레벨'}}
+      else if(m.lv<cap-10)w+=' · 레벨이 낮아서 키우기 좋아요';
+      add(m,sc,w)}}
+  else if(it.charm){const ty=it.charm,tn=TN[ty];for(const m of G.party){if(chFed(m)>=chMax())continue;const mv2=(m.moves||[]).map(mvf).filter(x=>x&&x.type===ty),M=META[m.n],stab=M&&M.types.includes(ty),pw=mv2.reduce((a,x)=>a+(x.pw||0),0);
+      if(!mv2.length)add(m,-50+rarM(m),tn+' 타입 기술이 없어서 효과가 없어요');else add(m,mv2.length*40+pw/5+(stab?15:0)+rarM(m)*3+(pi(m)===0?5:0),tn+' 기술 '+mv2.length+'개'+(stab?' · 같은 타입이라 더 세요':'')+' · 부적 '+chFed(m)+'/'+chMax())}}
+  else if(it.form){for(const m of all){const r=rarM(m);for(const f of formsOf(m)){if(!(f.k===it.form||(it.form==='gmax'&&f.k==='emax')))continue;const FM=META[f.fk];if(!FM)continue;
+      const nr=r>=4?r:f.k==='mega'?4:Math.min(4,r+1),d=Math.round((RSTAT[nr]-RSTAT[r])*100),bd=Math.round(bst(FM.stats)-bst(META[m.n].stats));
+      add(m,d*4+bd/10+(pi(m)>=0?5:0)+(m.lv||1)/20,(nr<r?'⚠ 등급이 내려가요 · ':'')+RAR[r]+' → '+RAR[nr]+' (등급 능력치 '+(d>=0?'+':'')+d+'%)'+(bd?' · 기본 능력치 합 '+(bd>0?'+':'')+bd:''),f)}}}
+  else if(it.shinyItem){for(const m of all)add(m,(m.sh?0:50)+(pi(m)>=0?20:0)+rarM(m)*8,(pi(m)>=0?'주전':'보관함')+' · '+RAR[rarM(m)]+' 등급 · '+(m.sh?'이미 이로치예요 (색만 바뀌어요)':'아직 이로치가 아니에요')+' · 능력치는 그대로')}
+  else if(k==='dmax'||k==='porb'){const kk=k==='dmax'?['gmax','emax']:['primal'];for(const m of G.party){if(META[m.n].form||!formsOf(m).some(f=>kk.includes(f.k)))continue;const S=stOf(m),a=Math.max(S[1],S[3]);add(m,a/10+rarM(m)*3+(pi(m)===0?3:0),'공격 '+a+' · '+RAR[rarM(m)]+' 등급 · 배틀에서 쓰면 강해져요')}}
+  else if(k==='pxsc'){const cap=pxCap(),W=PXW.slice(0,cap+1),tot=W.reduce((a,b)=>a+b,0);for(const m of all){const x=pxOf(m);if(!x)continue;const g=x.g,up=W.slice(g+1).reduce((a,b)=>a+b,0)/tot;
+      add(m,g>=cap?-100:up*100+(pi(m)>=0?15:0)+rarM(m)*3,g>=cap?'['+PXG[g]+'] 이미 이 난이도의 최고 등급이에요 (바꾸면 손해)':'지금 ['+PXG[g]+'] · 더 좋은 등급이 나올 확률 약 '+Math.round(up*100)+'%'+(pi(m)>=0?' · 주전':''))}}
+  else return null;
+  E.sort((a,b)=>b.sc-a.sc);E.forEach((x,i)=>x.rank=i+1);IT_RC[k]=E;return E}
+const itLab=r=>r<=3?['🥇 1순위','🥈 2순위','🥉 3순위'][r-1]:r+'순위';
+function itTag(k,m,f){const x=(IT_RC[k]||[]).find(e=>e.m===m&&(!f||(e.f&&e.f.fk===f.fk)));return x?`<small class="itrc r${Math.min(4,x.rank)}"><b>${itLab(x.rank)}</b> ${x.why}</small>`:''}
+function itSortRows(k,rows,g){const E=itRec(k)||[];const rk=r=>{const i=E.findIndex(e=>e.m===g(r)&&(!r.f||(e.f&&e.f.fk===r.f.fk)));return i<0?9999:i};rows.sort((a,b)=>rk(a)-rk(b))}
+function itRecBlock(k,n){n=n||5;const E=itRec(k);if(!E||!E.length)return '';return `<div class="iiw rec"><b>추천 순위 · 누구한테 쓸까요?</b>${E.slice(0,n).map(x=>`<div class="itr"><span class="itn r${Math.min(4,x.rank)}">${x.rank}</span><img src="${THUMB[x.m.n]||''}"><span><b>${esc(nm(x.m))}</b>${x.f?' → '+esc(META[x.f.fk].name):''}<small>${x.why}</small></span></div>`).join('')}${E.length>n?'<small>외 '+(E.length-n)+'마리</small>':''}</div>`}
+(function(){const c=document.createElement('style');c.textContent=`.iiw.rec .itr{display:flex;align-items:center;gap:6px;margin:5px 0;text-align:left}.itr img{width:36px;height:36px;object-fit:contain}.itr small{display:block;font-size:11px;color:#4a5070}.itn{background:#1c2550;color:#fff;min-width:20px;text-align:center;font-weight:700}.itn.r1{background:#e0a800}.itn.r2{background:#8a98a6}.itn.r3{background:#b0703a}.itrc{display:block;font-size:11px;color:#2c3050;line-height:1.35}.itrc b{color:#c0392b}.itrc.r1 b{color:#d08a00}`;document.head.appendChild(c)})();
 // 상점 · 특산품 줄을 누르면 설명
 document.addEventListener('click',e=>{const r=e.target.closest&&e.target.closest('.panel .row');if(!r||e.target.closest('button'))return;const b=r.querySelector('[data-b],[data-tb]');if(!b)return;itemInfo(b.dataset.b||b.dataset.tb)});
 
@@ -3117,7 +3147,7 @@ const HUB=[
  {k:'mg',n:'마을 놀거리',d:'블루시티 낚시 · 회색시티 화석 발굴 · 연분홍시티 사파리존 · 노랑시티 격투 탑. 그 마을에 가면 화면 아래에 버튼이 생겨요.',st:()=>{const t=(G.mg&&G.mg.tw)||{};return '격투 탑 최고 '+(t.best||0)+'층'},list:1},
  {k:'shop',n:'마을 특산품',d:'마을마다 그 마을에서만 싸게 파는 물건과 체육관 타입 부적(그 타입 기술 위력 +10%)이 있어요. 노랑시티는 이상한사탕을 팔아요.',st:()=>'',town:1},
  {k:'rm',n:'관장 재대결',d:'이긴 관장과 배지마다 하루 5번까지 다시 싸워요 (배지 2개면 하루 10번). 상대 레벨이 내 레벨보다 높게 맞춰지고, 돈과 카드팩을 받아요.',st:()=>{const n=GYM.reduce((a,g,i)=>a+(i<G.badges?Math.max(0,rmLeft(i)):0),0);return '오늘 남은 재대결 '+n+'번'},go:[['배지 · 관장 보기',()=>badgeOpen()]]},
- {k:'card',n:'카드팩 · 합성',d:'매일 접속하면 카드팩 3장(포켓몬·기술 번갈아), 7일째 날은 포켓몬팩 10장 + 기술팩 10장! 퀘스트를 깨도 받아요. 중복 카드 '+FUSEN+'장으로 합성하면 등급별 확률(일반 8% ~ 환상 0.5%)로 다음 등급!',st:()=>'중복 카드 '+((G.dupes||[]).length)+'장',go:[['합성하러 가기',()=>fuseOpen()],['선물함',()=>giftOpen()]]},
+ {k:'card',n:'카드팩 · 합성',d:'매일 접속하면 카드팩 3장(포켓몬·기술 번갈아), 7일째 날은 포켓몬팩 10장 + 기술팩 10장! 퀘스트를 깨도 받아요. 중복 카드 '+FUSEN+'장으로 합성하면 등급별 확률(일반 8% · 희귀 5% · 영웅 10% · 전설 15% · 신화 20% · 환상 25%)로 다음 등급!',st:()=>'중복 카드 '+((G.dupes||[]).length)+'장',go:[['합성하러 가기',()=>fuseOpen()],['선물함',()=>giftOpen()]]},
  {k:'dex',n:'도감 · 포켓몬 찾기',d:'못 잡은 포켓몬을 눌러 "잡으러 자동 이동". 월드맵에서 이름이나 등급(일반~유일)으로 검색해 나오는 곳을 찾아요.',st:()=>'잡음 '+Object.keys(G.dex.c).length+'/'+SPECIES.length,go:[['도감 열기',()=>dexOpen()],['월드맵 검색',()=>{WM.sel=G.a;worldOpen()}]]},
  {k:'team',n:'편성 · 보관함',d:'최대 6마리가 함께 싸워요. 나머지는 보관함에서 "출전하기"로 바꿔 넣을 수 있어요.',st:()=>'파티 '+G.party.length+'/6 · 보관함 '+G.box.length,go:[['편성 열기',()=>teamOpen()]]},
  {k:'wild',n:'자동 사냥 · 희귀 포켓몬',d:'높은 등급일수록 잘 안 나오고 잘 안 잡혀요. 어려움 난이도는 희귀 포켓몬·이로치가 더 잘 나오고 상금도 많아요.',st:()=>DNAME[DIFF()]+' 난이도',go:[['월드맵',()=>{WM.sel=G.a;worldOpen()}]]}];
@@ -3964,9 +3994,9 @@ function soulAdd(f){const M=META[f.n];G.dupes=G.dupes||[];G.dupes.push({kind:'P'
 {const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{if(o&&!o.trainer&&!o.wb&&r==='win')for(const f of o.foes||[])if(f.hp<=0&&owned(f))soulAdd(f)}catch(e){}return r}}
 // 합성 화면을 영혼 합성으로
 {const _f=fuseOpen;fuseOpen=function(){_f.apply(this,arguments);try{const p=document.querySelector('.panel');if(!p)return;const h=p.querySelector('.ph b');if(h)h.textContent='영혼 합성 · 카드팩';
-  const n=(G.dupes||[]).filter(x=>x.soul).length;const pb=p.querySelector('.pb');pb.insertAdjacentHTML('afterbegin',`<p class="hhint"><b>영혼 합성</b> · 이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 <b>영혼</b>을 얻어요 (지금 영혼 ${n}개). 같은 등급 영혼 ${FUSEN}개를 합치면 (파이리 영혼 + 꼬부기 영혼도 OK) <b>등급별 확률</b>(일반 8% ~ 환상 0.5%)로 <b>한 등급 위 포켓몬</b>! 카드팩 중복 카드도 영혼처럼 써요.</p>`);
+  const n=(G.dupes||[]).filter(x=>x.soul).length;const pb=p.querySelector('.pb');pb.insertAdjacentHTML('afterbegin',`<p class="hhint"><b>영혼 합성</b> · 이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 <b>영혼</b>을 얻어요 (지금 영혼 ${n}개). 같은 등급 영혼 ${FUSEN}개를 합치면 (파이리 영혼 + 꼬부기 영혼도 OK) <b>등급별 확률</b>(일반 8% · 희귀 5% · 영웅 10% · 전설 15% · 신화 20% · 환상 25%)로 <b>한 등급 위 포켓몬</b>! 카드팩 중복 카드도 영혼처럼 써요.</p>`);
   const w=document.createTreeWalker(pb,NodeFilter.SHOW_TEXT);const R2=[['🎴 포켓몬 재료','포켓몬 영혼'],['📀 기술 재료','기술 카드'],['중복 카드 '+FUSEN+'장','영혼 '+FUSEN+'개 · 중복 카드 '+FUSEN+'장'],[FUSEN+'장 합성',FUSEN+'개 합성']];let t;while(t=w.nextNode()){let v=t.nodeValue;for(const [a,b] of R2)v=v.split(a).join(b);if(v!==t.nodeValue)t.nodeValue=v}}catch(e){}}}
-try{const h=HUB.find(x=>x.k==='card');if(h){h.n='카드팩 · 영혼 합성';h.d='이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 영혼을 얻어요 (같은 포켓몬은 최대 5마리까지 잡을 수 있어요). 같은 등급 영혼 '+FUSEN+'개를 합치면 등급별 확률(일반 8% ~ 환상 0.5%)로 한 등급 위 포켓몬! 매일 접속하면 카드팩 3장, 7일째는 포켓몬팩 10장 + 기술팩 10장.';h.st=()=>'영혼 · 중복 '+((G.dupes||[]).filter(x=>x.kind==='P').length)+'개'}}catch(e){}
+try{const h=HUB.find(x=>x.k==='card');if(h){h.n='카드팩 · 영혼 합성';h.d='이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 영혼을 얻어요 (같은 포켓몬은 최대 5마리까지 잡을 수 있어요). 같은 등급 영혼 '+FUSEN+'개를 합치면 등급별 확률(일반 8% · 희귀 5% · 영웅 10% · 전설 15% · 신화 20% · 환상 25%)로 한 등급 위 포켓몬! 매일 접속하면 카드팩 3장, 7일째는 포켓몬팩 10장 + 기술팩 10장.';h.st=()=>'영혼 · 중복 '+((G.dupes||[]).filter(x=>x.kind==='P').length)+'개'}}catch(e){}
 
 // ===== 운영자(GM): 번호 010-2252-0714 · 이름은 「GM」 · 랭킹에는 안 나와요 (월드보스 데미지는 같이 깎아요) =====
 const GMNUM='01022520714';let isGM=()=>!!(G&&String(G.num||'').replace(/\D/g,'')===GMNUM);
@@ -4046,7 +4076,7 @@ function meLabelEnt(ents,px,py,s,camX,camY){if(!G)return;const p=mePx();const na
 
 // ===== 접두사 바꾸기: 접두사 주문서 1개 또는 골드 (포켓몬 5,000원 · 내 캐릭터 10,000원) =====
 ITEMS.pxsc={n:'접두사 주문서',e:'<img class="ic" src="ui/star.webp" style="filter:hue-rotate(200deg) saturate(1.6)">'};
-try{ITD.pxsc={s:'포켓몬이나 내 캐릭터의 접두사를 새로 뽑아요 (공짜)',use:'편성 카드 또는 장비 창의 「접두사 바꾸기」에서 자동으로 써요',good:'골드 없이 다시 뽑을 수 있어요',who:'더 좋은 접두사를 원하는 친구',tip:'포케스탑(4%) · 히든 포탈(30%) · 월드보스 주간 보상에서 나와요'}}catch(e){}
+try{ITD.pxsc={s:'포켓몬이나 내 캐릭터의 접두사를 새로 뽑아요 (공짜)',use:'가방에서 눌러 포켓몬을 고르거나, 편성 카드의 「접두사 바꾸기」에서 써요',good:'골드 없이 다시 뽑을 수 있어요',who:'접두사 등급이 낮은 주전 포켓몬 (가방에서 눌러 추천 순서로 골라요)',tip:'포케스탑(4%) · 히든 포탈(30%) · 월드보스 주간 보상에서 나와요'}}catch(e){}
 {const _pl=psLoot;psLoot=function(){const L=_pl.apply(this,arguments);if(R()<.04)L.pxsc=(L.pxsc||0)+1;return L}}
 const PXCOST={mon:5000,me:10000};
 function pxReroll(target){return new Promise(done=>{const me=target==='me',m=me?null:target,cur=me?mePx():pxOf(m),cost=me?PXCOST.me:PXCOST.mon,sc=G.bag.pxsc||0;
@@ -4894,7 +4924,7 @@ const LOCKI='<svg class="lki" viewBox="0 0 10 12" aria-hidden="true"><path d="M3
   if(h&&!p.querySelector('.bxAll')){h.insertAdjacentHTML('afterend',`<div class="bxtop"><button class="bxAll" ${n?'':'disabled'}>일괄 분해 · 중복 ${n}마리 → 영혼 ${n*BXSOUL}개</button><small>분해하면 영혼 ${BXSOUL}개 · 중복만 · 출전 중 · 잠근 포켓몬은 빼고 · 영혼은 합성에 써요</small></div>`);p.querySelector('.bxAll').onclick=()=>{sfx('tap');bxAll()}}}catch(e){}},45)}}
 // 잠긴 포켓몬은 교환(QR로 보내기)도 막아요
 {const _ts=tradeSend;tradeSend=async function(m){if(m&&m.lock){toast('자물쇠가 채워진 포켓몬은 보낼 수 없어요');return}return _ts.apply(this,arguments)}}
-try{const h=HUB.find(x=>x.k==='card');if(h)h.d='받은 포켓몬은 보관함에서 「분해」하면 그 포켓몬의 영혼 '+BXSOUL+'개가 돼요 (중복만 · 자물쇠 채운 포켓몬은 안 돼요). 이미 잡은 포켓몬을 쓰러뜨려도 영혼 1개. 같은 등급 영혼 '+FUSEN+'개를 합치면 등급별 확률(일반 8% ~ 환상 0.5%)로 한 등급 위 포켓몬!'}catch(e){}
+try{const h=HUB.find(x=>x.k==='card');if(h)h.d='받은 포켓몬은 보관함에서 「분해」하면 그 포켓몬의 영혼 '+BXSOUL+'개가 돼요 (중복만 · 자물쇠 채운 포켓몬은 안 돼요). 이미 잡은 포켓몬을 쓰러뜨려도 영혼 1개. 같은 등급 영혼 '+FUSEN+'개를 합치면 등급별 확률(일반 8% · 희귀 5% · 영웅 10% · 전설 15% · 신화 20% · 환상 25%)로 한 등급 위 포켓몬!'}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`
 .lki{width:12px;height:14px;display:inline-block;vertical-align:-2px}
 .tm .tmf .lkb{position:absolute;right:-4px;top:-4px;width:22px;height:22px;display:grid;place-items:center;background:#ffd23f;color:#1c2550;box-shadow:0 0 0 2px #1c2550}
@@ -5036,18 +5066,22 @@ try{HUB.push({k:'dmeter',n:'딜미터기',d:'배틀이 끝나면 내 포켓몬�
 
 // ===== 보관함: 등급별 · 타입별로 보기 · 정렬 · 포켓몬 삭제(놓아주기) =====
 const BXF=()=>{G.bxf=G.bxf||{r:-1,t:'',s:'new'};return G.bxf};
+let BXQ='';
+const bxHit=(m,q)=>{if(!q)return true;try{const M=META[m.n];const hay=[M.name,nm(m),(m.px!=null&&PX[m.px]?PX[m.px].n:''),M.types.map(t=>TN[t]).join(' '),RAR[rarM(m)],'No.'+M.dex,String(M.dex),m.sh?'이로치':'',m.lock?'자물쇠':''].join(' ').toLowerCase();return q.toLowerCase().split(/\s+/).filter(Boolean).every(w=>hay.includes(w))}catch(e){return true}};
 {const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(()=>{try{bxFilter()}catch(e){}},60)}}
 function bxFilter(){const p=document.querySelector('.panel');if(!p)return;const tgs=p.querySelectorAll('.tg');if(tgs.length<2)return;const box=tgs[1];const F=BXF();
   const cards=[...box.querySelectorAll('.tm.b')].map(c=>{const b=c.querySelector('[data-in]');return b?{c,m:G.box[+b.dataset.in],i:+b.dataset.in}:null}).filter(x=>x&&x.m&&META[x.m.n]);
   if(!p.querySelector('.bxfl')){const types=[...new Set(G.box.flatMap(m=>META[m.n]?META[m.n].types:[]))].sort();
-    box.insertAdjacentHTML('beforebegin',`<div class="bxfl"><div class="bxrow"><span>등급</span><button data-fr="-1">전체</button>${RAR.map((n,i)=>`<button data-fr="${i}" style="color:${RARC[i]}">${n}</button>`).join('')}</div>
+    box.insertAdjacentHTML('beforebegin',`<div class="bxfl"><div class="bxrow"><span>검색</span><input class="bxq" id="bxQ" placeholder="이름 · 접두사 · 타입 · 번호 · 이로치" value="${esc(BXQ)}" autocomplete="off"><button data-fqx="1">지우기</button></div><div class="bxrow"><span>등급</span><button data-fr="-1">전체</button>${RAR.map((n,i)=>`<button data-fr="${i}" style="color:${RARC[i]}">${n}</button>`).join('')}</div>
      <div class="bxrow"><span>타입</span><button data-ft="">전체</button>${types.map(t=>`<button data-ft="${t}" style="background:${TCOL[t]}!important;color:#fff!important;text-shadow:1px 1px 0 #0006">${TN[t]}</button>`).join('')}</div>
      <div class="bxrow"><span>정렬</span>${[['new','받은 순'],['lv','레벨'],['rar','등급'],['dex','도감 번호']].map(([k,n])=>`<button data-fs="${k}">${n}</button>`).join('')}<small class="bxcnt"></small></div></div>`);
+    const qi=p.querySelector('#bxQ');if(qi){qi.oninput=()=>{BXQ=qi.value.trim();bxFilter()};p.querySelectorAll('[data-fqx]').forEach(b=>b.onclick=()=>{BXQ='';qi.value='';bxFilter()})}
     p.querySelectorAll('[data-fr]').forEach(b=>b.onclick=()=>{F.r=+b.dataset.fr;save();bxFilter()});p.querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{F.t=b.dataset.ft;save();bxFilter()});p.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>{F.s=b.dataset.fs;save();bxFilter()})}
   p.querySelectorAll('[data-fr]').forEach(b=>b.classList.toggle('on',+b.dataset.fr===F.r));p.querySelectorAll('[data-ft]').forEach(b=>b.classList.toggle('on',b.dataset.ft===F.t));p.querySelectorAll('[data-fs]').forEach(b=>b.classList.toggle('on',b.dataset.fs===F.s));
   const S={new:(a,b)=>b.i-a.i,lv:(a,b)=>b.m.lv-a.m.lv,rar:(a,b)=>rarM(b.m)-rarM(a.m)||b.m.lv-a.m.lv,dex:(a,b)=>META[a.m.n].dex-META[b.m.n].dex}[F.s]||((a,b)=>a.i-b.i);
-  cards.sort(S);let n=0;for(const x of cards){const ok=(F.r<0||rarM(x.m)===F.r)&&(!F.t||META[x.m.n].types.includes(F.t));x.c.style.display=ok?'':'none';if(ok)n++;box.appendChild(x.c)}
+  cards.sort(S);let n=0;for(const x of cards){const ok=(F.r<0||rarM(x.m)===F.r)&&(!F.t||META[x.m.n].types.includes(F.t))&&bxHit(x.m,BXQ);x.c.style.display=ok?'':'none';if(ok)n++;box.appendChild(x.c)}
   const ct=p.querySelector('.bxcnt');if(ct)ct.textContent=n+' / '+cards.length+'마리';
+  {const gc=Array(7).fill(0);for(const x of cards)gc[Math.min(6,rarM(x.m))]++;p.querySelectorAll('[data-fr]').forEach(b=>{const r=+b.dataset.fr;b.textContent=(r<0?'전체':RAR[r])+' '+(r<0?cards.length:gc[r]);b.style.opacity=r>=0&&!gc[r]?'.4':''})}
   // 삭제 버튼
   for(const x of cards){const row=x.c.querySelector('.bxb');if(!row||row.querySelector('.bxx'))continue;const b=document.createElement('button');b.className='bxx';b.textContent='삭제';if(x.m.lock)b.disabled=true;b.onclick=e=>{e.stopPropagation();bxDel(x.m)};row.appendChild(b)}}
 function bxDel(m){if(!m||m.lock){toast('자물쇠가 채워져 있어요');return}if(!G.box.includes(m))return;const r=rarM(m),hi=r>=3;
@@ -5059,7 +5093,7 @@ function bxDel(m){if(!m||m.lock){toast('자물쇠가 채워져 있어요');retur
 .dmr img{width:44px;height:44px;object-fit:contain;image-rendering:pixelated}.dmr span{flex:1;display:flex;flex-direction:column;gap:4px}.dmr b small{color:#5a6080;font-weight:400}.dmr>span>small{font-size:12px;color:#5a6080}.dmr u{display:block;height:12px;background:#1c255018}.dmr u i{display:block;height:100%;background:linear-gradient(90deg,#ff8a1a,#ffd23f)}
 .dmp{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px}.panel .dmp button{padding:5px 9px!important;font-size:12px!important}.panel .dmp button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}
 .bxfl{display:flex;flex-direction:column;gap:6px;margin:4px 4px 10px}.bxrow{display:flex;flex-wrap:wrap;align-items:center;gap:5px}.bxrow>span{font-weight:700;min-width:36px;font-size:13px}.panel .bxrow button{padding:4px 8px!important;font-size:12px!important;min-height:0!important}
-.panel .bxrow button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;box-shadow:0 0 0 3px #1c2550!important}.bxcnt{margin-left:auto;color:#5a6080;font-size:12px}
+.panel .bxrow button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;box-shadow:0 0 0 3px #1c2550!important}.bxcnt{margin-left:auto;color:#5a6080;font-size:12px}.bxq{flex:1;min-width:120px;padding:5px 8px;font:inherit;font-size:13px;border:2px solid #1c2550;border-radius:8px;background:#fffdf2}
 .panel .bxb button.bxx{flex:0 0 auto;color:#fff!important;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%)!important}`;document.head.appendChild(c)})();
 
 // ===== 일괄 분해: 대상을 전부 보여 주고 (기본으로 다 체크) · 뺄 포켓몬만 체크를 풀어서 분해 =====
@@ -5592,9 +5626,13 @@ const SKFX={
   lad(T){return (this.LAD[T]||this.LAD.NORMAL).filter(n=>MV.R[n])},
   up(id,T,step){const l=this.lad(T);let i=l.indexOf(id);if(i<0)i=0;return l[Math.min(l.length-1,Math.max(i,i+step))]||id},
   col(T){try{return (typeof TCOL!=='undefined'&&TCOL[T])||'#ffffff'}catch(e){return '#ffffff'}},
+  // 기술 레벨 → 기술 굵기 · 크기. arena2d의 「큰 기술」은 퍼지는 반지름이 5 → 6 (1.2배)이에요. 그 1.2배를 Lv.3 · 4 · 5마다 한 번씩 곱해요 (Lv.5부터 가장 커요)
+  SZK:1.2,
+  szOf(L){L=L|0;return L<3?1:Math.pow(this.SZK,Math.min(5,L)-2)},
+  sized(x,L){const k=this.szOf(L);return k===1?x:Object.assign({},x,{S:x.S*k})},
   // x: 연출용 상태 · L: 기술 레벨 · mine: 내 포켓몬인지 · adv: 어드벤처 모드(실시간)인지
   async run(x,id,m,L,mine,adv){
-    L=Math.max(1,Math.min(5,L|0||1));
+    const L8=Math.max(1,Math.min(8,L|0||1));L=Math.max(1,Math.min(5,L|0||1));
     if(!mine||L<2||!MV.R[id])return MV.R[id](x);
     const V=VFX,T=m.type,c=this.col(T),k=adv?.5:1;
     const big=L>=5?1.7:L>=4?1.3:L>=3?1:.75;
@@ -5615,12 +5653,13 @@ const SKFX={
         FX2.flash('#ffffff',.5);FX2.hit(18,.1);await V.wait(.18);V.anim('pa2d/onda',{x:x.fb.x,y:x.fb.y,row:0,scale:x.S/40,fps:10,blend:'lighter'})}
     }catch(e){}};
     burst();
-    return MV.R[useId](x);
+    return MV.R[useId](this.sized(x,L8));
   }
 };
 
 // ===== 아레나 연출 더하기 (arena2d 아이디어): ① 기술이 날아가는 길에 타입 색 불꽃 가루 ② 코드로 만든 소리(파일 없이) ③ 맞을 때 흰 번쩍임 · 치명타는 1초에 3번만 번쩍 =====
 // 메뉴 「아레나 연출」에서 켜고 끌 수 있어요 (기본은 켜짐) · 옛 「맞을 때 깜빡깜빡」은 흰 번쩍임으로 바뀌어요
+let SKRB=null;   // 「써 보기」에서만 환생 효과를 임시로 고를 때 써요 (저장 기록은 건드리지 않아요)
 const A2={
   on:()=>!(G&&G.opt&&G.opt.a2===0),
   calm:()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}},
@@ -5631,11 +5670,22 @@ const A2={
   // 기술 레벨 → 가루 색 단계 (Lv.1 두 단계 → Lv.4 다섯 단계 · Lv.6부터는 금빛이 앞에 붙어요)
   stopsFor(T,L){const f=stopsOf(T),idx=L<=1?[1,0]:L===2?[2,1,0]:L===3?[3,2,1,0]:[4,3,2,1,0];let st=idx.map(i=>f[i]);if(L>=6)st=['#fff3b0'].concat(st);return st},
   RB1:['#7a5a00','#ffd23f','#fff3b0'],RB2:['#5a6a80','#cfd8ea','#ffffff'],RB3:['#ff3b6b','#ffd23f','#7dff8a','#4aa8ff','#c070ff'],
-  trail(x,m,L,adv,mine){const T=m.type||'NORMAL',rb=mine?Math.min(3,(G&&G.rebirth)||0):0,tr=TERA.get(x.A&&x.A.m),te=!!(tr&&tr.T===T);
+  trail(x,m,L,adv,mine){const T=m.type||'NORMAL',rb=mine?Math.min(3,SKRB!=null?SKRB:((G&&G.rebirth)||0)):0,tr=TERA.get(x.A&&x.A.m),te=!!(tr&&tr.T===T);
     this.E.push({t:0,dur:(adv?.34:.5),x0:x.a.x,y0:x.a.y,x1:x.b.x,y1:x.b.y,T,S:x.S||60,L:Math.max(1,L|0||1),rb,te,acc:0,hit:0,st:this.stopsFor(T,Math.max(1,L|0||1))});
     // 쓰는 순간 내 몸 둘레에 환생 고리 (1회 금 · 2회 은 · 3회 무지개)
     if(rb>=1){const S=x.S||60;pAdd({x:x.a.x,y:x.a.y,s:S*.3,s1:S*1.0,life:.5,st:this.RB1,k:'ring',glow:1});if(rb>=2)pAdd({x:x.a.x,y:x.a.y,s:S*.2,s1:S*1.3,life:.6,st:this.RB2,k:'ring',glow:1});if(rb>=3)pAdd({x:x.a.x,y:x.a.y,s:S*.1,s1:S*1.7,life:.75,st:this.RB3,k:'ring',glow:1})}},
-  impactFx(e){const S=e.S,rb=e.rb;
+  // arena2d(Pokémon Arena 2D)에서 가져온 맞는 순간: Lv.3부터 impact(power>1 「큰 타격」), Lv.5부터 bigHit.
+  // 숫자는 arena2d 그대로 (가루 10개 · 속도 ×1.3 · 번쩍임 300ms · 땅 고리 18/360ms · 흰 고리 16/300ms · 금빛 고리 30/520ms · 빛줄기 8개). 길이는 arena 그림 24px 기준이라 S/24를 곱해요
+  arenaBig(e){const L=e.L;if(L<3)return;const S=e.S,u=S/24,tc=SKFX.col(e.T),X=e.x1,Y=e.y1;
+    for(let i=0;i<10;i++){const a=i/10*6.283+R()*.6,v=(30+R()*40)*1.3*u;pAdd({x:X,y:Y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.8,drag:.05,s:u*1.2,s1:0,life:.26+R()*.16,st:e.st,k:'px',glow:1})}
+    pAdd({x:X,y:Y,s:u*1.5,s1:u*4,life:.3,st:[tc,'#ffffff'],k:'star',glow:1});
+    pAdd({x:X,y:Y+u*4,s:u*2,s1:u*18,life:.36,st:[tc,'#ffffff'],k:'ring',glow:1});
+    if(L<5)return;
+    pAdd({x:X,y:Y,s:u*2,s1:u*16,life:.3,st:['#ffffff'],k:'ring',glow:1});
+    pAdd({x:X,y:Y+u*10,s:u*2,s1:u*30,life:.52,st:['#ffd60a','#fffbe8'],k:'ring',glow:1});
+    for(let i=0;i<8;i++){const a=i/8*6.283+.2,len=17*u*(i%2?.6:1),v=len/.18;pAdd({x:X,y:Y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.8,drag:.06,s:u*1.6,s1:0,life:.36,st:['#fffbe8','#ffd60a'],k:'shard',r:a+1.57,glow:1})}
+    pAdd({x:X-u*6,y:Y-u*4,s:u*2,s1:u*5,life:.3,st:['#ffffff','#fffbe8'],k:'star',glow:1});pAdd({x:X+u*7,y:Y+u*3,s:u*2,s1:u*5,life:.3,st:['#ffffff','#fffbe8'],k:'star',glow:1})},
+  impactFx(e){const S=e.S,rb=e.rb;try{this.arenaBig(e)}catch(er){}
     if(rb>=1)pAdd({x:e.x1,y:e.y1,s:S*.3,s1:S*1.2,life:.45,st:this.RB1,k:'ring',glow:1});
     if(rb>=2){try{FX2.flash('#ffd23f',.18)}catch(er){}pAdd({x:e.x1,y:e.y1,s:S*.2,s1:S*1.6,life:.55,st:this.RB2,k:'ring',glow:1})}
     if(rb>=3){try{FX2.hit(10,.06)}catch(er){}pAdd({x:e.x1,y:e.y1,s:S*.1,s1:S*2.2,life:.7,st:this.RB3,k:'ring',glow:1});for(let i=0;i<14;i++){const a=R()*6.283,v=S*(1.5+R()*2.5);pAdd({x:e.x1,y:e.y1,vx:Math.cos(a)*v,vy:Math.sin(a)*v,drag:.1,s:S*.1,s1:0,life:.5+R()*.4,st:['hsl('+((R()*360)|0)+',95%,60%)','#ffffff'],k:'star',r:R()*3,glow:1})}}
@@ -5726,17 +5776,57 @@ function teraUi(){let b=document.getElementById('teraBtn');
 {const _b3=battle;battle=async function(o){TERA.clear();A2T.used=0;return _b3.apply(this,arguments)}}
 try{HUB.push({k:'tera',n:'테라스탈',d:'배틀 중 한 번, 포켓몬이 보석 결정으로 덮이고 머리에 크리스탈 왕관이 생겨요. 가진 기술 중 가장 센 기술의 타입으로 바뀌고, 그 타입 기술이 더 세져요. 왼쪽 「테라스탈」 단추를 누르면 돼요(자동 배틀은 트레이너·보스 때 알아서 써요).',st:()=>G&&G.opt&&G.opt.tera===0?'꺼짐':'켜짐',go:[['켜기 / 끄기',()=>{G.opt=G.opt||{};G.opt.tera=G.opt.tera===0?1:0;save();toast('테라스탈 '+(G.opt.tera===0?'꺼짐':'켜짐'));closePanel(1)}]]})}catch(e){}
 
+// ===== 다이맥스 밴드 · 원시의 구슬: 배틀 중 한 번 거대화 (저장 안 됨 · 쓸 때마다 아이템 1개 소모 · 등급은 그대로) =====
+// 내 포켓몬이 3번 공격하는 동안(실시간 배틀 6번) 공격 ×1.25 · 받는 피해 ×0.7
+const DMX=new Map(),A2D={used:0},DXM={atk:1.25,def:.7};
+const DXC=[{item:'dmax',ks:['gmax','emax'],n:'다이맥스'},{item:'porb',ks:['primal'],n:'원시회귀'}];
+const dxLim=()=>{try{return ACT.on?6:3}catch(e){return 3}};
+const dxItem=m=>{try{if(!G||!m||META[m.n].form)return null;const fs=formsOf(m);return DXC.find(c=>(G.bag[c.item]||0)>0&&fs.some(f=>c.ks.includes(f.k)))||null}catch(e){return null}};
+function dxGo(){if(A2D.used||!BS.on||!BS.me||!BS.me.m||BS.me.m.hp<=0)return;const m=BS.me.m,c=dxItem(m);if(!c)return;
+  G.bag[c.item]--;A2D.used=1;DMX.set(m,{n:0,t:0,c});save();
+  try{const p=side(1),S=bsz(),x=p.x+(BS.me.ox||0),y=p.y+(BS.me.oy||0)-(BS.me.lift||0)-S*.5,st=stopsOf('FIRE');
+    try{FX2.flash(st[3],.5);FX2.hit(10,.08)}catch(e){}
+    shardBurst(x,y,28,st[2],S*5,1,st);hitSpark(x,y,'FIRE',S*1.3,1);SH.lt.push({x,y,r:S*3,c:st[3],t:0,life:.7});
+    try{snd('ep_shatter',.6)}catch(e){}}catch(e){}
+  toast('🔴 '+nm(m)+'의 '+c.n+'! 공격이 세지고 덜 아파요 ('+c.n+' 아이템 남은 것 '+(G.bag[c.item]||0)+'개)')}
+function dxTick(a){const x=DMX.get(a);if(!x)return;x.n++;if(x.n>=dxLim()){DMX.delete(a);toast('🔴 '+nm(a)+'의 '+x.c.n+'이(가) 풀렸어요')}}
+{const _dcx=dmgCalc;dmgCalc=function(a,d,m,crit){const r=_dcx.apply(this,arguments);try{if(r&&r.d>0){if(DMX.has(a))r.d=Math.max(1,Math.round(r.d*DXM.atk));if(DMX.has(d))r.d=Math.max(1,Math.round(r.d*DXM.def))}}catch(e){}return r}}
+{const _um=useMove;useMove=async function(atk){const r=await _um.apply(this,arguments);try{dxTick(atk)}catch(e){}return r}}
+{const _ac=actCast;actCast=async function(mine){let a=null;try{a=(mine?BS.me:BS.foe).m}catch(e){}const r=await _ac.apply(this,arguments);try{if(a)dxTick(a)}catch(e){}return r}}
+function dxUi(){let b=document.getElementById('dxBtn');const m=BS.me&&BS.me.m,c=m&&dxItem(m);
+  const ok=!!c&&SCENE==='battle'&&BS.on&&m.hp>0&&!A2D.used&&!(ACT.on&&ACT.down);
+  if(!b){if(!ok)return;b=document.createElement('button');b.id='dxBtn';b.style.cssText='position:fixed;left:10px;top:calc(44% + 66px + env(safe-area-inset-top));z-index:46;display:none;flex-direction:column;align-items:center;gap:1px;min-width:78px;padding:6px 8px;border:3px solid #2c3050;border-radius:12px;background:#d83a3a;color:#fff;text-shadow:0 1px 2px #000a;font-weight:900;font-size:13px;line-height:1.15;box-shadow:0 3px 0 #2c3050';b.onclick=()=>{try{sfx('tap')}catch(e){}dxGo()};document.body.appendChild(b)}
+  if(!ok){b.style.display='none';return}
+  b.style.display='flex';b.innerHTML='<span>🔴 '+c.n+'</span><small style="font-weight:700;font-size:11px">배틀당 1번 · '+(G.bag[c.item]||0)+'개</small>'}
+function dxAura(dt){const B=BS.me;if(!B||!B.m||!B.S||B.hide)return;const x=DMX.get(B.m);if(!x)return;x.t+=dt;
+  const p=side(1),S=bsz()*(B.sc||1),px=p.x+(B.ox||0),py=p.y+(B.oy||0)-(B.lift||0);
+  cx.save();camT();const g=cx.createRadialGradient(px,py-S*.45,S*.1,px,py-S*.45,S*.85),a=.3+.1*Math.sin(x.t*6);g.addColorStop(0,'rgba(255,60,60,'+a+')');g.addColorStop(1,'rgba(255,60,60,0)');cx.fillStyle=g;cx.fillRect(px-S,py-S*1.5,S*2,S*1.6);cx.restore();
+  if(R()<.12)pAdd({x:px+(R()-.5)*S*.9,y:py-S*(.2+R()*.7),vy:-S*.5,s:S*.08,s1:0,life:.5,st:stopsOf('FIRE'),k:'star',r:R()*3,glow:1})}
+{const _d4=drawBattle;drawBattle=function(dt){_d4.apply(this,arguments);try{dxUi();dxAura(dt)}catch(e){}}}
+{const _b4=battle;battle=async function(o){DMX.clear();A2D.used=0;return _b4.apply(this,arguments)}}
+// 배틀이 끝나면 왼쪽 「테라스탈」 · 「다이맥스」 단추를 숨겨요 (예전에는 월드맵에 남아서 화면을 가렸어요)
+setInterval(()=>{try{if(SCENE!=='battle'||!BS.on){for(const id of ['teraBtn','dxBtn']){const b=document.getElementById(id);if(b&&b.style.display!=='none')b.style.display='none'}}}catch(e){}},250);
+
+// ===== 등급 정리: 아이템 변신(m.fr)으로 환상 · 유일이 된 포켓몬은 신화로 내리고, 한 마리당 시즌 한정 접두사권 1개 (한 세이브에 최대 5개) =====
+// 뽑기 · 운영자 선물로 받은 환상 · 유일은 m.fr이 없어서 그대로예요
+function fixOverRar(){if(!G||!G.party||SCENE!=='over'||BS.on||DLG.on||document.getElementById('itInfo'))return;
+  const L=[...G.party,...(G.box||[])].filter(m=>m&&m.fr!=null&&m.fr>4&&META[m.n]&&META[m.n].form);if(!L.length)return;
+  const was=L.map(m=>nm(m)+' ('+RAR[m.fr]+')');L.forEach(m=>{m.fr=4;try{m.hp=Math.min(m.hp,stOf(m)[0])}catch(e){}});
+  const give=Math.max(0,Math.min(L.length,5-(G.fixRarN||0)));G.fixRarN=(G.fixRarN||0)+give;if(give)addItem('spxsc',give);save();try{refreshSpr()}catch(e){}
+  say(['<b>등급 정리</b>가 있었어요.','돌로 변신해서 환상 · 유일이 된 포켓몬 <b>'+L.length+'마리</b>를 <b>신화</b>로 내렸어요. 환상 · 유일은 뽑기에서만 나와요.<br><small>'+was.slice(0,4).join(' · ')+(was.length>4?' 외 '+(was.length-4)+'마리':'')+'</small>',give?'미안한 마음으로 <b>시즌 한정 접두사권 '+give+'개</b>를 드렸어요. 가방에서 눌러 쓰면 돼요.':'보상은 이미 받아서 이번에는 없어요.'])}
+setInterval(()=>{try{fixOverRar()}catch(e){}},3000);
+
 // ===== 기술 메뉴: 보유 포켓몬 기술 레벨 · 교체 추천 · 레벨별 연출 미리보기 (오른쪽 「기술」 단추) =====
 // 저장 기록은 건드리지 않아요 (기술을 바꾸면 쓴 횟수 m.mu는 그대로 남아서, 나중에 다시 배우면 그 레벨 그대로예요)
 const SKL={
   // 단계마다 실제로 바뀌는 점 (SKFX · A2 코드에 있는 연출만 적었어요)
   INFO:[
-    ['기본','처음 모습이에요. 타입 색 가루가 두 가지 색으로 날아가요.'],
-    ['빛 모으기','쓰기 전에 빛이 모이고, 날아가는 가루가 세 가지 색으로 바뀌어요.'],
-    ['강 · 충격파','맞는 순간 충격파가 퍼지고 화면이 흔들려요. 가루는 네 가지 색이에요.'],
-    ['극 · 더 센 연출','한 단계 더 센 연출로 바뀌고, 큰 충격파와 번쩍임이 더해져요. 가루는 다섯 가지 색이에요.'],
-    ['궁극 · 운석','그 타입에서 가장 센 연출로 바뀌고, 운석이 떨어져 땅이 깨져요. 큰 번쩍임도 나와요.'],
-    ['초월 · 금빛','가루 맨 앞에 금빛이 붙고, 맞을 때 금빛 고리가 퍼져요.'],
+    ['기본','처음 모습이에요. 기술 크기 ×1.00 · 타입 색 가루가 두 가지 색으로 날아가요.'],
+    ['빛 모으기','쓰기 전에 빛이 모이고, 가루가 세 가지 색이에요. 기술 크기 ×1.00.'],
+    ['강 · 굵기 ×1.2','기술이 <b>1.2배 굵고 커져요</b>. 맞는 순간 가루 10개 · 별 번쩍임 · 땅으로 퍼지는 고리 · 충격파 · 화면 흔들림이 더해져요.'],
+    ['극 · 굵기 ×1.44','기술이 <b>1.44배</b>로 더 굵어지고, 한 단계 더 센 모양으로 바뀌어요. 큰 충격파와 번쩍임도 나와요.'],
+    ['궁극 · 굵기 ×1.73','기술이 <b>1.73배로 가장 굵고 커요</b>. 운석이 떨어지고, 맞을 때 흰 고리 · 금빛 고리 · 빛줄기 8개가 터져요.'],
+    ['초월 · 금빛','궁극 크기 그대로, 가루 맨 앞에 금빛이 붙고 맞을 때 금빛 고리가 퍼져요.'],
     ['초월Ⅱ','맞을 때 퍼지는 금빛 고리가 더 커져요.'],
     ['초월Ⅲ','금빛 고리가 가장 크게 퍼져요.']],
   open:L=>L<=5||(((G&&G.rebirth)||0)>=L-5),
@@ -5830,44 +5920,79 @@ function skPlay(cv,T,L,rb,faceSrc){
   requestAnimationFrame(frame);
   return()=>{alive=false};
 }
-let SKSTOP=null;
-function skPreviewOpen(m,id,L0,rb0){
-  const v=mv(id),T=v.type,cur=mlv(m,id);let L=Math.max(1,Math.min(8,L0||cur)),rb=rb0==null?Math.min(3,(G&&G.rebirth)||0):rb0;
-  const u=(m.mu||{})[id]||0;
-  openPanel(v.name+' · 단계별 모습',`<div class="skpv"><canvas id="skCv" style="width:100%;height:170px;border-radius:10px;border:2px solid #2c3050;display:block"></canvas>
-    <div class="skl" id="skLv">${[1,2,3,4,5,6,7,8].map(l=>`<button data-l="${l}" class="${SKL.open(l)?'':'lk'}">Lv.${l}${SKL.open(l)?'':' 환생'}</button>`).join('')}</div>
-    <div class="skl" id="skRb"><span style="font-size:12px;font-weight:800;align-self:center">환생 효과</span>${[0,1,2,3].map(r=>`<button data-r="${r}">${r}번</button>`).join('')}</div>
-    <div class="hcard" id="skTx"></div>
-    <p class="hhint">작은 화면에 비슷하게 그린 미리보기예요. 실제 전투에서는 기술마다 모양이 달라요. 색과 단계 규칙은 같아요.</p></div>`,()=>skillOpen(),p=>{
-    const cv=p.querySelector('#skCv'),tx=p.querySelector('#skTx');
-    const upd=()=>{
-      p.querySelectorAll('#skLv button').forEach(b=>b.classList.toggle('on',+b.dataset.l===L));
-      p.querySelectorAll('#skRb button').forEach(b=>b.classList.toggle('on',+b.dataset.r===rb));
-      const info=SKL.INFO[L-1],need=MLV[L-1],ok=SKL.open(L),got=L<=cur;
-      tx.innerHTML=`<b style="color:${TCOL[T]}">${SKFX.nm(v.name,L)}</b> <small>${TN[T]} · 위력 ${v.pw||'-'} → <b>${Math.round((v.pw||0)*SKL.mul(L))}</b> (×${SKL.mul(L).toFixed(2)})</small>
-        <p style="margin:6px 0 2px"><b>${info[0]}</b> · ${info[1]}</p>
-        <small>${got?'✅ 이미 이 단계예요':ok?'지금 '+u+'번 씀 · 이 단계는 <b>'+need+'번</b> 쓰면 열려요 (앞으로 '+Math.max(0,need-u)+'번)':'🔒 <b>환생 '+(L-5)+'번</b>을 하면 열리는 단계예요 · 그다음 '+need+'번 쓰면 돼요'}</small>
-        ${rb?`<br><small>환생 효과: 쓸 때 내 몸 둘레와 맞는 곳에 ${rb===1?'금빛':rb===2?'금빛 · 은빛':'금빛 · 은빛 · 무지개'} 고리가 나와요</small>`:''}`;
-      if(SKSTOP)SKSTOP();SKSTOP=skPlay(cv,T,L,rb,faceUrl(m.n,'Normal'))};
-    p.querySelectorAll('#skLv button').forEach(b=>b.onclick=()=>{sfx('tap');L=+b.dataset.l;upd()});
-    p.querySelectorAll('#skRb button').forEach(b=>b.onclick=()=>{sfx('tap');rb=+b.dataset.r;upd()});
-    upd()})}
+// ===== 「써 보기」 시연 모드: 진짜 전투 화면 · 진짜 기술 연출(SKFX.run) · 진짜 포켓몬 상대 =====
+// 저장 기록은 건드리지 않아요 (상대 HP · 기술 사용 횟수 · 도감 · 경험치 · 환생 횟수 전부 그대로). 상대는 내 포켓몬 중 이 타입에 약한 다른 종이에요.
+let SKDEMO=0;
+async function skPreviewOpen(m,id,L0,rb0){
+  if(!G||SKDEMO||SCENE!=='over')return;
+  const mo=mv(id),T=mo.type,cur=mlv(m,id);
+  let L=Math.max(1,Math.min(8,L0||cur)),rb=rb0==null?Math.min(3,G.rebirth||0):rb0;
+  const pool=SKL.mons().map(o=>o.m).filter(c=>META[c.n]);
+  const trySpr=async c=>{try{return await getSpr(sprKey(c))}catch(e){return null}};
+  const cands=[...pool.filter(c=>c.n!==m.n&&eff(T,META[c.n].types)>1),...pool.filter(c=>c.n!==m.n),m];
+  let src=null,foeS=null;for(const c of cands){const S=await trySpr(c);if(S){src=c;foeS=S;break}}
+  const meS=await trySpr(m);
+  if(!meS||!foeS){toast('포켓몬 그림을 아직 못 불러왔어요');return}
+  const foe={n:src.n,lv:src.lv,exp:src.exp||0,iv:(src.iv||[15,15,15,15,15,15]).slice(),moves:(src.moves||[]).slice(),uid:'skdemo-'+src.n};if(src.sh)foe.sh=1;foe.hp=stOf(foe)[0];
+  let dmg=1;try{dmg=Math.max(1,Math.floor(dmgCalc(m,foe,mo,false).d))}catch(e){}
+  const keep={sc:SCENE,bg:BS.bg,me:BS.me,foe:BS.foe,on:BS.on};
+  closePanel(1);SKDEMO=1;let alive=1,cancel=null;
+  const bar=document.createElement('div');
+  bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:80;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:4px;align-items:center;background:linear-gradient(0deg,#000a,#0000)';
+  bar.innerHTML=`<div class="hcard" id="sdTx" style="max-width:560px;width:100%;margin:0;font-size:13px;box-sizing:border-box"></div>
+    <div class="skl" id="sdLv" style="justify-content:center">${[1,2,3,4,5,6,7,8].map(l=>`<button data-l="${l}" class="${SKL.open(l)?'':'lk'}">Lv.${l}</button>`).join('')}</div>
+    <div class="skl" style="justify-content:center"><button id="sdM">설명 ▾</button><span style="font-size:12px;font-weight:800;align-self:center;color:#fff;text-shadow:0 1px 2px #000">환생 효과</span><span id="sdRb" style="display:contents">${[0,1,2,3].map(r=>`<button data-r="${r}">${r}번</button>`).join('')}</span><button id="sdX" style="background:#c0392b;color:#fff">닫기</button></div>`;
+  document.body.appendChild(bar);
+  SCENE='battle';BS.on=1;BS.bg='meadow';
+  BS.me={m,S:meS,st:'idle',t:0,in:1};BS.foe={m:foe,S:foeS,st:'idle',t:0,in:1};
+  if(!document.getElementById('skdemoCss')){const c=document.createElement('style');c.id='skdemoCss';c.textContent='body.skdemo #teraBtn,body.skdemo #bAutoB{display:none!important}';document.head.appendChild(c)}
+  document.body.classList.add('inb','skdemo');bt('bTx').style.display='none';try{bbox()}catch(e){}
+  let more=0;
+  const ef=eff(T,META[foe.n].types);
+  const upd=()=>{
+    bar.querySelectorAll('#sdLv button').forEach(b=>b.classList.toggle('on',+b.dataset.l===L));
+    bar.querySelectorAll('#sdRb button').forEach(b=>b.classList.toggle('on',+b.dataset.r===rb));
+    const info=SKL.INFO[L-1],ok=SKL.open(L),k=SKFX.szOf(L);
+    bar.querySelector('#sdTx').innerHTML=`<b style="color:${TCOL[T]}">${SKFX.nm(mo.name,L)}</b> <small>${TN[T]} · 위력 ${mo.pw||'-'} → <b>${Math.round((mo.pw||0)*SKL.mul(L))}</b> · 기술 크기 <b>×${k.toFixed(2)}</b></small> · <b>${info[0]}</b><div id="sdMore" style="display:${more?'block':'none'};margin-top:4px">${info[1]}<br><small>상대: ${esc(nm(foe))} (${ef>1?'효과가 굉장해요':ef<1&&ef>0?'효과가 별로예요':ef===0?'효과가 없어요':'보통'}) · 예상 데미지 ${dmg}${ok?'':' · 🔒 환생 '+(L-5)+'번 하면 열려요 (미리 보기만 돼요)'}</small></div>`;
+    SKRB=rb};
+  const once=async()=>{
+    const AB=BS.me,DB=BS.foe;resetActor(AB);resetActor(DB);foe.hp=stOf(foe)[0];try{bbox()}catch(e){}
+    const pa=side(true),pb=side(false),S=bsz();
+    const x={A:AB,B:DB,fa:{x:pa.x,y:pa.y},fb:{x:pb.x,y:pb.y},S,d:pb.x>pa.x?1:-1,a:{x:pa.x,y:pa.y-S*.6},b:{x:pb.x,y:pb.y-S*.55},
+      pose:(o,st)=>{const sp=o.S&&o.S.meta.anims;o.st=sp&&sp[st]?st:(st==='shoot'&&sp&&sp.attack?'attack':'idle');o.t=0},
+      hit:k=>{DB.st='hurt';DB.t=0;DB.blink=.3;sfx('hit');if(k>=.5){try{FX2.hit(ef>=2?9:5,ef>=2?.09:.05)}catch(e){}}
+        FX2.num(pb.x+(Math.random()-.5)*S,pb.y-S*1.4-(DB.lift||0),String(Math.max(1,Math.round(dmg*k))),ef>=2?'#ffb030':'#ffffff',k>=.9||ef>=2,dskin())}};
+    sfx('atk');
+    try{await Promise.race([SKFX.run(x,MV.pick(mo.id||id,T),mo,L,true,0),new Promise(r=>{cancel=r}),sleep(6500)])}catch(e){}
+    cancel=null;resetActor(AB);resetActor(DB)};
+  const nap=ms=>new Promise(r=>{const h=setTimeout(r,ms);cancel=()=>{clearTimeout(h);r()}});
+  const redo=()=>{upd();try{FX2.clear()}catch(e){}if(cancel)cancel()};
+  bar.querySelector('#sdM').onclick=()=>{sfx('tap');more=more?0:1;bar.querySelector('#sdM').textContent=more?'설명 ▴':'설명 ▾';bar.querySelector('#sdMore').style.display=more?'block':'none'};
+  bar.querySelectorAll('#sdLv button').forEach(b=>b.onclick=()=>{sfx('tap');L=+b.dataset.l;redo()});
+  bar.querySelectorAll('#sdRb button').forEach(b=>b.onclick=()=>{sfx('tap');rb=+b.dataset.r;redo()});
+  const close=()=>{if(!alive)return;alive=0;SKDEMO=0;SKRB=null;if(cancel)cancel();try{FX2.clear()}catch(e){}
+    resetActor(BS.me);resetActor(BS.foe);BS.me=keep.me;BS.foe=keep.foe;BS.on=keep.on;BS.bg=keep.bg;SCENE=keep.sc;
+    document.body.classList.remove('inb','skdemo');bt('bF').innerHTML='';bt('bM').innerHTML='';bt('bTx').innerHTML='';bt('bTx').style.display='';bar.remove();sfx('tap');skillOpen()};
+  bar.querySelector('#sdX').onclick=close;
+  upd();
+  while(alive){await once();if(!alive)break;await nap(900)}
+}
 function skillOpen(){if(!G||SCENE!=='over')return;
   const cap=5+Math.min(3,G.rebirth||0);
   const moveRow=(m,id)=>{const v=mv(id),L=mlv(m,id),u=(m.mu||{})[id]||0,nx=L<cap&&L<MLV.length?MLV[L]:0,prev=MLV[L-1]||0,pct=nx?Math.min(100,Math.round((u-prev)/(nx-prev)*100)):100;
     const stab=((META[m.n]||{}).types||[]).includes(v.type);
-    return `<div class="skm"><span class="tyb" style="background:${TCOL[v.type]}">${TN[v.type]}</span><div class="skn"><b>${SKFX.nm(v.name,L)}</b> <small>Lv.${L} · 위력 ${v.pw||'-'}${L>1?'→'+Math.round((v.pw||0)*SKL.mul(L)):''}${stab?' · 같은 타입 ×1.5':''}</small>
+    return `<div class="skm"><span class="tyb" style="background:${TCOL[v.type]}">${TN[v.type]}</span><div class="skn"><b>${SKFX.nm(v.name,L)}</b> <small>Lv.${L} · 위력 ${v.pw||'-'}${L>1?'→'+Math.round((v.pw||0)*SKL.mul(L)):''}${L>=3?' · 크기 ×'+SKFX.szOf(L).toFixed(2):''}${stab?' · 같은 타입 ×1.5':''}</small>
       <i class="skb"><u style="width:${pct}%"></u></i><small>${nx?u+' / '+nx+'번 쓰면 Lv.'+(L+1):(L>=8?'최고 단계예요':'환생하면 Lv.'+(L+1)+'이 열려요')}</small></div>
-      <button data-pv="${id}">모습 보기</button></div>`};
+      <button data-pv="${id}">써 보기</button></div>`};
   const monCard=(x,idx)=>{const m=x.m,r=SKL.rec(m);
     let rec='';if(r){const o=m.moves[r.slot],ov=o?mv(o):null,nv=mv(r.id),oldS=o?SKL.score(m,o,mlv(m,o)):0;
       rec=`<div class="skr"><b>💡 교체 추천</b> ${ov?`<b>${ov.name}</b> <small>(Lv.${mlv(m,o)} · 위력 ${ov.pw||'-'})</small> → `:'빈 자리에 '}<b style="color:${TCOL[nv.type]}">${nv.name}</b> <small>(${TN[nv.type]} · Lv.${r.L} · 위력 ${nv.pw||'-'})</small><br>
         <small>${((META[m.n]||{}).types||[]).includes(nv.type)?'같은 타입이라 ×1.5 · ':''}${nv.ph?'물리':'특수'} 기술 · 예상 공격력이 약 <b>${oldS>0?Math.round((r.s/oldS-1)*100)+'%':'새로'} ${oldS>0?'올라가요':'생겨요'}</b>${o?' · 바꿔도 「'+ov.name+'」 기록(Lv.'+mlv(m,o)+')은 남아요':''}</small>
-        <div class="wbt"><button class="main" data-sw="${idx}">바꾸기 (카드 1장 사용)</button><button data-pv2="${idx}">추천 기술 모습 보기</button></div></div>`}
+        <div class="wbt"><button class="main" data-sw="${idx}">바꾸기 (카드 1장 사용)</button><button data-pv2="${idx}">추천 기술 써 보기</button></div></div>`}
     return `<div class="hcard skc"><div class="skh"><img class="rf" src="${faceUrl(m.n,'Normal')}" alt=""><b>${nm(m)}</b> <small>Lv.${m.lv} · ${((META[m.n]||{}).types||[]).map(t=>TN[t]).join('/')}${x.w==='box'?' · 보관함':''}</small></div>
       ${m.moves.map(id=>moveRow(m,id)).join('')}${rec}</div>`};
   const mons=SKL.mons(),pm=mons.filter(x=>x.w==='party'),bx=mons.filter(x=>x.w==='box');
-  openPanel('✨ 기술',`<p class="hhint">기술은 쓸수록 레벨이 올라가요. 한 단계마다 <b>위력 +8%</b>, 그리고 연출이 바뀌어요. 「모습 보기」로 Lv.1부터 Lv.8까지 미리 볼 수 있어요. <b>Lv.6~8(초월)</b>은 환생 ${G.rebirth||0}번 / 3번이에요. 지금 열린 최고 단계는 <b>Lv.${cap}</b>예요.</p>
+  openPanel('✨ 기술',`<p class="hhint">기술은 쓸수록 레벨이 올라가요. 한 단계마다 <b>위력 +8%</b>예요. 그리고 <b>Lv.3 ×1.2 → Lv.4 ×1.44 → Lv.5 ×1.73</b>으로 기술이 굵고 커지고, 맞는 순간 효과도 커져요. 「써 보기」로 진짜 전투 연출을 Lv.1부터 Lv.8까지 볼 수 있어요. <b>Lv.6~8(초월)</b>은 환생 ${G.rebirth||0}번 / 3번이에요. 지금 열린 최고 단계는 <b>Lv.${cap}</b>예요.</p>
     ${(G.gifts||[]).some(g=>g.kind==='M')?`<small>가방의 기술 카드 ${(G.gifts||[]).filter(g=>g.kind==='M').length}장으로 바꿀 수 있는 기술을 추천해요.</small>`:'<small>가방에 기술 카드가 있으면, 더 센 기술로 바꾸는 걸 추천해 드려요.</small>'}
     <h4>내 파티</h4>${pm.map((x,i)=>monCard(x,i)).join('')||'<small>없어요</small>'}
     ${bx.length?`<details><summary style="font-weight:900;margin:8px 0">보관함 ${bx.length}마리 (레벨 높은 순)</summary>${bx.map((x,i)=>monCard(x,pm.length+i)).join('')}</details>`:''}`,null,p=>{
@@ -5889,10 +6014,308 @@ function skillOpen(){if(!G||SCENE!=='over')return;
   setInterval(()=>{try{notiDot(document.getElementById('bSkill'),!!(G&&SCENE==='over'&&SKL.hasRec()))}catch(e){}},2500);
   // 새로 생긴 것들 처음 한 번 안내
   setInterval(()=>{try{if(!G||SCENE!=='over'||PANEL||DLG.on)return;G.opt=G.opt||{};if(G.opt.skTut)return;G.opt.skTut=1;save();
-    say(['<b>새로 생긴 것</b>이 있어요!','오른쪽 <b>「기술」</b> 단추: 내 포켓몬 기술 레벨 · 더 센 기술로 <b>교체 추천</b> · Lv.1~8 <b>연출 미리보기</b>를 볼 수 있어요. 기술을 쓸수록 모습이 바뀌어요!','<b>Lv.6~8 초월</b>은 환생(챔피언 뒤)할수록 열려요. 환생 횟수만큼 금빛 · 은빛 · 무지개 고리도 생겨요.','<b>테라스탈</b>은 배틀 중 한 번, 왼쪽 「테라스탈」 단추로 써요. 난이도 <b>종말</b>은 나이트메어 챔피언이 되면 열려요.'])}catch(e){}},4000);
+    say(['<b>새로 생긴 것</b>이 있어요!','오른쪽 <b>「기술」</b> 단추: 내 포켓몬 기술 레벨 · 더 센 기술로 <b>교체 추천</b> · Lv.1~8 <b>써 보기</b>(진짜 전투 연출)를 볼 수 있어요. 기술 레벨이 오르면 기술이 <b>굵고 커져요</b>!','<b>Lv.6~8 초월</b>은 환생(챔피언 뒤)할수록 열려요. 환생 횟수만큼 금빛 · 은빛 · 무지개 고리도 생겨요.','<b>테라스탈</b>은 배틀 중 한 번, 왼쪽 「테라스탈」 단추로 써요. 난이도 <b>종말</b>은 나이트메어 챔피언이 되면 열려요.'])}catch(e){}},4000);
 }catch(e){console.warn(e)}})();
-try{HUB.push({k:'skill',n:'기술 · 단계 미리보기',d:'기술은 쓸수록 Lv.1→8로 올라가고 위력이 +8%씩 늘어요. 포켓몬마다 기술 레벨과 교체 추천을 보고, 각 단계의 연출을 미리 볼 수 있어요.',st:()=>'환생 '+((G&&G.rebirth)||0)+'/3 · 열린 최고 Lv.'+(5+Math.min(3,(G&&G.rebirth)||0)),go:[['기술 열기',()=>skillOpen()]]})}catch(e){}
+try{HUB.push({k:'skill',n:'기술 · 단계 미리보기',d:'기술은 쓸수록 Lv.1→8로 올라가고 위력이 +8%씩 늘어요. Lv.3부터는 기술이 굵고 커져요. 포켓몬마다 기술 레벨과 교체 추천을 보고, 「써 보기」로 진짜 전투 연출을 볼 수 있어요.',st:()=>'환생 '+((G&&G.rebirth)||0)+'/3 · 열린 최고 Lv.'+(5+Math.min(3,(G&&G.rebirth)||0)),go:[['기술 열기',()=>skillOpen()]]})}catch(e){}
 
+</script>
+<script id="bplus">
+// ===== 전투 확장 v1 · 상태이상 · 특성 · 능력 변화 · 변화기 · 성격 · 기술 데이터 · 월드보스 패턴 · 업적 =====
+// 기존 함수를 감싸서 동작해요. 여기서 오류가 나도 게임은 원래대로 돌아가요.
+(()=>{try{
+if(window.__bplus)return;window.__bplus=1;
+const N=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const MFX={"bodyslam":{"fx":[["st","par",30]],"cd":2.55,"r":"c"},"doubleedge":{"cd":5,"r":"l"},"earthpower":{"cd":2.7,"r":"l"},"earthquake":{"cd":5,"r":"l"},"frenzyplant":{"cd":5,"r":"l"},"gigaimpact":{"cd":5,"r":"l"},"hyperbeam":{"cd":5,"r":"m"},"leafstorm":{"cd":5,"r":"m"},"leechseed":{"c":"t","acc":90,"fx":[["st","seed",100]],"cd":5,"r":"m"},"outrage":{"cd":4.5,"r":"m"},"petalblizzard":{"cd":2.7,"r":"l"},"petaldance":{"cd":5,"r":"m"},"razorleaf":{"cd":1.88,"r":"m"},"seedbomb":{"cd":2.4,"r":"c"},"sleeppowder":{"c":"t","acc":75,"fx":[["st","slp",100]],"cd":5,"r":"c"},"sludgebomb":{"fx":[["st","psn",30]],"cd":2.7,"r":"m"},"solarbeam":{"cd":5,"r":"m"},"synthesis":{"c":"t","fx":[["hl",0.3]],"cd":5},"tackle":{"cd":1.88,"r":"m"},"takedown":{"cd":1.88,"r":"l"},"vinewhip":{"cd":1.75,"r":"m"},"aerialace":{"cd":1.88,"r":"m"},"airslash":{"fx":[["fl",30]],"cd":2.25,"r":"c"},"ancientpower":{"cd":3.75,"r":"l"},"crunch":{"cd":2.4,"r":"m","fx":[["sg","t","d",-1,20]]},"dragonbreath":{"fx":[["st","par",30]],"cd":2.25,"r":"m"},"dragonclaw":{"cd":2.4,"r":"c"},"dragondance":{"c":"t","fx":[["sg","s","a",1,100],["sg","s","sp",1,100]],"cd":5},"dragonpulse":{"fx":[["fl",20]],"cd":2.55,"r":"m"},"dragonrage":{"cd":2.5,"r":"m"},"fireblast":{"fx":[["st","brn",15]],"cd":4.5,"r":"c"},"firefang":{"fx":[["st","brn",10],["fl",10]],"cd":1.95,"r":"c"},"firespin":{"cd":5,"r":"m"},"flamethrower":{"cd":2.7,"r":"c","fx":[["st","brn",10]]},"flareblitz":{"fx":[["st","brn",10]],"cd":5,"r":"l"},"focusblast":{"cd":5,"r":"l"},"heatwave":{"fx":[["st","brn",10]],"cd":3.25,"r":"l"},"metalclaw":{"cd":0.9,"r":"c"},"overheat":{"fx":[["st","brn",10]],"cd":5,"r":"l"},"seismictoss":{"cd":3.25},"shadowclaw":{"cd":1.75,"r":"c"},"slash":{"cd":2.1,"r":"c"},"thunderpunch":{"fx":[["st","par",10]],"cd":2.25,"r":"c"},"wingattack":{"cd":0.9,"r":"m"},"aquatail":{"cd":4.5,"r":"c"},"aurasphere":{"cd":2.4,"r":"l"},"bite":{"fx":[["fl",30]],"cd":1.88,"r":"c"},"blizzard":{"fx":[["st","frz",10]],"cd":5,"r":"l"},"darkpulse":{"fx":[["fl",20]],"cd":2.4,"r":"l"},"flashcannon":{"cd":2.4,"r":"m","fx":[["sg","t","sd",-1,10]]},"hydropump":{"cd":3.38,"r":"c"},"icebeam":{"fx":[["st","frz",15]],"cd":2.7,"r":"c"},"irondefense":{"c":"t","fx":[["sg","s","d",2,100]],"cd":5},"protect":{"c":"t","cd":5},"raindance":{"c":"t","fx":[["wx","rain"]],"cd":5},"rapidspin":{"cd":1.88,"r":"c"},"shellsmash":{"c":"t","fx":[["sg","s","a",2,100],["sg","s","sa",2,100],["sg","s","sp",2,100],["sg","s","d",-1,100],["sg","s","sd",-1,100]],"cd":5},"skullbash":{"cd":5,"r":"c"},"surf":{"cd":5,"r":"l"},"watergun":{"cd":1.38,"r":"m"},"waterpulse":{"fx":[["fl",20]],"cd":1.88,"r":"m"},"wavecrash":{"cd":3.75,"r":"m"},"agility":{"c":"t","fx":[["sg","s","sp",2,100]],"cd":5},"bravebird":{"cd":5,"r":"m"},"hurricane":{"fx":[["st","cnf",30]],"cd":4.5,"r":"l"},"mirrormove":{"cd":3.75,"r":"m"},"quickattack":{"cd":1.88,"r":"m"},"roost":{"c":"t","cd":5},"tailwind":{"c":"t","cd":5},"discharge":{"fx":[["st","par",30]],"cd":3.75,"r":"m"},"doubleteam":{"c":"t","cd":5},"electroball":{"cd":1.88,"r":"l"},"extremespeed":{"cd":2.75,"r":"l"},"feint":{"cd":1.88,"r":"m"},"irontail":{"cd":3.0,"r":"c"},"nastyplot":{"c":"t","fx":[["sg","s","sa",2,100]],"cd":5},"thunder":{"fx":[["st","par",30]],"cd":5,"r":"l"},"thunderwave":{"c":"t","acc":90,"fx":[["st","par",100]],"cd":5,"r":"m"},"thunderbolt":{"cd":2.7,"r":"m","fx":[["st","par",10]]},"volttackle":{"fx":[["st","par",20]],"cd":5,"r":"m"},"wildcharge":{"cd":3.75,"r":"l"},"drillrun":{"cd":2.5,"r":"l"},"furycutter":{"cd":0.9,"r":"m"},"gyroball":{"cd":3.0,"r":"m"},"hail":{"c":"t","fx":[["wx","snow"]],"cd":5},"iciclecrash":{"cd":2.75,"r":"l"},"ironhead":{"fx":[["fl",30]],"cd":2.38,"r":"c"},"metalburst":{"cd":5,"r":"l"},"rollout":{"cd":5,"r":"l"},"stoneedge":{"cd":3.75,"r":"m"},"swift":{"cd":1.88,"r":"m"},"swordsdance":{"c":"t","fx":[["sg","s","a",2,100]],"cd":5},"xscissor":{"cd":2.4,"r":"m"},"doublekick":{"cd":1.88,"r":"m"},"poisonfang":{"fx":[["st","psn",50],["fl",10]],"cd":1.88,"r":"c"},"rocksmash":{"cd":1.88,"r":"m"},"shadowball":{"cd":2.4,"r":"m","fx":[["sg","t","sd",-1,20]]},"superpower":{"cd":5,"r":"c"},"toxic":{"c":"t","acc":90,"fx":[["st","psn",100]],"cd":5,"r":"m"},"toxicspikes":{"c":"t","cd":5},"focusenergy":{"c":"t","cd":5},"furyattack":{"cd":1.38,"r":"m"},"hornattack":{"cd":1.0,"r":"m"},"megahorn":{"cd":5,"r":"c"},"poisonjab":{"fx":[["st","psn",30]],"cd":2.4,"r":"c"},"throatchop":{"cd":2.4,"r":"c"},"cosmicpower":{"c":"t","fx":[["sg","s","d",1,100],["sg","s","sd",1,100]],"cd":4.75},"followme":{"c":"t","cd":5},"meteormash":{"cd":2.7,"r":"m"},"metronome":{"cd":3.0,"r":"l"},"moonblast":{"cd":2.62,"r":"l","fx":[["sg","t","sa",-1,30]]},"moonlight":{"c":"t","fx":[["hl",0.3]],"cd":5},"psychic":{"cd":2.7,"r":"m"},"sing":{"c":"t","acc":55,"fx":[["st","slp",100]],"cd":5,"r":"m"},"splash":{"c":"t","cd":1.88},"auroraveil":{"c":"t","cd":5},"confuseray":{"c":"t","fx":[["st","cnf",100]],"cd":5,"r":"l"},"dazzlinggleam":{"cd":2.4,"r":"m"},"extrasensory":{"fx":[["fl",10]],"cd":2.5,"r":"m"},"freezedry":{"fx":[["st","frz",10]],"cd":3.25,"r":"m"},"hex":{"cd":5,"r":"c"},"hypnosis":{"c":"t","acc":60,"fx":[["st","slp",100]],"cd":5,"r":"m"},"iceshard":{"cd":1.38,"r":"l"},"icywind":{"cd":1.88,"r":"m"},"payback":{"cd":3.25,"r":"m"},"dig":{"cd":5,"r":"l"},"magnitude":{"cd":4.5,"r":"l"},"mudbomb":{"cd":1.95,"r":"m"},"nightslash":{"cd":2.1,"r":"c"},"rockslide":{"cd":2.25,"r":"m"},"sandstorm":{"c":"t","fx":[["wx","sand"]],"cd":5},"suckerpunch":{"cd":2.1,"r":"l"},"triattack":{"fx":[["st","brn",20]],"cd":2.4,"r":"m"},"payday":{"cd":1.88,"r":"m"},"playrough":{"cd":3.0,"r":"c"},"powergem":{"cd":2.4,"r":"m"},"closecombat":{"cd":5,"r":"c","fx":[["sg","s","d",-1,100],["sg","s","sd",-1,100]]},"flamewheel":{"fx":[["st","brn",10]],"cd":1.88,"r":"c"},"retaliate":{"cd":2.1,"r":"m"},"thunderfang":{"fx":[["st","par",10]],"cd":1.95,"r":"c"},"calmmind":{"c":"t","fx":[["sg","s","sa",1,100],["sg","s","sd",1,100]],"cd":5},"futuresight":{"cd":5,"r":"l"},"psychocut":{"cd":2.1,"r":"c"},"psyshock":{"cd":2.75,"r":"m"},"recover":{"c":"t","fx":[["hl",0.3]],"cd":5},"reflect":{"c":"t","cd":5},"gigadrain":{"cd":5,"r":"m"},"sludgewave":{"fx":[["st","psn",10]],"cd":5,"r":"l"},"supersonic":{"c":"t","acc":55,"fx":[["st","cnf",100]],"cd":5,"r":"l"},"explosion":{"cd":5,"r":"c"},"firepunch":{"fx":[["st","brn",10]],"cd":2.25,"r":"c"},"heavyslam":{"cd":2.4,"r":"m"},"selfdestruct":{"cd":5,"r":"c"},"drillpeck":{"cd":2.4,"r":"c"},"pursuit":{"cd":2.5,"r":"m"},"gunkshot":{"fx":[["st","psn",30]],"cd":4.5,"r":"m"},"icepunch":{"fx":[["st","frz",10]],"cd":2.25,"r":"c"},"mudshot":{"cd":1.88,"r":"m","fx":[["sg","t","sp",-1,100]]},"curse":{"c":"t","fx":[["sg","s","a",1,100],["sg","s","d",1,100]],"cd":5},"lick":{"fx":[["st","par",30]],"cd":1.88,"r":"m"},"shadowpunch":{"cd":1.88,"r":"c"},"bulletseed":{"cd":2.0,"r":"m"},"eggbomb":{"cd":3.25,"r":"m"},"sunnyday":{"c":"t","fx":[["wx","sun"]],"cd":5},"woodhammer":{"cd":5,"r":"c"},"hammerarm":{"cd":4.5,"r":"c"},"brickbreak":{"cd":3.75,"r":"c"},"razorwind":{"cd":3.75,"r":"m"},"ragingbull":{"cd":2.7,"r":"l"},"rest":{"c":"t","cd":5},"zenheadbutt":{"cd":2.4,"r":"m"},"icefang":{"fx":[["st","frz",10]],"cd":1.95,"r":"c"},"waterfall":{"cd":2.4,"r":"c"},"whirlpool":{"cd":4.5,"r":"m"},"perishsong":{"c":"t","cd":5},"pinmissile":{"cd":2.25,"r":"m"},"dualwingbeat":{"cd":1.5,"r":"m"},"headbutt":{"fx":[["fl",30]],"cd":2.75,"r":"c"},"highhorsepower":{"cd":3.0,"r":"m"},"sleeptalk":{"c":"t","cd":2.5},"dracometeor":{"cd":5,"r":"l"},"dragonrush":{"fx":[["fl",20]],"cd":5,"r":"l"},"eruption":{"fx":[["st","brn",10]],"cd":5,"r":"m"},"flamecharge":{"cd":2.5,"r":"m"},"lavaplume":{"fx":[["st","brn",12]],"cd":2.4,"r":"m"},"acrobatics":{"cd":3.0,"r":"m"},"crosspoison":{"fx":[["st","psn",10]],"cd":2.1,"r":"c"},"leechlife":{"cd":3.75,"r":"m"},"uturn":{"cd":2.1,"r":"c"},"morningsun":{"c":"t","fx":[["hl",0.3]],"cd":5},"foulplay":{"cd":2.85,"r":"c"},"autotomize":{"c":"t","cd":5},"magnetrise":{"c":"t","cd":5},"bulletpunch":{"cd":1.12,"r":"c"},"steelwing":{"cd":2.1,"r":"m"},"counter":{"c":"t","cd":5},"metalsound":{"c":"t","fx":[["sg","t","sd",-2,100]],"cd":5},"spikes":{"c":"t","cd":5},"knockoff":{"cd":2.25,"r":"c"},"energyball":{"cd":2.62,"r":"l","fx":[["sg","t","sd",-1,10]]},"leafblade":{"cd":2.7,"r":"c"},"substitute":{"c":"t","cd":5},"blastburn":{"cd":5,"r":"l"},"blazekick":{"fx":[["st","brn",10]],"cd":2.5,"r":"c"},"bounce":{"fx":[["st","par",30]],"cd":5,"r":"l"},"highjumpkick":{"cd":5,"r":"m"},"skyuppercut":{"cd":2.75,"r":"c"},"amnesia":{"c":"t","fx":[["sg","s","sd",2,100]],"cd":5},"flipturn":{"cd":2.5,"r":"m"},"hydrocannon":{"cd":5,"r":"l"},"muddywater":{"cd":4.5,"r":"l"},"facade":{"cd":2.1,"r":"m"},"spitup":{"cd":5,"r":"m"},"drainingkiss":{"cd":1.88,"r":"m"},"hypervoice":{"cd":2.7,"r":"l"},"mysticalfire":{"cd":2.25,"r":"m"},"dynamicpunch":{"cd":5,"r":"c"},"focuspunch":{"cd":5,"r":"c"},"forcepalm":{"fx":[["st","par",30]],"cd":1.88,"r":"m"},"machpunch":{"cd":1.75,"r":"m"},"spore":{"c":"t","fx":[["st","slp",100]],"cd":5},"slackoff":{"c":"t","cd":5},"phantomforce":{"cd":5,"r":"l"},"shadowsneak":{"cd":1.88,"r":"m"},"boomburst":{"cd":5,"r":"m"},"bodypress":{"cd":3.75,"r":"m"},"headsmash":{"cd":5,"r":"c"},"shockwave":{"fx":[["st","par",10]],"cd":1.88,"r":"l"},"aquajet":{"cd":1.88,"r":"m"},"liquidation":{"cd":2.55,"r":"m"},"waterspout":{"cd":5,"r":"m"},"bugbuzz":{"cd":3.0,"r":"m","fx":[["sg","t","sd",-1,10]]},"sonicboom":{"cd":1.88,"r":"l"},"skyattack":{"cd":5,"r":"l"},"crabhammer":{"cd":3.0,"r":"c"},"ingrain":{"c":"t","cd":5},"crushclaw":{"cd":2.25,"r":"c"},"mirrorcoat":{"c":"t","cd":5},"scald":{"fx":[["st","brn",30]],"cd":2.75,"r":"m"},"fly":{"cd":5,"r":"l"},"psychicfangs":{"cd":2.55,"r":"c"},"rockclimb":{"fx":[["st","cnf",20]],"cd":3.0,"r":"m"},"aquacutter":{"cd":3.0,"r":"m"},"icespinner":{"cd":2.4,"r":"m"},"dizzypunch":{"fx":[["st","cnf",20]],"cd":2.1,"r":"m"},"painsplit":{"c":"t","cd":5,"r":"m"},"silverwind":{"cd":1.88,"r":"l"},"willowisp":{"c":"t","acc":85,"fx":[["st","brn",100]],"cd":3.75,"r":"l"},"bonerush":{"cd":4.5,"r":"m"},"drainpunch":{"cd":3.75,"r":"m"},"lowkick":{"cd":2.75,"r":"c"},"tripleaxel":{"cd":3.75,"r":"m"},"heatcrash":{"fx":[["st","brn",10]],"cd":4.12,"r":"m"},"rockwrecker":{"cd":5,"r":"m"},"avalanche":{"cd":4.5,"r":"l"},"sacredsword":{"cd":2.7,"r":"c"},"nightdaze":{"cd":2.75,"r":"l"},"geargrind":{"cd":3.0,"r":"m"},"shiftgear":{"c":"t","fx":[["sg","s","a",1,100],["sg","s","sp",2,100]],"cd":5},"watershuriken":{"cd":1.88,"r":"l"},"spikyshield":{"c":"t","cd":5},"cut":{"cd":1.5,"r":"c"},"kingsshield":{"c":"t","cd":5},"flyingpress":{"cd":4.5,"r":"c"},"karatechop":{"cd":1.5,"r":"c"},"poltergeist":{"cd":3.5,"r":"m"},"pollenpuff":{"cd":2.5,"r":"l"},"quiverdance":{"c":"t","fx":[["sg","s","sa",1,100],["sg","s","sd",1,100],["sg","s","sp",1,100]],"cd":5},"accelerock":{"cd":1.88,"r":"l"},"floralhealing":{"c":"t","fx":[["hl",0.3]],"cd":4.5},"firstimpression":{"cd":5,"r":"m"},"clangingscales":{"cd":4.12,"r":"m"},"clangoroussoul":{"c":"t","cd":5},"lunge":{"cd":3.75,"r":"m"},"drumbeating":{"cd":3.0,"r":"l"},"grassyglide":{"cd":1.88,"r":"l"},"snipeshot":{"cd":1.88,"r":"l"},"dragondarts":{"cd":2.62,"r":"l"},"kowtowcleave":{"cd":2.75,"r":"m"},"fierydance":{"cd":4.12,"r":"l"},"spiritbreak":{"cd":3.88,"r":"m"},"ember":{"fx":[["st","brn",10]]},"thundershock":{"fx":[["st","par",10]]},"spark":{"fx":[["st","par",30]]},"powdersnow":{"fx":[["st","frz",10]]},"acid":{"fx":[["sg","t","sd",-1,10]]},"bulldoze":{"fx":[["sg","t","sp",-1,100]]},"bubblebeam":{"fx":[["sg","t","sp",-1,10]]},"psybeam":{"fx":[["st","cnf",10]]},"confusion":{"fx":[["st","cnf",10]]},"darkvoid":{"c":"t","fx":[["st","slp",100]],"acc":60},"lightscreen":{"c":"t"},"lusterpurge":{},"sacredfire":{},"sheercold":{},"aeroblast":{},"technoblast":{},"plasmafists":{},"psystrike":{}};
+const KOT={brn:['화상','#ff7a3a'],par:['마비','#d9a800'],psn:['독','#a04ac8'],slp:['잠듦','#5a76c8'],frz:['얼음','#3ab8d8'],cnf:['혼란','#d0508c'],seed:['씨앗','#3c9c40']};
+const SN={a:'공격',d:'방어',sa:'특공',sd:'특방',sp:'스피드'};
+const SM=n=>n>=0?(2+n)/2:2/(2-n);
+const hash=s=>{s=String(s);let h=7;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h};
+const E=new WeakMap(),TOUCH=new Set(),ENT=new Set(),ABC=new WeakMap();
+const ent=m=>{let e=E.get(m);if(!e){e={st:null,n:0,t:0,fl:0,cn:0,ct:0,sd:0,g:{a:0,d:0,sa:0,sd:0,sp:0},u:{},dt:0};E.set(m,e);TOUCH.add(m)}return e};
+const cnt=k=>{try{G.ach=G.ach||{c:{},d:{}};G.ach.c[k]=(G.ach.c[k]||0)+1}catch(e){}};
+let DI=null;try{dexInfo().then(j=>{DI=j}).catch(()=>{})}catch(e){}
+
+// ---------- 성격 ----------
+const NATN=['노력','외로움','용감','고집','개구쟁이','대담','온순','무사태평','장난꾸러기','촐랑','겁쟁이','성급','성실','명랑','천진난만','조심','의젓','냉정','수줍음','덜렁','차분','얌전','건방','신중','변덕'];
+const SI=[1,2,5,3,4];// 공격·방어·스피드·특공·특방
+const natOf=m=>m.nat!=null?m.nat%25:hash(m.uid||m.n)%25;
+const natTxt=m=>{const i=natOf(m),u=Math.floor(i/5),d=i%5;const L=['공격','방어','스피드','특공','특방'];return NATN[i]+(u!==d?' ('+L[u]+'↑ '+L[d]+'↓)':'')};
+
+// ---------- 특성 ----------
+const abOf=m=>{if(!m)return'';let a=ABC.get(m);if(a!==undefined)return a;if(!DI||!DI.d)return'';const M=META[m.n],I=M&&DI.d[M.dex];let r='';
+  if(I&&I[2]&&I[2].length){const L=I[2].filter(x=>!x[1]),P=L.length?L:I[2],x=P[hash(m.uid||m.n)%P.length],A=(DI.a||{})[x[0]];r=A?A[0]:''}ABC.set(m,r);return r};
+const BOOST={'심록':'GRASS','맹화':'FIRE','급류':'WATER','벌레의알림':'BUG'};
+const SINK={'부유':['GROUND',0],'타오르는불꽃':['FIRE',0],'저수':['WATER',.25],'축전':['ELECTRIC',.25],'피뢰침':['ELECTRIC',0],'마중물':['WATER',0],'초식':['GRASS',0]};
+const BLOCK={'면역':'psn','유연':'par','수의베일':'brn','불면':'slp'};
+const abSink=(d,m)=>{const s=SINK[abOf(d)];return s&&s[0]===m.type?s:null};
+const CONTACT_NO=/earthquake|bulldoze|rockthrow|stoneedge|ancientpower|mudshot|bugbuzz/;
+const isContact=m=>(m.ph||/punch|kick|bite|claw|slash|tackle|slam/.test(m.id||''))&&!CONTACT_NO.test(m.id||'');
+
+// ---------- 기술 데이터 ----------
+const fxOf=m=>{if(!m)return null;if(m._fx!==undefined){if(m._fx&&m._fx.c==='t')m.pw=0;return m._fx}
+  const id=String(m.id||'').toLowerCase();const f=MFX[N(id)]||MFX[N(id.split(':').pop())]||MFX[N(m.name)]||null;m._fx=f;if(f&&f.c==='t')m.pw=0;return f};
+try{for(const k in MOVES)fxOf(MOVES[k])}catch(e){}
+{const _mo=mvOf;mvOf=function(){const o=_mo.apply(this,arguments);try{fxOf(o)}catch(e){}return o}}
+{const _cd=cdOf;cdOf=function(m){const f=fxOf(m);return f&&f.cd?f.cd:_cd(m)}}
+{const _sh=shapeOf;shapeOf=function(m){const o=_sh(m),f=fxOf(m);if(!f||!f.r)return o;
+  if(f.r==='c')return o==='circle'||o==='cone'?o:'melee';if(f.r==='l')return o==='circle'?o:'line';return o==='melee'?'cone':o}}
+
+// ---------- 능력치 (성격 · 단계 · 상태 · 특성) ----------
+{const _so=stOf;stOf=function(m){const s=_so(m);try{
+  const i=natOf(m),u=Math.floor(i/5),d=i%5;if(u!==d){s[SI[u]]=Math.round(s[SI[u]]*1.1);s[SI[d]]=Math.round(s[SI[d]]*.9)}
+  if(BS.on){const e=E.get(m),ab=abOf(m);
+    if(e){const g=e.g;s[1]*=SM(g.a);s[2]*=SM(g.d);s[3]*=SM(g.sa);s[4]*=SM(g.sd);s[5]*=SM(g.sp);
+      if(e.st==='brn'&&ab!=='근성')s[1]*=.5;if(e.st==='par')s[5]*=.5;if(ab==='근성'&&e.st)s[1]*=1.5}
+    if(ab==='천하장사'||ab==='요가파워')s[1]*=2;if(ab==='퍼코트')s[2]*=2;
+    for(let k=1;k<6;k++)s[k]=Math.max(1,Math.round(s[k]))}}catch(x){}return s}}
+
+// ---------- 데미지 보정 (특성) ----------
+{const _dc=dmgCalc;dmgCalc=function(a,d,m,crit){const f=fxOf(m);if(f&&f.c==='t')return{d:0,e:1};const r=_dc(a,d,m,crit);try{
+  const A=abOf(a),D=abOf(d),M=META[a.n];let k=1;const mx=stOf(a)[0];
+  if(BOOST[A]===m.type&&a.hp<=mx/3)k*=1.5;
+  if(A==='적응력'&&M.types.includes(m.type))k*=2/1.5;
+  if(A==='테크니션'&&m.pw<=60)k*=1.5;
+  if(A==='단단한발톱'&&isContact(m))k*=1.3;
+  if(A==='철주먹'&&/punch/.test(m.id))k*=1.2;
+  if(A==='옹골찬턱'&&/bite|fang|crunch/.test(m.id))k*=1.5;
+  if(A==='메가런처'&&/pulse|aura/.test(m.id))k*=1.5;
+  if(A==='색안경'&&r.e>0&&r.e<1)k*=2;
+  if(D==='두꺼운지방'&&(m.type==='FIRE'||m.type==='ICE'))k*=.5;
+  if(D==='내열'&&m.type==='FIRE')k*=.5;
+  if((D==='필터'||D==='하드록')&&r.e>=2)k*=.75;
+  if(D==='멀티스케일'&&d.hp>=stOf(d)[0])k*=.5;
+  if(abSink(d,m)){r.d=0;r.e=0}else if(k!==1&&r.d>0)r.d=Math.max(1,Math.floor(r.d*k))}catch(x){}return r}}
+
+// ---------- 표시 · 알림 ----------
+const side2=m=>BS.me&&BS.me.m===m?BS.me:BS.foe;
+function pop(m,t,c,big){try{const B=side2(m),S=bsz(),mine=B===BS.me;let x,y;if(B.ax!=null){x=B.ax;y=B.ay}else{const p=side(mine);x=p.x;y=p.y}FX2.num(x,y-S*1.7,t,c||'#fff',big?1:0)}catch(e){}}
+async function tell(m,html,short,col){if(advOn())pop(m,short,col,1);else await msg(html,FAST()?380:760)}
+const SQ=()=>{try{return BS.on}catch(e){return 0}};
+{const _bu=boxUpd;boxUpd=function(el,m,mine){_bu.apply(this,arguments);try{if(!el)return;let b=el.querySelector('.pkst');if(!b){b=document.createElement('div');b.className='pkst';el.appendChild(b)}
+  const e=E.get(m);let h='';const ab=abOf(m);if(ab)h+='<i style="background:#5a6080">'+ab+'</i>';
+  if(e){if(e.st)h+='<i style="background:'+KOT[e.st][1]+'">'+KOT[e.st][0]+'</i>';if(e.cn>0||e.ct>0)h+='<i style="background:'+KOT.cnf[1]+'">혼란</i>';if(e.sd)h+='<i style="background:'+KOT.seed[1]+'">씨앗</i>';
+    for(const k in e.g)if(e.g[k])h+='<i style="background:'+(e.g[k]>0?'#d86a20':'#3a78c8')+'">'+SN[k]+(e.g[k]>0?'+':'')+e.g[k]+'</i>'}
+  if(b._h!==h){b._h=h;b.innerHTML=h}}catch(x){}}}
+try{const c=document.createElement('style');c.textContent='.pkst{display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;max-width:170px}.pkst i{font-style:normal;font-size:10px;font-weight:900;color:#fff;border-radius:8px;padding:1px 5px;text-shadow:0 1px 1px #0008}';document.head.appendChild(c)}catch(e){}
+{const _mr=monRow;monRow=function(m,i,box){let h=_mr.apply(this,arguments);try{const ab=abOf(m);const t=' · 성격 '+NATN[natOf(m)]+(ab?' · 특성 '+ab:'');const k=h.lastIndexOf('</small></div></div>');if(k>0)h=h.slice(0,k)+t+h.slice(k)}catch(e){}return h}}
+
+// ---------- 상태이상 · 능력 단계 ----------
+async function inflict(tg,k,src){if(!tg||tg.hp<=0)return false;const e=ent(tg),M=META[tg.n],ab=abOf(tg);const boss=BS.wb&&BS.foe&&BS.foe.m===tg;
+  if(k==='fl'){if(boss)return false;e.fl=advOn()?.7:1;return true}
+  if(k==='cnf'){if(e.cn>0||e.ct>0||boss)return false;if(advOn())e.ct=3.5;else e.cn=2+ri(0,2);await tell(tg,'<b>'+nm(tg)+'</b>(은)는 혼란에 빠졌다!','혼란',KOT.cnf[1]);cnt('inf');bbox();return true}
+  if(k==='seed'){if(e.sd||M.types.includes('GRASS')||boss)return false;e.sd=1;await tell(tg,'<b>'+nm(tg)+'</b>에게 씨앗이 심어졌다!','씨앗',KOT.seed[1]);bbox();return true}
+  if(e.st)return false;
+  const imm={brn:['FIRE'],psn:['POISON','STEEL'],par:['ELECTRIC'],frz:['ICE']}[k];if(imm&&imm.some(t=>M.types.includes(t)))return false;
+  if(BLOCK[ab]===k)return false;if(boss&&(k==='slp'||k==='frz'))return false;
+  e.st=k;if(k==='slp'){e.n=1+ri(0,2);e.t=2.6+R()*1.4}if(k==='frz')e.t=2+R();
+  const T={brn:'화상을 입었다!',par:'마비되어 기술이 나오기 어려워졌다!',psn:'독에 걸렸다!',slp:'잠이 들었다!',frz:'얼어붙었다!'}[k];
+  await tell(tg,'<b>'+nm(tg)+'</b>(은)는 '+T,KOT[k][0]+'!',KOT[k][1]);try{if(G.party.includes(src))cnt('inf')}catch(x){}bbox();return true}
+async function stage(m,s,n){if(!m||m.hp<=0)return false;const e=ent(m),o=e.g[s],v=Math.max(-6,Math.min(6,o+n));
+  if(v===o){await tell(m,'<b>'+nm(m)+'</b>의 '+SN[s]+'(은)는 더 이상 '+(n>0?'올라가지':'떨어지지')+' 않는다!','한계','#888');return false}
+  e.g[s]=v;const w=Math.abs(n)>=2?(n>0?'쑥쑥 올라갔다!':'크게 떨어졌다!'):(n>0?'올라갔다!':'떨어졌다!');
+  await tell(m,'<b>'+nm(m)+'</b>의 '+SN[s]+'이(가) '+w,SN[s]+(n>0?' +':' ')+n,n>0?'#ff9a4a':'#6ab0ff');bbox();return true}
+async function weather(w){BS.wx=w;BS.wxP=[];BS.bwx=advOn()?18:0;const T={rain:'비가 내리기 시작했다!',sun:'햇살이 강해졌다!',sand:'모래바람이 불기 시작했다!',snow:'싸라기눈이 내리기 시작했다!'}[w];if(T){if(advOn())toast(T);else await msg(T,FAST()?380:760)}}
+async function applyFx(self,tgt,fx,m,status){let did=0;for(const x of fx||[]){
+  if(x[0]==='st'){if(status||R()*100<x[2]){const ok=await inflict(tgt,x[1],self);did=did||ok;if(!ok&&status)await tell(tgt,'하지만 <b>'+nm(tgt)+'</b>에게는 효과가 없었다!','효과 없음','#bbb')}}
+  else if(x[0]==='fl'){if(R()*100<x[1]&&!(BS._mv&&BS._mv.has(tgt)))await inflict(tgt,'fl',self)}
+  else if(x[0]==='sg'){if(status||R()*100<x[4]){const who=x[1]==='s'?self:tgt;await stage(who,x[2],x[3])}}
+  else if(x[0]==='hl'){const e=ent(self);const key='hl';if((e.u[key]||0)>=2){await tell(self,'하지만 더는 회복할 수 없었다!','횟수 끝','#bbb');continue}e.u[key]=(e.u[key]||0)+1;
+    const mx=stOf(self)[0],h=Math.min(mx-self.hp,Math.round(mx*x[1]));self.hp+=h;bbox();await tell(self,'<b>'+nm(self)+'</b>(은)는 체력을 회복했다!','+'+h,'#3be06a')}
+  else if(x[0]==='wx')await weather(x[1])}
+  if(status&&!(fx&&fx.length))await tell(self,'하지만 아무 일도 일어나지 않았다!','…','#bbb');return did}
+function doSelfHit(m){const S=stOf(m);const d=Math.max(1,Math.floor(((2*m.lv/5+2)*40*S[1]/Math.max(1,S[2]))/50+2));m.hp=Math.max(0,m.hp-d);bbox();return d}
+
+// ---------- 턴제: 행동 가능? · 턴 끝 효과 ----------
+async function canAct(m){const e=E.get(m);if(!e)return true;
+  if(e.fl>0){e.fl=0;await msg('<b>'+nm(m)+'</b>(은)는 풀이 죽어 움직일 수 없다!',FAST()?380:760);return false}
+  if(e.st==='slp'){e.n--;if(e.n<=0){e.st=null;e.t=0;bbox();await msg('<b>'+nm(m)+'</b>(은)는 눈을 떴다!',FAST()?380:700)}else{await msg('<b>'+nm(m)+'</b>(은)는 쿨쿨 자고 있다…',FAST()?380:760);return false}}
+  if(e.st==='frz'){if(R()<.2){e.st=null;bbox();await msg('<b>'+nm(m)+'</b>의 얼음이 녹았다!',FAST()?380:700)}else{await msg('<b>'+nm(m)+'</b>(은)는 얼어서 움직일 수 없다!',FAST()?380:760);return false}}
+  if(e.cn>0){e.cn--;if(e.cn<=0){await msg('<b>'+nm(m)+'</b>의 혼란이 풀렸다!',FAST()?380:700)}else{await msg('<b>'+nm(m)+'</b>(은)는 혼란스러워 한다…',FAST()?340:640);if(R()<.33){doSelfHit(m);await msg('영문도 모른 채 자기 자신을 공격했다!',FAST()?380:760);return false}}}
+  if(e.st==='par'&&R()<.25){await msg('<b>'+nm(m)+'</b>(은)는 몸이 저려서 움직일 수 없다!',FAST()?380:760);return false}
+  return true}
+async function residual(m,opp){const e=E.get(m);if(!e||m.hp<=0)return;const S=stOf(m),ab=abOf(m);
+  if(ab==='가속')await stage(m,'sp',1);
+  if(ab==='탈피'&&e.st&&R()<.33){e.st=null;bbox();await msg('<b>'+nm(m)+'</b>(은)는 허물을 벗어 상태이상이 나았다!',FAST()?380:700)}
+  if(ab!=='매직가드'){let d=0,t='';
+    if(e.st==='brn'){d=Math.max(1,Math.floor(S[0]/16));t='화상 데미지를 입고 있다!'}
+    else if(e.st==='psn'){d=Math.max(1,Math.floor(S[0]/8));t='독 데미지를 입고 있다!';if(ab==='포이즌힐'){const h=Math.min(S[0]-m.hp,d);m.hp+=h;bbox();await msg('<b>'+nm(m)+'</b>(은)는 독으로 체력을 회복했다!',FAST()?380:700);d=0}}
+    if(d){m.hp=Math.max(0,m.hp-d);bbox();cnt('dot');await msg('<b>'+nm(m)+'</b>(은)는 '+t,FAST()?380:700)}
+    if(e.sd&&opp&&opp.hp>0&&m.hp>0){const dr=Math.max(1,Math.floor(S[0]/8));m.hp=Math.max(0,m.hp-dr);opp.hp=Math.min(stOf(opp)[0],opp.hp+dr);bbox();await msg('<b>'+nm(m)+'</b>(은)는 씨앗에 체력을 빼앗겼다!',FAST()?380:700)}}}
+
+// ---------- 접촉 특성 · 옹골참 ----------
+async function contactAb(atk,def,m,f){const D=abOf(def);if(!isContact(m)||def.hp<=0)return;
+  if(R()<.3){if(D==='정전기'&&await inflict(atk,'par',def)){cnt('ab')}else if(D==='불꽃몸'&&await inflict(atk,'brn',def)){cnt('ab')}else if(D==='독가시'&&await inflict(atk,'psn',def)){cnt('ab')}}
+  if(D==='까칠한피부'&&atk.hp>0){const d=Math.max(1,Math.floor(stOf(atk)[0]/8));atk.hp=Math.max(0,atk.hp-d);bbox();cnt('ab');await tell(atk,'<b>'+nm(atk)+'</b>(은)는 까칠한 피부에 다쳤다!','-'+d,'#ff6a6a')}}
+function sturdy(def,full){if(full&&def.hp<=0&&abOf(def)==='옹골참'){def.hp=1;bbox();cnt('ab');return true}return false}
+
+// ---------- 턴제 useMove ----------
+{const _um=useMove;useMove=async function(atk,def,m,mine){if(advOn())return _um.apply(this,arguments);
+  try{await dexInfo()}catch(e){}
+  if(BS._mt!==BS.turn){BS._mt=BS.turn;BS._mv=new Set()}
+  const f=fxOf(m);
+  try{
+    if(!(await canAct(atk))){BS._mv.add(atk);await residual(atk,def);return}
+    const s=f&&f.c==='t'?null:abSink(def,m);
+    if(s){await msg('<b>'+nm(atk)+'</b>의 <b>'+m.name+'</b>!',FAST()?380:700,[atk.n,'Determined']);cnt('ab');
+      const h=s[1]?Math.min(stOf(def)[0]-def.hp,Math.round(stOf(def)[0]*s[1])):0;def.hp+=h;bbox();await msg('<b>'+nm(def)+'</b>의 특성 <b>'+abOf(def)+'</b>! 효과가 없었다!'+(h?' (체력 회복)':''),FAST()?420:800);BS._mv.add(atk);await residual(atk,def);return}
+    if(f&&f.c==='t'){await msg('<b>'+nm(atk)+'</b>의 <b>'+m.name+'</b>!',FAST()?380:700,[atk.n,'Determined']);sfx('tap');
+      if(f.acc&&R()*100>f.acc){await msg('그러나 '+nm(atk)+'의 기술은 빗나갔다!',FAST()?380:700)}else await applyFx(atk,def,f.fx,m,true);
+      BS._mv.add(atk);await residual(atk,def);return}
+    const hp0=def.hp,full=def.hp>=stOf(def)[0];
+    await _um.apply(this,arguments);
+    if(sturdy(def,full))await msg('<b>'+nm(def)+'</b>(은)는 <b>옹골참</b>으로 버텨냈다!',FAST()?420:800);
+    if(def.hp>0&&def.hp<hp0&&f)await applyFx(atk,def,f.fx,m,false);
+    if(def.hp<hp0)await contactAb(atk,def,m,f);
+    BS._mv.add(atk);await residual(atk,def);
+  }catch(x){if(!(x&&x.__stop)){try{BS._mv&&BS._mv.add(atk)}catch(e){}if(!BS.__err){BS.__err=1;console.warn('bplus',x)}}}}}
+
+// ---------- 어드벤처(실시간) ----------
+const stunned=e=>e&&(e.st==='slp'||e.st==='frz'||e.fl>0);
+const lastPop=new WeakMap();
+function stunPop(m,t){const n=performance.now();if((lastPop.get(m)||0)+900>n)return;lastPop.set(m,n);pop(m,t,'#ddd',1)}
+{const _ac=actCast;actCast=function(mine,m,dir){let go=true,def,atk,f,hp0;try{
+  const AB=mine?BS.me:BS.foe,DB=mine?BS.foe:BS.me;atk=AB.m;def=DB.m;f=fxOf(m);const e=E.get(atk);
+  if(e){if(stunned(e)){stunPop(atk,e.st==='slp'?'쿨쿨…':e.st==='frz'?'얼어붙음!':'풀이 죽음');go=false}
+    else if(e.st==='par'&&R()<.25){stunPop(atk,'마비!');go=false}
+    else if(e.ct>0&&R()<.33){const d=doSelfHit(atk);pop(atk,'혼란 -'+d,KOT.cnf[1],1);go=false}}
+  if(go&&f&&f.c==='t'){go=false;try{callout(mine,m.name)}catch(x){}sfx('tap');
+    if(f.acc&&R()*100>f.acc)pop(atk,'빗나감','#9be7ff',1);else applyFx(atk,def,f.fx,m,true)}
+  if(go){const s=abSink(def,m);if(s){go=false;cnt('ab');const h=s[1]?Math.min(stOf(def)[0]-def.hp,Math.round(stOf(def)[0]*s[1])):0;def.hp+=h;bbox();pop(def,abOf(def)+'!','#7ee8a0',1)}}
+  hp0=def.hp;if(go&&BS.me&&BS.foe)BS._full=def.hp>=stOf(def)[0]}catch(x){go=true}
+  if(!go)return;const full=BS._full;const pr=_ac.apply(this,arguments);
+  try{Promise.resolve(pr).then(()=>{try{if(!BS.on||!def||!f&&!isContact(m))return;if(sturdy(def,full)){pop(def,'옹골참!','#ffd23f',1)}
+    if(def.hp>0&&def.hp<hp0){if(f)applyFx(atk,def,f.fx,m,false);contactAb(atk,def,m,f)}}catch(x){}}).catch(()=>{})}catch(x){}return pr}}
+{const _au=actUpdate;actUpdate=function(dt){const P=[BS.me,BS.foe].filter(Boolean).map(B=>[B,B.ax,B.ay]);_au(dt);try{
+  if(!ACT.on||ACT.pause||!BS.me||!BS.foe)return;const fr=FX2.stop>0?0:dt;if(!fr)return;
+  for(const [B,x,y] of P){const e=E.get(B.m);if(!e)continue;
+    if(stunned(e)&&B.ax!=null){B.ax=x;B.ay=y;B.vx=B.vy=0;if(B===BS.foe&&ACT.ai){ACT.ai.cd=Math.max(ACT.ai.cd,.4);ACT.ai.tel=0;ACT.ai.m=null}}
+    if(e.fl>0)e.fl-=fr;
+    if(e.t>0&&(e.st==='slp'||e.st==='frz')){e.t-=fr;if(e.t<=0){const o=e.st;e.st=null;e.t=0;pop(B.m,o==='slp'?'눈을 떴다!':'녹았다!','#fff',1);bbox()}}
+    if(e.ct>0){e.ct-=fr;if(e.ct<=0){e.ct=0;bbox()}}
+    e.dt+=fr;if(e.dt>=1.6&&B.m.hp>0){e.dt=0;const S=stOf(B.m),ab=abOf(B.m);let d=0;
+      if(ab==='가속'){stage(B.m,'sp',1)}
+      if(ab!=='매직가드'){if(e.st==='brn')d=Math.max(1,Math.floor(S[0]/16));else if(e.st==='psn'){d=Math.max(1,Math.floor(S[0]/12));if(ab==='포이즌힐'){B.m.hp=Math.min(S[0],B.m.hp+d);d=0;bbox()}}
+        if(e.sd){const dr=Math.max(1,Math.floor(S[0]/12)),o=B===BS.me?BS.foe:BS.me;if(o&&o.m.hp>0){B.m.hp=Math.max(1,B.m.hp-dr);o.m.hp=Math.min(stOf(o.m)[0],o.m.hp+dr);bbox();pop(B.m,'-'+dr,KOT.seed[1])}}
+        if(d){B.m.hp=Math.max(1,B.m.hp-d);bbox();pop(B.m,'-'+d,KOT[e.st][1])}}}}
+  if(BS.bwx>0){BS.bwx-=fr;if(BS.bwx<=0){BS.bwx=0;BS.wx=null;BS.wxP=[]}}
+  if(BS.wb)bossTick(fr)}catch(x){}}}
+
+// ---------- 월드보스 패턴 ----------
+const PAT=ts=>{const h=t=>ts.includes(t);return h('DARK')||h('GHOST')||h('PSYCHIC')?['slp','어둠의 기운이 모인다!']:h('FIRE')?['brn','불길이 치솟는다!']:h('ELECTRIC')?['par','전기가 퍼진다!']:h('POISON')?['psn','독안개가 퍼진다!']:h('ICE')?['frz','냉기가 몰려온다!']:h('FAIRY')||h('NORMAL')?['cnf','이상한 파동이 번진다!']:['sp','거대한 기운이 모인다!']};
+function bossTick(fr){const B=BS.foe,P=BS.me;if(!B||!P||B.m.hp<=0||P.m.hp<=0||ACT.down)return;const b=BS.wbp||(BS.wbp={t:6,i:0,ph:0,tel:0}),r=B.m.hp/stOf(B.m)[0],ph=r<.33?2:r<.66?1:0;
+  if(ph>b.ph){b.ph=ph;stage(B.m,'a',1);stage(B.m,'sa',1);pop(B.m,'분노!','#ff4040',1)}
+  if(b.tel>0){b.tel-=fr;if(b.tel<=0){const p=PAT(META[B.m.n].types);b.i++;const t=P.m;
+    if(b.i%2){if(p[0]==='sp')stage(t,'sp',-1);else inflict(t,p[0],B.m)}else{stage(t,'a',-1);stage(t,'sa',-1)}}}
+  else{b.t-=fr;if(b.t<=0){b.t=Math.max(5,10-ph*2);b.tel=1.2;const p=PAT(META[B.m.n].types);pop(B.m,'⚠ '+(b.i%2?'위압적인 포효!':p[1]),'#ffd23f',1)}}}
+
+// ---------- 등장 특성 · 전투 시작/끝 ----------
+async function entry(m,opp){const a=abOf(m);if(!a)return;
+  if(a==='위협'&&opp&&opp.hp>0){cnt('ab');await tell(m,'<b>'+nm(m)+'</b>의 <b>위협</b>!','위협!','#ffb060');await stage(opp,'a',-1)}
+  const W={'잔비':'rain','가뭄':'sun','모래날림':'sand','눈퍼뜨리기':'snow'}[a];if(W){cnt('ab');await weather(W);BS.bwx=0}}
+{const _sm=sendMe;sendMe=async function(m,first){await _sm.apply(this,arguments);try{await dexInfo();if(BS.me&&BS.me.m===m)await entry(m,BS.foe&&BS.foe.m);
+  if(BS.foe&&!ENT.has(BS.foe.m)){ENT.add(BS.foe.m);await entry(BS.foe.m,m)}}catch(e){}}}
+{const _sf=sendFoe;sendFoe=async function(m){await _sf.apply(this,arguments);try{await dexInfo();if(BS.me&&BS.me.m.hp>0){ENT.add(m);await entry(m,BS.me.m)}}catch(e){}}}
+{const _b=battle;battle=async function(o){for(const m of TOUCH)E.delete(m);TOUCH.clear();ENT.clear();BS.wbp=null;BS.bwx=0;let r;try{await dexInfo()}catch(e){}
+  try{r=await _b.apply(this,arguments);return r}finally{for(const m of TOUCH)E.delete(m);TOUCH.clear();ENT.clear();BS.wbp=null;BS.bwx=0;BS._mv=null;BS._mt=null;
+    try{if(r==='win'){cnt('win');if(o&&o.trainer&&!o.wb)cnt('tr');if(o&&o.wb)cnt('wb')}}catch(e){}}}}
+
+// ---------- 업적 ----------
+const C=k=>(G.ach&&G.ach.c&&G.ach.c[k])||0;
+const ACH=[
+ ['w1','첫 승리','전투에서 처음 이겼어요',()=>C('win')>=1,500],['w50','전투 50승','전투를 50번 이겼어요',()=>C('win')>=50,2000],['w200','전투 200승','전투를 200번 이겼어요',()=>C('win')>=200,6000],
+ ['t20','트레이너 사냥꾼','트레이너와의 승부 20번 승리',()=>C('tr')>=20,3000],
+ ['i10','상태이상 입문','상태이상을 10번 걸었어요',()=>C('inf')>=10,1500],['i50','상태이상 달인','상태이상을 50번 걸었어요',()=>C('inf')>=50,5000],
+ ['a20','특성 활용','특성이 20번 발동했어요',()=>C('ab')>=20,2000],['a100','특성 마스터','특성이 100번 발동했어요',()=>C('ab')>=100,6000],
+ ['d30','도감 30','포켓몬 30종을 잡았어요',()=>Object.keys((G.dex&&G.dex.c)||{}).length>=30,2000],['d100','도감 100','포켓몬 100종을 잡았어요',()=>Object.keys((G.dex&&G.dex.c)||{}).length>=100,6000],['d300','도감 300','포켓몬 300종을 잡았어요',()=>Object.keys((G.dex&&G.dex.c)||{}).length>=300,15000],
+ ['b8','배지 8개','체육관 배지를 모두 모았어요',()=>(G.badges||0)>=8,5000],['wb1','월드보스 도전','월드보스에게 이긴 적이 있어요(마지막 한 방 포함 전투 승리)',()=>C('wb')>=1,3000],['r1','환생','한 번 환생했어요',()=>(G.rebirth||0)>=1,10000]];
+function achOpen(){G.ach=G.ach||{c:{},d:{}};const fmt=x=>x.toLocaleString();const ok=ACH.filter(a=>a[3]()&&!G.ach.d[a[0]]).length;
+  openPanel('🏆 업적',`<div class="row"><span>받을 수 있는 보상 <b>${ok}</b>개</span><button id="achAll" ${ok?'':'disabled'}>모두 받기</button></div>`+ACH.map(a=>{const done=a[3](),got=G.ach.d[a[0]];return `<div class="row" style="opacity:${done?1:.55}"><span><b>${a[1]}</b><br><small>${a[2]}</small></span><button data-a="${a[0]}" ${done&&!got?'':'disabled'}>${got?'받음':done?fmt(a[4])+'원 받기':fmt(a[4])+'원'}</button></div>`}).join('')+`<small>상태이상 ${C('inf')} · 특성 발동 ${C('ab')} · 승리 ${C('win')}</small>`,null,p=>{
+    const claim=id=>{const a=ACH.find(x=>x[0]===id);if(!a||!a[3]()||G.ach.d[id])return;G.ach.d[id]=1;G.money+=a[4];toast('🏆 '+a[1]+' · '+fmt(a[4])+'원!')};
+    p.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{claim(b.dataset.a);save();achOpen()});const all=p.querySelector('#achAll');if(all)all.onclick=()=>{ACH.forEach(a=>claim(a[0]));save();achOpen()}})}
+{const _op=openPanel;openPanel=function(title,html,onClose,bind,noX){if(title==='📋 메뉴'){try{const n=ACH.filter(a=>a[3]()&&!(G.ach&&G.ach.d&&G.ach.d[a[0]])).length;
+  html=html.replace('<button class="it" id="oGift"','<button class="it" id="oAch" style="width:100%;background:#ffe27a">🏆 업적 · 보상'+(n?' ('+n+')':'')+'</button><button class="it" id="oGift"');const b0=bind;bind=p=>{b0&&b0(p);const b=p.querySelector('#oAch');if(b)b.onclick=()=>achOpen()}}catch(e){}}return _op.call(this,title,html,onClose,bind,noX)}}
+}catch(e){console.warn('battle-plus 로드 실패',e)}})();
+</script>
+<script id="gradeplus">
+// ===== 등급 보강 v1 · 운영자 모드에서 신화~유일 포켓몬 주기 · GM 모든 기술 풀강 써 보기 · 편성 등급 구분 =====
+// 기존 함수를 감싸서 동작해요. 여기서 오류가 나도 게임은 원래대로 돌아가요.
+(()=>{try{
+if(window.__gradeplus)return;window.__gradeplus=1;
+const gmish=()=>{try{return !!(OPER.on||(typeof isGM==='function'&&isGM()))}catch(e){return false}};
+const H=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const css=document.createElement('style');css.textContent=`
+/* 편성 · 보관: 등급이 한눈에 보이게 (왼쪽 굵은 띠 + 등급 이름표 + 등급별 바탕색) */
+.tm{border-left-width:11px!important}
+.tm .tgb{display:table;font-style:normal;font:900 11px/16px var(--ff,sans-serif);color:#fff;background:var(--rc);border:2px solid #1c2550;border-radius:7px;padding:0 6px;margin:0 0 2px;text-shadow:0 1px 0 #0007;white-space:nowrap}
+.tm .tmf img{border-width:3px!important}.tm .trar{font-size:11px!important;line-height:14px!important}
+.tm.rr0{background:#f0f1f3}
+.tm.rr1{background:linear-gradient(135deg,#fffdf2 30%,#bfe0ff)}
+.tm.rr2{background:linear-gradient(135deg,#fffdf2 25%,#d6c0ff)}
+.tm.rr3{background:linear-gradient(135deg,#fff8dc 20%,#ffd37a);box-shadow:0 0 0 1px #1c2550,0 0 9px 1px var(--rc)}
+.tm.rr4{background:linear-gradient(135deg,#fff0f0 20%,#ff9aae);box-shadow:0 0 0 1px #1c2550,0 0 11px 2px var(--rc)}
+.tm.rr5{background:linear-gradient(135deg,#f0ffff 20%,#7ee8da);box-shadow:0 0 0 1px #1c2550,0 0 12px 2px var(--rc)}
+.tm.rr6{background:linear-gradient(110deg,#fff 10%,#ffb3e8 40%,#9ff3ff 70%,#fff 100%);background-size:220% 100%;box-shadow:0 0 0 1px #1c2550,0 0 14px 3px var(--rc);animation:gpShine 3.2s linear infinite}
+@keyframes gpShine{0%{background-position:0 0}100%{background-position:220% 0}}
+.gptally{margin:2px 4px 8px;font-size:12.5px;font-weight:700;color:#4a5070}.gptally b{font-weight:900}
+/* 운영자 모드: 등급별 포켓몬 고르기 */
+#gpOp{margin:6px 0}.gpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:5px;max-height:250px;overflow:auto;margin:6px 0}
+.gpgrid button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px!important;font-size:11px!important;min-height:0!important;border:2px solid #1c2550;border-radius:8px;background:#fffdf2}
+.gpgrid button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important}.gpgrid img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated}
+.gpgrid small{font-weight:900}.gpcnt{color:#5a6080;font-size:12px}
+#gpOp .bxrow button,#gpSk .bxrow button{padding:4px 8px!important;font-size:12px!important;min-height:0!important}
+#gpOp .bxrow button.on,#gpSk .bxrow button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;box-shadow:0 0 0 3px #1c2550!important}
+#gpSk{border:3px solid #7a3cff;background:#f6f0ff;margin-bottom:10px}.gpskl{max-height:300px;overflow:auto}
+`;document.head.appendChild(css);
+
+// ---------- 편성 · 보관 · 추천 편성: 등급 이름표 ----------
+const gpBadge=()=>{try{const p=document.querySelector('.panel');if(!p)return;
+  p.querySelectorAll('.tm').forEach(c=>{if(c.querySelector('.tgb'))return;const mm=/(?:^|\s)rr(\d)(?:\s|$)/.exec(c.className);if(!mm)return;const r=+mm[1];const b=c.querySelector('.ti b');if(b)b.insertAdjacentHTML('beforebegin','<em class="tgb" style="--rc:'+RARC[r]+'">'+RAR[r]+'</em>')})}catch(e){}};
+{const _op=openPanel;openPanel=function(){const r=_op.apply(this,arguments);setTimeout(gpBadge,70);return r}}
+{const _tm=teamOpen;teamOpen=function(){const r=_tm.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel');if(!p||!G||p.querySelector('.gptally'))return;const tg=p.querySelector('.tg');if(!tg)return;
+  const cn=Array(7).fill(0);for(const m of G.party)cn[Math.min(6,rarM(m))]++;
+  const t=cn.map((n,i)=>n?'<b style="color:'+RARC[i]+'">'+RAR[i]+' '+n+'</b>':'').filter(Boolean).join(' · ');
+  tg.insertAdjacentHTML('beforebegin','<div class="gptally">출전 등급: '+(t||'-')+'</div>')}catch(e){}},90);return r}}
+
+// ---------- 운영자 모드: 일반~유일(메가 · 거다이맥스 · 원시회귀 · 무한다이맥스 포함) 등급별로 골라서 주기 ----------
+const ALLSP=()=>{const a=new Set(SPECIES);for(const k of Object.keys(META))if(META[k].form&&META[k].base)a.add(k);return[...a].filter(k=>META[k])};
+function gpGive(key,lv,sh){const M=META[key],FM=M.form&&M.base&&META[M.base];const m=mkMon(FM?M.base:key,lv);
+  if(FM){m.n=key;G.forms=G.forms||{};G.forms[key]=1}if(sh)m.sh=1;m.hp=stOf(m)[0];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
+  (G.party.length<6?G.party:G.box).push(m);save();try{refreshSpr()}catch(e){}return m}
+function gpOper(){try{const p=document.querySelector('.panel');if(!p||!p.querySelector('#oPk')||p.querySelector('#gpOp'))return;
+  const inp=p.querySelector('#oPk'),lvI=p.querySelector('#oPkLv'),shI=p.querySelector('#oPkSh'),go=p.querySelector('#oPkGo');
+  const host=shI.closest('label')||shI.parentNode;let R0=-1,sel=null;const ALL=ALLSP();
+  host.insertAdjacentHTML('afterend','<div id="gpOp"><div class="bxrow"><span>등급</span><button data-g="-1" class="on">전체</button>'+RAR.map((n,i)=>'<button data-g="'+i+'" style="color:'+RARC[i]+'">'+n+'</button>').join('')+'</div><div class="gpgrid"></div><small class="gpcnt"></small></div>');
+  const box=p.querySelector('#gpOp'),grid=box.querySelector('.gpgrid'),cnt=box.querySelector('.gpcnt');
+  const draw=()=>{const q=inp.value.trim();const L=ALL.filter(s=>(R0<0||rarOf(s)===R0)&&(!q||META[s].name.includes(q)||String(META[s].dex)===q)).sort((a,b)=>(R0<0?rarOf(b)-rarOf(a):0)||META[a].dex-META[b].dex);
+    grid.innerHTML=L.slice(0,60).map(s=>'<button data-s="'+encodeURIComponent(s)+'" class="'+(sel===s?'on':'')+'"><img src="'+(THUMB[s]||'')+'" alt="" loading="lazy"><b>'+H(META[s].name)+'</b><small style="color:'+RARC[rarOf(s)]+'">'+RAR[rarOf(s)]+'</small></button>').join('');
+    cnt.textContent=L.length+'마리'+(L.length>60?' 중 60마리만 보여요 · 이름을 입력하면 더 좁혀져요':'');
+    grid.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{sel=decodeURIComponent(b.dataset.s);inp.value=META[sel].name;draw()})};
+  box.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{R0=+b.dataset.g;inp.value='';sel=null;box.querySelectorAll('[data-g]').forEach(x=>x.classList.toggle('on',x===b));draw()});
+  inp.addEventListener('input',draw);draw();
+  go.onclick=()=>{const v=inp.value.trim();let key=sel&&META[sel]&&META[sel].name===v?sel:(ALL.find(k=>META[k].name===v)||(+v&&BYDEX[+v])||ALL.find(k=>META[k].name.startsWith(v))||ALL.find(k=>META[k].name.includes(v)));
+    if(!key||!META[key]){toast('그런 포켓몬이 없어요');return}
+    const m=gpGive(key,Math.max(1,Math.min(100,+lvI.value||50)),shI.checked);toast('✅ ['+RAR[rarM(m)]+'] '+nm(m)+' Lv.'+m.lv+' 줬어요')}
+}catch(e){console.warn('gradeplus oper',e)}}
+{const _oo=operOpen;operOpen=function(){const r=_oo.apply(this,arguments);setTimeout(gpOper,40);return r}}
+
+// ---------- GM(운영자): 모든 기술을 풀강(Lv.8 · 환생 효과 3번)으로 써 보기 ----------
+let SKGM=0;
+{const _so=SKL.open;SKL.open=function(){return SKGM?true:_so.apply(this,arguments)}}
+{const _sp=skPreviewOpen;skPreviewOpen=async function(){if(gmish())SKGM=1;try{return await _sp.apply(this,arguments)}finally{SKGM=0}}}
+function gpSkill(){try{const p=document.querySelector('.panel');if(!p||p.querySelector('#gpSk')||!gmish()||!G)return;const me=G.party[0];if(!me)return;
+  const rows=GMOVES.map(([id,name])=>{const v=mv(id);return{id,name,type:v.type,pw:v.pw||0}});const types=[...new Set(rows.map(r=>r.type))];let T0='',Q='';
+  const pb=p.querySelector('.pb')||p;
+  pb.insertAdjacentHTML('afterbegin','<div class="hcard" id="gpSk"><b>🛠 GM · 모든 기술 풀강(Lv.8) 써 보기</b><p class="hhint" style="margin:4px 0">기술 '+rows.length+'개 전부 Lv.8 · 환생 효과 3번으로 바로 시작해요. 쓰는 포켓몬은 맨 앞 <b>'+H(nm(me))+'</b>예요. 써 보기 화면 아래 단추로 Lv.1~8 · 환생 0~3번을 바꿔요.</p><input class="bxq" id="gpSkQ" placeholder="기술 이름 · 타입 검색 (예: 화염, 물, 파괴)" autocomplete="off" style="width:100%;box-sizing:border-box"><div class="bxrow" id="gpSkT" style="margin:6px 0"><button data-t="" class="on">전체</button>'+types.map(t=>'<button data-t="'+t+'" style="background:'+TCOL[t]+'!important;color:#fff!important;text-shadow:1px 1px 0 #0006">'+TN[t]+'</button>').join('')+'</div><div id="gpSkL" class="gpskl"></div><small id="gpSkC"></small></div>');
+  const L=p.querySelector('#gpSkL'),C=p.querySelector('#gpSkC');
+  const draw=()=>{const q=Q.toLowerCase();const R=rows.filter(r=>(!T0||r.type===T0)&&(!q||r.name.toLowerCase().includes(q)||String(TN[r.type]).includes(q)||r.id.toLowerCase().includes(q)));
+    L.innerHTML=R.map(r=>{let up='';try{up=r.pw?' → <b>'+Math.round(r.pw*SKL.mul(8))+'</b>':''}catch(e){}return '<div class="skm"><span class="tyb" style="background:'+TCOL[r.type]+'">'+TN[r.type]+'</span><div class="skn"><b>'+H(r.name)+'</b><small>위력 '+(r.pw||'-')+up+' (Lv.8)</small></div><button data-pv="'+H(r.id)+'">풀강 써 보기</button></div>'}).join('')||'<small>없어요</small>';
+    C.textContent=R.length+' / '+rows.length+'개';
+    L.querySelectorAll('[data-pv]').forEach(b=>b.onclick=()=>{sfx('tap');const m=G.party[0];if(m)skPreviewOpen(m,b.dataset.pv,8,3)})};
+  p.querySelector('#gpSkQ').oninput=e=>{Q=e.target.value.trim();draw()};
+  p.querySelectorAll('#gpSkT [data-t]').forEach(b=>b.onclick=()=>{T0=b.dataset.t;p.querySelectorAll('#gpSkT [data-t]').forEach(x=>x.classList.toggle('on',x===b));draw()});
+  draw()}catch(e){console.warn('gradeplus skill',e)}}
+{const _sk=skillOpen;skillOpen=function(){const r=_sk.apply(this,arguments);if(gmish())setTimeout(gpSkill,40);return r}}
+}catch(e){console.warn('등급 보강 로드 실패',e)}})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
