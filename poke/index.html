@@ -5246,7 +5246,7 @@ async function legCatch(f,isNew){const I=await lgImg(f.n);return new Promise(don
   lgFan();setTimeout(()=>{try{dexCry(M.dex)}catch(e){}},700);let end=0;const fin=()=>{if(end)return;end=1;d.classList.add('out');setTimeout(()=>{d.remove();done()},350)};
   d.querySelector('.lgok').onclick=e=>{e.stopPropagation();sfx('tap');fin()};if(auto)setTimeout(fin,3200);setTimeout(fin,15000)})}
 {const _b=battle;battle=async function(o){try{if(o&&!o.trainer&&!o.wb&&!o.pvp&&!o.gym&&o.foes&&o.foes.length===1&&rarOf(o.foes[0].n)>=3)await legIntro(o.foes[0])}catch(e){}return _b.apply(this,arguments)}}
-{const _c=caught;caught=async function(f){try{if(f&&rarOf(f.n)>=3){const isNew=!G.dex.c[META[f.n].dex];await legCatch(f,isNew)}}catch(e){}return _c.apply(this,arguments)}}
+{const _c=caught;caught=async function(f){try{if(f&&rarOf(f.n)>=3){const M=META[f.n];window.PKNOCAP=1;try{await CardPack.open({rar:rarOf(f.n),sh:f.sh?1:0,kind:'P',name:M.name,sub:'Lv.'+f.lv+' · '+M.types.map(t=>TN[t]).join('/')+' · 잡았다!',img:faceUrl(f.n,'Joyous')})}finally{window.PKNOCAP=0}try{dexCry(M.dex)}catch(e){}}}catch(e){}return _c.apply(this,arguments)}}
 (function(){const c=document.createElement('style');c.textContent=`
 .lgfx{position:fixed;inset:0;z-index:9800;overflow:hidden;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#1a1030 0,#000 70%);font-family:inherit;color:#fff;animation:lgIn .3s ease-out;image-rendering:pixelated}
 .lgfx.out{animation:lgOut .35s ease-in forwards}
