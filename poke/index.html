@@ -3812,7 +3812,7 @@ function packOpenUI(sel){if(!G)return;G.packs=G.packs||{};const ks=Object.keys(P
     const go=p.querySelector('#pkGo');if(go)go.onclick=()=>{closePanel(1);packRun(sel,q)}};
   openPanel('카드팩 가방',`<div id="pkB"></div>`,null,draw)}
 let PKSTOP=0;
-async function packRun(k,n){PKSTOP=0;const kind=k[0],rar=k.length>1?+k.slice(1):null;const bk=document.createElement('div');bk.id='pkBack';document.body.appendChild(bk);const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
+async function packRun(k,n){PKSTOP=0;const kind=k[0],rar=k==='PH'?2:k.length>1?+k.slice(1):null;const bk=document.createElement('div');bk.id='pkBack';document.body.appendChild(bk);const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
   let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;window.PKNOCAP=rar!=null&&rar>=4;try{await grant(rollItem(kind,k==='P2'?(R()<.1?3:2):rar),PKT[k].n)}finally{window.PKNOCAP=0};done++}}finally{st.remove();bk.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
 (function(){const go=()=>{const b=document.getElementById('bPack');if(b)b.onclick=()=>{sfx('tap');packOpenUI()};packBadge()};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // ---------- 스탯 부적 (히든 포탈에서만) · 먹이면 그 포켓몬만 영구 강화 · 먹이기 한도는 타입 부적과 같이 ----------
@@ -3838,6 +3838,10 @@ async function hpEnter(){if(!HPOPEN||SCENE!=='over')return;const s=hpS();if(s.n>
   if(r==='win'){const k=stcRoll();addItem(k,1);if(R()<.3){addItem('pxsc',1);toast('접두사 주문서도 얻었어요!')}sfx('badge');packAdd(['P','M'],'히든 포탈');await say(['히든 포탈 클리어! (오늘 '+s.n+'/'+HP_MAX+')','<b>'+ITEMS[k].n+'</b>을(를) 얻었다! 가방에서 포켓몬에게 먹여요.','포켓몬 카드팩 1장 · 기술 카드팩 1장은 카드팩 가방에 넣었어요.'])}
   else if(r==='lose')await blackout()}
 try{HUB.push({k:'portal',n:'히든 포탈 (하루 5번)',d:'자동 사냥 중 야생 포켓몬을 이기면 가끔 히든 포탈이 열려요. 수호자를 이기면 스탯 부적(공격력·체력·방어력 +1~4%, 크리티컬 확률·데미지 +1%) 1개 + 포켓몬팩 1 + 기술팩 1!',st:()=>'오늘 '+hpS().n+'/'+HP_MAX,go:[['카드팩 가방',()=>packOpenUI()]]})}catch(e){}
+// 등급별 카드팩 (운영자 선물용): 일반 · 희귀 · 영웅 포켓몬팩 + 일반~전설 기술팩
+try{const O=Object.assign({},PKT);for(const k in PKT)delete PKT[k];
+  const add={P0:{n:'일반 포켓몬 카드팩',img:'cardpack/pk0.webp'},P1:{n:'희귀 포켓몬 카드팩',img:'cardpack/pk0.webp'},PH:{n:'영웅 포켓몬 카드팩',img:'cardpack/pk2.webp'},M0:{n:'일반 기술 카드팩',img:'cardpack/pk1.webp'},M1:{n:'희귀 기술 카드팩',img:'cardpack/pk1.webp'},M2:{n:'영웅 기술 카드팩',img:'cardpack/pk1.webp'},M3:{n:'전설 기술 카드팩',img:'cardpack/pk1.webp'}};
+  for(const k of ['P','M','P0','P1','PH','P2','P3','P4','P5','P6','M0','M1','M2','M3'])PKT[k]=O[k]||add[k];for(const k in O)if(!PKT[k])PKT[k]=O[k]}catch(e){}
 
 // ===== 난이도 5단계 (쉬움·보통·어려움·지옥·나이트메어) · 환생 =====
 // 지옥은 어려움에서 챔피언이 되면, 나이트메어는 지옥에서 챔피언이 되면 열려요. 환생: 챔피언이 되면 이야기를 처음부터 (포켓몬·가방·돈·도감·장비는 그대로)
@@ -4136,8 +4140,8 @@ try{const h=HUB.find(x=>x.k==='card');if(h)h.d+=' 난이도마다 한 등급씩 
 // ===== 난이도 클리어 연출: 챔피언이 되면 새 장이 열리듯 멋지게 + 전설 포켓몬 하나 고르기 =====
 const CLRN=['쉬움','보통','어려움','지옥','나이트메어'];
 function clrKey(){return DIFF()+'-'+(G.rebirth||0)}
-setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over'||DLG.on||PANEL||document.getElementById('clrOv'))return;G.clr=G.clr||{};const k=clrKey();if(G.clr[k])return;G.clr[k]=1;save();clearScene(DIFF())}catch(e){}},2500);
-async function clearScene(d){const nx=d<4?CLRN[d+1]:null;const o=document.createElement('div');o.id='clrOv';
+setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over'||DLG.on||PANEL||document.getElementById('clrOv'))return;G.clr=G.clr||{};const k=clrKey();if(G.clr[k])return;clearScene(DIFF(),k)}catch(e){}},2500);
+async function clearScene(d,ck){const nx=d<4?CLRN[d+1]:null;const o=document.createElement('div');o.id='clrOv';
   o.innerHTML=`<div class="clrbg"></div><div class="clrray"></div><i class="clrbar t"></i><i class="clrbar b"></i><div class="clrp"></div>
    <div class="clrc"><small class="clr1">${CLRN[d]} 난이도</small><h1 class="clr2">CHAMPION</h1><p class="clr3">${esc(G.name||'')}, 챔피언이 됐어요!</p>
    <div class="clr4"><span>${nx?'새로운 장이 열렸어요':'모든 난이도를 정복했어요'}</span><b>${nx?'CHAPTER '+(d+2)+' · '+nx:'LEGEND OF '+esc(G.name||'')}</b></div>
@@ -4145,7 +4149,7 @@ async function clearScene(d){const nx=d<4?CLRN[d+1]:null;const o=document.create
   document.body.appendChild(o);const P=o.querySelector('.clrp');for(let i=0;i<46;i++){const s=document.createElement('i');s.style.left=R()*100+'%';s.style.animationDelay=(R()*4)+'s';s.style.animationDuration=(3+R()*3)+'s';P.appendChild(s)}
   try{sfx('badge')}catch(e){}requestAnimationFrame(()=>o.classList.add('on'));
   await new Promise(r=>o.querySelector('#clrPick').onclick=()=>{sfx('tap');r()});
-  const got=await legendPick();o.classList.add('out');await sleep(500);o.remove();
+  const got=await legendPick();/* 전설을 실제로 받은 뒤에만 「받음」으로 기록해요 · 고르다 앱이 꺼지면 다음에 다시 고를 수 있어요 */if(ck){G.clr=G.clr||{};G.clr[ck]=1;save()}o.classList.add('out');await sleep(500);o.remove();
   if(nx)await say(['새 난이도 <b>'+nx+'</b>에 도전할 수 있어요!','「환생」하면 포켓몬 · 아이템 · 장비는 그대로, 스토리는 처음부터. 더 강한 포켓몬과 더 좋은 접두사가 나와요!']);
   if(nx&&typeof rebirthOpen==='function'){const go=await new Promise(r=>{itAsk(nx+' 난이도로 환생할까요?','지금 바로 하지 않아도 돼요. 나중에 메뉴 → 환생에서 할 수 있어요.',()=>r(1));setTimeout(()=>{const n=document.querySelector('#gAsk #gaN');if(n)n.addEventListener('click',()=>r(0))},50)});if(go)rebirthOpen()}}
 function legendPick(){return new Promise(done=>{const L=SPECIES.filter(s=>META[s]&&!META[s].form&&rarOf(s)===3).sort((a,b)=>META[a].dex-META[b].dex);
@@ -5444,6 +5448,90 @@ setTimeout(()=>{try{chDraw(1);chPoll();chLoop()}catch(e){}},6000);
 #chBx{flex:none;margin:8px}.chpl{flex:1;overflow-y:auto;padding:4px 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}`;document.head.appendChild(c)})();
 // 서버 규칙: 숫자(v)는 100000까지만 · 골드 선물이 크면 10만씩 나눠서 보내요
 {const _gs=gmSend;gmSend=async function(to,kind,key,v){if(kind==='g'&&v>100000){let left=Math.min(v,5000000),ok=true;while(left>0){const c=Math.min(100000,left);ok=(await _gs.call(this,to,kind,key,c))&&ok;left-=c}return ok}return _gs.apply(this,arguments)}}
+
+// ===== 포켓몬 기록 (얻음 · 잃음 · 변신) · 선물 받음 확인 · 보유 포켓몬 전부 =====
+// 관장님이 「계정 관리」에서 아이마다 확인해요 → 사라졌다는 포켓몬을 정당하게 복구할 수 있게
+// 서버 규칙(이름 12자 · 숫자 10만 이하)에 맞춰 내용은 문서 이름 안에 담아요
+const mlMonth=(off)=>{const d=new Date(Date.now()+9*36e5);d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()-(off||0));return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')};
+const ML_T0=1767225600;// 2026-01-01 (초)
+const mlKey=m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+(m.lv||1)+(m.sh?'s':'')+(m.px!=null?'p'+m.px:'')+(m.fr!=null&&META[m.n]&&META[m.n].form?'r'+m.fr:'');
+const mlDecKey=s=>{const m=/^(.+)\.(\d+)(s?)(?:p(\d+))?(?:r(\d))?$/.exec(s||'');if(!m)return null;return {n:'sc:'+m[1].replace(/_/g,'/'),lv:+m[2],sh:!!m[3],px:m[4]!=null?+m[4]:null,fr:m[5]!=null?+m[5]:null}};
+const MLSRC={c:'잡음',g:'GM 선물',k:'카드팩 · 선물 가방',e:'알',d:'분해',x:'삭제',t:'교환(QR)',l:'챔피언 전설',f:'돌로 변신',v:'진화',o:'기타'};
+let MLHINT=null;// 지금 무슨 일로 포켓몬이 바뀌는지 (잠깐 동안)
+const mlHint=s=>{MLHINT={s,t:Date.now()}};
+function mlAll(){return [...(G.party||[]),...(G.box||[])].filter(m=>m&&META[m.n])}
+function mlTick(){try{if(!G||!G.pid)return;const cur={};for(const m of mlAll()){if(!m.uid)m.uid=Date.now().toString(36)+ri(0,1e6);cur[m.uid]=[mlKey(m),m]}
+  if(!G.mlSnap){G.mlSnap={};for(const u in cur)G.mlSnap[u]=cur[u][0];G.mlog=G.mlog||[];G.mlN=G.mlN||0;save();return}
+  const now=Math.floor(Date.now()/1000)-ML_T0,h=MLHINT&&Date.now()-MLHINT.t<8000?MLHINT.s:null,ev=[];
+  for(const u in cur){const [k,m]=cur[u],old=G.mlSnap[u];if(old==null){const s=h&&h!=='d'&&h!=='x'&&h!=='t'?h:m.egg?'e':m.gift?'k':'o';ev.push(now.toString(36)+'+'+s+k)}else if(old.split('.')[0]!==k.split('.')[0]){const nf=META[m.n]&&META[m.n].form;ev.push(now.toString(36)+'*'+(nf?'f':'v')+old+'>'+k)}}
+  for(const u in G.mlSnap)if(!cur[u]){const s=h==='d'||h==='x'||h==='t'?h:'o';ev.push(now.toString(36)+'-'+s+G.mlSnap[u])}
+  const snap={};for(const u in cur)snap[u]=cur[u][0];const changed=ev.length||Object.keys(snap).some(u=>snap[u]!==G.mlSnap[u]);
+  if(ev.length){G.mlog=(G.mlog||[]).concat(ev);G.mlN=(G.mlN||0)+ev.length;if(G.mlog.length>3000){const cut=G.mlog.length-3000;G.mlog=G.mlog.slice(cut)}}
+  if(changed){G.mlSnap=snap;save()}}catch(e){}}
+// 힌트를 남기는 곳들
+{const _c=caught;caught=async function(){mlHint('c');const r=await _c.apply(this,arguments);mlTick();return r}}
+{const _a=gmApply;gmApply=async function(){mlHint('g');const r=await _a.apply(this,arguments);mlTick();return r}}
+{const _d=bxDo;bxDo=function(){mlHint('d');const r=_d.apply(this,arguments);mlTick();return r}}
+try{const _x=bxDel;bxDel=function(){mlHint('x');const r=_x.apply(this,arguments);setTimeout(mlTick,50);setTimeout(mlTick,3000);return r}}catch(e){}
+{const _t=tradeSend;tradeSend=async function(){mlHint('t');const r=await _t.apply(this,arguments);mlTick();return r}}
+try{const _l=legendPick;legendPick=async function(){mlHint('l');const r=await _l.apply(this,arguments);mlHint('l');mlTick();return r}}catch(e){}
+{const _f=formChange;formChange=async function(){const r=await _f.apply(this,arguments);mlTick();return r}}
+setInterval(()=>{try{if(G&&(SCENE==='over'||SCENE==='battle'))mlTick()}catch(e){}},5000);
+// 서버로 올리기: 아직 안 올린 기록을 묶어서 (문서 하나에 1300자 정도)
+let MLB=0;
+async function mlUpload(){if(MLB||!G||!G.pid||!navigator.onLine||!fsBase())return;const N=G.mlN||0,up=G.mlUpN||0;if(up>=N)return;MLB=1;
+  try{const L=G.mlog||[];let i=Math.max(0,L.length-(N-up));let k=up;while(i<L.length){let s='',j=i;while(j<L.length&&s.length+L[j].length+1<1250){s+=(s?',':'')+L[j];j++}if(j===i){j=i+1;s=L[i].slice(0,1250)}
+      const id='l~'+G.pid+'~'+k.toString(36)+'~'+s,name=String(G.name||'').split('#')[0].slice(0,12),sec=Math.floor(Date.now()/1000),v=Math.min(100000,j-i),t=sec*1048576+await gmMac(id,name,v,sec);
+      if(!await fsPut('mlog-'+mlMonth(),id,name,v,t))break;k+=j-i;i=j;G.mlUpN=k;save()}}catch(e){}MLB=0}
+// 선물 받음 확인: GM 선물을 받으면 「받았어요」 표시를 서버에 남겨요
+let MLAB=0;
+async function mlAck(){if(MLAB||!G||!G.pid||!navigator.onLine||!fsBase())return;G.gmAck=G.gmAck||{};const ids=Object.keys(G.gmg||{}).filter(id=>!G.gmAck[id]);if(!ids.length)return;MLAB=1;
+  try{for(const gid of ids.slice(0,20)){const id='a~'+G.pid+'~'+gid,name=String(G.name||'').split('#')[0].slice(0,12),sec=Math.floor(Date.now()/1000),t=sec*1048576+await gmMac(id,name,1,sec);if(await fsPut('gack-'+mlMonth(),id,name,1,t))G.gmAck[gid]=1;else break}save()}catch(e){}MLAB=0}
+setTimeout(()=>{try{mlTick();mlUpload();mlAck()}catch(e){}},20000);setInterval(()=>{try{mlUpload();mlAck()}catch(e){}},90000);
+// 보유 포켓몬 전부: 여러 문서로 나눠서 올려요 (w~pid~묶음번호~전체묶음수~내용)
+{let WB=0;const _iu=invUpload;invUpload=async function(){if(WB||!G||!G.pid||!navigator.onLine||!fsBase()||(typeof isGM==='function'&&isGM()))return;const all=mlAll().sort((a,b)=>rarM(b)-rarM(a)||b.lv-a.lv);if(!all.length)return;
+  const keys=all.map(mlKey),sig=keys.length+':'+keys.join(',').length+':'+keys.slice(0,5).join(','),day=dayKey(),wk=wbWeek();if(G.invW&&G.invW.w===wk&&(G.invW.d===day||G.invW.sig===sig))return;WB=1;
+  try{const parts=[];let s='';for(const k of keys){if(s.length+k.length+1>1250){parts.push(s);s=''}s+=(s?',':'')+k}if(s)parts.push(s);const ts=Math.floor(Date.now()/1000).toString(36);let ok=true;
+    for(let i=0;i<parts.length;i++){ok=await fsPut('inv-'+wk,'w~'+G.pid+'~'+ts+'~'+i+'~'+parts.length+'~'+parts[i],String(G.name||'').split('#')[0].slice(0,12),Math.min(100000,all.length),Math.floor(Date.now()/1000))&&ok;if(!ok)break}
+    if(ok){G.invW={w:wk,d:day,sig};save()}}catch(e){}WB=0}}
+{const _io=invOpen;invOpen=async function(pid,name){openPanel('보유 포켓몬 · '+esc(name||''),'<p class="hhint">불러오는 중…</p>');let best=null;
+  for(const wk of [wbWeek(),wbWeek(1)]){if(!wk)continue;const L=await fsListAll('inv-'+wk)||[];const G2={};for(const x of L){const m=/^w~([^~]+)~([^~]+)~(\d+)~(\d+)~(.*)$/.exec(x.id);if(!m||m[1]!==pid)continue;const g=G2[m[2]]=G2[m[2]]||{ts:parseInt(m[2],36),tot:+m[4],n:x.v,p:{}};g.p[m[3]]=m[5]}
+    for(const k in G2){const g=G2[k];if(Object.keys(g.p).length<g.tot)continue;if(!best||g.ts>best.ts)best=g}if(best)break}
+  if(!best)return _io.apply(this,arguments);const L=[];for(let i=0;i<best.tot;i++)for(const k of (best.p[i]||'').split(','))if(k){const x=mlDecKey(k);if(x&&META[x.n])L.push(x)}
+  const rr=x=>x.fr!=null?x.fr:rarOf(x.n);const cnt=RAR.map((_,i)=>L.filter(x=>rr(x)===i).length);
+  openPanel('보유 포켓몬 · '+esc(name||''),`<p class="hhint">${new Date(best.ts*1000).toLocaleString('ko-KR')} 기준 · <b>전부 ${L.length}마리</b> · 이로치 ${L.filter(x=>x.sh).length} · 접두사 ${L.filter(x=>x.px!=null).length}</p>
+   <div class="ivc">${RAR.map((n,i)=>cnt[i]?`<span style="color:${RARC[i]}">${n} <b>${cnt[i]}</b></span>`:'').join('')}</div>
+   <div class="ivg">${L.map(x=>{const r=rr(x);return `<div class="ivr" style="--c:${RARC[r]}"><img src="${THUMB[x.n]||''}" alt="" loading="lazy"><b>${esc(META[x.n].name)}</b><small>${RAR[r]} · Lv.${x.lv}${x.sh?' · 이로치':''}${x.px!=null&&PX[x.px]?' · ['+PX[x.px].n+']':''}${x.fr!=null?' · 돌':''}</small></div>`}).join('')}</div>`)}}
+// ===== GM: 아이 기록 보기 =====
+async function mlOpen(pid,name){openPanel('포켓몬 기록 · '+esc(name||''),'<p class="hhint">불러오는 중…</p>');const ev=[];
+  for(const mo of [mlMonth(0),mlMonth(1)]){const L=await fsListAll('mlog-'+mo)||[];for(const x of L){if(!x.id.startsWith('l~'+pid+'~'))continue;const sec=Math.floor(x.t/1048576);if(await gmMac(x.id,x.name,x.v,sec)!==x.t%1048576)continue;
+    const body=x.id.split('~').slice(3).join('~');for(const e of body.split(',')){const m=/^([0-9a-z]+)([+\-*])([a-z])(.*)$/.exec(e);if(!m)continue;const ts=(parseInt(m[1],36)+ML_T0)*1000;let a=m[4],b=null;if(m[2]==='*'){[a,b]=m[4].split('>')}ev.push({ts,ty:m[2],s:m[3],a:mlDecKey(a),b:b?mlDecKey(b):null})}}}
+  ev.sort((p,q)=>q.ts-p.ts);const F={f:'all'};
+  const row=e=>{const x=e.b||e.a;if(!x||!META[x.n])return '';const r=x.fr!=null?x.fr:rarOf(x.n);const lab=e.ty==='+'?'얻음':e.ty==='-'?'잃음':e.s==='v'?'진화':'변신';
+    return `<div class="mlr ${e.ty==='+'?'p':e.ty==='-'?'m':'f'}" style="--c:${RARC[r]}"><small>${new Date(e.ts).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small><em>${lab}</em><img src="${THUMB[x.n]||''}" alt=""><b>${e.ty==='*'&&e.a&&META[e.a.n]?esc(META[e.a.n].name)+' → ':''}${esc(META[x.n].name)}</b><span>${RAR[r]} · Lv.${x.lv}${x.sh?' · 이로치':''}</span><i>${MLSRC[e.s]||''}</i></div>`};
+  const draw=()=>{const L=ev.filter(e=>F.f==='all'||(F.f==='p'&&e.ty==='+')||(F.f==='m'&&e.ty==='-')||(F.f==='hi'&&((e.b||e.a)&&((e.b||e.a).fr!=null?(e.b||e.a).fr:rarOf((e.b||e.a).n))>=3)));
+    openPanel('포켓몬 기록 · '+esc(name||''),`<p class="hhint">이번 달 · 지난달 기록 ${ev.length}개 · 새 버전부터 기록돼요 (그 전 일은 없어요)</p><div class="tabs mlt">${[['all','전부'],['p','얻음'],['m','잃음'],['hi','전설 이상']].map(([k,n])=>`<button data-mf="${k}" class="${F.f===k?'on':''}">${n}</button>`).join('')}</div><div class="mll">${L.map(row).join('')||'<p class="hhint">기록이 없어요</p>'}</div>`,null,p=>{p.querySelectorAll('[data-mf]').forEach(b=>b.onclick=()=>{sfx('tap');F.f=b.dataset.mf;draw()})})};
+  draw()}
+// ===== GM: 보낸 선물 · 받았는지 =====
+async function mlGiftOpen(){openPanel('보낸 선물 · 받았는지','<p class="hhint">불러오는 중…</p>');const B=fsBase();if(!B)return;const gifts=[],acks={};
+  for(const off of [0,1]){const L=await fsListAll(gmBoard(off))||[];for(const x of L){const sec=Math.floor(x.t/1048576);if(await gmMac(x.id,x.name,x.v,sec)!==x.t%1048576)continue;const [,kind,key]=x.id.split('~');gifts.push({id:x.id,to:x.name,kind,key,v:x.v,t:sec*1000})}}
+  for(const mo of [mlMonth(0),mlMonth(1)]){const L=await fsListAll('gack-'+mo)||[];for(const x of L){const m=/^a~([^~]+)~(.*)$/.exec(x.id);if(!m)continue;(acks[m[2]]=acks[m[2]]||[]).push(x.name||'?')}}
+  gifts.sort((a,b)=>b.t-a.t);
+  openPanel('보낸 선물 · 받았는지',`<p class="hhint">지난달부터 보낸 선물 ${gifts.length}개 · 받으면 「받음」 · 아이가 새 버전으로 게임을 켜야 표시돼요</p><div class="mll">${gifts.map(g=>{const A=acks[g.id]||[];const all=g.to==='*모두';let lab='';try{lab=gmLabel(g.kind,g.key,g.v)}catch(e){lab=g.kind+' '+g.key}
+    return `<div class="mlr ${A.length?'p':'w'}"><small>${new Date(g.t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small><em>${A.length?(all?'받음 '+A.length+'명':'받음'):'아직'}</em><b>${esc(all?'모두':g.to)}</b><span>${esc(lab)}</span><i>${all&&A.length?esc(A.slice(0,8).join(', '))+(A.length>8?' 외':''):''}</i></div>`}).join('')||'<p class="hhint">보낸 선물이 없어요</p>'}</div>`)}
+// GM 화면에 버튼 붙이기
+{const _ad=acDraw;acDraw=function(){_ad.apply(this,arguments);try{document.querySelectorAll('.panel [data-iv]').forEach(v=>{if(v.previousElementSibling&&v.previousElementSibling.dataset.ml)return;const pid=v.dataset.iv,row=v.closest('.acr,div');const x=(ACF.list||[]).find(y=>y.pid===pid);const b=document.createElement('button');b.dataset.ml=pid;b.textContent='기록';b.onclick=()=>{sfx('tap');mlOpen(pid,x?x.name:'')};v.before(b)})}catch(e){}}}
+{const _ro=acRankOpen;acRankOpen=async function(){await _ro.apply(this,arguments);try{document.querySelectorAll('.panel [data-iv]').forEach(v=>{if(v.previousElementSibling&&v.previousElementSibling.dataset.ml)return;const pid=v.dataset.iv,row=v.closest('.acr');const nm0=row&&row.querySelector('b')?row.querySelector('b').textContent:'';const b=document.createElement('button');b.dataset.ml=pid;b.textContent='기록';b.onclick=()=>{sfx('tap');mlOpen(pid,nm0)};v.before(b)})}catch(e){}}}
+{const _gd=gmDraw;gmDraw=function(){const r=_gd.apply(this,arguments);try{if(isGM()){const p=document.querySelector('.panel');if(p&&!p.querySelector('#mlGift')){const t=p.querySelector('.pb');const b=document.createElement('button');b.id='mlGift';b.textContent='보낸 선물 · 받았는지 보기';b.onclick=()=>{sfx('tap');mlGiftOpen()};t&&t.prepend(b)}}}catch(e){}return r}}
+(function(){const c=document.createElement('style');c.textContent=`
+.mll{display:flex;flex-direction:column;gap:6px;margin:0 4px;max-height:60vh;overflow:auto;padding:4px}
+.mlr{display:grid;grid-template-columns:82px 54px 36px 1fr auto;align-items:center;gap:8px;background:#fffaf0;padding:5px 8px;box-shadow:0 0 0 2px var(--c,#c9b98a)}
+.mlr small{font-size:11px;color:#5a6080}.mlr em{font-style:normal;font-weight:900;font-size:12px;text-align:center;padding:2px 0;color:#fff;background:#5a6080}
+.mlr.p em{background:#2a9a40}.mlr.m em{background:#c0304a}.mlr.f em{background:#a040d0}.mlr.w em{background:#e08a00}
+.mlr img{width:36px;height:36px;object-fit:contain;image-rendering:pixelated}.mlr b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mlr span{font-size:12px;color:#5a6080;grid-column:4}.mlr i{font-style:normal;font-size:12px;color:#1c2550;font-weight:700;grid-row:1;grid-column:5}
+.mlr:not(:has(img)){grid-template-columns:82px 70px 1fr auto}.mlr:not(:has(img)) span{grid-column:3}.mlr:not(:has(img)) i{grid-column:1/-1;grid-row:auto;font-weight:400;color:#5a6080}
+#mlGift{width:100%;margin:0 0 10px;padding:9px;border:0;border-radius:0;font:700 15px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#5a8aff 0 50%,#2a5ad0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer}
+.mlt{margin:0 4px 8px}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
