@@ -5067,22 +5067,32 @@ function lossGuide(F,o){const ace=F.slice().sort((a,b)=>b.lv-a.lv)[0],AT=META[ac
   const good=Object.keys(TN).filter(t=>{try{return eff(t,AT)>=2}catch(e){return false}});
   const mine=my.filter(m=>META[m.n]&&META[m.n].types.some(t=>good.includes(t))&&!G.party.includes(m)).sort((a,b)=>b.lv-a.lv).slice(0,4);
   const catchL=[];for(const n of SPECIES){const M=META[n];if(!M||!M.types||!M.types.some(t=>good.includes(t)))continue;const L=(LOC[n]||[]).filter(a=>areaOpen(a));if(!L.length)continue;catchL.push({n,a:L.sort((x,y)=>Math.abs(x-G.a)-Math.abs(y-G.a))[0],s:(M.stats||M.s||[]).reduce((p,q)=>p+q,0)})}
-  catchL.sort((a,b)=>b.s-a.s);const catchTop=catchL.slice(0,4);const R=lgRoutes(top);const gap=foeLv-top;
-  openPanel('이길 방법 찾기',`<div class="lgh"><img src="${THUMB[ace.n]||''}" alt=""><div><b>${esc(META[ace.n].name)} Lv.${ace.lv}</b><small>${AT.map(t=>TN[t]).join(' · ')} 타입 · 상대 ${F.length}마리</small><p>${gap>0?`상대가 내 제일 센 포켓몬(Lv.${top})보다 <b>${gap}레벨</b> 높아요.`:`레벨은 비슷해요. <b>상성</b>을 맞추면 이길 수 있어요!`}</p></div></div>
-   <button class="lgrt${G.opt&&G.opt.retry?' on':''}" id="lgRt"><i class="ck"></i><span><b>계속 도전하기</b><small>켜면 져도 치료하고 자동으로 다시 도전해요 (이길 때까지 계속) · 끄면 지면 치료만 하고 자동이 꺼져요</small></span></button>
-   <div class="lgb lgauto"><button data-auto="q" class="main">퀘스트 자동사냥</button><button data-auto="h">그냥 자동사냥 (지금 이곳)</button></div>
-   <h4>1. 상성 좋은 타입</h4><p class="hhint">${good.length?good.map(t=>`<span class="lgt" style="background:${TCOL[t]}">${TN[t]}</span>`).join(' ')+' 기술이 효과가 굉장해요':'특별히 센 타입이 없어요. 레벨을 올려요'}</p>
-   ${mine.length?`<div class="lgl">${mine.map(m=>`<div class="lgr"><img src="${THUMB[m.n]||''}" alt=""><span><b>${esc(nm(m))}</b><small>보관함 · Lv.${m.lv} · ${META[m.n].types.map(t=>TN[t]).join('·')}</small></span></div>`).join('')}</div>`:''}
-   <div class="wbt"><button id="lgRec" class="main">상성 맞춰 추천 편성</button></div>
-   <h4>2. 레벨 올리기 · 자동 사냥 추천</h4><div class="lgl">${R.map(x=>`<div class="lgr"><span><b>${esc(areaName(x.a))}</b><small>야생 Lv.${x.lv[0]}~${x.lv[1]} · 좋은 포켓몬: ${x.best.map(n=>META[n].name).join(', ')}</small></span><button data-hunt="${x.a}">여기서 자동 사냥</button></div>`).join('')}</div>
-   ${catchTop.length?`<h4>3. 잡으면 좋은 포켓몬</h4><div class="lgl">${catchTop.map(x=>`<div class="lgr"><img src="${THUMB[x.n]||''}" alt=""><span><b>${esc(META[x.n].name)}</b><small>${META[x.n].types.map(t=>TN[t]).join('·')} · ${esc(areaName(x.a))}${G.dex.c[META[x.n].dex]?' · 잡아 봤어요':''}</small></span><button data-catch="${x.n}" data-a="${x.a}">잡으러 가기</button></div>`).join('')}</div>`:''}
-   <h4>${catchTop.length?4:3}. 더 강해지기</h4><div class="lgb"><button data-go="gear">장비 강화</button><button data-go="team">편성 보기</button><button data-go="shop">회복약 사기</button><button data-go="px">접두사</button></div>`,null,p=>{
+  catchL.sort((a,b)=>b.s-a.s);const catchTop=catchL.slice(0,4);const R=lgRoutes(top);const gap=foeLv-top;const r0=R.slice().sort((x,y)=>y.lv[0]-x.lv[0]).find(x=>x.lv[0]<=top+2)||R[0];const c0=catchTop[0];
+  const first=gap>=5?'lv':mine.length?'rec':c0?'catch':'gear';
+  const tile=(k,t,sub,act)=>`<button class="lgk${first===k?' best':''}" data-k="${k}">${first===k?'<i class="lgbest">먼저 이거!</i>':''}<b>${t}</b><small>${sub}</small><em>${act}</em></button>`;
+  openPanel('이길 방법 찾기',`<div class="lgh"><img src="${THUMB[ace.n]||''}" alt=""><div><b>${esc(META[ace.n].name)} Lv.${ace.lv}</b><small>${AT.map(t=>TN[t]).join(' · ')} · 상대 ${F.length}마리 · ${gap>0?'내 제일 센 포켓몬보다 <b>'+gap+'레벨</b> 높아요':'레벨은 비슷해요 · 상성을 맞춰요'}</small><p>상성 좋은 타입: ${good.map(t=>`<span class="lgt" style="background:${TCOL[t]}">${TN[t]}</span>`).join(' ')||'없음'}</p></div></div>
+   <div class="lgk4">${tile('lv','레벨 올리기',r0?esc(areaName(r0.a))+' · 야생 Lv.'+r0.lv[0]+'~'+r0.lv[1]:'사냥터 없음','여기서 자동 사냥')}${tile('rec','상성 맞춰 편성',mine.length?'보관함에 좋은 포켓몬 '+mine.length+'마리 · '+esc(nm(mine[0])):'자동으로 제일 센 편성','추천 편성 열기')}
+    ${tile('catch','잡으러 가기',c0?esc(META[c0.n].name)+' · '+esc(areaName(c0.a)):'근처에 없어요',c0?'바로 가기':'—')}${tile('gear','장비 강화','공격 · 체력을 올려요','강화하러 가기')}</div>
+   <div class="lgbar"><button class="lgrt${G.opt&&G.opt.retry?' on':''}" id="lgRt"><i class="ck"></i><span><b>계속 도전하기</b><small>켜면 져도 치료하고 다시 도전</small></span></button><button data-auto="q" class="main">퀘스트 자동사냥</button><button data-auto="h">그냥 자동사냥</button></div>
+   <details class="lgd"><summary>자세히 보기 · 다른 사냥터 · 잡을 포켓몬 · 보관함 추천</summary>
+   ${mine.length?`<h4>보관함의 상성 좋은 포켓몬</h4><div class="lgl">${mine.map(m=>`<div class="lgr"><img src="${THUMB[m.n]||''}" alt=""><span><b>${esc(nm(m))}</b><small>Lv.${m.lv} · ${META[m.n].types.map(t=>TN[t]).join('·')}</small></span></div>`).join('')}</div>`:''}
+   <h4>사냥터</h4><div class="lgl">${R.map(x=>`<div class="lgr"><span><b>${esc(areaName(x.a))}</b><small>야생 Lv.${x.lv[0]}~${x.lv[1]} · ${x.best.map(n=>META[n].name).join(', ')}</small></span><button data-hunt="${x.a}">자동 사냥</button></div>`).join('')}</div>
+   ${catchTop.length?`<h4>잡으면 좋은 포켓몬</h4><div class="lgl">${catchTop.map(x=>`<div class="lgr"><img src="${THUMB[x.n]||''}" alt=""><span><b>${esc(META[x.n].name)}</b><small>${META[x.n].types.map(t=>TN[t]).join('·')} · ${esc(areaName(x.a))}</small></span><button data-catch="${x.n}" data-a="${x.a}">잡으러 가기</button></div>`).join('')}</div>`:''}
+   <div class="lgb"><button data-go="team">편성 보기</button><button data-go="shop">회복약 사기</button><button data-go="px">접두사</button></div></details>`,null,p=>{
    p.querySelector('#lgRt').onclick=()=>{G.opt=G.opt||{};G.opt.retry=G.opt.retry?0:1;save();sfx('tap');p.querySelector('#lgRt').classList.toggle('on',!!G.opt.retry);toast('계속 도전하기 '+(G.opt.retry?'켜짐':'꺼짐'))};
    p.querySelectorAll('[data-auto]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);if(b.dataset.auto==='q'){if(G.nav)G.nav=null;AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1;hud();toast('퀘스트 자동사냥을 시작해요')}else{if(AUTO.on)autoStop();setTimeout(()=>{try{bt('bHunt').click()}catch(e){}},100)}});
-   p.querySelector('#lgRec').onclick=()=>{sfx('tap');closePanel(1);try{recOpen('상성 맞춰 추천 편성',AT)}catch(e){teamOpen()}};
+   p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.k;if(k==='lv'){if(!r0)return;closePanel(1);navSet(r0.a,null,'auto')}else if(k==='rec'){closePanel(1);try{recOpen('상성 맞춰 추천 편성',AT)}catch(e){teamOpen()}}else if(k==='catch'){if(!c0)return;closePanel(1);navSet(c0.a,c0.n,'auto')}else{closePanel(1);gearOpen('sf')}});
    p.querySelectorAll('[data-hunt]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.hunt,null,'auto')});
    p.querySelectorAll('[data-catch]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);navSet(+b.dataset.a,b.dataset.catch,'auto')});
-   p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.go;closePanel(1);if(k==='gear')gearOpen('sf');else if(k==='team')teamOpen();else if(k==='shop')shop(0,1);else if(k==='px')pxBook()})})}
+   p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.go;closePanel(1);if(k==='team')teamOpen();else if(k==='shop')shop(0,1);else if(k==='px')pxBook()})})}
+(function(){const c=document.createElement('style');c.textContent=`
+.lgk4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 4px}
+.panel button.lgk{position:relative;display:flex!important;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px!important;text-align:left;min-height:84px}
+.lgk b{font-size:18px}.lgk small{font-size:12px;color:#4a5070;font-weight:400}.lgk em{font-style:normal;font-size:13px;color:#c0304a;font-weight:700;margin-top:auto}
+.panel button.lgk.best{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;box-shadow:0 0 0 3px #1c2550,0 0 0 6px #ffd23f,0 0 16px #ffd23f!important}.lgbest{position:absolute;right:6px;top:-9px;font-style:normal;font-size:11px;background:#c0304a;color:#fff;padding:2px 6px}
+.lgbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px}.lgbar .lgrt{flex:1;min-width:200px;width:auto!important;margin:0!important}
+.lgd{margin:8px 4px}.lgd summary{cursor:pointer;font-weight:700;padding:8px 10px;background:#1c255014}
+@media (min-width:760px){.lgk4{grid-template-columns:repeat(4,1fr)}}`;document.head.appendChild(c)})();
 (function(){const c=document.createElement('style');c.textContent=`
 .bxsel{display:flex;gap:6px;margin:0 4px 8px}.bxck{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin:0 4px;max-height:50vh;overflow:auto;padding:4px}
 .panel button.bxc{display:flex!important;align-items:center;gap:8px;padding:6px 8px!important;text-align:left;opacity:.55}.panel button.bxc.on{opacity:1;background:linear-gradient(#fff 0 50%,#ffeedd 50%)!important}.panel button.bxc.warn small{font-weight:700}
