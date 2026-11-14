@@ -5215,6 +5215,177 @@ function autoPick(){if(!G.party.length){toast('먼저 첫 포켓몬을 받아요
 .apk{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 4px 6px}
 .apk .lgk{min-height:120px}
 @media (max-width:420px){.apk{grid-template-columns:1fr}}`;document.head.appendChild(c)})();
+
+// ===== 전설 이상 포켓몬: 만났을 때 · 잡았을 때 연출 =====
+const LGN=['','','','전설의 포켓몬','신화의 포켓몬','환상의 포켓몬','유일한 포켓몬'];
+const LGSUB=['','','','전설의 기운이 느껴진다…','메가진화의 빛이 일렁인다…','거대한 기운이 땅을 흔든다…','태고의 힘이 깨어난다…'];
+function lgTone(seq){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const v=.07*(G&&G.opt&&G.opt.vol!=null?G.opt.vol:1);let t=AC.currentTime+.02;
+  for(const [f,d,w,at] of seq){const st=at!=null?AC.currentTime+.02+at:t;const o=AC.createOscillator(),g=AC.createGain();o.type=w||'square';o.frequency.setValueAtTime(f,st);if(w==='sawtooth')o.frequency.exponentialRampToValueAtTime(Math.max(30,f*.5),st+d);g.gain.setValueAtTime(v,st);g.gain.exponentialRampToValueAtTime(.0001,st+d);o.connect(g);g.connect(AC.destination);o.start(st);o.stop(st+d+.02);if(at==null)t+=d}}catch(e){}}
+const lgRumble=()=>lgTone([[55,1.1,'sawtooth',0],[82,1.1,'sawtooth',.05],[110,.5,'triangle',.9]]);
+const lgHorn=()=>lgTone([[392,.16],[523,.16],[659,.16],[784,.42],[523,.6,'triangle',.95],[784,.6,'triangle',.95],[1047,.7,'triangle',.95]]);
+const lgFan=()=>lgTone([[523,.12],[659,.12],[784,.12],[1047,.3],[784,.12],[1047,.5],[523,.9,'triangle',.84],[659,.9,'triangle',.84],[784,.9,'triangle',.84]]);
+function lgCol(r){try{return RARC[r]||'#ffb020'}catch(e){return '#ffb020'}}
+function lgOv(cls,html,r){const d=document.createElement('div');d.className='lgfx '+cls;d.style.setProperty('--c',lgCol(r));d.innerHTML=html;document.body.appendChild(d);return d}
+async function lgSpr(n){try{const d=String(n).replace(/^sc:/,'');const x=await (await fetch(SCB+'sprite/'+d+'/AnimData.xml')).text();const doc=new DOMParser().parseFromString(x,'text/xml');
+  for(const nm of ['Idle','Walk']){let a=[...doc.querySelectorAll('Anim')].find(e=>e.querySelector('Name').textContent===nm);if(!a)continue;const cp=a.querySelector('CopyOf');if(cp)a=[...doc.querySelectorAll('Anim')].find(e=>e.querySelector('Name').textContent===cp.textContent)||a;const fw=+(a.querySelector('FrameWidth')||{}).textContent,fh=+(a.querySelector('FrameHeight')||{}).textContent;if(!fw||!fh)continue;
+   const im=new Image();im.src=SCB+'sprite/'+d+'/'+a.querySelector('Name').textContent+'-Anim.png';await im.decode();const c=document.createElement('canvas');c.width=fw;c.height=fh;const g=c.getContext('2d');g.drawImage(im,0,0,fw,fh,0,0,fw,fh);const D=g.getImageData(0,0,fw,fh).data;let x0=fw,y0=fh,x1=-1,y1=-1;for(let y=0;y<fh;y++)for(let x=0;x<fw;x++)if(D[(y*fw+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}if(x1<0)return c.toDataURL();const w=x1-x0+1,h=y1-y0+1,S=Math.max(w,h)+2,c2=document.createElement('canvas');c2.width=c2.height=S;c2.getContext('2d').drawImage(c,x0,y0,w,h,(S-w)>>1,(S-h)>>1,w,h);return c2.toDataURL()}}catch(e){}return null}
+const lgImg=async n=>{const s=await Promise.race([lgSpr(n),new Promise(r=>setTimeout(()=>r(null),900))]);return s?{src:s,spr:1}:{src:THUMB[n]||'',spr:0}};
+// 만났을 때: 화면이 어두워지고 땅이 울리다가 번쩍! 실루엣이 벗겨지며 이름이 나와요
+async function legIntro(f){const I=await lgImg(f.n);return new Promise(done=>{const M=META[f.n],r=rarOf(f.n),auto=typeof autoActive==='function'&&autoActive();const pb=P.busy;P.busy=1;
+  const d=lgOv('lgin',`<i class="lgbar t"></i><i class="lgbar b"></i><div class="lgray"></div><div class="lgimg${I.spr?' spr':''}"><img src="${I.src}" alt=""></div>
+   <p class="lgsub">${LGSUB[r]||LGSUB[3]}</p><div class="lgttl"><em>${LGN[r]||LGN[3]}</em><b>${esc(M.name)}</b><small>Lv.${f.lv}${f.sh?' · 반짝':''} · 이(가) 나타났다!</small></div><p class="lgtap">눌러서 넘기기</p>`,r);
+  lgRumble();let end=0;const fin=()=>{if(end)return;end=1;d.classList.add('out');setTimeout(()=>{d.remove();P.busy=pb;done()},350)};
+  setTimeout(()=>{d.classList.add('rv');lgHorn();try{dexCry(M.dex)}catch(e){}},1250);
+  setTimeout(()=>d.classList.add('tp'),900);d.onclick=()=>{if(d.classList.contains('tp'))fin()};setTimeout(fin,auto?2900:4200)})}
+// 잡았을 때: 금빛 빛줄기 · 반짝이 · 꽃가루와 함께 축하해요
+async function legCatch(f,isNew){const I=await lgImg(f.n);return new Promise(done=>{const M=META[f.n],r=rarOf(f.n),auto=typeof autoActive==='function'&&autoActive();
+  let sp='';for(let i=0;i<26;i++)sp+=`<i class="lgsp" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*100).toFixed(1)}%;animation-delay:${(Math.random()*1.6).toFixed(2)}s"></i>`;
+  let cf='';const CC=['#ffd23f','#ff5a7a','#4ad0ff','#7cff6a','#ffffff',lgCol(r)];for(let i=0;i<40;i++)cf+=`<i class="lgcf" style="left:${(Math.random()*100).toFixed(1)}%;background:${CC[i%CC.length]};animation-delay:${(Math.random()*1.2).toFixed(2)}s;animation-duration:${(2+Math.random()*1.5).toFixed(2)}s"></i>`;
+  const d=lgOv('lgca',`<div class="lgray"></div>${sp}${cf}<div class="lgcard"><p class="lgyay">축하해요!</p><div class="lgimg${I.spr?' spr':''}"><img src="${I.src}" alt=""></div>
+   <em class="lggr">${LGN[r]||LGN[3]}</em><b class="lgnm">${esc(M.name)}</b><p class="lgmsg">을(를) 잡았다!</p><small>도감 No.${String(M.dex).padStart(4,'0')} · Lv.${f.lv}${isNew?' · <u>첫 포획!</u>':''}</small><button class="lgok">좋아요!</button></div>`,r);
+  lgFan();setTimeout(()=>{try{dexCry(M.dex)}catch(e){}},700);let end=0;const fin=()=>{if(end)return;end=1;d.classList.add('out');setTimeout(()=>{d.remove();done()},350)};
+  d.querySelector('.lgok').onclick=e=>{e.stopPropagation();sfx('tap');fin()};if(auto)setTimeout(fin,3200);setTimeout(fin,15000)})}
+{const _b=battle;battle=async function(o){try{if(o&&!o.trainer&&!o.wb&&!o.pvp&&!o.gym&&o.foes&&o.foes.length===1&&rarOf(o.foes[0].n)>=3)await legIntro(o.foes[0])}catch(e){}return _b.apply(this,arguments)}}
+{const _c=caught;caught=async function(f){try{if(f&&rarOf(f.n)>=3){const isNew=!G.dex.c[META[f.n].dex];await legCatch(f,isNew)}}catch(e){}return _c.apply(this,arguments)}}
+(function(){const c=document.createElement('style');c.textContent=`
+.lgfx{position:fixed;inset:0;z-index:9800;overflow:hidden;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#1a1030 0,#000 70%);font-family:inherit;color:#fff;animation:lgIn .3s ease-out;image-rendering:pixelated}
+.lgfx.out{animation:lgOut .35s ease-in forwards}
+@keyframes lgIn{from{opacity:0}}@keyframes lgOut{to{opacity:0}}
+.lgbar{position:absolute;left:0;right:0;height:13vh;background:#000;z-index:3;box-shadow:0 0 0 2px var(--c)}
+.lgbar.t{top:0;animation:lgBt .5s ease-out}.lgbar.b{bottom:0;animation:lgBb .5s ease-out}
+@keyframes lgBt{from{transform:translateY(-100%)}}@keyframes lgBb{from{transform:translateY(100%)}}
+.lgray{position:absolute;left:50%;top:46%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--c) 55%,transparent) 0 6deg,transparent 6deg 18deg);opacity:0;animation:lgRot 9s linear infinite;mask:radial-gradient(circle,#000 0,#000 18%,transparent 55%);-webkit-mask:radial-gradient(circle,#000 0,#000 18%,transparent 55%)}
+@keyframes lgRot{to{transform:rotate(360deg)}}
+.lgin{animation:lgIn .3s ease-out,lgShake .09s 3 .2s,lgShake .09s 4 .6s}
+@keyframes lgShake{25%{transform:translate(4px,-3px)}50%{transform:translate(-4px,3px)}75%{transform:translate(3px,4px)}}
+.lgin .lgimg{position:relative;z-index:2;margin-top:-6vh}
+.lgfx .lgimg.spr img{width:min(62vmin,380px);height:min(62vmin,380px)}.lgca .lgimg.spr img{width:min(34vmin,220px);height:min(34vmin,220px)}
+@media (max-height:520px){.lgcard{gap:2px;padding:10px 22px 12px}.lgca .lgimg img,.lgca .lgimg.spr img{width:28vmin;height:28vmin}.lgnm{font-size:28px}.lgcard .lgok{margin-top:6px;padding:8px 30px}}
+.lgfx .lgimg img{width:min(46vmin,280px);height:min(46vmin,280px);object-fit:contain;image-rendering:pixelated;filter:brightness(0) drop-shadow(0 0 10px var(--c)) drop-shadow(0 0 26px var(--c));transition:filter .25s}
+.lgfx .lgimg:not(.spr) img{border-radius:0;box-shadow:0 0 0 3px #fff8}
+.lgin .lgimg:not(.spr) img{filter:brightness(.05) drop-shadow(0 0 10px var(--c))}
+.lgin .lgimg img{animation:lgPulse .5s ease-in-out infinite alternate}
+@keyframes lgPulse{to{transform:scale(1.04)}}
+.lgin.rv .lgimg img{filter:brightness(1) drop-shadow(0 0 8px var(--c)) drop-shadow(0 0 30px var(--c));animation:lgPop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes lgPop{from{transform:scale(.6)}}
+.lgin.rv .lgray{opacity:1;transition:opacity .3s}
+.lgin.rv::after{content:'';position:absolute;inset:0;background:#fff;z-index:5;animation:lgFlash .45s ease-out forwards;pointer-events:none}
+@keyframes lgFlash{from{opacity:1}to{opacity:0}}
+.lgsub{position:absolute;top:calc(13vh + 18px);left:0;right:0;text-align:center;font-size:clamp(15px,3.6vmin,22px);color:#d8d0ff;letter-spacing:2px;z-index:4;animation:lgBlink 1s steps(2) infinite;text-shadow:0 0 8px var(--c)}
+.lgin.rv .lgsub{display:none}
+@keyframes lgBlink{50%{opacity:.35}}
+.lgttl{position:absolute;bottom:calc(13vh + 14px);left:0;right:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;transform:translateY(20px)}
+.lgin.rv .lgttl{opacity:1;transform:none;transition:all .35s .15s}
+.lgttl em{font-style:normal;font-weight:900;font-size:clamp(14px,3.4vmin,20px);color:#1c1030;background:var(--c);padding:3px 14px;box-shadow:0 0 0 2px #fff,0 0 0 4px #1c1030}
+.lgttl b{font-size:clamp(30px,8vmin,56px);font-weight:900;letter-spacing:2px;color:#fff;text-shadow:3px 3px 0 #1c1030,-2px -2px 0 #1c1030,2px -2px 0 #1c1030,-2px 2px 0 #1c1030,0 0 22px var(--c)}
+.lgttl small{font-size:clamp(14px,3.4vmin,20px);color:#fff;text-shadow:2px 2px 0 #000}
+.lgtap{position:absolute;bottom:4vh;right:16px;z-index:6;font-size:12px;color:#aaa;opacity:0}.lgin.tp .lgtap{opacity:.8}
+.lgca{background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c) 45%,#2a1640) 0,#0c0618 75%)}
+.lgca .lgray{opacity:.9;background:repeating-conic-gradient(from 0deg,#ffe58a88 0 7deg,transparent 7deg 20deg)}
+.lgsp{position:absolute;width:8px;height:8px;background:#fff;z-index:1;box-shadow:0 0 8px #fff,0 0 14px var(--c);animation:lgTw 1.4s ease-in-out infinite;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+@keyframes lgTw{0%,100%{transform:scale(0) rotate(0)}50%{transform:scale(2) rotate(90deg)}}
+.lgcf{position:absolute;top:-20px;width:8px;height:12px;z-index:2;animation:lgFall linear infinite}
+@keyframes lgFall{to{transform:translateY(110vh) rotate(720deg)}}
+.lgcard{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 26px 18px;background:linear-gradient(#fffbe8,#f2e2b0);color:#1c2550;box-shadow:0 0 0 4px #1c2550,0 0 0 8px #ffd23f,0 0 0 11px #1c2550,0 0 50px var(--c);animation:lgPop .55s cubic-bezier(.2,1.6,.4,1);max-width:calc(100vw - 40px)}
+.lgyay{margin:0;font-size:clamp(22px,5.5vmin,34px);font-weight:900;color:#e0483a;text-shadow:2px 2px 0 #ffd23f;letter-spacing:3px;animation:lgBounce .6s ease-in-out infinite alternate}
+@keyframes lgBounce{to{transform:translateY(-5px)}}
+.lgca .lgimg img{width:min(36vmin,210px);height:min(36vmin,210px);filter:drop-shadow(0 0 6px var(--c)) drop-shadow(0 0 16px var(--c));animation:lgBounce .8s ease-in-out infinite alternate}
+.lggr{font-style:normal;font-weight:900;font-size:14px;color:#fff;background:var(--c);padding:2px 12px;box-shadow:0 0 0 2px #1c2550;text-shadow:1px 1px 0 #0008}
+.lgnm{font-size:clamp(26px,7vmin,44px);font-weight:900;color:#1c2550;text-shadow:2px 2px 0 #ffd23f}
+.lgmsg{margin:0;font-size:18px;font-weight:700}.lgcard small{font-size:13px;color:#5a6080}.lgcard small u{text-decoration:none;color:#fff;background:#e0483a;padding:1px 6px}
+.lgcard .lgok{margin-top:10px;padding:10px 34px;font-size:18px;font-weight:900;color:#fff;border:0;border-radius:0;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%);box-shadow:0 0 0 3px #1c2550,inset 0 -4px 0 #a02a20;cursor:pointer;font-family:inherit}
+.lgcard .lgok:active{transform:translateY(2px)}`;document.head.appendChild(c)})();
+
+// ===== 채팅 (게임 화면) =====
+// 인터넷이 되면 바로바로 주고받고, 안 되면 마지막으로 받은 대화만 보여요. 위로 올리면 이전 대화를 더 불러와요.
+// 내 포켓몬 자랑하기 · 나쁜 말 가리기 · 전화번호 · 링크 막기 · GM은 메시지 숨기기
+const CHB='chat';let CHM=[],CHOLD=0,CHNEW=0,CHT=null,CHBUSY=0,CHHID=new Set(),CHHT=0,CHLAST=0,CHUN=0;
+try{CHM=JSON.parse(localStorage.getItem('pka-chat')||'[]')}catch(e){CHM=[]}
+const chSave=()=>{try{localStorage.setItem('pka-chat',JSON.stringify(CHM.slice(-80)))}catch(e){}};
+const CHBAD=['시발','씨발','시바','씨바','ㅅㅂ','ㅆㅂ','병신','븅신','ㅂㅅ','개새','개색','새끼','색끼','ㅅㄲ','좆','존나','졸라','ㅈㄴ','지랄','ㅈㄹ','닥쳐','꺼져','미친','ㅁㅊ','엿먹','섹스','야동','느금','니애미','애미','애비','니엄','등신','썅','뒤져','디져','죽어','죽을래','자살','호로','멍청','바보','찐따','fuck','shit','bitch','sex'];
+function chClean(s){let t=String(s).replace(/\s+/g,' ').trim().slice(0,60);const flat=t.replace(/[\s.\-_~!?·,]/g,'').toLowerCase();
+  for(const w of CHBAD){if(flat.includes(w)){const re=new RegExp(w.split('').map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('[\\s.\\-_~!?·,]*'),'gi');t=t.replace(re,m=>'♡'.repeat(Math.min(4,m.length)))}}
+  t=t.replace(/(\d[\s\-.]*){7,}/g,'(번호는 못 보내요)').replace(/https?:\/\/\S+|www\.\S+|\S+\.(com|net|kr|io|me|ly)\S*/gi,'(링크는 못 보내요)').replace(/오픈\s*채팅|카톡\s*아이디|카톡\s*id/gi,'(개인 연락은 안 돼요)');return t}
+const chKeyMon=m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+m.lv+(m.sh?'s':'')+(m.px!=null?'p'+m.px:'');
+const chDecMon=s=>{const m=/^(.+)\.(\d+)(s?)(?:p(\d+))?$/.exec(s||'');if(!m)return null;const n='sc:'+m[1].replace(/_/g,'/');return META[n]?{n,lv:+m[2],sh:!!m[3],px:m[4]!=null?+m[4]:null}:null};
+async function chParse(d){try{const id=decodeURIComponent(d.name.split('/').pop()),f=d.fields||{};const name=(f.name||{}).stringValue||'',v=+((f.v||{}).integerValue||0),t=+((f.t||{}).integerValue||0);
+  const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1);
+  if(BANS.has(pid))return null;const o={id,pid,name,v,ty};if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}else if(ty==='p'){o.m=chDecMon(body);if(!o.m)return null;o.x=p[4]?chClean(new TextDecoder().decode(acUb64(p[4]))):''}else return null;return o}catch(e){return null}}
+async function chQuery(op,val,dir,lim){const B=fsBase();if(!B||!navigator.onLine)return null;try{const r=await fetch(B.u+CHB+':runQuery?key='+B.k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],where:{fieldFilter:{field:{fieldPath:'v'},op,value:{integerValue:String(val)}}},orderBy:[{field:{fieldPath:'v'},direction:dir}],limit:lim}})});if(!r.ok)return null;const j=await r.json();const out=[];for(const x of j)if(x.document){const o=await chParse(x.document);if(o)out.push(o)}return out}catch(e){return null}}
+async function chHidLoad(){if(Date.now()-CHHT<120000)return;CHHT=Date.now();try{await banLoad()}catch(e){}const L=await fsList('gmban');if(!L)return;const S=new Set();for(const x of L){if(!x.id.startsWith('h~'))continue;const sec=Math.floor(x.t/1048576);if(await gmMac(x.id,x.name,x.v,sec)!==x.t%1048576)continue;if(x.v===1)S.add(x.id.slice(2))}CHHID=S}
+const chHK=o=>o.id.split('~').slice(1,3).join('~');
+function chMerge(L){const have=new Set(CHM.map(x=>x.id));let add=0;for(const o of L)if(!have.has(o.id)){CHM.push(o);add++;if(o.pid!==G.pid)CHUN++}CHM.sort((a,b)=>a.v-b.v);if(CHM.length>400)CHM=CHM.slice(-400);if(add)chSave();return add}
+async function chPoll(){if(CHBUSY||!G||!navigator.onLine||!fsBase())return;CHBUSY=1;try{await chHidLoad();const last=CHM.length?CHM[CHM.length-1].v:0;
+  const L=last?await chQuery('GREATER_THAN',last,'ASCENDING',60):await chQuery('GREATER_THAN',0,'DESCENDING',40);if(L){const n=chMerge(L);if(n)chDraw()}}catch(e){}CHBUSY=0;chDraw(1)}
+async function chOlder(){if(CHOLD||!CHM.length)return;CHOLD=1;const box=document.querySelector('#chList');const h0=box?box.scrollHeight:0;
+  const L=await chQuery('LESS_THAN',CHM[0].v,'DESCENDING',40);if(L&&L.length){CHUN=Math.max(0,CHUN-L.filter(o=>o.pid!==G.pid).length);chMerge(L);chDraw();if(box)box.scrollTop=box.scrollHeight-h0}else if(L)toast('더 이전 대화가 없어요');CHOLD=0}
+async function chSend(ty,text,mon){if(!G||!G.pid){toast('먼저 게임을 시작해요');return false}if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되면 채팅할 수 있어요');return false}if(BANS.has(G.pid)){toast('채팅을 쓸 수 없는 계정이에요');return false}
+  if(Date.now()-CHLAST<(ty==='p'?20000:3500)){toast(ty==='p'?'자랑은 20초에 한 번씩 할 수 있어요':'조금 천천히 보내요');return false}
+  const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Date.now(),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
+  const id='m~'+ms.toString(36)+'~'+G.pid+'~'+(ty==='p'?'p'+chKeyMon(mon)+'~'+b:'t'+b);const name=rkName();const t=sec*1048576+await gmMac(id,name,ms,sec);
+  CHLAST=ms;const ok=await fsPut(CHB,id,name,ms,t);if(!ok){toast('보내지 못했어요 · 잠시 뒤에 다시 해요');CHLAST=0;return false}
+  chMerge([{id,pid:G.pid,name:name.slice(0,12),v:ms,ty,x,m:ty==='p'?{n:mon.n,lv:mon.lv,sh:!!mon.sh,px:mon.px}:null}]);chDraw();setTimeout(chPoll,1500);return true}
+async function chHide(o){if(!isGM())return;const k='h~'+chHK(o),sec=Math.floor(Date.now()/1000);const t=sec*1048576+await gmMac(k,'',1,sec);if(await fsPut('gmban',k,'',1,t)){CHHID.add(chHK(o));chDraw();toast('메시지를 숨겼어요 (모두에게 안 보여요)')}else toast('숨기지 못했어요')}
+const chTime=v=>{const d=new Date(v),n=new Date();const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');return d.toDateString()===n.toDateString()?hm:(d.getMonth()+1)+'/'+d.getDate()+' '+hm};
+function chName(o){const r=rkSplit(o.name);const gm=r.name.startsWith('[GM]');return `<b class="chn${gm?' gm':''}${o.pid===G.pid?' me':''}">${esc(gm?'[GM] '+r.name.slice(4):r.name)}</b>`}
+function chMonCard(m){const M=META[m.n],r=rarOf(m.n);let px='';try{if(m.px!=null&&PX[m.px])px=PX[m.px].n+' '}catch(e){}return `<button class="chmon" data-n="${encodeURIComponent(m.n)}" style="--rc:${RARC[r]}"><img src="${THUMB[m.n]||''}" alt=""><span><em>${RAR[r]}</em><b>${esc(px+M.name)}</b><small>Lv.${m.lv}${m.sh?' · <i>반짝</i>':''}</small></span></button>`}
+function chRow(o){if(CHHID.has(chHK(o)))return '';return `<div class="chr${o.pid===G.pid?' me':''}" data-id="${esc(o.id)}">${chName(o)}<small class="cht">${chTime(o.v)}</small>${isGM()?'<button class="chx" title="숨기기">숨김</button>':''}${o.ty==='p'?`<span class="chbrag">포켓몬 자랑!</span>${chMonCard(o.m)}`:''}${o.x?`<p>${esc(o.x)}</p>`:''}</div>`}
+function chDraw(onlyState){const mini=document.getElementById('chMini');if(mini){const vis=CHM.filter(o=>!CHHID.has(chHK(o))).slice(-3);
+   mini.querySelector('.chml').innerHTML=vis.length?vis.map(o=>`<div>${chName(o)} ${o.ty==='p'?'<i>'+esc(META[o.m.n].name)+' 자랑!</i>':esc(o.x)}</div>`).join(''):'<div class="chem">채팅을 눌러 친구들과 이야기해요</div>';
+   mini.querySelector('.chst').textContent=navigator.onLine?(CHUN&&!CHOPEN?'새 메시지 '+Math.min(99,CHUN):'채팅'):'채팅 · 오프라인'}
+  const d=document.getElementById('chWin');if(!d)return;d.querySelector('.chon').textContent=navigator.onLine?'연결됨':'오프라인 · 마지막 대화만 보여요';d.querySelector('.chon').classList.toggle('off',!navigator.onLine);if(onlyState)return;
+  const L=d.querySelector('#chList'),atBot=L.scrollTop+L.clientHeight>=L.scrollHeight-40;L.innerHTML=(navigator.onLine?'<button class="chmore">이전 대화 더 보기</button>':'')+(CHM.map(chRow).join('')||'<p class="chem">아직 대화가 없어요. 먼저 인사해 봐요!</p>');
+  const mb=L.querySelector('.chmore');if(mb)mb.onclick=()=>{sfx('tap');chOlder()};
+  L.querySelectorAll('.chmon').forEach(b=>b.onclick=()=>{sfx('tap');try{dexDev(decodeURIComponent(b.dataset.n))}catch(e){}});
+  L.querySelectorAll('.chx').forEach(b=>b.onclick=()=>{const id=b.closest('.chr').dataset.id;const o=CHM.find(x=>x.id===id);if(o)itAsk('이 메시지를 숨길까요?','모든 사람 화면에서 안 보이게 돼요.',()=>chHide(o))});
+  if(atBot||!L.dataset.init){L.scrollTop=L.scrollHeight;L.dataset.init=1}}
+let CHOPEN=0;
+function chOpen(){if(document.getElementById('chWin'))return;CHOPEN=1;CHUN=0;const d=document.createElement('div');d.id='chWin';
+  d.innerHTML=`<div class="chh"><b>채팅</b><span class="chon"></span><button class="chc" aria-label="닫기">✕</button></div><div id="chList"></div>
+   <div class="chin"><button class="chbr">자랑</button><input id="chTx" maxlength="60" placeholder="메시지 (60자)" autocomplete="off" enterkeyhint="send"><button class="chgo">보내기</button></div><p class="chrule">나쁜 말 · 전화번호 · 링크는 가려져요. 사이좋게 이야기해요!</p>`;
+  document.body.appendChild(d);const inp=d.querySelector('#chTx');const go=async()=>{const v=inp.value;if(!v.trim())return;sfx('tap');if(await chSend('t',v))inp.value=''};
+  d.querySelector('.chgo').onclick=go;inp.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();go()}};inp.onkeyup=e=>e.stopPropagation();
+  d.querySelector('.chbr').onclick=()=>{sfx('tap');chBragPick()};d.querySelector('.chc').onclick=()=>{sfx('tap');chClose()};
+  d.querySelector('#chList').onscroll=e=>{if(e.target.scrollTop<4&&navigator.onLine)chOlder()};chDraw();chPoll();chLoop()}
+function chClose(){CHOPEN=0;const d=document.getElementById('chWin');if(d)d.remove();chDraw(1);chLoop()}
+function chBragPick(){const all=[...G.party,...G.box].filter(m=>META[m.n]).sort((a,b)=>rarOf(b.n)-rarOf(a.n)||(b.sh?1:0)-(a.sh?1:0)||b.lv-a.lv).slice(0,60);if(!all.length){toast('자랑할 포켓몬이 없어요');return}
+  const P2=document.createElement('div');P2.id='chPick';P2.innerHTML=`<div class="chh"><b>어떤 포켓몬을 자랑할까요?</b><button class="chc">✕</button></div><input id="chBx" maxlength="30" placeholder="한마디 (안 써도 돼요)" autocomplete="off"><div class="chpl">${all.map((m,i)=>chMonCard(m).replace('class="chmon"','class="chmon" data-i="'+i+'"')).join('')}</div>`;
+  document.body.appendChild(P2);const bx=P2.querySelector('#chBx');bx.onkeydown=e=>e.stopPropagation();bx.onkeyup=e=>e.stopPropagation();P2.querySelector('.chc').onclick=()=>P2.remove();
+  P2.querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{sfx('tap');const m=all[+b.dataset.i];if(await chSend('p',bx.value.slice(0,30),m)){P2.remove();sfx('get')}})}
+function chLoop(){clearTimeout(CHT);CHT=setTimeout(async()=>{try{if(G&&document.visibilityState==='visible'&&(CHOPEN||SCENE==='over'))await chPoll()}catch(e){}chLoop()},CHOPEN?12000:90000)}
+function chMiniUpd(){let m=document.getElementById('chMini');if(!m){m=document.createElement('button');m.id='chMini';m.innerHTML='<span class="chst">채팅</span><div class="chml"></div>';m.onclick=()=>{sfx('tap');chOpen()};document.body.appendChild(m);chDraw(1)}
+  const show=G&&G.party&&G.party.length&&SCENE==='over'&&!PANEL&&!(DLG&&DLG.on)&&!document.getElementById('chWin');m.style.display=show?'':'none';m.classList.toggle('un',!!CHUN)}
+setInterval(()=>{try{chMiniUpd();if(SCENE==='battle'&&document.getElementById('chWin')){const i=document.querySelector('#chTx');if(!i||document.activeElement!==i)chClose()}}catch(e){}},500);
+addEventListener('online',()=>{chDraw();chPoll()});addEventListener('offline',()=>chDraw());
+setTimeout(()=>{try{chDraw(1);chPoll();chLoop()}catch(e){}},6000);
+(function(){const c=document.createElement('style');c.textContent=`
+#chMini{position:fixed;z-index:6;left:calc(170px + env(safe-area-inset-left));bottom:calc(6px + env(safe-area-inset-bottom));width:clamp(170px,calc(50vw - 240px),320px);padding:4px 8px 6px;border:0;text-align:left;cursor:pointer;font:12px 'Galmuri11',sans-serif;color:#fff;background:#0c1430c8;box-shadow:0 0 0 2px #1c2550,0 0 0 4px #8a96c8;display:flex;flex-direction:column;gap:2px}
+#chMini .chst{font-weight:700;color:#ffd23f;font-size:11px}#chMini.un .chst{color:#fff;background:#e0483a;align-self:flex-start;padding:0 6px;animation:pxglow 1.2s ease-in-out infinite}
+#chMini .chml div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}#chMini .chml i{font-style:normal;color:#ffd23f}
+.chn{color:#8fd0ff;margin-right:4px}.chn.gm{color:#ffd23f}.chn.me{color:#9dff8a}.chem{color:#aab;font-size:12px}
+@media (max-width:640px){#chMini{left:calc(8px + env(safe-area-inset-left));bottom:calc(6px + env(safe-area-inset-bottom));width:min(260px,60vw)}}
+#chWin,#chPick{position:fixed;z-index:60;left:calc(8px + env(safe-area-inset-left));bottom:calc(8px + env(safe-area-inset-bottom));width:min(440px,calc(100vw - 16px));height:min(78vh,560px);display:flex;flex-direction:column;font:14px 'Galmuri11',sans-serif;color:#1c2550;background:linear-gradient(#fffbe8,#f2e6c2);box-shadow:0 0 0 3px #1c2550,0 0 0 6px #ffd23f,0 0 0 9px #1c2550,0 10px 0 9px #0006}
+#chPick{z-index:61;left:auto;right:calc(8px + env(safe-area-inset-right))}
+.chh{display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(#2a3a7a,#1c2550);color:#fff}.chh b{font-size:16px;color:#ffd23f;flex:1}
+.chon{font-size:11px;color:#7cff6a}.chon.off{color:#ff8a7a}
+.chh .chc{border:0;width:30px;height:30px;font:700 16px sans-serif;color:#fff;background:linear-gradient(#ff6a6a 0 50%,#d83a3a 50%);box-shadow:0 0 0 2px #fff;cursor:pointer;border-radius:0}
+#chList{flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:6px;overscroll-behavior:contain}
+.chmore{align-self:center;border:0;padding:4px 12px;font:12px 'Galmuri11',sans-serif;color:#1c2550;background:#e6dab0;box-shadow:0 0 0 2px #1c2550;cursor:pointer;border-radius:0}
+.chr{background:#fff;padding:5px 8px;box-shadow:0 0 0 2px #c9b98a;position:relative}.chr.me{background:#eaffdc;box-shadow:0 0 0 2px #8ac070}
+.chr .chn{color:#2a5ad0}.chr .chn.gm{color:#c07a00}.chr .chn.me{color:#2a8a20}.cht{color:#8a90a8;font-size:11px}.chr p{margin:2px 0 0;word-break:break-all}
+.chx{position:absolute;right:4px;top:3px;border:0;padding:1px 6px;font:11px 'Galmuri11',sans-serif;color:#fff;background:#c0304a;cursor:pointer;border-radius:0}
+.chbrag{display:inline-block;margin-left:6px;font-size:11px;font-weight:700;color:#fff;background:#e0483a;padding:0 5px}
+.chmon{display:flex;align-items:center;gap:8px;margin-top:4px;padding:4px 10px 4px 4px;border:0;cursor:pointer;text-align:left;font-family:inherit;color:#1c2550;background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 35%,#fff),#fff);box-shadow:0 0 0 2px var(--rc),0 0 0 4px #1c2550;border-radius:0}
+.chmon img{width:52px;height:52px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 4px var(--rc))}.chmon span{display:flex;flex-direction:column}
+.chmon em{font-style:normal;font-size:11px;font-weight:700;color:#fff;background:var(--rc);padding:0 6px;align-self:flex-start;text-shadow:1px 1px 0 #0007}.chmon b{font-size:15px}.chmon small{font-size:12px;color:#5a6080}.chmon i{font-style:normal;color:#c07a00;font-weight:700}
+.chin{display:flex;gap:6px;padding:8px;background:#e6dab0;border-top:3px solid #1c2550}
+.chin input,#chBx{flex:1;min-width:0;border:0;border-radius:0;padding:8px;font:14px 'Galmuri11',sans-serif;color:#1c2550;background:#fffdf3;box-shadow:inset 0 0 0 2px #1c2550,inset 3px 3px 0 #0001;outline:none;-webkit-appearance:none}
+.chin input:focus,#chBx:focus{box-shadow:inset 0 0 0 2px #1c2550,0 0 0 3px #ffd23f}
+.chin button{border:0;border-radius:0;padding:0 12px;font:700 14px 'Galmuri11',sans-serif;color:#1c2550;cursor:pointer;background:linear-gradient(#ffe680 0 50%,#ffc21f 50%);box-shadow:0 0 0 2px #1c2550,inset 0 -3px 0 #c08a00}
+.chin .chbr{color:#fff;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%);box-shadow:0 0 0 2px #1c2550,inset 0 -3px 0 #a02a20}
+.chin button:active{transform:translateY(2px)}
+.chrule{margin:0;padding:3px 8px 6px;font-size:11px;color:#5a6080;background:#e6dab0}
+#chBx{flex:none;margin:8px}.chpl{flex:1;overflow-y:auto;padding:4px 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}`;document.head.appendChild(c)})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
