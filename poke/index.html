@@ -5300,7 +5300,7 @@ async function legCatch(f,isNew){const I=await lgImg(f.n);return new Promise(don
 // 인터넷이 되면 바로바로 주고받고, 안 되면 마지막으로 받은 대화만 보여요. 위로 올리면 이전 대화를 더 불러와요.
 // 내 포켓몬 자랑하기 · 나쁜 말 가리기 · 전화번호 · 링크 막기 · GM은 메시지 숨기기
 const CHB='chat';let CHM=[],CHOLD=0,CHNEW=0,CHT=null,CHBUSY=0,CHHID=new Set(),CHHT=0,CHLAST=0,CHUN=0;
-try{CHM=JSON.parse(localStorage.getItem('pka-chat')||'[]').filter(o=>o&&o.ms)}catch(e){CHM=[]}
+try{CHM=JSON.parse(localStorage.getItem('pka-chat')||'[]').filter(o=>o&&o.ms&&o.bd)}catch(e){CHM=[]}
 const chSave=()=>{try{localStorage.setItem('pka-chat',JSON.stringify(CHM.slice(-80)))}catch(e){}};
 const CHBAD=['시발','씨발','시바','씨바','ㅅㅂ','ㅆㅂ','병신','븅신','ㅂㅅ','개새','개색','새끼','색끼','ㅅㄲ','좆','존나','졸라','ㅈㄴ','지랄','ㅈㄹ','닥쳐','꺼져','미친','ㅁㅊ','엿먹','섹스','야동','느금','니애미','애미','애비','니엄','등신','썅','뒤져','디져','죽어','죽을래','자살','호로','멍청','바보','찐따','fuck','shit','bitch','sex'];
 function chClean(s){let t=String(s).replace(/\s+/g,' ').trim().slice(0,60);const flat=t.replace(/[\s.\-_~!?·,]/g,'').toLowerCase();
@@ -5311,23 +5311,26 @@ const chDecMon=s=>{const m=/^(.+)\.(\d+)(s?)(?:p(\d+))?$/.exec(s||'');if(!m)retu
 async function chParse(d){try{const id=decodeURIComponent(d.name.split('/').pop()),f=d.fields||{};const name=(f.name||{}).stringValue||'',v=+((f.v||{}).integerValue||0),t=+((f.t||{}).integerValue||0);
   const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1);
   if(BANS.has(pid))return null;const o={id,pid,name,v,ms:parseInt(p[1],36)||v*60000,ty};if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}else if(ty==='p'){o.m=chDecMon(body);if(!o.m)return null;o.x=p[4]?chClean(new TextDecoder().decode(acUb64(p[4]))):''}else return null;return o}catch(e){return null}}
-async function chQuery(op,val,dir,lim){const B=fsBase();if(!B||!navigator.onLine)return null;try{const r=await fetch(B.u+CHB+':runQuery?key='+B.k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],where:{fieldFilter:{field:{fieldPath:'v'},op,value:{integerValue:String(val)}}},orderBy:[{field:{fieldPath:'v'},direction:dir}],limit:lim}})});if(!r.ok)return null;const j=await r.json();const out=[];for(const x of j)if(x.document){const o=await chParse(x.document);if(o)out.push(o)}return out}catch(e){return null}}
+async function chQuery(bd,op,val,dir,lim){const B=fsBase();if(!B||!navigator.onLine)return null;try{const r=await fetch(B.u+bd+':runQuery?key='+B.k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],where:{fieldFilter:{field:{fieldPath:'v'},op,value:{integerValue:String(val)}}},orderBy:[{field:{fieldPath:'v'},direction:dir}],limit:lim}})});if(!r.ok)return null;const j=await r.json();const out=[];for(const x of j)if(x.document){const o=await chParse(x.document);if(o){o.bd=bd;out.push(o)}}return out}catch(e){return null}}
 async function chHidLoad(){if(Date.now()-CHHT<120000)return;CHHT=Date.now();try{await banLoad()}catch(e){}const L=await fsList('gmban');if(!L)return;const S=new Set();for(const x of L){if(!x.id.startsWith('h~'))continue;const sec=Math.floor(x.t/1048576);if(await gmMac(x.id,x.name,x.v,sec)!==x.t%1048576)continue;if(x.v===1)S.add(x.id.slice(2))}CHHID=S}
 const chHK=o=>o.id.split('~').slice(1,3).join('~');
 function chMerge(L){const have=new Set(CHM.map(x=>x.id));let add=0;for(const o of L)if(!have.has(o.id)){CHM.push(o);add++;if(o.pid!==G.pid)CHUN++}CHM.sort((a,b)=>a.ms-b.ms);if(CHM.length>400)CHM=CHM.slice(-400);if(add)chSave();return add}
-async function chPoll(){if(CHBUSY||!G||!navigator.onLine||!fsBase())return;CHBUSY=1;try{await chHidLoad();const last=CHM.length?CHM[CHM.length-1].v:0;
-  const L=last?await chQuery('GREATER_THAN_OR_EQUAL',last,'ASCENDING',60):await chQuery('GREATER_THAN',0,'DESCENDING',40);if(L){const n=chMerge(L);if(n)chDraw()}}catch(e){}CHBUSY=0;chDraw(1)}
+async function chPoll(){if(CHBUSY||!G||!navigator.onLine||!fsBase())return;CHBUSY=1;try{await chHidLoad();const cur=chMon(Date.now()).bd,lo=CHM.length?CHM[CHM.length-1]:null;
+  const L=lo&&lo.bd===cur?await chQuery(cur,'GREATER_THAN_OR_EQUAL',lo.v,'ASCENDING',60):await chQuery(cur,'GREATER_THAN_OR_EQUAL',0,'DESCENDING',40);if(L){const n=chMerge(L);if(n)chDraw()}}catch(e){}CHBUSY=0;chDraw(1)}
 async function chOlder(){if(CHOLD||!CHM.length)return;CHOLD=1;const box=document.querySelector('#chList');const h0=box?box.scrollHeight:0;
-  const L=await chQuery('LESS_THAN_OR_EQUAL',CHM[0].v,'DESCENDING',40);const have=new Set(CHM.map(x=>x.id));const L2=L&&L.filter(o=>!have.has(o.id));if(L2&&L2.length){const L_=L2;CHUN=Math.max(0,CHUN-L_.filter(o=>o.pid!==G.pid).length);chMerge(L_);chDraw();if(box)box.scrollTop=box.scrollHeight-h0}else if(L2)toast('더 이전 대화가 없어요');CHOLD=0}
+  const have=new Set(CHM.map(x=>x.id));let bd=CHM[0].bd||chMon(CHM[0].ms).bd,L=await chQuery(bd,'LESS_THAN_OR_EQUAL',CHM[0].v,'DESCENDING',40),L2=L&&L.filter(o=>!have.has(o.id));
+  for(let k=0;k<6&&L2&&!L2.length;k++){bd=chPrevBd(bd);L=await chQuery(bd,'GREATER_THAN_OR_EQUAL',0,'DESCENDING',40);L2=L&&L.filter(o=>!have.has(o.id))}if(L2&&L2.length){const L_=L2;CHUN=Math.max(0,CHUN-L_.filter(o=>o.pid!==G.pid).length);chMerge(L_);chDraw();if(box)box.scrollTop=box.scrollHeight-h0}else if(L2)toast('더 이전 대화가 없어요');CHOLD=0}
 // v는 2026년부터 지난 '분'(작은 숫자) · 실제 시각은 문서 이름 안의 ms에서 읽어요
-const chMin=ms=>Math.floor((ms-1767225600000)/60000);
-async function chPut(id,name,v,t){const B=fsBase();if(!B)return '연결 없음';try{const r=await fetch(B.u+CHB+'/players/'+encodeURIComponent(id)+'?key='+B.k+'&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:String(name).slice(0,12)},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});if(r.ok)return '';let m='';try{m=((await r.json()).error||{}).status||''}catch(e){}return r.status+(m?' '+m:'')}catch(e){return '인터넷'}}
+const chMon=ms=>{const d=new Date(ms);return {bd:'chat-'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),v:Math.floor((ms-new Date(d.getFullYear(),d.getMonth(),1).getTime())/60000)}};
+const chMin=ms=>chMon(ms).v;
+const chPrevBd=bd=>{const [y,m]=bd.slice(5).split('-').map(Number);const d=new Date(y,m-2,1);return 'chat-'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+async function chPut(bd,id,name,v,t){const B=fsBase();if(!B)return '연결 없음';try{const r=await fetch(B.u+bd+'/players/'+encodeURIComponent(id)+'?key='+B.k+'&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:String(name).slice(0,12)},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});if(r.ok)return '';let m='';try{m=((await r.json()).error||{}).status||''}catch(e){}return r.status+(m?' '+m:'')}catch(e){return '인터넷'}}
 async function chSend(ty,text,mon){if(!G||!G.pid){toast('먼저 게임을 시작해요');return false}if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되면 채팅할 수 있어요');return false}if(BANS.has(G.pid)){toast('채팅을 쓸 수 없는 계정이에요');return false}
   if(Date.now()-CHLAST<(ty==='p'?20000:3500)){toast(ty==='p'?'자랑은 20초에 한 번씩 할 수 있어요':'조금 천천히 보내요');return false}
   const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Date.now(),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
-  const id='m~'+ms.toString(36)+'~'+G.pid+'~'+(ty==='p'?'p'+chKeyMon(mon)+'~'+b:'t'+b);const name=rkName();const vm=chMin(ms),t=sec*1048576+await gmMac(id,name,vm,sec);
-  CHLAST=ms;const er=await chPut(id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
-  chMerge([{id,pid:G.pid,name:name.slice(0,12),v:vm,ms,ty,x,m:ty==='p'?{n:mon.n,lv:mon.lv,sh:!!mon.sh,px:mon.px}:null}]);chDraw();setTimeout(chPoll,1500);return true}
+  const id='m~'+ms.toString(36)+'~'+G.pid+'~'+(ty==='p'?'p'+chKeyMon(mon)+'~'+b:'t'+b);const name=rkName();const CMo=chMon(ms),vm=CMo.v,t=sec*1048576+await gmMac(id,name,vm,sec);
+  CHLAST=ms;const er=await chPut(CMo.bd,id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
+  chMerge([{id,pid:G.pid,name:name.slice(0,12),v:vm,ms,bd:CMo.bd,ty,x,m:ty==='p'?{n:mon.n,lv:mon.lv,sh:!!mon.sh,px:mon.px}:null}]);chDraw();setTimeout(chPoll,1500);return true}
 async function chHide(o){if(!isGM())return;const k='h~'+chHK(o),sec=Math.floor(Date.now()/1000);const t=sec*1048576+await gmMac(k,'',1,sec);if(await fsPut('gmban',k,'',1,t)){CHHID.add(chHK(o));chDraw();toast('메시지를 숨겼어요 (모두에게 안 보여요)')}else toast('숨기지 못했어요')}
 const chTime=v=>{const d=new Date(v),n=new Date();const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');return d.toDateString()===n.toDateString()?hm:(d.getMonth()+1)+'/'+d.getDate()+' '+hm};
 function chName(o){const r=rkSplit(o.name);const gm=r.name.startsWith('[GM]');return `<b class="chn${gm?' gm':''}${o.pid===G.pid?' me':''}">${esc(gm?'[GM] '+r.name.slice(4):r.name)}</b>`}
@@ -5389,6 +5392,8 @@ setTimeout(()=>{try{chDraw(1);chPoll();chLoop()}catch(e){}},6000);
 .chin button:active{transform:translateY(2px)}
 .chrule{margin:0;padding:3px 8px 6px;font-size:11px;color:#5a6080;background:#e6dab0}
 #chBx{flex:none;margin:8px}.chpl{flex:1;overflow-y:auto;padding:4px 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}`;document.head.appendChild(c)})();
+// 서버 규칙: 숫자(v)는 100000까지만 · 골드 선물이 크면 10만씩 나눠서 보내요
+{const _gs=gmSend;gmSend=async function(to,kind,key,v){if(kind==='g'&&v>100000){let left=Math.min(v,5000000),ok=true;while(left>0){const c=Math.min(100000,left);ok=(await _gs.call(this,to,kind,key,c))&&ok;left-=c}return ok}return _gs.apply(this,arguments)}}
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
