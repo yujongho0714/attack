@@ -3491,11 +3491,11 @@ function wbSquadOpen(){return new Promise(done=>{const n=wbBoss(),T=META[n].type
 // ===== 랭킹 (사이드메뉴): 획득수 · 진행도 · 월드보스 · 격투 탑 · 이름 왼쪽에 대표 포켓몬 =====
 // 대표 포켓몬은 데리고 다니는 포켓몬(없으면 파티 첫 번째). 서버 칸을 늘리지 않으려고 이름 뒤에 「#번호」로 붙여 보내요 (이름 8자 + #2자리)
 const repTag=()=>{try{const m=(typeof folMon==='function'&&folMon())||G.party[0];if(!m)return'';const d=META[m.n].dex;return '#'+d.toString(36)+(m.shiny?'*':'')}catch(e){return''}};
-let rkName=()=>{const t=repTag();return ((G.name||'트레이너').slice(0,12-t.length))+t};
+let rkName=()=>{const t=repTag();return ((String(G.name||'').split('#')[0]||'트레이너').slice(0,12-t.length))+t};
 function rkSplit(raw){const i=raw.lastIndexOf('#');if(i<0)return{name:raw,rep:null};const tag=raw.slice(i+1),sh=tag.endsWith('*'),d=parseInt(sh?tag.slice(0,-1):tag,36);return{name:raw.slice(0,i),rep:BYDEX[d]||null,sh}}
 // 보내는 이름에 대표 포켓몬 붙이기 (월드보스 · 랭킹 둘 다)
-{const _wp=wbPush;wbPush=async function(){const n0=G.name;try{G.name=rkName();return await _wp.apply(this,arguments)}finally{G.name=n0}}}
-{const _rp=rankPush;rankPush=async function(){const n0=G.name;try{G.name=rkName();return await _rp.apply(this,arguments)}finally{G.name=n0}}}
+{const _wp=wbPush;wbPush=async function(){const n0=String(G.name||'').split('#')[0];try{G.name=rkName();return await _wp.apply(this,arguments)}finally{G.name=n0}}}
+{const _rp=rankPush;rankPush=async function(){const n0=String(G.name||'').split('#')[0];try{G.name=rkName();return await _rp.apply(this,arguments)}finally{G.name=n0}}}
 RKB.dex={n:'획득 수',k:()=>'dex',v:()=>Object.keys(G.dex.c||{}).length,u:'마리',d:'도감에 잡은 포켓몬 수'};
 RKB.adv.n='진행도';RKB.tower.n='격투 탑';
 const RKT=[['dex','획득 수'],['adv','진행도'],['wb','월드보스'],['tower','격투 탑']];
@@ -4284,7 +4284,7 @@ function slots(ready){const L=LS.get('pka-slots',[]);bt('tSlots').innerHTML=L.ma
   bt('tSlots').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const k=decodeURIComponent(b.dataset.del);if(!confirm(k+'의 기록을 지울까요?'))return;try{localStorage.removeItem('pka-save:'+k)}catch(e){}LS.set('pka-slots',LS.get('pka-slots',[]).filter(x=>x!==k));slots(ready)})}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function other(){try{const L=await UP.index();const b=L.filter(x=>x.k==='bed'||x.k==='glb').length;return b?`<br><small>(3D 포켓몬 ${b}마리는 있지만, 이 게임은 레조넌스 팩의 움직이는 포켓몬만 써요)</small>`:''}catch(e){return''}}
-function start(sv,name){G=sv||null;if(!G){newGame();G.name=name}G.opt=G.opt||{catchNew:true};G.flags=G.flags||{};G.party=(G.party||[]).filter(m=>META[m.n]);G.box=(G.box||[]).filter(m=>META[m.n]);G.got=G.got||{};G.beat=G.beat||{};
+function start(sv,name){G=sv||null;if(!G){newGame();G.name=name}G.opt=G.opt||{catchNew:true};G.flags=G.flags||{};if(G.name)G.name=String(G.name).split('#')[0]||G.name;/* 포켓몬 자료가 아직 없는 포켓몬은 버리지 않고 맡겨 뒀다가 자료가 생기면 보관함으로 돌려줘요 */G.hold=(G.hold||[]).concat((G.party||[]).filter(m=>m&&!META[m.n]),(G.box||[]).filter(m=>m&&!META[m.n]));G.party=(G.party||[]).filter(m=>m&&META[m.n]);G.box=(G.box||[]).filter(m=>m&&META[m.n]);if(G.hold.length){const back=G.hold.filter(m=>META[m.n]);G.hold=G.hold.filter(m=>!META[m.n]);G.box.push(...back)}G.got=G.got||{};G.beat=G.beat||{};
   if(G.party.length===0&&G.box.length)G.party.push(G.box.shift());if(G.rival&&!META[G.rival.n])G.rival={n:pick(SPECIES)};
   for(const k in AREAS)delete AREAS[k];buildLoc();if(!sv&&RESOK){G.mapv=2;const A0=genArea(0);G.x=A0.spawn.x;G.y=A0.spawn.y;G.dir=0;G.heal={a:0,x:A0.spawn.x,y:A0.spawn.y}}else resFixSave();for(const m of G.party)askEvo(META[m.n].dex);
   bt('title').classList.remove('on');SCENE='over';place(G.a,G.x,G.y,G.dir);refreshSpr();hud();
@@ -4769,7 +4769,7 @@ let GMBUSY=0;
 async function gmRecv(){if(GMBUSY||!G||!G.name||!navigator.onLine)return;const c=wbCfg();if(!c)return;GMBUSY=1;G.gmg=G.gmg||{};const got=[];
   try{for(const off of [0,1]){const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${gmBoard(off)}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)continue;const j=await r.json();
     for(const d of j.documents||[]){const id=decodeURIComponent(d.name.split('/').pop());if(G.gmg[id])continue;const name=(d.fields.name||{}).stringValue||'',v=+((d.fields.v||{}).integerValue||0),t=+((d.fields.t||{}).integerValue||0);
-      const all=name==='*모두';if(!all&&name!==String(G.name).slice(0,12))continue;const sec=Math.floor(t/1048576),mac=t%1048576;if(Date.now()/1000-sec>45*86400)continue;if(all&&G.t0&&sec*1000<G.t0-86400e3)continue;
+      const all=name==='*모두';if(!all&&name.split('#')[0].trim()!==String(G.name).split('#')[0].slice(0,12))continue;const sec=Math.floor(t/1048576),mac=t%1048576;if(Date.now()/1000-sec>45*86400)continue;if(all&&G.t0&&sec*1000<G.t0-86400e3)continue;
       if(await gmMac(id,name,v,sec)!==mac)continue;const [,kind,key]=id.split('~');G.gmg[id]=1;got.push([kind,key,v])}}}catch(e){}
   if(got.length){save();closePanel(1);const L=[];for(const [kind,key,v] of got){try{
       const lb=await gmApply(kind,key,v);if(lb)L.push(lb)}catch(e){}}
@@ -4778,7 +4778,7 @@ setInterval(()=>{try{if(G&&SCENE==='over'&&!DLG.on&&!PANEL)gmRecv()}catch(e){}},
 // ---------- 운영자 선물 창 (관장님 GM: 누구에게나 · 나에게 · 운영자 임명 / 임명된 운영자: 나에게 골드 · 포켓몬) ----------
 const GMF={to:'',all:0,self:0,tab:'m',sel:null,q:'',lv:50,sh:0,px:0,n:1,names:null,opn:'',opw:'',ops:null};
 async function gmOpen(){if(!isGM()&&!isOp()){toast('운영자만 쓸 수 있어요');return}if(!isGM()){GMF.self=1;if(!['m','p','g'].includes(GMF.tab))GMF.tab='m'}
-  if(isGM()&&!GMF.names){GMF.names=[];try{const L=await rankFetch('dex');GMF.names=[...new Set((L||[]).map(x=>rkSplit(x.name).name.trim()).filter(n=>n&&!isGMName(n)))].slice(0,60)}catch(e){}}gmDraw()}
+  if(isGM()&&!GMF.names){GMF.names=[];try{const L=await rankFetch('dex');GMF.names=[...new Set((L||[]).map(x=>rkSplit(x.name).name.split('#')[0].trim()).filter(n=>n&&!isGMName(n)))].slice(0,60)}catch(e){}}gmDraw()}
 const gmTarget=()=>GMF.self?'나':GMF.all?'모두':GMF.to.trim();
 function gmDraw(){const F=GMF,gm=isGM();let list='';const q=F.q.trim();const TB=gm?[['m','포켓몬'],['i','아이템'],['p','카드팩'],['g','돈'],['op','운영자 임명']]:[['m','포켓몬'],['p','카드팩'],['g','돈']];
   const tabs=`<div class="tabs">${TB.map(([k,n])=>`<button data-tb="${k}" class="${F.tab===k?'on':''}">${n}</button>`).join('')}</div>`;
