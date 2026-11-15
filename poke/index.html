@@ -1436,9 +1436,11 @@ const RSTAT=[0,.04,.08,.12,.16,.20,.25];const rstat=n=>{try{return RSTAT[rarOf(n
 // ===== 환생 레벨: 환생할 때마다 포켓몬 Lv.1부터 · 화면 표시는 +100씩 (1환생 Lv.101~200) · 능력치는 환생마다 +25% =====
 const REBSTAT=.4;
 function isMine(m){return !!(G&&m&&((G.party&&G.party.indexOf(m)>=0)||(G.box&&G.box.indexOf(m)>=0)))}
-function dLv(m){if(!m)return 0;return m.lv+((G&&G.rebirth&&(isMine(m)||m.rbf))?100*G.rebirth:0)}
-function resetAllLv(){if(!G)return;for(const m of [...(G.party||[]),...(G.box||[])]){if(!m||!m.n)continue;m.lv=1;m.exp=expAt(1);try{m.hp=stOf(m)[0]}catch(e){}}}
-let stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=(RSTAT[rarM(m)]||0)+(m.lb||0)*.04;if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.st){const t=m.st;if(t.hp)s[0]=Math.round(s[0]*(1+t.hp/100));if(t.atk){s[1]=Math.round(s[1]*(1+t.atk/100));s[3]=Math.round(s[3]*(1+t.atk/100))}if(t.def){s[2]=Math.round(s[2]*(1+t.def/100));s[4]=Math.round(s[4]*(1+t.def/100))}}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}if(G&&G.rebirth&&(isMine(m)||m.rbf)){const f=1+REBSTAT*G.rebirth;for(let i=0;i<6;i++)s[i]=Math.round(s[i]*f)}return s};
+// 거래로 받은 포켓몬(m.rbx): 내 환생이 더 높아도 보낸 친구의 환생 기준(레벨·능력치)을 그대로 써요
+function rbOf(m){const r=(G&&G.rebirth)||0;return(m&&m.rbx!=null)?Math.min(+m.rbx||0,r):r}
+function dLv(m){if(!m)return 0;return m.lv+((G&&G.rebirth&&(isMine(m)||m.rbf))?100*rbOf(m):0)}
+function resetAllLv(){if(!G)return;for(const m of [...(G.party||[]),...(G.box||[])]){if(!m||!m.n)continue;delete m.rbx;m.lv=1;m.exp=expAt(1);try{m.hp=stOf(m)[0]}catch(e){}}}
+let stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=(RSTAT[rarM(m)]||0)+(m.lb||0)*.04;if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.st){const t=m.st;if(t.hp)s[0]=Math.round(s[0]*(1+t.hp/100));if(t.atk){s[1]=Math.round(s[1]*(1+t.atk/100));s[3]=Math.round(s[3]*(1+t.atk/100))}if(t.def){s[2]=Math.round(s[2]*(1+t.def/100));s[4]=Math.round(s[4]*(1+t.def/100))}}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}if(G&&G.rebirth&&(isMine(m)||m.rbf)){const f=1+REBSTAT*rbOf(m);for(let i=0;i<6;i++)s[i]=Math.round(s[i]*f)}return s};
 const alive=()=>G.party.filter(m=>m.hp>0);
 const BS={on:0,me:null,foe:null,fx:[],bg:'meadow',ball:null};const bt=id=>document.getElementById(id);
 function boxHtml(m,mine){const S=stOf(m),r=Math.max(0,m.hp/S[0]);const col=r>.5?'#3be06a':r>.2?'#ffc83a':'#ff4a3a';const M=META[m.n];const ex=mine?(m.exp-expAt(m.lv))/Math.max(1,expAt(m.lv+1)-expAt(m.lv)):0;
@@ -4755,7 +4757,9 @@ body.inb #rewBar{display:none!important}@media (orientation:landscape){#rewBar{t
 // ===== 포켓몬 교환: 친구에게 QR로 포켓몬 보내기 (보내면 내 쪽에서는 사라져요 · 같은 QR은 한 번만 받아요) =====
 const monPack=m=>({n:m.n,lv:m.lv,exp:m.exp,iv:m.iv,moves:m.moves,px:m.px,sh:m.sh?1:0,nick:m.nick,lb:m.lb||0});
 // 거래 규칙: 받는 친구의 제일 높은 레벨보다 높은 포켓몬을 받으면 그 친구 레벨에 맞춰 내려가요 (보낸 쪽 손해)
-function trLvFix(m){try{const mx=Math.max(1,...[...G.party,...G.box].map(x=>x.lv||1));if((m.lv||1)>mx){const o=m.lv;m.lv=mx;m.exp=expAt(mx);m.hp=stOf(m)[0];return o}}catch(e){}return 0}
+// 보낸 친구의 환생 횟수(srcRb)가 나보다 적으면, 그 친구 기준(레벨·능력치)으로 받아요
+function trRbFix(m,v){try{const r=(v===undefined||v===null||v==='')?NaN:+v;const mine=(G&&G.rebirth)||0;if(!isNaN(r)&&r>=0&&r<mine){m.rbx=r;m.hp=stOf(m)[0];return 1}}catch(e){}return 0}
+function trLvFix(m){if(m&&m.rbx!=null)return 0;try{const mx=Math.max(1,...[...G.party,...G.box].map(x=>x.lv||1));if((m.lv||1)>mx){const o=m.lv;m.lv=mx;m.exp=expAt(mx);m.hp=stOf(m)[0];return o}}catch(e){}return 0}
 // 레벨이 내려간 포켓몬은 접두사도 받은 아이 기준으로 새로 뽑아요 (슬롯 애니메이션)
 function pxSlot(m){return new Promise(async done=>{try{const old=pxOf(m);const o=document.createElement('div');o.id='pxOv';
   o.innerHTML=`<div class="pxwin2"><div class="pxt2">🎰 접두사 새로 뽑기 · ${esc(META[m.n].name)}</div><div class="pxcur" style="--pc:${old?PXC[old.g]:'#8a9aa0'}"><u>${old?PXG[old.g]:'-'}</u><b>${old?old.n:'없음'}</b><small>두근두근…</small></div><p class="pxh2">거래로 레벨이 내려간 포켓몬은 <b>접두사도 새로 정해져요.</b> 받은 친구의 난이도 · 환생 기준으로 나와요.</p><div class="wbt"><button id="pxSk">⏭ 스킵</button></div></div>`;document.body.appendChild(o);
@@ -4775,14 +4779,14 @@ function tradeOpen(){if(!G)return;const all=[...G.party.map((m,i)=>({m,w:'p',i})
     p.querySelector('#trScan').onclick=()=>{closePanel(1);xferScan()};
     p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const x=all[+b.dataset.k];sfx('tap');itAsk('<b>'+nm(x.m)+'</b>을(를) 친구에게 보낼까요?','보내면 내 쪽에서는 사라져요. QR 화면에서 「보내기 취소」를 누르면 되돌릴 수 있어요.',()=>tradeSend(x.m))})})}
 async function tradeSend(m){if(typeof qrcode==='undefined'||typeof CompressionStream==='undefined'){toast('이 폰에서는 QR 보내기를 못 해요 (크롬 최신 버전 필요)');return}
-  const tok=Date.now().toString(36)+Math.random().toString(36).slice(2,7);const txt=await qrPack('PKT1',{k:'pkt',t:tok,from:(G.name||'').slice(0,8),m:monPack(m)});
+  const tok=Date.now().toString(36)+Math.random().toString(36).slice(2,7);const txt=await qrPack('PKT1',{k:'pkt',t:tok,from:(G.name||'').slice(0,8),m:Object.assign(monPack(m),{rb:rbOf(m)})});
   const wasP=G.party.includes(m);G.party=G.party.filter(x=>x!==m);G.box=G.box.filter(x=>x!==m);G.trOut=G.trOut||[];G.trOut.push({t:tok,d:Date.now(),n:m.n});save();try{refreshSpr()}catch(e){}closePanel(1);
   qrShow(nm(m)+' 보내기',txt,`<p>친구 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 이 화면을 비춰요.</p>`,[['친구가 받았어요 (닫기)',()=>{xfClose();toast(nm(m)+'을(를) 친구에게 보냈어요!')},'main'],['보내기 취소 (되돌리기)',()=>{(wasP&&G.party.length<6?G.party:G.box).push(m);G.trOut=(G.trOut||[]).filter(x=>x.t!==tok);save();try{refreshSpr()}catch(e){}xfClose();toast(nm(m)+'을(를) 되돌렸어요')}]])}
 async function tradeApply(t){let d;try{d=await qrUnpack(t)}catch(e){toast('교환 QR을 읽다가 실패했어요');return}if(!d||d.k!=='pkt'||!d.m||!META[d.m.n]){toast('교환 QR이 아니에요');return}
   G.usedT=G.usedT||{};if(G.usedT[d.t]){toast('이미 받은 포켓몬이에요 (같은 QR은 한 번만)');return}if((G.trOut||[]).some(x=>x.t===d.t)){toast('내가 보낸 QR이에요');return}
-  const m=monUnpack(d.m);m.from=d.from||'친구';G.usedT[d.t]=1;const lvOld=trLvFix(m);const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
+  const m=monUnpack(d.m);m.from=d.from||'친구';G.usedT[d.t]=1;const rbFx=trRbFix(m,d.m.rb);const lvOld=trLvFix(m);const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
   if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m);save();return}G.box.push(m);save();try{refreshSpr()}catch(e){}
-  try{await CardPack.open({rar:rarM(m),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)'+(lvOld?' · Lv.'+lvOld+' → Lv.'+m.lv+'로 내려갔어요 (내 레벨에 맞춰요)':''));try{spAdd(5)}catch(e){}if(lvOld)await pxSlot(m)}
+  try{await CardPack.open({rar:rarM(m),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)'+(rbFx?' · 보낸 친구 레벨 기준 Lv.'+dLv(m)+'로 받았어요':'')+(lvOld?' · Lv.'+lvOld+' → Lv.'+m.lv+'로 내려갔어요 (내 레벨에 맞춰요)':''));try{spAdd(5)}catch(e){}if(lvOld)await pxSlot(m)}
 
 // ===== 친구 대전: 내 팀 QR을 보여 주고, 친구 팀 QR을 찍으면 그 팀과 배틀 · 이기면 승리 +1 (같은 친구는 하루 3번까지) =====
 async function pvpMine(){if(!G)return;if(typeof qrcode==='undefined'||typeof CompressionStream==='undefined'){toast('이 폰에서는 QR을 못 만들어요');return}
@@ -4804,7 +4808,7 @@ try{RKB.pvp={n:'친구 대전',k:()=>'pvp',v:()=>G.pvpW||0,u:'승',d:'친구 팀
 // QR 옮기기 창 · 컨텐츠에 추가
 {const _xo=xferOpen;xferOpen=function(){_xo.apply(this,arguments);try{const pb=document.querySelector('.panel .pb');if(pb&&!pb.querySelector('#trBox'))pb.insertAdjacentHTML('beforeend',`<div class="hcard" id="trBox"><b>포켓몬 교환 · 친구 대전</b><p>친구에게 포켓몬을 QR로 보내거나, 내 팀 QR로 친구와 대전해요. <b>받는 친구의 제일 높은 레벨보다 높은 포켓몬은 그 친구 레벨에 맞춰 내려가고, 접두사도 새로 뽑혀요 🎰</b> 받을 때는 위의 「카메라로 QR 찍기」로 찍으면 돼요.</p><div class="wbt"><button class="main" id="trGo">포켓몬 보내기</button><button id="pvGo">내 팀 QR (대전)</button></div></div>`);
   const a=document.getElementById('trGo');if(a)a.onclick=()=>{sfx('tap');closePanel(1);tradeOpen()};const b=document.getElementById('pvGo');if(b)b.onclick=()=>{sfx('tap');closePanel(1);pvpMine()}}catch(e){}}}
-try{HUB.push({k:'trade',n:'포켓몬 교환',d:'친구에게 포켓몬을 QR로 보내요. 받는 친구는 QR 옮기기 → 카메라로 QR 찍기. 보내면 내 쪽에서는 사라지고, 같은 QR은 한 번만 받아요. 받는 친구의 제일 높은 레벨보다 높은 포켓몬은 그 친구 레벨에 맞춰 내려가고 접두사도 슬롯으로 새로 뽑혀요 (보낸 쪽 손해).',st:()=>'',go:[['포켓몬 보내기',()=>tradeOpen()],['친구 QR 받기',()=>xferScan()]]});
+try{HUB.push({k:'trade',n:'포켓몬 교환',d:'친구에게 포켓몬을 QR로 보내요. 받는 친구는 QR 옮기기 → 카메라로 QR 찍기. 보내면 내 쪽에서는 사라지고, 같은 QR은 한 번만 받아요. 받는 친구의 제일 높은 레벨보다 높은 포켓몬은 그 친구 레벨에 맞춰 내려가고 접두사도 슬롯으로 새로 뽑혀요 (보낸 쪽 손해). 나보다 환생이 적은 친구가 보내 준 포켓몬은 그 친구의 레벨·능력치 기준 그대로 받아요 (내 환생 보너스가 붙지 않아요).',st:()=>'',go:[['포켓몬 보내기',()=>tradeOpen()],['친구 QR 받기',()=>xferScan()]]});
   HUB.push({k:'pvp',n:'친구 대전',d:'내 팀 QR을 친구에게 보여 주고, 친구 팀 QR을 찍으면 그 팀과 배틀! 이기면 친구 대전 1승 (같은 친구는 하루 3번까지) · 랭킹에도 올라가요. 져도 돈을 잃지 않고 체력은 원래대로.',st:()=>'친구 대전 '+(G.pvpW||0)+'승',go:[['내 팀 QR',()=>pvpMine()],['친구 팀 QR 찍기',()=>xferScan()]]});HUBIC.trade='ic_gift';HUBIC.pvp='ic_rank'}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`
 .trg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:8px 4px}
@@ -6673,7 +6677,7 @@ function gpSkill(){try{const p=document.querySelector('.panel');if(!p||p.querySe
 (function(){try{
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 // ---------------- 공통: 포켓몬 한 마리를 짧은 글자로 (문서 이름 안에 담아요) ----------------
-const pk=m=>[String(m.n).replace(/^sc:/,'').replace(/\//g,'_'),m.lv,m.sh?1:0,m.px==null?'':m.px,m.lb||0,m.fr==null?'':m.fr,m.fx==null?'':m.fx,m.gift?1:0,(m.iv||[]).join('-'),(m.moves||[]).join(','),m.uid||''].join('|');
+const pk=m=>[String(m.n).replace(/^sc:/,'').replace(/\//g,'_'),m.lv,m.sh?1:0,m.px==null?'':m.px,m.lb||0,m.fr==null?'':m.fr,m.fx==null?'':m.fx,m.gift?1:0,(m.iv||[]).join('-'),(m.moves||[]).join(','),m.uid||'',rbOf(m)].join('|');
 const upk=s=>{const a=String(s).split('|');const n='sc:'+(a[0]||'').replace(/_/g,'/');if(!META[n])return null;const m=mkMon(n,Math.max(1,Math.min(100,+a[1]||1)));
   if(+a[2])m.sh=1;if(a[3]!=='')m.px=+a[3];if(+a[4])m.lb=+a[4];if(a[5]!==''&&META[n].form)m.fr=+a[5];if(a[6]!=='')m.fx=+a[6];if(+a[7])m.gift=1;
   const iv=(a[8]||'').split('-').map(Number);if(iv.length===6&&iv.every(x=>x>=0&&x<=31))m.iv=iv;const mv=(a[9]||'').split(',').filter(x=>x&&MV_OK(x));if(mv.length)m.moves=mv.slice(0,4);
@@ -6801,7 +6805,7 @@ async function tradeStep(o){const ids=Object.values(o.mem).filter(m=>m.alive&&m.
   if(found.some(x=>!x)){RM.done=1;rmLeave(1);try{closePanel(1)}catch(e){}await say(['올렸던 포켓몬이 없어져서 거래를 취소했어요.']);return}
   if(own.length-found.length+th.mons.length<1){RM.done=1;rmLeave(1);return}
   mlHint('t');G.party=G.party.filter(x=>!found.includes(x));G.box=(G.box||[]).filter(x=>!found.includes(x));
-  const got=[],fixed=[];for(const s of th.mons){const m=upk(s);if(!m)continue;m.from=o.mem[other].name;const lvOld=trLvFix(m);const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m))soulFrom(m);else{(G.party.length<6?G.party:G.box).push(m);if(lvOld)fixed.push(m)}got.push(nm(m)+(lvOld?' (Lv.'+lvOld+'→'+m.lv+')':''))}
+  const got=[],fixed=[];for(const s of th.mons){const m=upk(s);if(!m)continue;m.from=o.mem[other].name;const rbFx=trRbFix(m,String(s).split('|')[11]);const lvOld=trLvFix(m);const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m))soulFrom(m);else{(G.party.length<6?G.party:G.box).push(m);if(lvOld)fixed.push(m)}got.push(nm(m)+(rbFx?' (친구 기준 Lv.'+dLv(m)+')':'')+(lvOld?' (Lv.'+lvOld+'→'+m.lv+')':''))}
   if(!G.party.length&&G.box.length)G.party.push(G.box.shift());mlTick();try{G.invW&&(G.invW.d='')}catch(e){}save();try{refreshSpr()}catch(e){}try{spAdd(5)}catch(e){}
   RM.done=1;rmLeave(0);sfx('badge');for(const fm of fixed)await pxSlot(fm);await say(['<b>거래 완료!</b>',(found.length?'보낸 포켓몬 '+found.length+'마리 · ':'')+(got.length?'받은 포켓몬: <b>'+got.map(esc).join(', ')+'</b>':'받은 포켓몬 없음')])}
 
