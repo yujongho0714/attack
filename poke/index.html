@@ -1994,7 +1994,7 @@ function bagOpen(tab){if(SCENE!=='over')return;
   <div style="margin-top:10px"><button class="it" id="bgPk">🎴 카드팩 가방${pk?' ('+pk+'장)':''}</button><button class="it" id="bgGift">🎁 선물 가방${(G.gifts||[]).length?' ('+G.gifts.length+')':''}</button></div>`,null,p=>{
     bagItBind(p);
     p.querySelectorAll('[data-bt]').forEach(b=>b.onclick=()=>{sfx('tap');bagOpen(+b.dataset.bt)});
-    p.querySelectorAll('[data-card]').forEach(b=>b.onclick=()=>{sfx('tap');recOpen(b.dataset.card,()=>bagOpen())});
+    p.querySelectorAll('[data-card]').forEach(b=>b.onclick=()=>{sfx('tap');cardUse(b.dataset.card,()=>bagOpen())});
     const a=p.querySelector('#bgPk');if(a)a.onclick=()=>{closePanel(1);try{packOpenUI()}catch(e){}};
     const g=p.querySelector('#bgGift');if(g)g.onclick=()=>{closePanel(1);giftOpen()}})}
 async function evolveAfterMenu(){closePanel(1);SCENE='battle';showBattleUI(1);BS.on=1;await evolveCheck();showBattleUI(0);BS.on=0;SCENE='over';refreshSpr();save()}
@@ -2051,9 +2051,7 @@ function giftOpen(tab){if(SCENE!=='over')return;if(typeof tab==='number')GTAB=ta
 function askNum(){return new Promise(r=>{openPanel('본인 번호',`<p>내 휴대폰 번호를 써 주세요.<br><small>폰이 없으면 도장에서 받은 <b>원생 번호</b>를 써요. 출석 문자의 부모님 번호가 아니에요!</small></p><div class="nw"><input id="nIn" inputmode="numeric" placeholder="01012345678" value="${G.num||''}"><button id="nOk" class="it">확인</button></div>`,r,p=>{p.querySelector('#nOk').onclick=()=>{const v=normNum(p.querySelector('#nIn').value);if(v.length<4){toast('번호를 다시 확인해 주세요');return}G.num=v;save();closePanel(1);r()}})})}
 async function useGift(i){const g=G.gifts[i];if(!g)return;
   if(g.kind==='P'){const n=BYDEX[g.id];const m=mkMon(n,Math.max(g.lv,1));if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0];G.forms=G.forms||{};G.forms[g.f]=1}m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;if(!monCapOk(m)){soulFrom(m);G.gifts.splice(i,1);save();closePanel(1);await say(['<b>'+nm(m)+'</b>은(는) 이미 '+MONCAP+'마리라서 영혼 1개로 바뀌었어요. 영혼 합성에서 써요!']);return}if(G.party.length<6)G.party.push(m);else G.box.push(m);G.gifts.splice(i,1);save();closePanel(1);sfx('lv');refreshSpr();await say([{t:'🎁 <b>'+nm(m)+'</b>(이)가 동료가 됐어요! '+(G.party.includes(m)?'':'(보관함으로 갔어요)'),f:[n,'Joyous']}]);return}
-  const id=GMOVES[g.id][0],mvv=mv(id);openPanel(mvv.name+' 가르치기',`<p>누구에게 가르칠까요? <small>(${TN[mvv.type]} · 위력 ${mvv.pw})</small></p><button class="it" id="recB" style="width:100%">추천 포켓몬 보기 (가진 것 · 없는 것)</button>${G.party.map((m,j)=>`<div class="row"><span>${nm(m)} Lv.${m.lv} <small>${m.moves.map(x=>mv(x).name).join(', ')}</small></span><button data-p="${j}" ${m.moves.includes(id)?'disabled':''}>선택</button></div>`).join('')}`,giftOpen,p=>{
-    const rb=p.querySelector('#recB');if(rb)rb.onclick=()=>recOpen(id,()=>giftOpen());p.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const m=G.party[+b.dataset.p];if(m.moves.length<4){m.moves.push(id);done(m)}else{openPanel('잊을 기술 고르기',m.moves.map((x,k)=>`<div class="row"><span>${mv(x).name} <small>Lv.${mlv(m,x)}</small></span><button data-f="${k}">잊기</button></div>`).join(''),giftOpen,q=>q.querySelectorAll('[data-f]').forEach(c=>c.onclick=()=>{m.moves[+c.dataset.f]=id;done(m)}))}})});
-  function done(m){G.gifts.splice(i,1);save();closePanel(1);sfx('lv');say([{t:'<b>'+nm(m)+'</b>(은)는 <b>'+mvv.name+'</b>을(를) 배웠다!',f:[m.n,'Joyous']}])}}
+  const id=GMOVES[g.id][0];cardUse(id,giftOpen)}
 function packFor(g){try{if(g.kind==='P'){const n=g.f&&META[g.f]?g.f:BYDEX[g.id],M=META[n];return CardPack.open({rar:g.rar,sh:g.sh,kind:'P',name:M.name,sub:'Lv.'+g.lv+' · '+M.types.map(t=>TN[t]).join('/'),img:faceUrl(n,'Normal'),col:TCOL[M.types[0]]})}
   const mm=GMOVES[g.id],mvv=mv(mm[0]);return CardPack.open({rar:g.rar,kind:'M',name:mvv.name,sub:TN[mvv.type]+' · 위력 '+(mvv.pw||'-'),col:TCOL[mvv.type]})}catch(e){console.warn(e);return Promise.resolve()}}
 
@@ -2597,19 +2595,98 @@ function rmLeft(i){return RMMAX-rmRec(i).n}function rmUse(i){rmRec(i).n++;save()
 function recFor(id){const v=mv(id);if(!v)return[];const out=[];for(const n of SPECIES){const M=META[n];if(!M||M.form)continue;const learn=(M.moves||[]).some(x=>x.id===id);const st=M.types.includes(v.type);if(!learn&&!st)continue;
     const s=M.stats||M.s||[50,50,50,50,50,50];const atk=v.ph?s[1]:s[3];out.push({n,learn,st,sc:atk*(st?1.5:1)*(learn?1.2:1)+s[5]*.2})}
   return out.sort((a,b)=>b.sc-a.sc)}
-function recOpen(id,back){const v=mv(id),L=recFor(id),own=[...G.party.map(m=>({m,w:'party'})),...G.box.map(m=>({m,w:'box'}))];
-  const mine=[],not=[];for(const r of L){const o=own.filter(x=>(META[x.m.n].base||x.m.n)===r.n);if(o.length)o.forEach(x=>mine.push({r,...x}));else not.push(r)}
-  const tag=r=>`${r.st?'<i class="rt">같은 타입 ×1.5</i>':''}${r.learn?'<i class="rl">원래 배우는 기술</i>':''}`;
-  openPanel(v.name+' · 추천 포켓몬',`<div class="recH"><span class="tyb" style="background:${TCOL[v.type]}">${TN[v.type]}</span> 위력 ${v.pw||'-'} · ${v.ph?'물리':'특수'} <small>(${v.ph?'공격':'특수공격'}이 높을수록 세요)</small></div>
-    <h4>가지고 있는 포켓몬 ${mine.length}</h4>${mine.length?mine.slice(0,40).map((x,j)=>`<div class="row"><span><img class="rf" src="${faceUrl(x.m.n,'Normal')}"> <b>${nm(x.m)}</b> Lv.${x.m.lv} ${tag(x.r)}<small>${x.w==='box'?' · 보관함':''}</small></span><button data-t="${j}" ${x.m.moves.includes(id)?'disabled':''}>${x.m.moves.includes(id)?'이미 앎':'바로 가르치기'}</button></div>`).join(''):'<small>아직 없어요</small>'}
-    <h4>아직 없는 포켓몬</h4>${not.slice(0,30).map(r=>`<div class="row"><span><img class="rf ${G.dex.s[META[r.n].dex]?'':'unk'}" src="${faceUrl(r.n,'Normal')}"> <b>${G.dex.s[META[r.n].dex]?META[r.n].name:'???'}</b> ${tag(r)}</span><button data-d="${r.n}">도감 보기</button></div>`).join('')}`,back,p=>{
-    p.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const x=mine[+b.dataset.t];teachTo(x.m,id,()=>recOpen(id,back))});
+// ===== 공용 확인창 · 안내창 (아이템/기술 카드 사용 확인 · 사용 결과) =====
+function ovBox(title,body,btns){return new Promise(res=>{const d=document.createElement('div');d.id='itInfo';d.style.zIndex=90;
+  d.innerHTML=`<div class="iic" style="max-height:88vh;overflow:auto"><div class="iih"><b>${title}</b></div><div style="margin:8px 0;line-height:1.55">${body}</div><div class="wbt" style="${btns.col?'flex-direction:column;gap:6px':''}">${btns.map((b,i)=>`<button class="${b.main?'main':''}" data-b="${i}">${b.t}</button>`).join('')}</div></div>`;
+  document.body.appendChild(d);
+  d.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{try{sfx('tap')}catch(e){}d.remove();res(btns[+x.dataset.b].v)});
+  d.onclick=e=>{if(e.target===d){d.remove();res(btns[btns.length-1].v)}}})}
+function askConfirm(title,body,okTxt,noTxt){return ovBox(title,body,[{t:okTxt||'사용하기',main:1,v:true},{t:noTxt||'취소',v:false}])}
+
+// ===== 기술 카드 사용: 어울리는 포켓몬 추천 · 등급 탭 · 약한 기술 교체 추천 · 확인 · 결과 (편성 창은 안 떠요) =====
+function cuCount(id){return (G.gifts||[]).filter(g=>g.kind==='M'&&GMOVES[g.id]&&GMOVES[g.id][0]===id).length}
+function cuPlan(m,id){if(m.moves.includes(id))return null;const L=mlv(m,id),s=SKL.score(m,id,L);
+  if(m.moves.length<4)return{slot:m.moves.length,s,w:0,L,gain:s>0?9:0,empty:1,up:s};
+  let slot=0,w=Infinity;m.moves.forEach((x,i)=>{const sc=SKL.score(m,x,mlv(m,x));if(sc<w){w=sc;slot=i}});
+  return{slot,s,w,L,gain:w>0?(s-w)/w:9,empty:0,up:s-w}}
+function cuRows(id){const v=mv(id);const own=[...G.party.map(m=>({m,w:'party'})),...G.box.map(m=>({m,w:'box'}))];
+  const R=own.map(x=>{const M=META[x.m.n]||{types:[]};const plan=cuPlan(x.m,id);
+    return{...x,plan,st:(M.types||[]).includes(v.type),learn:(M.moves||[]).some(q=>q&&q.id===id),known:!plan}});
+  R.sort((a,b)=>(a.known-b.known)||((b.plan?b.plan.up:0)-(a.plan?a.plan.up:0)));
+  let c=0;R.forEach(x=>{if(!x.known&&x.plan.gain>=.15&&c<3){x.star=1;c++}});return R}
+let CUT=-1;
+function cardUse(id,back,tab){
+  if(typeof tab==='number')CUT=tab;
+  const v=mv(id),have=cuCount(id);if(!have){back&&back();return}
+  const rows=cuRows(id),cnt=RAR.map((_,r)=>rows.filter(x=>rarM(x.m)===r).length);
+  const shown=rows.filter(x=>CUT<0||rarM(x.m)===CUT).slice(0,60);
+  const tag=x=>`${x.st?'<i class="rt">같은 타입 ×1.5</i>':''}${x.learn?'<i class="rl">원래 배우는 기술</i>':''}`;
+  const planTxt=x=>{if(x.known)return'<small>이미 알고 있어요</small>';const pl=x.plan;
+    if(pl.empty)return'<small>💡 빈 자리가 있어서 바로 배울 수 있어요</small>';
+    const o=mv(x.m.moves[pl.slot]),g=Math.round(pl.gain*100);
+    return g>=5?`<small>💡 약한 <b>${o.name}</b> <small>(Lv.${mlv(x.m,o.id)} · 위력 ${o.pw||'-'})</small> 대신 → 예상 공격력 <b style="color:#d02020">+${g}%</b></small>`:`<small>지금 기술이 더 세요 (바꾸면 ${g}%)</small>`};
+  const own=new Set(rows.map(x=>(META[x.m.n].base||x.m.n)));
+  const nots=recFor(id).filter(r=>!own.has(r.n)&&(CUT<0||rarOf(r.n)===CUT)).slice(0,20);
+  openPanel('📀 '+v.name+' 기술 카드',
+   `<div class="recH"><span class="tyb" style="background:${TCOL[v.type]}">${TN[v.type]}</span> 위력 ${v.pw||'-'} · ${v.ph?'물리':'특수'} · 가진 카드 ×${have} <small>(${v.ph?'공격':'특수공격'}이 높을수록 세요)</small></div>
+    <small>누구에게 쓸까요? 선택하면 확인 후에 가르쳐요 · 편성은 바뀌지 않아요</small>
+    <div class="tabs">${['<button data-ct="-1" class="'+(CUT<0?'on':'')+'">전체 '+rows.length+'</button>'].concat(RAR.map((n,r)=>`<button data-ct="${r}" class="${CUT===r?'on':''}" ${cnt[r]?'':'style="opacity:.45"'}>${n} ${cnt[r]}</button>`)).join('')}</div>
+    <h4>내 포켓몬 ${shown.length}${CUT>=0?' · '+RAR[CUT]:''} <small>(추천 순)</small></h4>
+    ${shown.length?shown.map((x,j)=>{const rr=rarM(x.m);return `<div class="row" style="gap:6px"><span><img class="rf" style="width:34px;height:34px;object-fit:contain" src="${faceUrl(x.m.n,'Normal')}"> ${x.star?'<b style="color:#e08a00">⭐추천</b> ':''}<b style="color:${RARC[rr]}">[${RAR[rr]}]</b> <b>${nm(x.m)}</b> Lv.${x.m.lv}${x.w==='box'?' <small>· 보관함</small>':''} ${tag(x)}<br>${planTxt(x)}</span><button data-u="${j}" ${x.known?'disabled':''}>${x.known?'이미 앎':'선택'}</button></div>`}).join(''):'<small>이 등급의 포켓몬이 없어요</small>'}
+    ${nots.length?`<details><summary style="font-weight:900;margin:8px 0">아직 없는 추천 포켓몬 ${nots.length}</summary>${nots.map(r=>`<div class="row"><span><img class="rf" style="width:34px;height:34px;object-fit:contain" src="${faceUrl(r.n,'Normal')}"> <b style="color:${RARC[rarOf(r.n)]}">[${RAR[rarOf(r.n)]}]</b> <b>${G.dex.s[META[r.n].dex]?META[r.n].name:'???'}</b> ${tag(r)}</span><button data-d="${r.n}">도감 보기</button></div>`).join('')}</details>`:''}`,
+   back,p=>{
+    p.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{sfx('tap');cardUse(id,back,+b.dataset.ct)});
+    p.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{sfx('tap');cuPick(shown[+b.dataset.u].m,id,()=>cardUse(id,back))});
     p.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{closePanel(1);dexOne(b.dataset.d)})})}
-// 선물 가방의 기술 카드로 가르치기 (그 카드를 써요)
-function teachTo(m,id,after){const gi=(G.gifts||[]).findIndex(g=>g.kind==='M'&&GMOVES[g.id]&&GMOVES[g.id][0]===id);const fin=()=>{if(gi>=0)G.gifts.splice(gi,1);save();closePanel(1);sfx('lv');say([{t:'<b>'+nm(m)+'</b>(은)는 <b>'+mv(id).name+'</b>을(를) 배웠다!',f:[m.n,'Joyous']}]).then(()=>after&&0)};
+function cuSlot(m,id,plan){const v=mv(id);
+  const btns=m.moves.map((x,i)=>{const o=mv(x),L=mlv(m,x),sc=SKL.score(m,x,L),g=sc>0?Math.round((plan.s/sc-1)*100):99;
+    return{t:`${i===plan.slot?'💡 ':''}<b>${o.name}</b> <small>${TN[o.type]} · Lv.${L} · 위력 ${o.pw||'-'}</small><br><small>${i===plan.slot?'제일 약한 기술이에요 · 추천 · ':''}바꾸면 예상 공격력 ${g>=0?'+':''}${g}%</small>`,v:i,main:i===plan.slot}});
+  btns.push({t:'취소',v:-1});btns.col=1;
+  return ovBox('어떤 기술과 바꿀까요?',`<b>${nm(m)}</b>은(는) 기술이 가득 찼어요.<br><b style="color:${TCOL[v.type]}">${v.name}</b>(위력 ${v.pw||'-'}) 자리에 들어갈 기술을 골라요. <small>바꿔도 기존 기술의 사용 기록은 남아요.</small>`,btns)}
+async function cuPick(m,id,again){
+  const plan=cuPlan(m,id);if(!plan)return;const v=mv(id);let slot=plan.slot;
+  if(!plan.empty){slot=await cuSlot(m,id,plan);if(slot<0)return}
+  const old=m.moves[slot]?mv(m.moves[slot]):null,have=cuCount(id);
+  const ok=await askConfirm('기술 카드 사용',`정말 <b>${nm(m)}</b>에게 <b style="color:${TCOL[v.type]}">${v.name}</b>을(를) 사용하시겠습니까?<br>${old?`<b>${old.name}</b> <small>(Lv.${mlv(m,old.id)} · 위력 ${old.pw||'-'})</small> → <b>${v.name}</b> <small>(Lv.${mlv(m,id)} · 위력 ${v.pw||'-'})</small>`:`빈 자리에 <b>${v.name}</b>을(를) 배워요`}<br><small>기술 카드 1장이 사라져요 (남는 카드 ${have-1}장)</small>`,'가르치기');
+  if(!ok)return;
+  const gi=(G.gifts||[]).findIndex(g=>g.kind==='M'&&GMOVES[g.id]&&GMOVES[g.id][0]===id);
   if(gi<0){toast('이 기술 카드가 가방에 없어요');return}
-  if(m.moves.length<4){m.moves.push(id);fin();return}
-  openPanel('잊을 기술 고르기',m.moves.map((x,k)=>`<div class="row"><span>${mv(x).name} <small>${TN[mv(x).type]} · 위력 ${mv(x).pw||'-'}</small></span><button data-f="${k}">잊기</button></div>`).join(''),()=>recOpen(id),q=>q.querySelectorAll('[data-f]').forEach(c=>c.onclick=()=>{m.moves[+c.dataset.f]=id;fin()}))}
+  const before=m.moves.slice();if(slot>=m.moves.length)m.moves.push(id);else m.moves[slot]=id;
+  G.gifts.splice(gi,1);save();try{sfx('lv')}catch(e){}
+  const r=await cuResult(m,before,id,true);again&&again()}
+function cuResult(m,before,id,canAgain){
+  const a=m.moves.slice(),v=mv(id),sum=(arr,mm)=>arr.reduce((t,x)=>t+SKL.score(mm,x,mlv(mm,x)),0)/Math.max(1,arr.length),sb=sum(before,m),sa=sum(a,m),pc=sb>0?Math.round((sa/sb-1)*100):0,left=cuCount(id);
+  const rows=Array.from({length:Math.max(before.length,a.length)},(_,i)=>{const o=before[i],w=a[i],ch=o!==w;
+    return `<div style="padding:3px 8px;margin:3px 0;border-radius:8px;${ch?'background:#fff2b8;border:2px solid #e8a820':'border:1px dashed #2c305044'}">${ch?'✨ ':''}${o?`<span style="${ch?'opacity:.6;text-decoration:line-through':''}">${mv(o).name}</span>`:'<span style="opacity:.6">(빈 자리)</span>'}${ch?` → <b style="color:${TCOL[mv(w).type]}">${mv(w).name}</b> <small>${TN[mv(w).type]} · Lv.${mlv(m,w)} · 위력 ${mv(w).pw||'-'} · ${mv(w).ph?'물리':'특수'}${((META[m.n]||{}).types||[]).includes(mv(w).type)?' · 같은 타입 ×1.5 적용':''}</small>`:` <small>Lv.${mlv(m,o)}</small>`}</div>`}).join('');
+  const body=`<div style="text-align:center"><img style="width:56px;height:56px;object-fit:contain" src="${faceUrl(m.n,'Joyous')}" onerror="this.src='${faceUrl(m.n,'Normal')}'"><br><b>${nm(m)}</b>(은)는 <b>${v.name}</b>을(를) 배웠다!</div>${rows}<div style="margin-top:6px">평균 예상 공격력 <b>${Math.round(sb)}</b> → <b style="color:${pc>=0?'#d02020':'#2060d0'}">${Math.round(sa)}</b> <small>(${pc>=0?'+':''}${pc}%)</small></div><small>남은 「${v.name}」 카드 ${left}장</small>`;
+  return ovBox('✅ 사용 완료',body,canAgain&&left>0?[{t:'같은 카드로 또 쓰기',main:1,v:'again'},{t:'닫기',v:'close'}]:[{t:'확인',main:1,v:'close'}])}
+async function skSwapDo(m,r){const nv=mv(r.id),old=m.moves[r.slot]?mv(m.moves[r.slot]):null,have=cuCount(r.id);
+  const ok=await askConfirm('기술 카드 사용',`정말 <b>${nm(m)}</b>에게 <b style="color:${TCOL[nv.type]}">${nv.name}</b>을(를) 사용하시겠습니까?<br>${old?`<b>${old.name}</b> <small>(Lv.${mlv(m,old.id)} · 위력 ${old.pw||'-'})</small> → <b>${nv.name}</b> <small>(Lv.${r.L} · 위력 ${nv.pw||'-'})</small>`:`빈 자리에 <b>${nv.name}</b>을(를) 배워요`}<br><small>기술 카드 1장이 사라져요 (남는 카드 ${have-1}장) · 바꿔도 기존 기술 기록은 남아요</small>`,'바꾸기');
+  if(!ok)return;const before=m.moves.slice();if(!SKL.swap(m,r))return;await cuResult(m,before,r.id,false);skillOpen()}
+
+// ===== 아이템 사용: 확인창 + 사용 결과(뭐가 변했는지) =====
+function itSnap(m){const S=stOf(m);let ch=0;try{ch=chFed(m)}catch(e){}return{nm:nm(m),lv:m.lv,hp:m.hp,st:S.slice(),moves:m.moves.slice(),ch}}
+function itDiff(b,a){const N=['체력','공격','방어','특공','특방','스피드'],o=[];
+  if(b.nm!==a.nm)o.push(`이름 · 모습 <b>${b.nm}</b> → <b>${a.nm}</b>`);
+  if(b.lv!==a.lv)o.push(`레벨 Lv.${b.lv} → <b>Lv.${a.lv}</b>`);
+  if(b.hp!==a.hp)o.push(`현재 체력 ${Math.ceil(b.hp)} → <b>${Math.ceil(a.hp)}</b> / ${a.st[0]}`);
+  N.forEach((n,i)=>{if(b.st[i]!==a.st[i]){const d=a.st[i]-b.st[i];o.push(`${i===0?'최대 체력':n} ${b.st[i]} → <b>${a.st[i]}</b> <small>(${d>0?'+':''}${d})</small>`)}});
+  if(b.moves.join()!==a.moves.join())o.push(`기술 ${b.moves.map(x=>mv(x).name).join(', ')} → <b>${a.moves.map(x=>mv(x).name).join(', ')}</b>`);
+  if(b.ch!==a.ch)o.push(`먹은 부적 ${b.ch} → <b>${a.ch}</b>`);
+  return o}
+function itWaitOver(){return new Promise(r=>{let t=0;const f=()=>{if(SCENE==='over'||++t>100)r();else setTimeout(f,150)};setTimeout(f,80)})}
+async function itRun(k,it,m,go){
+  let D='';try{D=itD(k).s}catch(e){}
+  const S=stOf(m);let exp='';if(it.heal)exp=`체력 ${Math.ceil(m.hp)} → ${Math.min(S[0],Math.ceil(m.hp+it.heal))} 예상`;else if(it.lv)exp=`레벨 Lv.${m.lv} → Lv.${m.lv+1} 예상`;
+  const ok=await askConfirm('아이템 사용',`정말 <b>${nm(m)}</b>에게 <b>${it.n}</b>을(를) 사용하시겠습니까?${exp?`<br><small>${exp}</small>`:''}${D?`<br><small>${D}</small>`:''}`,'사용하기');
+  if(!ok)return;
+  const b=itSnap(m),n0=G.bag[k]||0;
+  try{const r=go(m);if(r&&r.then)await r}catch(e){console.warn(e)}
+  await itWaitOver();
+  const a=itSnap(m),n1=G.bag[k]||0,df=itDiff(b,a);
+  if(n1>=n0&&!df.length)return;
+  await ovBox('✅ 사용 완료',`<b>${a.nm}</b>에게 <b>${it.n}</b>을(를) 사용했어요!<br>${df.length?df.map(x=>'<div style="padding:3px 8px;margin:3px 0;border-radius:8px;background:#fff2b8;border:2px solid #e8a820">✨ '+x+'</div>').join(''):'<small>눈에 보이는 수치 변화는 없어요</small>'}<small>남은 ${it.n} ${n1}개</small>`,[{t:'확인',main:1,v:1}]);
+  try{if(!document.querySelector('.panel'))bagOpen()}catch(e){}}
 
 // ===== 포켓몬 편성 (출전 최대 6마리 · 나머지는 보관함) =====
 function teamOpen(){if(!G)return;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${m.lv}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}<div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
@@ -3126,11 +3203,11 @@ function itemInfo(k,onUse){const it=ITEMS[k],D=itD(k),can=itCanUse(k);
    <div class="wbt">${onUse&&!it.ball?`<button class="main" id="iiU">${it.charm?'먹이기':'사용하기'}</button>`:''}<button id="iiX">닫기</button></div></div>`;
   document.body.appendChild(d);const x=()=>d.remove();d.onclick=e=>{if(e.target===d)x()};d.querySelector('#iiX').onclick=()=>{sfx('tap');x()};const u=d.querySelector('#iiU');if(u)u.onclick=()=>{x();onUse()}}
 // 가방에서 아이템을 누르면 먼저 설명 → "사용하기"를 눌러야 써요
-let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];if(k==='dmax'||k==='porb'){itemInfo(k);return}if(k==='pxsc'){itemInfo(k,()=>{const L=(itRec(k)||[]).slice(0,12).map(x=>x.m);if(!L.length){toast('접두사를 바꿀 포켓몬이 없어요');return}itPick(L,it,m=>{closePanel(1);pxReroll(m)})});return}if(it.charm){itemInfo(k,()=>{const L=itCanUse(k);if(!L.length){toast('먹일 수 있는 포켓몬이 없어요 (1마리 최대 '+chMax()+'개)');return}itPick(L,it,m=>{if(!(G.bag[k]>0))return;G.bag[k]--;m.chN=chFed(m)+1;m.ch=m.ch||{};m.ch[it.charm]=(m.ch[it.charm]||0)+1;save();sfx('badge');toast(nm(m)+'(이)가 '+it.n+'을(를) 먹었어요! '+TN[it.charm]+' 기술 +'+m.ch[it.charm]*5+'% ('+chFed(m)+'/'+chMax()+')');try{bagOpen()}catch(e){}})});return}itemInfo(k,()=>{const go=m=>{ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
+let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];if(k==='dmax'||k==='porb'){itemInfo(k);return}if(k==='pxsc'){itemInfo(k,()=>{const L=(itRec(k)||[]).slice(0,12).map(x=>x.m);if(!L.length){toast('접두사를 바꿀 포켓몬이 없어요');return}itPick(L,it,m=>{closePanel(1);return pxReroll(m)})});return}if(it.charm){itemInfo(k,()=>{const L=itCanUse(k);if(!L.length){toast('먹일 수 있는 포켓몬이 없어요 (1마리 최대 '+chMax()+'개)');return}itPick(L,it,m=>{if(!(G.bag[k]>0))return;G.bag[k]--;m.chN=chFed(m)+1;m.ch=m.ch||{};m.ch[it.charm]=(m.ch[it.charm]||0)+1;save();sfx('badge');toast(nm(m)+'(이)가 '+it.n+'을(를) 먹었어요! '+TN[it.charm]+' 기술 +'+m.ch[it.charm]*5+'% ('+chFed(m)+'/'+chMax()+')');try{bagOpen()}catch(e){}})});return}itemInfo(k,()=>{const go=m=>{ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
 let ITPICK=null;
 function itPick(L,it,go){const k=Object.keys(ITEMS).find(q=>ITEMS[q]===it);try{if(k)itSortRows(k,L,x=>x)}catch(e){}
   const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>누구에게 쓸까요? (추천 순서)</small></div></div>${L.map((m,i)=>{const S=stOf(m);return `<button class="iip" data-i="${i}"><img src="${THUMB[m.n]||''}"><span><b>${nm(m)}</b> Lv.${m.lv}${k?itTag(k,m):''}<small>체력 ${m.hp}/${S[0]}</small><i style="width:${m.hp/S[0]*100}%"></i></span></button>`}).join('')}<div class="wbt"><button id="iiX">취소</button></div></div>`;
-  document.body.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('#iiX').onclick=()=>d.remove();d.querySelectorAll('.iip').forEach(b=>b.onclick=()=>{d.remove();go(L[+b.dataset.i])})}
+  document.body.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('#iiX').onclick=()=>d.remove();d.querySelectorAll('.iip').forEach(b=>b.onclick=()=>{d.remove();k?itRun(k,it,L[+b.dataset.i],go):go(L[+b.dataset.i])})}
 
 // ===== 아이템 추천: 누구한테 쓰면 좋은지 순위 + 이유 (사용 전 설명 창 · 누구에게 쓸까요 목록 · 변신/빛나는돌 목록) =====
 const IT_RC={};
@@ -6048,7 +6125,7 @@ function skillOpen(){if(!G||SCENE!=='over')return;
     const find=i=>mons[i].m;
     p.querySelectorAll('.skc').forEach((c,i)=>{const m=mons[i].m;c.querySelectorAll('[data-pv]').forEach(b=>b.onclick=()=>{sfx('tap');skPreviewOpen(m,b.dataset.pv)})});
     p.querySelectorAll('[data-pv2]').forEach(b=>b.onclick=()=>{const m=find(+b.dataset.pv2),r=SKL.rec(m);if(r){sfx('tap');skPreviewOpen(m,r.id)}});
-    p.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{const m=find(+b.dataset.sw),r=SKL.rec(m);if(r&&SKL.swap(m,r))skillOpen()})})}
+    p.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{const m=find(+b.dataset.sw),r=SKL.rec(m);if(r)skSwapDo(m,r)})})}
 (function(){try{
   const st=document.createElement('style');st.textContent=`.skc .skh{display:flex;align-items:center;gap:6px;margin-bottom:4px}.skc .rf{width:34px;height:34px;object-fit:contain}
   .skm{display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px dashed #2c305033}.skm .skn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.skm button{flex:none;padding:4px 8px}
@@ -6067,6 +6144,144 @@ function skillOpen(){if(!G||SCENE!=='over')return;
 }catch(e){console.warn(e)}})();
 try{HUB.push({k:'skill',n:'기술 · 단계 미리보기',d:'기술은 쓸수록 Lv.1→8로 올라가고 위력이 +8%씩 늘어요. Lv.3부터는 기술이 굵고 커져요. 포켓몬마다 기술 레벨과 교체 추천을 보고, 「써 보기」로 진짜 전투 연출을 볼 수 있어요.',st:()=>'환생 '+((G&&G.rebirth)||0)+'/3 · 열린 최고 Lv.'+(5+Math.min(3,(G&&G.rebirth)||0)),go:[['기술 열기',()=>skillOpen()]]})}catch(e){}
 
+
+// ===== 전투력 · 컨텐츠별 덱 프리셋 · 1위 칭호 · 채팅창 · 자랑하기 =====
+const fmtN=n=>Math.round(n||0).toLocaleString();
+const CP={
+  C:[['adv','모험','🗺'],['pvp','PvP','⚔️'],['wb','월드보스','🐉'],['tower','격투 탑','🏯']],
+  // 전투력 = (체력×0.4 + 높은 공격×2 + 낮은 공격×0.5 + (방어+특방)×0.8 + 스피드) + 기술 점수 합×1.2, 등급마다 +6%
+  mon(m){try{const S=stOf(m),r=rarM(m);let mv=0;(m.moves||[]).forEach(id=>{try{mv+=SKL.score(m,id,mlv(m,id))}catch(e){}});
+    const b=S[0]*.4+Math.max(S[1],S[3])*2+Math.min(S[1],S[3])*.5+(S[2]+S[4])*.8+S[5];return Math.round((b+mv*1.2)*(1+r*.06))}catch(e){return 0}},
+  list(ms){return ms.reduce((t,m)=>t+CP.mon(m),0)},
+  all(){return CP.list([...G.party,...G.box])},
+  uid(m){if(!m.uid)m.uid=Date.now().toString(36)+ri(0,1e6);return m.uid},
+  deck(c){const all=[...G.party,...G.box];
+    if(c==='wb'){const w=wbSquad();if(w.length)return w.slice(0,6)}
+    const u=(G.pre||{})[c]||[];const L=u.map(id=>all.find(m=>m.uid===id)).filter(Boolean);if(L.length)return L.slice(0,6);
+    return G.party.slice(0,6)},
+  val(c){return c==='all'?CP.all():CP.list(CP.deck(c))},
+  name(c){return c==='all'?'총합':(CP.C.find(x=>x[0]===c)||[0,'?'])[1]},
+  apply(d){const rest=[...G.party,...G.box].filter(m=>!d.includes(m));G.party=d.slice(0,6);G.box=rest;save();try{refreshSpr()}catch(e){}},
+  crowns(){const o=[],now=Date.now(),c=G.crowns||{};for(const k in c)if(now-c[k]<7*864e5)o.push(k);return o},
+  crownName(k){if(k==='wb')return'월드보스';const b=RKB[k];return b?b.n.replace(/\s*\(.*\)/,''):k},
+  title(k){return k?'👑 '+CP.crownName(k)+' 1위':''}
+};
+// 랭킹 보드: 총합 · 컨텐츠별 전투력
+RKB.cp={n:'⚡ 총합 전투력',k:()=>'cp-all',v:()=>CP.all(),u:'',d:'가진 모든 포켓몬의 전투력 합 · 랭킹을 열면 내 기록이 자동으로 올라가요'};RKT.push(['cp','총합 전투력']);
+CP.C.forEach(([k,n])=>{RKB['cp'+k]={n:'⚡ '+n+' 전투력',k:()=>'cp-'+k,v:()=>CP.val(k),u:'',d:n+' 덱(편성 6마리)의 전투력 합 · 덱 프리셋을 바꾸면 달라져요'};RKT.push(['cp'+k,n+' 전투력'])});
+const CPBOARDS=['cp','cpadv','cppvp','cpwb','cptower'];
+// 순위를 불러올 때: 내 순위 기억 · 1위면 칭호 얻기
+function cpNote(b,L){try{if(!G||!L)return;G.cpRk=G.cpRk||{};const me=L.findIndex(x=>x.id===G.pid);if(me>=0)G.cpRk[b]=me+1;else delete G.cpRk[b];
+  G.crowns=G.crowns||{};if(L.length&&L[0].id===G.pid&&(L[0].v||L[0].dmg||0)>0)G.crowns[b]=Date.now();else if(me>0&&G.crowns[b])delete G.crowns[b]}catch(e){}}
+{const _rf=rankFetch;rankFetch=async function(b){const L=await _rf.apply(this,arguments);cpNote(b,L);return L}}
+{const _wf=wbFetch;wbFetch=async function(){const L=await _wf.apply(this,arguments);cpNote('wb',L);return L}}
+async function cpSync(force){if(!G||!wbCfg()||!navigator.onLine)return;if(!force&&Date.now()-(G.cpPushT||0)<15*60*1000)return;G.cpPushT=Date.now();
+  const _t=toast;toast=function(){};try{for(const b of CPBOARDS){await rankPush(b).catch(()=>{});await rankFetch(b)}}finally{toast=_t}save();try{chRender()}catch(e){}}
+
+// ===== 채팅 (미니맵 아래) =====
+const PKC={msgs:[],seen:new Set(),pt:0,err:0,lastSend:0};
+function chBase(){const c=wbCfg();return c?`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeChat/main/msgs`:null}
+function chCfgOf(){G.chat=G.chat||{};return G.chat}
+function chAva(){const c=chCfgOf();if(c.ava&&META[c.ava])return c.ava;const f=(typeof folMon==='function'&&folMon())||G.party[0];return f?f.n:null}
+function chMe(){const c=chCfgOf(),mode=c.cpMode===undefined?'all':c.cpMode;const t=c.title&&CP.crowns().includes(c.title)?c.title:'';
+  return{pid:G.pid||'',name:String(G.name||'트레이너').split('#')[0].slice(0,10),ava:chAva()||'',title:t?CP.title(t):'',tkey:t,mode,cp:mode?CP.val(mode):0}}
+function chAdd(m){if(!m)return;const k=m.pid+'|'+m.t;if(PKC.seen.has(k))return;PKC.seen.add(k);PKC.msgs.push(m);PKC.msgs.sort((a,b)=>a.t-b.t);while(PKC.msgs.length>60)PKC.msgs.shift()}
+function pkcParse(d){const f=d.fields||{},sv=k=>(f[k]||{}).stringValue||'',iv=k=>+((f[k]||{}).integerValue||0);return{pid:sv('pid'),name:sv('name'),ava:sv('ava'),title:sv('title'),cp:iv('cp'),cpl:sv('cpl'),type:sv('type')||'t',text:sv('text'),deck:sv('deck'),dcp:iv('dcp'),t:iv('t')}}
+async function chFetch(n){const b=chBase();if(!b){chRender();return}try{const c=wbCfg();const r=await fetch(`${b}?pageSize=${n||8}&orderBy=t%20desc&key=${c.apiKey}`);if(!r.ok)throw 0;const j=await r.json();PKC.err=0;(j.documents||[]).forEach(d=>chAdd(pkcParse(d)))}catch(e){PKC.err=1}chRender()}
+async function chPost(m){const b=chBase();if(!b||!navigator.onLine)return false;try{const c=wbCfg();const S=v=>({stringValue:String(v||'')}),I=v=>({integerValue:String(Math.floor(v||0))});
+  const r=await fetch(`${b}?key=${c.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{pid:S(m.pid),name:S(m.name),ava:S(m.ava),title:S(m.title),cp:I(m.cp),cpl:S(m.cpl),type:S(m.type),text:S(m.text),deck:S(m.deck),dcp:I(m.dcp),t:I(m.t)}})});return r.ok}catch(e){return false}}
+async function pkcSend(o){if(!G)return;const now=Date.now();if(now-PKC.lastSend<1500){toast('조금만 천천히 보내요');return}PKC.lastSend=now;
+  const me=chMe();const m={pid:me.pid,name:me.name,ava:me.ava,title:me.title,cp:me.cp,cpl:me.mode?CP.name(me.mode):'',type:'t',text:'',deck:'',dcp:0,t:now,...o};
+  chAdd(m);chRender();const ok=await chPost(m);if(!chBase())toast('서버 연결 전이에요 · 내 화면에만 보여요');else if(!ok)toast('채팅 전송 실패 · 인터넷이나 서버 설정을 확인해 주세요')}
+function chBody(m){if(m.type==='cp')return`💪 <b>${esc(m.cpl)} 전투력 ⚡${fmtN(m.cp)}</b> 자랑!`;
+  if(m.type==='deck')return`🃏 <b>${esc(m.cpl)} 덱 ⚡${fmtN(m.dcp)}</b><span class="chd">${(m.deck||'').split(',').filter(n=>META[n]).map(n=>`<img src="${faceUrl(n,'Normal')}" alt="">`).join('')}</span>`;
+  return esc(m.text)}
+function chLine(m){const cp=m.type==='t'&&m.cpl?` <em>⚡${m.cp>=1e4?(m.cp/1e4).toFixed(1)+'만':fmtN(m.cp)}</em>`:'';
+  return`<div class="chm${m.pid===(G&&G.pid)?' me':''}">${m.ava&&META[m.ava]?`<img class="cha" src="${faceUrl(m.ava,'Normal')}" alt="">`:''}<span>${m.title?`<u>${esc(m.title)}</u>`:''}<b>${esc(m.name)}</b>${cp} ${chBody(m)}</span></div>`}
+function chRender(){const w=document.querySelector('#pkChat .cl');if(w){const L=PKC.msgs.slice(-3);w.innerHTML=L.length?L.map(chLine).join(''):'<i>💬 눌러서 채팅 · 전투력 자랑</i>'}
+  const o=document.getElementById('chLog');if(o){const atEnd=o.scrollTop+o.clientHeight>=o.scrollHeight-30;o.innerHTML=PKC.msgs.map(chLine).join('')||'<small>아직 대화가 없어요</small>';if(atEnd)o.scrollTop=o.scrollHeight}}
+function pkcOpen(){if(!G||SCENE!=='over')return;chFetch(30);
+  openPanel('💬 채팅',`<small>${chBase()?'모두가 같이 보는 채팅이에요 · 6초마다 새로 불러와요':'서버 연결 전 · 내 화면에만 보여요'}</small><div id="chLog" class="chlog"></div>
+   <div class="row" style="gap:6px"><input id="chIn" maxlength="60" placeholder="메시지 (60자)" style="flex:1;padding:8px;border:3px solid #1c2550;border-radius:10px;font:700 14px sans-serif"><button id="pkcSend">보내기</button></div>
+   <div class="wbt"><button id="chCp">💪 전투력 자랑</button><button id="chDk">🃏 덱 자랑</button><button id="chSet">⚙ 설정</button></div>`,()=>{clearInterval(PKC.pt)},p=>{
+    chRender();const inp=p.querySelector('#chIn');const go=()=>{const t=inp.value.trim();if(!t)return;inp.value='';pkcSend({text:t.slice(0,60)})};
+    p.querySelector('#pkcSend').onclick=()=>{sfx('tap');go()};inp.onkeydown=e=>{if(e.key==='Enter')go()};
+    p.querySelector('#chCp').onclick=()=>{sfx('tap');chBragCp()};p.querySelector('#chDk').onclick=()=>{sfx('tap');chBragDeck()};p.querySelector('#chSet').onclick=()=>{sfx('tap');chCfg()};
+    clearInterval(PKC.pt);PKC.pt=setInterval(()=>{if(!document.getElementById('chLog')){clearInterval(PKC.pt);return}chFetch(30)},6000)})}
+async function chBragCp(){const btns=[['all','⚡ 총합 전투력 '+fmtN(CP.all())],...CP.C.map(([k,n,ic])=>[k,ic+' '+n+' 전투력 '+fmtN(CP.val(k))])].map(([k,t])=>({t,v:k}));btns.push({t:'취소',v:null});btns.col=1;
+  const k=await ovBox('어떤 전투력을 자랑할까요?','<small>채팅창에 전체 공개돼요</small>',btns);if(!k)return;pkcSend({type:'cp',cpl:CP.name(k),cp:CP.val(k)})}
+async function chBragDeck(c){if(!c){const btns=CP.C.map(([k,n,ic])=>({t:ic+' '+n+' 덱 ⚡'+fmtN(CP.val(k)),v:k}));btns.push({t:'취소',v:null});btns.col=1;c=await ovBox('어떤 덱을 자랑할까요?','<small>덱의 포켓몬 6마리와 전투력이 채팅창에 올라가요</small>',btns);if(!c)return}
+  const d=CP.deck(c);if(!d.length){toast('덱이 비어 있어요');return}pkcSend({type:'deck',cpl:CP.name(c),deck:d.map(m=>m.n).join(','),dcp:CP.list(d)})}
+function chCfg(){const c=chCfgOf(),me=chMe();const seen=new Set(),L=[...G.party,...G.box].slice().sort((a,b)=>CP.mon(b)-CP.mon(a)).filter(m=>{if(seen.has(m.n))return false;seen.add(m.n);return true}).slice(0,40);
+  const cr=CP.crowns();
+  openPanel('⚙ 채팅 설정',`<div class="chpv">${chLine({...me,type:'t',text:'미리보기예요!',t:0,cpl:me.mode?CP.name(me.mode):'',pid:G.pid})}</div>
+   <h4>프로필 사진 <small>(가진 포켓몬 · 전투력 높은 순)</small></h4><div class="chav">${L.map(m=>`<button data-a="${m.n}" class="${me.ava===m.n?'on':''}"><img src="${faceUrl(m.n,'Normal')}" alt=""></button>`).join('')}</div>
+   <h4>칭호 <small>(순위 1위를 하면 생겨요 · 7일)</small></h4><div class="chtl"><button data-t="" class="${!me.tkey?'on':''}">없음</button>${cr.map(k=>`<button data-t="${k}" class="${me.tkey===k?'on':''}">${CP.title(k)}</button>`).join('')}</div>${cr.length?'':'<small>아직 1위 칭호가 없어요 · 🏆 랭킹에서 1등을 노려 봐요</small>'}
+   <h4>내 이름 옆에 보일 전투력</h4><div class="chtl">${[['','안 보임'],['all','총합'],...CP.C.map(([k,n])=>[k,n])].map(([k,n])=>`<button data-m="${k}" class="${(me.mode||'')===k?'on':''}">${n}</button>`).join('')}</div>
+   <div class="wbt"><button data-sh="1">${c.show===0?'채팅창 켜기':'화면 채팅창 끄기'}</button><button class="main" id="chBack">채팅으로</button></div>`,()=>pkcOpen(),p=>{
+    p.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{sfx('tap');c.ava=b.dataset.a;save();chCfg()});
+    p.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{sfx('tap');c.title=b.dataset.t;save();chCfg()});
+    p.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{sfx('tap');c.cpMode=b.dataset.m;save();chCfg()});
+    p.querySelector('[data-sh]').onclick=()=>{sfx('tap');c.show=c.show===0?1:0;save();chCfg()};p.querySelector('#chBack').onclick=()=>{closePanel(1);pkcOpen()}})}
+// 미니맵 · 날씨 · 알 부화기 바로 아래에 붙이고, 조이스틱과 겹치면 줄이거나 숨겨요
+function chEnsure(){if(document.getElementById('pkChat'))return;const d=document.createElement('div');d.id='pkChat';d.innerHTML='<div class="cl"></div>';document.body.appendChild(d);d.onclick=()=>{sfx('tap');pkcOpen()};chRender()}
+setInterval(()=>{try{chEnsure();const d=document.getElementById('pkChat');const t=document.getElementById('title');
+  let show=!!G&&SCENE==='over'&&!document.body.classList.contains('inb')&&!(t&&t.classList.contains('on'))&&(G.chat||{}).show!==0&&!document.querySelector('.panel');
+  const mi=document.getElementById('mini');if(mi&&mi.classList.contains('big'))show=false;
+  if(show){let y=0;for(const id of ['mini','wxBadge','egHud']){const e=document.getElementById(id);if(!e||getComputedStyle(e).display==='none')continue;const r=e.getBoundingClientRect();if(r.height)y=Math.max(y,r.bottom)}if(!y)y=86;const top=y+8,avail=innerHeight-190-top;
+    if(avail<26)show=false;else{d.style.top=top+'px';d.style.maxHeight=Math.min(76,avail)+'px'}}
+  d.style.display=show?'':'none';if(show&&!PKC.fetchT){PKC.fetchT=1;chFetch(6)}}catch(e){}},500);
+setInterval(()=>{try{if(G&&SCENE==='over'&&chBase())chFetch(6)}catch(e){}},60000);
+
+// ===== 전투력 화면 · 덱 프리셋 =====
+function facesOf(d){return d.map(m=>`<img src="${faceUrl(m.n,'Normal')}" alt="">`).join('')||'<small>편성 없음</small>'}
+function powerOpen(){if(!G||SCENE!=='over')return;cpSync();
+  const n=G.party.length+G.box.length,rk=G.cpRk||{};
+  openPanel('⚡ 전투력',`<div class="pwT"><small>총합 전투력 · 포켓몬 ${n}마리</small><b>⚡ ${fmtN(CP.all())}</b>${rk.cp?`<span>🏆 ${rk.cp}위</span>`:''}</div>
+   ${CP.C.map(([k,nm,ic])=>{const d=CP.deck(k),has=(G.pre||{})[k]&&(G.pre[k]||[]).length;return`<div class="hcard pwr"><div class="pwh"><b>${ic} ${nm}</b><span>⚡ ${fmtN(CP.list(d))}${rk['cp'+k]?` <small>🏆 ${rk['cp'+k]}위</small>`:''}</span></div><div class="pwf">${facesOf(d)}</div><small>${has||k==='wb'?'프리셋 덱':'프리셋 없음 · 지금 파티를 써요'}</small><div class="wbt"><button data-pe="${k}">덱 편성</button><button data-pb="${k}">🃏 자랑</button></div></div>`}).join('')}
+   <div class="wbt"><button data-x="rk">🏆 전투력 랭킹</button><button data-x="ch">💬 채팅 · 설정</button></div><small>전투력 = 능력치 + 기술 위력 + 등급 보너스예요. 순위는 서버에 올라가요.</small>`,null,p=>{
+    p.querySelectorAll('[data-pe]').forEach(b=>b.onclick=()=>{sfx('tap');presetOpen(b.dataset.pe)});
+    p.querySelectorAll('[data-pb]').forEach(b=>b.onclick=()=>{sfx('tap');chBragDeck(b.dataset.pb)});
+    p.querySelector('[data-x="rk"]').onclick=()=>{sfx('tap');closePanel(1);rankOpen('cp')};p.querySelector('[data-x="ch"]').onclick=()=>{sfx('tap');closePanel(1);pkcOpen()}})}
+let PKPST=-1;
+function presetOpen(k,sel,tab,types){const info=CP.C.find(x=>x[0]===k);if(typeof tab==='number')PKPST=tab;
+  const all=[...G.party,...G.box];if(!sel)sel=CP.deck(k).map(m=>CP.uid(m));const pick=sel.map(u=>all.find(m=>m.uid===u)).filter(Boolean);
+  const re=(s,t,ty)=>presetOpen(k,s,t,ty);
+  const cand=all.slice().sort((a,b)=>CP.mon(b)-CP.mon(a)).filter(m=>PKPST<0||rarM(m)===PKPST).slice(0,80);
+  const cnt=RAR.map((_,r)=>all.filter(m=>rarM(m)===r).length);
+  const TY=Object.keys(TN);
+  openPanel(info[2]+' '+info[1]+' 덱 편성',`<div class="pwT"><small>선택한 덱 ${pick.length}/6</small><b>⚡ ${fmtN(CP.list(pick))}</b></div>
+   <div class="pwf big">${facesOf(pick)}</div>
+   <div class="wbt" style="flex-wrap:wrap"><button data-au="power">⚡ 강한 순 자동</button><button data-au="type">🎯 타입 상성 자동</button><button data-au="party">현재 파티</button><button data-au="clear">비우기</button></div>
+   ${types?`<div class="chtl">${TY.map(t=>`<button data-ty="${t}" class="${types.includes(t)?'on':''}" style="${types.includes(t)?'':'border-color:'+TCOL[t]}">${TN[t]}</button>`).join('')}</div><small>상대 타입을 1~2개 골라요 → 그 타입에 강한 순서로 자동 편성</small><div class="wbt"><button class="main" data-go="1" ${types.length?'':'disabled'}>이 타입에 강한 덱 만들기</button></div>`:''}
+   <div class="tabs">${['<button data-ct="-1" class="'+(PKPST<0?'on':'')+'">전체 '+all.length+'</button>'].concat(RAR.map((n,r)=>`<button data-ct="${r}" class="${PKPST===r?'on':''}" ${cnt[r]?'':'style="opacity:.45"'}>${n} ${cnt[r]}</button>`)).join('')}</div>
+   ${cand.map((m,i)=>{const on=sel.includes(m.uid),rr=rarM(m);return`<div class="row" style="gap:6px"><span><img class="rf" style="width:30px;height:30px;object-fit:contain" src="${faceUrl(m.n,'Normal')}"> <b style="color:${RARC[rr]}">[${RAR[rr]}]</b> <b>${nm(m)}</b> Lv.${m.lv} <small>⚡${fmtN(CP.mon(m))} · ${META[m.n].types.map(t=>TN[t]).join('/')}</small></span><button data-p="${i}" class="${on?'on':''}">${on?'빼기':'넣기'}</button></div>`}).join('')}
+   <div class="wbt" style="position:sticky;bottom:0"><button data-sv="0">💾 저장</button><button class="main" data-sv="1">저장하고 ${k==='wb'?'월드보스 편성에':'파티에'} 적용</button></div>`,()=>powerOpen(),p=>{
+    p.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{sfx('tap');re(sel,+b.dataset.ct,types)});
+    p.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const m=cand[+b.dataset.p];const i=sel.indexOf(m.uid);sfx('tap');if(i>=0)sel.splice(i,1);else{if(sel.length>=6){toast('덱은 6마리까지예요');return}sel.push(CP.uid(m))}re(sel,undefined,types)});
+    p.querySelectorAll('[data-au]').forEach(b=>b.onclick=()=>{sfx('tap');const a=b.dataset.au;if(a==='power')re(recPick(null).map(x=>CP.uid(x.m)),undefined,undefined);else if(a==='party')re(G.party.slice(0,6).map(CP.uid),undefined,undefined);else if(a==='clear')re([],undefined,undefined);else re(sel,undefined,types?undefined:[])});
+    p.querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{sfx('tap');const t=b.dataset.ty,a=types.slice(),i=a.indexOf(t);if(i>=0)a.splice(i,1);else{if(a.length>=2)a.shift();a.push(t)}re(sel,undefined,a)});
+    const go=p.querySelector('[data-go]');if(go)go.onclick=()=>{sfx('get');re(recPick(types).map(x=>CP.uid(x.m)),undefined,undefined);toast('상성에 맞춰 자동 편성했어요 (저장은 아래 버튼)')};
+    p.querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>{if(!pick.length){toast('덱이 비어 있어요');return}sfx('get');G.pre=G.pre||{};G.pre[k]=pick.map(m=>m.uid);if(k==='wb')G.wbSq=G.pre[k].slice();
+      if(b.dataset.sv==='1'&&k!=='wb')CP.apply(pick);save();toast(info[1]+' 덱을 저장했어요 ⚡'+fmtN(CP.list(pick))+(b.dataset.sv==='1'?' · 적용했어요':''));try{hud()}catch(e){}powerOpen()})})}
+// 편성 화면 · 격투 탑 · PvP 연결
+{const _t3=teamOpen;teamOpen=function(){_t3();setTimeout(()=>{const p=document.querySelector('.panel');if(!p||p.querySelector('#tmPw'))return;const h=p.querySelector('h4');if(!h)return;const b=document.createElement('button');b.id='tmPw';b.className='wbrk';b.textContent='⚡ 덱 프리셋 · 전투력';b.onclick=()=>{closePanel(1);powerOpen()};h.appendChild(b)},60)}}
+{const _t4=towerOpen;towerOpen=function(){_t4();try{const B=document.querySelector('#mg .twr');if(B&&G.pre&&G.pre.tower&&G.pre.tower.length&&!B.querySelector('#tPre')){const b=document.createElement('button');b.id='tPre';b.className='mgrec';b.textContent='🗂 격투 탑 덱 적용 (⚡'+fmtN(CP.list(CP.deck('tower')))+')';b.onclick=()=>{CP.apply(CP.deck('tower'));toast('격투 탑 덱을 파티에 적용했어요');mgClose();if(G.a===12)towerOpen()};B.insertBefore(b,B.querySelector('#tGo'))}}catch(e){}}}
+{const _pm=pvpMine;pvpMine=async function(){const d=G&&G.pre&&(G.pre.pvp||[]).length?CP.deck('pvp'):null;if(!d||!d.length)return _pm.apply(this,arguments);const o=G.party;G.party=d;try{return await _pm.apply(this,arguments)}finally{G.party=o}}}
+(function(){try{const st=document.createElement('style');st.textContent=`
+#pkChat{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));top:200px;width:min(200px,32vw);overflow:hidden;background:#0008;border:2px solid #fffdf0cc;border-radius:10px;padding:3px 5px;color:#fff;font:700 11px/1.35 system-ui,sans-serif;text-shadow:0 1px 2px #000;cursor:pointer;display:none}
+#pkChat .cl{display:flex;flex-direction:column;justify-content:flex-end;min-height:28px}#pkChat .cl i{opacity:.8;font-style:normal}
+#pkChat .chm{display:flex;gap:3px;align-items:flex-start;overflow:hidden}.chm .cha{width:16px;height:16px;object-fit:contain;flex:none}.chm span{min-width:0;word-break:break-all}
+.chm u{text-decoration:none;color:#ffd23f;margin-right:3px;font-size:.92em}.chm em{font-style:normal;color:#ffb020;font-size:.9em}.chm.me b{color:#9fe8ff}
+.chd{display:inline-flex;gap:1px;vertical-align:middle;margin-left:3px}.chd img{width:18px;height:18px;object-fit:contain}
+.chlog{height:46vh;overflow:auto;background:#1c2550;color:#fff;border-radius:10px;padding:6px;margin:6px 0;font:700 13px/1.5 system-ui,sans-serif}.chlog .chm .cha{width:24px;height:24px}.chlog .chd img{width:28px;height:28px}
+.chpv{background:#1c2550;color:#fff;border-radius:10px;padding:6px;font:700 13px system-ui}.chpv .cha{width:24px;height:24px}
+.chav{display:flex;flex-wrap:wrap;gap:4px}.chav button{width:46px;height:46px;padding:2px;border:3px solid #2c3050;border-radius:10px;background:#fffdf0}.chav button.on{border-color:#e8a820;background:#ffe9a8}.chav img{width:100%;height:100%;object-fit:contain}
+.chtl{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}.chtl button{padding:5px 9px;border:3px solid #2c3050;border-radius:10px;background:#fffdf0;font:900 12px sans-serif;color:#1c2550}.chtl button.on{background:#2c3a7a;color:#ffd23f}
+.pwT{text-align:center;background:linear-gradient(#fff3c0,#ffd23f);border:3px solid #1c2550;border-radius:12px;padding:6px;margin-bottom:6px}.pwT b{display:block;font-size:26px;color:#1c2550}.pwT span{font-weight:900}
+.pwr .pwh{display:flex;justify-content:space-between;align-items:center}.pwf{display:flex;gap:2px;margin:4px 0}.pwf img{width:34px;height:34px;object-fit:contain;background:#fff8;border-radius:8px}.pwf.big img{width:44px;height:44px}
+.panel .row button.on{background:#2c3a7a;color:#ffd23f}`;document.head.appendChild(st);
+  const side=document.getElementById('side');if(side&&!document.getElementById('bPower')){const b=document.createElement('button');b.id='bPower';b.innerHTML='<svg class="sic" viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z" fill="#ffd23f" stroke="#1c2550" stroke-width="1.6" stroke-linejoin="round"/></svg><span>전투력</span>';b.onclick=()=>{sfx('tap');powerOpen()};side.insertBefore(b,document.getElementById('bSkill')||document.getElementById('bHub')||null)}}catch(e){console.warn(e)}})();
 </script>
 <script id="bplus">
 // ===== 전투 확장 v1 · 상태이상 · 특성 · 능력 변화 · 변화기 · 성격 · 기술 데이터 · 월드보스 패턴 · 업적 =====
