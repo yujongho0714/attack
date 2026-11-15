@@ -266,7 +266,7 @@ body,button,input,select,textarea{font-family:var(--ff,system-ui,sans-serif)!imp
 </style><style>.recH{font-weight:900;margin:2px 0 6px}.tyb{color:#fff;padding:1px 8px;border-radius:999px;text-shadow:0 1px 0 #0008}
 .rf{width:30px;height:30px;vertical-align:middle;image-rendering:pixelated;border-radius:6px;border:2px solid #1c2550;background:#fff}.rf.unk{filter:brightness(0)}
 .rt,.rl{font-style:normal;font-size:10.5px;font-weight:900;padding:0 5px;border-radius:5px;margin-left:3px}.rt{background:#ffd23f}.rl{background:#9be7ff}</style><style>.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}
-.tm{display:flex;align-items:center;gap:8px;background:#fffdf2;border:2px solid #c8a040;border-radius:12px;padding:6px}.tm.p{border-color:#1c2550;box-shadow:inset 0 0 0 2px #ffd23f88}.tm.empty{justify-content:center;opacity:.5;border-style:dashed;min-height:52px;font-weight:800}
+.tm{display:flex;align-items:center;gap:8px;background:#fffdf2;border:2px solid #c8a040;border-radius:12px;padding:6px}.tm.p{border-color:#1c2550;box-shadow:inset 0 0 0 2px #ffd23f88}.tm.empty{justify-content:center;opacity:.5;border-style:dashed;min-height:52px;font-weight:800}.tm.empty.add{opacity:1;flex-direction:column;gap:4px;align-items:center}.tm.empty.add>span{opacity:.5}.tm.empty.add button small{display:block;font-weight:400;font-size:11px}
 .tm img{width:46px;height:46px;image-rendering:pixelated;border:2px solid #1c2550;border-radius:10px;background:#e8e4d0}.tm .ti{flex:1;min-width:0}.tm .tt em{font-style:normal;font-size:10px;color:#fff;padding:0 5px;border-radius:5px;margin-right:2px}
 .tm .thp{height:6px;background:#0002;border-radius:3px;overflow:hidden;margin-top:3px}.tm .thp i{display:block;height:100%;background:#3ad66a}.tm button{flex:none;font-size:13px!important;padding:8px 10px!important}</style><style>
 .tyl{display:inline-block;width:40px;height:17.5px;background:url(ui/types_ko.png) 0 0/100% 1900% no-repeat;image-rendering:pixelated;vertical-align:middle;border-radius:4px;text-decoration:none}
@@ -2689,9 +2689,10 @@ async function itRun(k,it,m,go){
   try{if(!document.querySelector('.panel'))bagOpen()}catch(e){}}
 
 // ===== 포켓몬 편성 (출전 최대 6마리 · 나머지는 보관함) =====
-function teamOpen(){if(!G)return;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${m.lv}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}<div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
-  openPanel('포켓몬 편성 · 출전 '+G.party.length+' / 6',`<h4>출전 중 (최대 6마리)</h4><div class="tg">${G.party.map((m,i)=>row(m,i,'p')).join('')}${Array(6-G.party.length).fill('<div class="tm empty">빈 자리</div>').join('')}</div>
+function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${m.lv}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}<div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
+  openPanel('포켓몬 편성 · 출전 '+G.party.length+' / 6',`<h4>출전 중 (최대 6마리)</h4><div class="tg">${G.party.map((m,i)=>row(m,i,'p')).join('')}${Array(6-G.party.length).fill(nxt?`<div class="tm empty add"><span>빈 자리</span><button data-add="1">＋ 추천순 <small>${nm(nxt)} Lv.${nxt.lv}</small></button></div>`:'<div class="tm empty">빈 자리</div>').join('')}</div>
     <h4>보관함 ${G.box.length}마리</h4><div class="tg">${G.box.length?G.box.map((m,i)=>row(m,i,'b')).join(''):'<small>보관함이 비어 있어요</small>'}</div>`,null,p=>{
+    p.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{if(G.party.length>=6||!G.box.length)return;const best=G.box.map((m,i)=>({i,s:recScore(m)})).sort((a,c)=>c.s-a.s)[0];const m=G.box.splice(best.i,1)[0];G.party.push(m);sfx('get');save();refreshSpr();toast('추천순 · '+nm(m)+' 출전!');teamOpen()});
     p.querySelectorAll('[data-out]').forEach(b=>b.onclick=()=>{if(G.party.length<=1){toast('한 마리는 꼭 출전해야 해요');return}const m=G.party.splice(+b.dataset.out,1)[0];G.box.unshift(m);save();refreshSpr();toast(nm(m)+' 편성 해제 → 보관함');teamOpen()});
     p.querySelectorAll('[data-in]').forEach(b=>b.onclick=()=>{const i=+b.dataset.in,m=G.box[i];if(G.party.length<6){G.box.splice(i,1);G.party.push(m);save();refreshSpr();toast(nm(m)+' 출전!');teamOpen();return}
       openPanel(nm(m)+' 출전 · 누구랑 바꿀까요?',G.party.map((x,j)=>row(x,j,'p').replace(/<button data-out="\d+"[^>]*>편성 해제<\/button>/,`<button data-sw="${j}">이 포켓몬과 교체</button>`)).join(''),teamOpen,q=>q.querySelectorAll('[data-sw]').forEach(c=>c.onclick=()=>{const j=+c.dataset.sw,o=G.party[j];G.party[j]=m;G.box[i]=o;save();refreshSpr();toast(nm(m)+' 출전 · '+nm(o)+' 보관함으로');teamOpen()}))})})}
@@ -6212,7 +6213,7 @@ async function chBragCp(){const btns=[['all','⚡ 총합 전투력 '+fmtN(CP.all
   const k=await ovBox('어떤 전투력을 자랑할까요?','<small>채팅창에 전체 공개돼요</small>',btns);if(!k)return;pkcSend({type:'cp',cpl:CP.name(k),cp:CP.val(k)})}
 async function chBragDeck(c){if(!c){const btns=CP.C.map(([k,n,ic])=>({t:ic+' '+n+' 덱 ⚡'+fmtN(CP.val(k)),v:k}));btns.push({t:'취소',v:null});btns.col=1;c=await ovBox('어떤 덱을 자랑할까요?','<small>덱의 포켓몬 6마리와 전투력이 채팅창에 올라가요</small>',btns);if(!c)return}
   const d=CP.deck(c);if(!d.length){toast('덱이 비어 있어요');return}pkcSend({type:'deck',cpl:CP.name(c),deck:d.map(m=>m.n).join(','),dcp:CP.list(d)})}
-function chCfg(){const c=chCfgOf(),me=chMe();const seen=new Set(),L=[...G.party,...G.box].slice().sort((a,b)=>CP.mon(b)-CP.mon(a)).filter(m=>{if(seen.has(m.n))return false;seen.add(m.n);return true}).slice(0,40);
+function chCfg(){const c=chCfgOf(),me=chMe();const seen=new Set(),L=[...G.party,...G.box].slice().sort((a,b)=>CP.mon(b)-CP.mon(a)).filter(m=>{if(seen.has(m.n))return false;seen.add(m.n);return true}).slice(0,150);
   const cr=CP.crowns();
   openPanel('⚙ 채팅 설정',`<div class="chpv">${chLine({...me,type:'t',text:'미리보기예요!',t:0,cpl:me.mode?CP.name(me.mode):'',pid:G.pid})}</div>
    <h4>프로필 사진 <small>(가진 포켓몬 · 전투력 높은 순)</small></h4><div class="chav">${L.map(m=>`<button data-a="${m.n}" class="${me.ava===m.n?'on':''}"><img src="${faceUrl(m.n,'Normal')}" alt=""></button>`).join('')}</div>
@@ -6825,4 +6826,67 @@ console.log('v202611160050 loaded')
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
-document.addEventListener('fullscreenchange',upd);upd()})();</script></body></html>
+document.addEventListener('fullscreenchange',upd);upd()})();</script><script>// ===== 편성 탭 · 채팅 하나로 합치기(전투력/덱 자랑 · 칭호 · 프로필) · 채팅 설정 버튼 =====
+(function(){try{
+if(window.__cpfix)return;window.__cpfix=1;
+const $=id=>document.getElementById(id);
+// ---------- 1) 컨텐츠 탭 (편성 화면 · 덱 프리셋 화면) ----------
+const TABS=[['adv','모험'],['pvp','PvP'],['tower','격투 탑'],['wb','월드보스']];
+const tabsHtml=a=>`<div class="tabs cptabs">${TABS.map(([k,n])=>`<button data-cptab="${k}" class="${k===a?'on':''}">${n} <small>⚡${fmtN(k==='adv'?CP.list(G.party.slice(0,6)):CP.val(k))}</small></button>`).join('')}</div>`;
+function tabsBind(p,a){p.querySelectorAll('[data-cptab]').forEach(b=>b.onclick=()=>{const k=b.dataset.cptab;if(k===a)return;sfx('tap');closePanel(1);if(k==='adv')teamOpen();else presetOpen(k)})}
+{const _t=teamOpen;teamOpen=function(){const r=_t.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel');if(!p||p.querySelector('.cptabs')||!p.querySelector('.tg .tm'))return;
+  const a=p.querySelector('.tdh')||p.querySelector('.pb h4');if(!a)return;a.insertAdjacentHTML('afterend',tabsHtml('adv'));tabsBind(p,'adv')}catch(e){}},160);return r}}
+{const _p=presetOpen;presetOpen=function(k){const r=_p.apply(this,arguments);try{const p=document.querySelector('.panel');if(p&&!p.querySelector('.cptabs')){const b=p.querySelector('.pb');if(b){b.insertAdjacentHTML('afterbegin',tabsHtml(k));tabsBind(p,k)}}}catch(e){}return r}}
+// ---------- 2) 채팅: 예전 채팅 하나로 (새 채팅 서버 경로는 쓰지 않아요) ----------
+chEnsure=function(){const o=$('pkChat');if(o)o.remove()};chFetch=async function(){};chPost=async function(){return false};
+pkcOpen=function(){if(typeof chOpen==='function')chOpen()};
+const k36=n=>String(n).replace(/^sc:/,'').replace(/\//g,'_'),d36=s=>'sc:'+String(s).replace(/_/g,'/');
+function cpMe(){const c=chCfgOf(),mode=c.cpMode===undefined?'all':c.cpMode;const tk=c.title&&CP.crowns().includes(c.title)?c.title:'';return{tk,pm:mode||'',pv:mode?CP.val(mode):0}}
+function chNameAva(){let n=rkName();try{const a=(G.chat||{}).ava;if(!a||!META[a]||!META[a].dex||isGM()||isOp())return n;const t='#'+META[a].dex.toString(36);return rkSplit(n).name.slice(0,12-t.length)+t}catch(e){return n}}
+chParse=async function(d){try{const id=decodeURIComponent(d.name.split('/').pop()),f=d.fields||{};const name=(f.name||{}).stringValue||'',v=+((f.v||{}).integerValue||0),t=+((f.t||{}).integerValue||0);
+  const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1),seg=p[1].split('.'),tr=seg[1]||'',rkm=/^(\d{1,3})([da]?)$/.exec(tr),rk=rkm?+rkm[1]:0,rb=rkm?rkm[2]:'';
+  if(BANS.has(pid))return null;const o={id,pid,name,v,tier:rk?(rkTier(rk-1)||''):CHTIERS.includes(tr)?tr:'',rk,rb,ms:parseInt(seg[0],36)||v*60000,ty};
+  const tk=seg[2]&&seg[2]!=='-'?seg[2]:'',pm=seg[3]&&seg[3]!=='-'?seg[3]:'';if(tk&&/^[a-z0-9]{1,12}$/.test(tk))o.tk=tk;if(pm&&/^[a-z]{1,8}$/.test(pm)){o.pm=pm;o.pv=parseInt(seg[4]||'0',36)||0}
+  if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}
+  else if(ty==='p'){o.m=chDecMon(body);if(!o.m)return null;o.x=p[4]?chClean(new TextDecoder().decode(acUb64(p[4]))):''}
+  else if(ty==='c'||ty==='d'){const b=body.split('.'),m=b[0],val=parseInt(b[1]||'0',36)||0;if(!/^[a-z]{1,8}$/.test(m)||!(m==='all'||CP.C.some(x=>x[0]===m)))return null;o.bm=m;o.bv=val;
+    if(ty==='d'){o.dl=String(p[4]||'').split(',').map(d36).filter(n=>META[n]).slice(0,6);if(!o.dl.length)return null}
+    o.x=(ty==='c'?'💪 '+CP.name(m)+' 전투력 ⚡'+fmtN(val)+' 자랑!':'🃏 '+CP.name(m)+' 덱 ⚡'+fmtN(val)+' 자랑!')}
+  else return null;return o}catch(e){return null}};
+chSend=async function(ty,text,mon,ex){if(!G||!G.pid){toast('먼저 게임을 시작해요');return false}if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되면 채팅할 수 있어요');return false}if(BANS.has(G.pid)){toast('채팅을 쓸 수 없는 계정이에요');return false}
+  if(Date.now()-CHLAST<(ty==='t'?3500:20000)){toast(ty==='t'?'조금 천천히 보내요':'자랑은 20초에 한 번씩 할 수 있어요');return false}
+  const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Date.now(),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
+  await chRkRefresh();const tier=chMyTier(),me=cpMe();let seg=ms.toString(36)+(tier?'.'+tier:'');if(me.tk||me.pm)seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv).toString(36);
+  let body;if(ty==='p')body='p'+chKeyMon(mon)+'~'+b;else if(ty==='c')body='c'+ex.m+'.'+Math.floor(ex.v).toString(36);else if(ty==='d')body='d'+ex.m+'.'+Math.floor(ex.v).toString(36)+'~'+ex.l.map(k36).join(',');else body='t'+b;
+  const id='m~'+seg+'~'+G.pid+'~'+body,name=chNameAva().slice(0,12),CMo=chMon(ms),vm=CMo.v,t=sec*1048576+await gmMac(id,name,vm,sec);
+  CHLAST=ms;const er=await chPut(CMo.bd,id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
+  const o=await chParse({name:'x/'+encodeURIComponent(id),fields:{name:{stringValue:name},v:{integerValue:String(vm)},t:{integerValue:String(t)}}});if(o){o.bd=CMo.bd;chMerge([o]);chDraw()}setTimeout(chPoll,1500);return true};
+// 보이는 모양: 칭호 · 전투력 · 덱 얼굴
+const ttl=o=>o.tk?`<u class="cptk">${esc(CP.title(o.tk))}</u>`:'',cpe=o=>o.pm?`<em class="cpv">⚡${o.pv>=1e4?(o.pv/1e4).toFixed(1)+'만':fmtN(o.pv)}</em>`:'';
+{const _n=chName;chName=function(o){let h=_n.apply(this,arguments);try{h=h.replace('<span class="chhd">','<span class="chhd">'+ttl(o));h=h.replace(/<\/b><\/span>$/,'</b>'+cpe(o)+'</span>')}catch(e){}return h}}
+{const _r=chRow;chRow=function(o){let h=_r.apply(this,arguments);if(!h)return h;try{h=h.replace('<small class="cht">',ttl(o)+cpe(o)+'<small class="cht">');
+  if(o.ty==='d')h=h.replace(/<\/div><\/div>$/,'<div class="cpdk">'+o.dl.map(n=>`<img src="${THUMB[n]||''}" alt="">`).join('')+'</div></div></div>');
+  else if(o.ty==='c')h=h.replace(/<\/div><\/div>$/,'<div class="cpbig">⚡ '+fmtN(o.bv)+'</div></div></div>')}catch(e){}return h}}
+// 자랑하기 · 전투력 / 덱 / 설정
+chBragCp=async function(){const btns=[{t:'⚡ 총합 전투력 '+fmtN(CP.all()),v:'all'},...CP.C.map(([k,n,ic])=>({t:ic+' '+n+' 전투력 '+fmtN(CP.val(k)),v:k})),{t:'취소',v:null}];btns.col=1;
+  const k=await ovBox('어떤 전투력을 자랑할까요?','<small>채팅창에 전체 공개돼요</small>',btns);if(!k)return;if(await chSend('c','',null,{m:k,v:CP.val(k)})){sfx('get');toast('전투력을 자랑했어요!')}};
+chBragDeck=async function(c){if(!c){const btns=CP.C.map(([k,n,ic])=>({t:ic+' '+n+' 덱 ⚡'+fmtN(CP.val(k)),v:k}));btns.push({t:'취소',v:null});btns.col=1;c=await ovBox('어떤 덱을 자랑할까요?','<small>덱의 포켓몬 6마리와 전투력이 채팅창에 올라가요</small>',btns);if(!c)return}
+  const d=CP.deck(c);if(!d.length){toast('덱이 비어 있어요');return}if(await chSend('d','',null,{m:c,v:CP.list(d),l:d.map(m=>m.n)})){sfx('get');toast(CP.name(c)+' 덱을 자랑했어요!')}};
+const _bp=chBragPick;chBragPick=async function(){const btns=[{t:'🐾 포켓몬 자랑',v:'p'},{t:'💪 전투력 자랑',v:'c'},{t:'🃏 덱 편성 자랑',v:'d'},{t:'⚙ 채팅 설정 (프로필 · 칭호)',v:'s'},{t:'취소',v:null}];btns.col=1;
+  const k=await ovBox('무엇을 자랑할까요?','',btns);if(!k)return;if(k==='p')return _bp();if(k==='c')return chBragCp();if(k==='d')return chBragDeck();if(k==='s'){chClose();chCfg()}};
+// 채팅창 끄기 설정 · 채팅 설정 버튼 · 미니맵 아래 자리잡기
+{const _u=chMiniUpd;chMiniUpd=function(){_u.apply(this,arguments);try{const m=$('chMini');if(m&&(G.chat||{}).show===0)m.style.display='none'}catch(e){}}}
+const st=document.createElement('style');st.textContent=`.cptabs{margin:6px 0}.cptabs button small{display:block;font-weight:400;font-size:11px}
+.cptk{text-decoration:none;color:#ffd23f;font-size:.85em;margin-right:3px;white-space:nowrap}.cpv{font-style:normal;color:#ffb020;font-size:.85em;margin-left:3px;white-space:nowrap}
+.cpdk{display:flex;gap:2px;margin-top:3px}.cpdk img{width:34px;height:34px;object-fit:contain;image-rendering:pixelated;background:#fff2;border-radius:6px}.cpbig{font-weight:900;font-size:1.2em;color:#ffd23f;margin-top:2px}
+#chCfgBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));display:none;padding:3px 9px;border:0;cursor:pointer;font:12px 'Galmuri11',sans-serif;color:#fff;background:#0c1430c8;box-shadow:0 0 0 2px #1c2550,0 0 0 4px #8a96c8}`;document.head.appendChild(st);
+const b=document.createElement('button');b.id='chCfgBtn';b.textContent='💬 채팅 설정';b.onclick=()=>{sfx('tap');if($('chWin'))chClose();chCfg()};document.body.appendChild(b);
+const vis=e=>e&&getComputedStyle(e).display!=='none'&&e.getBoundingClientRect().height>0;
+setInterval(()=>{try{const t=$('title'),m=$('mini');const on=!!G&&G.party&&G.party.length&&SCENE==='over'&&!PANEL&&!(DLG&&DLG.on)&&!document.body.classList.contains('inb')&&!(t&&t.classList.contains('on'))&&!$('chWin')&&!(m&&m.classList.contains('big'));
+  const c=$('chMini');if(!on){b.style.display='none';return}let y=0;for(const id of ['mini','wxBadge','egHud']){const e=$(id);if(vis(e))y=Math.max(y,e.getBoundingClientRect().bottom)}
+  if(!y){b.style.display='none';return}b.style.display='block';b.style.top=(y+6)+'px';
+  if(c){const top2=y+6+b.getBoundingClientRect().height+6;let lim=innerHeight-190;for(const id of ['lgBtn','gmBtn']){const e=$(id);if(vis(e)){const r=e.getBoundingClientRect();if(r.top>top2-20)lim=Math.min(lim,r.top-6)}}
+    const av=lim-top2;if(av>=60){c.style.left='calc(8px + env(safe-area-inset-left))';c.style.bottom='auto';c.style.top=top2+'px';c.style.width='min(200px,32vw)';c.style.maxHeight=Math.min(110,av)+'px';c.style.overflow='hidden'}
+    else{c.style.left=c.style.bottom=c.style.top=c.style.width=c.style.maxHeight=c.style.overflow=''}}}catch(e){}},400);
+}catch(e){console.warn('cpfix',e)}})();
+</script></body></html>
