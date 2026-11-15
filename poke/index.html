@@ -2480,8 +2480,8 @@ function rewardCheck(){if(!G)return;const today=dayKey();
   const qn=(G.party.length?1:0)+G.badges+(G.champ||0);if(G.qrw==null)G.qrw=qn;
   if(G.badgeSeen==null)G.badgeSeen=G.badges;while(G.badgeSeen<G.badges){REWQ.push({badge:G.badgeSeen});G.badgeSeen++}
   while(G.qrw<qn){G.qrw++;const kind=R()<.5?'P':'M';const pl=qrwPlan(kind);if(pl)REWQ.push({multi:pl.list,msg:'🎯 퀘스트 완료 보상!',title:'퀘스트 보상 · 환생 '+pl.r+'번 강화'});else REWQ.push({kind,msg:'🎯 퀘스트 완료 보상! '+PKN[kind]+' 1장',why:'퀘스트 보상'})}}
-// 환생 퀘스트 보상 강화: 퀘스트 하나 깰 때마다 카드팩 (1+환생, 최대 6장) + 상위 등급 팩 (환생1 영웅~전설 · 2 전설 · 3 신화 · 4 환상 · 5 이상 유일)
-function qrwPlan(kind){const r=(G&&G.rebirth)||0;if(!r)return null;const up=['P2','P3','P4','P5','P6'][Math.min(4,r-1)];return{list:[...Array(Math.min(5,r)+1).fill(kind),up],up,r}}
+// 환생 퀘스트 보상 강화: 퀘스트 하나 깰 때마다 카드팩 (1+환생, 최대 6장) + 상위 등급 팩 (난이도별: 보통 영웅~전설 · 어려움 전설 · 지옥 신화 · 나이트메어 환상 · 종말 유일)
+function qrwPlan(kind){const r=(G&&G.rebirth)||0;if(!r)return null;const dd=Math.max(0,Math.min(5,Math.min(DIFF(),G.rbd!=null?G.rbd:DIFF())));const up=['P2','P2','P3','P4','P5','P6'][dd];return{list:[...Array(Math.min(5,r)+1).fill(kind),up],up,r}}
 function qrwText(){const p=qrwPlan('P');if(!p)return '';return '환생 '+p.r+'번 보상 강화 · 퀘스트마다 카드팩 '+(p.list.length-1)+'장 + '+PKT[p.up].n+' 1장'}
 setInterval(()=>{try{if(SCENE==='over')rewardCheck()}catch(e){}},1500);
 // ---------- 배지 ----------
@@ -3984,6 +3984,7 @@ async function sfAuto(c){const sf=gSF(c);if(sf.none||sf.b||sf.s>=15)return;close
 // ===== 카드팩 가방 · 히든 포탈 · 스탯 부적 =====
 // 카드팩은 받자마자 열리지 않고 가방에 쌓여요. 1장 · 10장 · 원하는 만큼 골라서 열고, 한 장씩 손가락으로 잘라요.
 const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅~전설 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'},P4:{n:'신화 카드팩',img:'cardpack/pk4.webp'},P5:{n:'환상 카드팩',img:'cardpack/pk5.webp'},P6:{n:'유일 카드팩',img:'cardpack/pk6.webp'}};
+const PRNG={P2:[2,3]},PRNGP=.1;// 영웅~전설 팩: 영웅 90% · 전설 10%
 function packAdd(list,why){G.packs=G.packs||{};const c={};for(const k0 of list){const k=PKT[k0]?k0:k0[0];G.packs[k]=(G.packs[k]||0)+1;c[k]=(c[k]||0)+1}save();
   toast((why?why+' · ':'')+Object.keys(c).map(k=>PKT[k].n+' '+c[k]+'장').join(', ')+' 가방에 넣었어요');sfx('get');packBadge()}
 function packBadge(){const b=document.getElementById('bPack');if(!b||!G)return;const n=Object.values(G.packs||{}).reduce((a,b)=>a+b,0);let e=b.querySelector('.nb');if(!e){e=document.createElement('em');e.className='nb';b.appendChild(e)}e.textContent=n>99?'99+':n||'';e.style.display=n?'':'none'}
@@ -3995,8 +3996,8 @@ function packOpenUI(sel){if(!G)return;G.packs=G.packs||{};const ks=Object.keys(P
     const go=p.querySelector('#pkGo');if(go)go.onclick=()=>{closePanel(1);packRun(sel,q)}};
   openPanel('카드팩 가방',`<div id="pkB"></div>`,null,draw)}
 let PKSTOP=0;
-async function packRun(k,n){PKSTOP=0;const kind=k[0],rar=k==='PH'?2:k.length>1?+k.slice(1):null;const bk=document.createElement('div');bk.id='pkBack';document.body.appendChild(bk);const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
-  let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;window.PKNOCAP=rar!=null&&rar>=4;try{await grant(rollItem(kind,k==='P2'?(R()<.1?3:2):rar),PKT[k].n)}finally{window.PKNOCAP=0};done++}}finally{st.remove();bk.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
+async function packRun(k,n){PKSTOP=0;const kind=k[0],rar=k==='PH'?2:PRNG[k]?PRNG[k][1]:k.length>1?+k.slice(1):null;const bk=document.createElement('div');bk.id='pkBack';document.body.appendChild(bk);const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
+  let done=0;try{for(let i=0;i<n;i++){if(PKSTOP||!(G.packs[k]>0))break;G.packs[k]--;save();st.textContent='그만 열기 · '+(i+1)+' / '+n;window.PKNOCAP=rar!=null&&rar>=4;try{await grant(rollItem(kind,PRNG[k]?(R()<PRNGP?PRNG[k][1]:PRNG[k][0]):rar),PKT[k].n)}finally{window.PKNOCAP=0};done++}}finally{st.remove();bk.remove()}packBadge();toast(PKT[k].n+' '+done+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
 (function(){const go=()=>{const b=document.getElementById('bPack');if(b)b.onclick=()=>{sfx('tap');packOpenUI()};packBadge()};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // ---------- 스탯 부적 (히든 포탈에서만) · 먹이면 그 포켓몬만 영구 강화 · 먹이기 한도는 타입 부적과 같이 ----------
 const STC=[['sc_atk',[1,2,3,4],'공격력','%'],['sc_hp',[1,2,3,4],'체력','%'],['sc_def',[1,2,3,4],'방어력','%'],['sc_crt',[1],'크리티컬 확률','%'],['sc_cdm',[1],'크리티컬 데미지','%']];
@@ -4033,17 +4034,55 @@ const dMax=()=>Math.max(2,G&&G.dmax||0);
 setInterval(()=>{try{if(G&&G.champ){G.champOn=G.champOn||{};const d=DIFF();if(!G.champOn[d]){G.champOn[d]=1;if(d>=2&&d<5&&(G.dmax||2)<d+1){G.dmax=d+1;save();say(['<b>'+DNAME[d]+'</b>에서 챔피언이 됐어요!','새 난이도 <b>'+DNAME[d+1]+'</b>이(가) 열렸어요! 메뉴 → 난이도 또는 「환생」으로 도전해요.'])}else save()}}}catch(e){}},3000);
 function diffOpen(){if(!G)return;const cur=DIFF(),mx=dMax();
   openPanel('난이도',`<p class="hhint">난이도가 높을수록 상대가 세지고 레벨도 높고, <b>더 높은 등급 포켓몬</b>이 나와요. 대신 보상이 커져요. 부적 먹이기 한도도 늘어나요.</p><div class="dfg">${DNAME.map((n,i)=>{const lk=i>mx;return `<div class="dfc${i===cur?' on':''}${lk?' lk':''}" style="--dc:${DCOL[i]}"><b>${n}</b><small>상대 레벨 +${Math.round(DLV[i]*100)}% · 상대 공격 ×${DDMG[i]}</small><small>경험치 ×${DEXP[i]}</small><small>${DDESC[i]}</small><small>부적 한도 ${CHMAX[i]+(G.rebirth||0)}개</small>${lk?`<em>${DNAME[i-1]}에서 챔피언이 되면 열려요</em>`:i===cur?'<em>지금 난이도</em>':`<button data-df="${i}">이 난이도로</button>`}</div>`}).join('')}</div>
-   <div class="hcard"><b>환생 ${G.rebirth?'('+G.rebirth+'번 함)':''}</b><p>챔피언이 되면 이야기를 처음부터 다시 할 수 있어요. 포켓몬 · 가방 · 돈 · 도감 · 장비 · 카드팩은 그대로, 배지와 체육관은 처음부터! 환생할 때마다 <b>부적 한도 +1</b> · <b>경험치 +5%</b>.</p><div class="wbt"><button class="main" id="dfRb" ${G.champ?'':'disabled'}>${G.champ?'환생하기':'챔피언이 되면 할 수 있어요'}</button></div></div>`,null,p=>{
+   <div class="hcard"><b>환생 ${G.rebirth?'('+G.rebirth+'번 함)':''}</b><p>챔피언이 되면 이야기를 처음부터 다시 할 수 있어요. 포켓몬 · 가방 · 돈 · 도감 · 장비 · 카드팩은 그대로, 배지와 체육관은 처음부터! 환생할 때마다 <b>부적 한도 +1</b> · <b>경험치 +5%</b>. <b>4번째 환생부터는 데려갈 포켓몬을 10마리만</b> 골라요 (5번째 15마리 · 6번째 20마리…). 고른 포켓몬은 접두사 · 기술 · 부적 · 사탕이 그대로예요. 환생 퀘스트 추가 팩은 <b>난이도별</b>이에요: 어려움 전설 · 지옥 신화 · 나이트메어 환상 · <b>종말 유일</b>.</p>${rbRuleHtml((G.rebirth||0)+1)}<div class="wbt"><button class="main" id="dfRb" ${G.champ?'':'disabled'}>${G.champ?'환생하기':'챔피언이 되면 할 수 있어요'}</button></div></div>`,null,p=>{
     p.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{G.opt.diff=+b.dataset.df;save();sfx('get');toast('난이도: '+DNAME[DIFF()]);diffOpen()});const rb=p.querySelector('#dfRb');if(rb)rb.onclick=()=>{closePanel(1);rebirthOpen()}})}
 function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax(),tg=Math.min(5,DIFF()+1);
-  openPanel('환생',`<p class="hhint">환생하면 난이도가 <b>차례대로 다음 단계</b>로 올라가요. 지금까지 모은 포켓몬 ${G.party.length+G.box.length}마리 · 가방 · 돈 · 도감 · 장비 · 접두사는 그대로예요. <b>포켓몬 레벨은 Lv.1부터 다시</b> 시작하고(화면에는 환생마다 +100, 1환생은 Lv.101~), 능력치는 환생마다 +${Math.round(REBSTAT*100)}%예요. 배지 · 상위 배지 · 체육관 · 라이벌 · 맵 아이템은 처음부터예요.</p>
+  openPanel('환생',`<p class="hhint">환생하면 난이도가 <b>차례대로 다음 단계</b>로 올라가요. 지금까지 모은 포켓몬 ${G.party.length+G.box.length}마리${rbCap((G.rebirth||0)+1)?' (<b>이번 환생부터는 '+rbCap((G.rebirth||0)+1)+'마리만 골라서 데려가요</b> · 나머지는 떠나요)':''} · 가방 · 돈 · 도감 · 장비 · 접두사는 그대로예요. <b>포켓몬 레벨은 Lv.1부터 다시</b> 시작하고(화면에는 환생마다 +100, 1환생은 Lv.101~), 능력치는 환생마다 +${Math.round(REBSTAT*100)}%예요. 배지 · 상위 배지 · 체육관 · 라이벌 · 맵 아이템은 처음부터예요.</p>${rbRuleHtml((G.rebirth||0)+1)}
    <div class="dfg">${DNAME.map((n,i)=>i!==tg||i>mx?'':`<div class="dfc" style="--dc:${DCOL[i]}"><b>${n}</b><small>${DDESC[i]}</small><button data-rb="${i}">${n}(으)로 환생</button></div>`).join('')}</div>`,null,p=>{
-    p.querySelectorAll('[data-rb]').forEach(b=>b.onclick=()=>{const d=+b.dataset.rb;if(d!==tg||d>mx)return;if(!confirm(DNAME[d]+' 난이도로 환생할까요? 배지와 이야기는 처음부터예요.'))return;
-      G.rebirth=(G.rebirth||0)+1;resetAllLv();G._lvReset=1;G.opt.diff=d;G.badges=0;G.champ=0;G.ub=0;G.badgeSeen=0;G.qrw=1;G.beat={};G.got={};G.flags={r1:1};G.visit={0:1};G.nav=null;G.rematch={};G.champOn={};
+    p.querySelectorAll('[data-rb]').forEach(b=>b.onclick=()=>{const d=+b.dataset.rb;if(d!==tg||d>mx)return;const cap0=rbCap((G.rebirth||0)+1);if(!confirm(DNAME[d]+' 난이도로 환생할까요? 배지와 이야기는 처음부터예요.'+(cap0?'\n\n⚠️ 주의! 이번 환생은 포켓몬을 '+cap0+'마리만 데려가요.\n다음 화면에서 고르지 않은 포켓몬은 영영 사라져요!':'')))return;
+      const cap=rbCap((G.rebirth||0)+1);const go=()=>{G.rebirth=(G.rebirth||0)+1;resetAllLv();G._lvReset=1;G.opt.diff=d;G.rbd=d;G.badges=0;G.champ=0;G.ub=0;G.badgeSeen=0;G.qrw=1;G.beat={};G.got={};G.flags={r1:1};G.visit={0:1};G.nav=null;G.rematch={};G.champOn={};
       try{for(const k in AREAS)delete AREAS[k]}catch(e){}try{buildLoc()}catch(e){}healAll();closePanel(1);save();
       const A=genArea(0);const b2=A.bld.find(x=>x.kind==='home')||A.bld.find(x=>x.kind==='center');place(0,b2?b2.out.x:A.spawn.x,b2?b2.out.y:A.spawn.y,0);hud();sfx('badge');
-      say(['<b>'+G.rebirth+'번째 환생!</b> '+DNAME[d]+' 난이도로 처음부터 시작해요.','포켓몬은 Lv.'+(100*G.rebirth+1)+'부터 다시 키워요 · 능력치 +'+Math.round(G.rebirth*REBSTAT*100)+'%','부적 먹이기 한도 +'+G.rebirth+' · 경험치 +'+G.rebirth*5+'%. 다시 회색시티 체육관부터!','🎯 <b>퀘스트도 처음부터!</b> '+qrwText()])})})}
-try{HUB.push({k:'diff',n:'난이도 · 환생',d:'쉬움 · 보통 · 어려움 · 지옥 · 나이트메어. 높을수록 상대가 세고 더 높은 등급 포켓몬이 나오지만 보상이 커요. 챔피언이 되면 환생해서 더 높은 난이도로 처음부터!',st:()=>DNAME[DIFF()]+(G.rebirth?' · 환생 '+G.rebirth:''),go:[['난이도 · 환생',()=>diffOpen()]]})}catch(e){}
+      say(['<b>'+G.rebirth+'번째 환생!</b> '+DNAME[d]+' 난이도로 처음부터 시작해요.','포켓몬은 Lv.'+(100*G.rebirth+1)+'부터 다시 키워요 · 능력치 +'+Math.round(G.rebirth*REBSTAT*100)+'%','부적 먹이기 한도 +'+G.rebirth+' · 경험치 +'+G.rebirth*5+'%. 다시 회색시티 체육관부터!','🎯 <b>퀘스트도 처음부터!</b> '+qrwText(),cap?'🎒 이번에는 포켓몬 <b>'+G.party.concat(G.box).length+'마리</b>만 데리고 시작해요.':''].filter(Boolean));};if(cap&&G.party.length+G.box.length>cap){closePanel(1);(async()=>{try{await say(rbStory(G.rebirth+1,cap))}catch(e){}rbPick(cap,go)})()}else go()})})}
+
+// ===== 4번째 환생부터: 데려갈 포켓몬 고르기 (4환생 10마리 · 5환생 15마리 · 6환생 20마리…) =====
+// 고른 포켓몬은 그대로(접두사 · 기술 · 부적 · 사탕 · 이로치 · 잠금) · 고르지 않은 포켓몬은 영혼도 없이 떠나요
+function rbCap(n){return n>=4?10+5*(n-4):0}
+// 이야기: 왜 포켓몬이 줄어드나요?
+function rbStory(n,c){return ['<b>🌀 시간의 문</b> 앞에 섰어요. 챔피언이 된 트레이너만 이 문을 지나 새로운 모험을 시작할 수 있어요.','문 너머 <b>시간의 길</b>은 아주 좁아서, 모든 포켓몬이 함께 건널 수 없어요. 마음이 가장 잘 통한 <b>파트너만</b> 같이 갈 수 있죠.','트레이너가 강해질수록 길이 넓어져요. <b>4번째 환생은 10마리, 5번째는 15마리…</b> 문을 지날수록 더 많은 파트너와 건널 수 있어요.','함께 건너지 못한 포켓몬들은 시간의 틈으로 흩어져요. 하지만 <b>도감에는 그 기억이 그대로 남아요.</b>','그리고 틈에서 새어 나온 신비한 힘이 <b>환상 · 유일 포켓몬</b>을 깨워요! 나이트메어와 종말의 문을 지나면 더 큰 선물이 기다려요.','<b>'+n+'번째 환생!</b> 함께 건널 파트너 <b>'+c+'마리</b>를 골라요. 흩어지는 포켓몬은 영영 돌아오지 않으니 신중하게!']}
+const RBBOX='background:#ffe9e6;border:3px solid #c0304a;color:#7a1020;padding:8px 10px;margin:8px 0;line-height:1.55;font-weight:800;font-size:14px';
+function rbRuleHtml(n){const c=rbCap(n);return `<div style="${RBBOX}">⚠️ 꼭 읽어요! 환생 규칙이 바뀌었어요<br>${c?'👉 이번 '+n+'번째 환생은 포켓몬을 <u>'+c+'마리만</u> 데려갈 수 있어요!<br>':''}① 4번째 환생부터는 포켓몬을 <u>10마리만</u> 데려가요 (5번째 15마리 · 6번째 20마리…)<br>② <u>안 고른 포켓몬은 영영 사라져요!</u> 되돌릴 수 없고, 영혼도 안 줘요.<br>③ 고른 포켓몬은 접두사 · 기술 · 부적 · 사탕이 그대로예요.<br>④ 아끼는 포켓몬은 환생하기 전에 <u>🔒 자물쇠</u>를 채워 두세요. 처음부터 골라져 있어요.<br>⑤ 영혼이 필요하면 환생하기 <u>전에</u> 중복 포켓몬을 분해해 두세요.</div><div style="background:#e8f8e8;border:3px solid #2e9a4a;color:#155a28;padding:8px 10px;margin:8px 0;line-height:1.55;font-weight:800;font-size:14px">😊 대신 이런 점이 좋아요!<br>· 포켓몬이 줄어드는 대신 <u>환상 · 유일 포켓몬</u>을 얻을 수 있어요! (환생 퀘스트마다 나이트메어는 환상 팩, 종말은 유일 팩이 더 나와요)<br>· <u>도감은 그대로 유지돼요.</u> 떠난 포켓몬도 도감에는 남아요.</div>`}
+function rbPick(cap,go){const all=[...G.party,...G.box];all.forEach(m=>{if(!m.uid)m.uid=Date.now().toString(36)+ri(0,1e6)});
+  const need=Math.min(cap,all.length);const sc=m=>rarM(m)*1e6+(m.lv||1)+(m.px!=null&&PX[m.px]?(PX[m.px].g+1)*1000:0)+(m.sh?600:0);
+  const view=all.slice().sort((a,b)=>(b.lock?1:0)-(a.lock?1:0)||sc(b)-sc(a));
+  let sel=new Set(view.slice(0,need).map(m=>m.uid));
+  const auto=()=>{sel=new Set(view.slice(0,need).map(m=>m.uid))};
+  const draw=p=>{const n=sel.size;
+    p.querySelector('#rbB').innerHTML=`${rbRuleHtml(G.rebirth+1)}<p class="hhint"><b>${need}마리</b>를 골라요. 고른 포켓몬은 <b>분홍 테두리</b>로 보여요. 🔒 잠근 포켓몬은 처음부터 골라져 있어요.</p>
+    <div class="wbt"><button id="rbAuto">강한 순으로 자동</button><button id="rbClr">모두 해제</button></div>
+    <h4>선택 <span style="color:${n===need?'#1d8a3a':'#c0304a'}">${n} / ${need}</span></h4>
+    <div class="trg">${view.map((m,k)=>`<button class="trc" data-k="${k}" style="${sel.has(m.uid)?'outline:4px solid #ff2aa0':''}"><img src="${THUMB[m.n]||''}" alt=""><b style="color:${RARC[rarM(m)]}">${esc(nm(m))}</b><small>Lv.${dLv(m)}${m.lock?' · 🔒':''}${m.sh?' · ✨':''}</small></button>`).join('')}</div>
+    <div class="wbt"><button class="main" id="rbGo" ${n===need?'':'disabled'}>이 ${need}마리로 환생하기</button></div>`;
+    p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const m=view[+b.dataset.k];sfx('tap');if(sel.has(m.uid))sel.delete(m.uid);else{if(sel.size>=need){toast('최대 '+need+'마리까지예요');return}sel.add(m.uid)}draw(p)});
+    p.querySelector('#rbAuto').onclick=()=>{sfx('tap');auto();draw(p)};p.querySelector('#rbClr').onclick=()=>{sfx('tap');sel.clear();draw(p)};
+    const g=p.querySelector('#rbGo');if(g)g.onclick=()=>{if(sel.size!==need)return;const out=all.length-need;
+      if(!confirm('⚠️ 1번째 확인\n포켓몬 '+need+'마리만 데리고 환생해요.\n고르지 않은 '+out+'마리는 영영 사라져요. 되돌릴 수 없어요!\n\n계속할까요?'))return;if(!confirm('⚠️ 마지막 확인!\n지금 고른 '+need+'마리 말고 '+out+'마리가 사라져요.\n아끼는 포켓몬이 빠지지 않았는지 다시 한 번 보세요.\n\n정말 환생할까요?'))return;
+      const keepP=G.party.filter(m=>sel.has(m.uid)),keepB=G.box.filter(m=>sel.has(m.uid));let P=keepP.slice(0,6),B=[...keepP.slice(6),...keepB];
+      if(!P.length){P=B.splice(0,Math.min(6,B.length))}else if(P.length<6&&B.length){P=P.concat(B.splice(0,6-P.length))}
+      try{mlHint('x')}catch(e){}
+      G.party.splice(0,G.party.length,...P);G.box.splice(0,G.box.length,...B);
+      const has=new Set([...P,...B].map(m=>m.uid)),f=a=>(a||[]).filter(u=>has.has(u));
+      try{if(G.wbSq)G.wbSq=f(G.wbSq);if(G.pre)for(const k in G.pre)G.pre[k]=f(G.pre[k])}catch(e){}
+      try{if(G.pvpDef&&(G.pvpDef.u||[]).some(u=>!has.has(u))){const id=G.pvpDef.id;G.pvpDef=null;if(id)pvDel(id)}}catch(e){}
+      save();try{refreshSpr()}catch(e){}closePanel(1);setTimeout(()=>{try{mlTick()}catch(e){}},50);go()}};
+  openPanel('환생 · 데려갈 포켓몬',`<div id="rbB"></div>`,null,draw)}
+
+// 환생 규칙 안내: 4번째 환생 전에 여러 번 알려 줘요 (환생 3번 이상이면 하루에 한 번씩 · 나머지는 한 번)
+setInterval(()=>{try{if(!G||typeof SCENE==='undefined'||SCENE!=='over'||DLG.on||PANEL||document.getElementById('mg'))return;const r=G.rebirth||0,day=new Date().toISOString().slice(0,10);
+  if(r>=3){if(G.rbWarnD===day)return;G.rbWarnD=day}else{if(G.rbWarn1)return;G.rbWarn1=1}save();
+  const nx=r+1,c=rbCap(nx);
+  say(['<b>⚠️ 환생 규칙이 바뀌었어요! 꼭 읽어요</b>','🌀 환생의 문 너머 <b>시간의 길</b>은 좁아서, 마음이 가장 잘 통한 파트너만 함께 건널 수 있게 됐어요.',c?'다음 <b>'+nx+'번째 환생</b>은 포켓몬을 <b>'+c+'마리만</b> 데려갈 수 있어요.':'<b>4번째 환생</b>부터는 포켓몬을 <b>10마리만</b> 데려갈 수 있어요. (5번째 15마리 · 6번째 20마리…)','<b>안 고른 포켓몬은 영영 사라져요!</b> 되돌릴 수 없고 영혼도 안 줘요.','고른 포켓몬은 접두사 · 기술 · 부적 · 사탕이 그대로예요.','아끼는 포켓몬은 환생하기 전에 <b>팀 화면에서 🔒 자물쇠</b>를 채워 두세요. 영혼이 필요하면 환생하기 <b>전에</b> 중복 포켓몬을 분해해 두세요.','😊 대신 <b>환상 · 유일 포켓몬</b>을 얻을 수 있어요! (환생 퀘스트마다 나이트메어는 환상 팩, 종말은 유일 팩이 더 나와요) 그리고 <b>도감은 그대로 유지돼요.</b>'])}catch(e){}},5000);
+try{HUB.push({k:'diff',n:'난이도 · 환생',d:'쉬움 · 보통 · 어려움 · 지옥 · 나이트메어. 높을수록 상대가 세고 더 높은 등급 포켓몬이 나오지만 보상이 커요. 챔피언이 되면 환생해서 더 높은 난이도로 처음부터! 4번째 환생부터는 데려갈 포켓몬을 10마리(5번째 15마리…)만 골라요.',st:()=>DNAME[DIFF()]+(G.rebirth?' · 환생 '+G.rebirth:''),go:[['난이도 · 환생',()=>diffOpen()]]})}catch(e){}
 // 트레이너도 난이도가 높을수록 더 강한(높은 등급) 포켓몬을 써요
 {const _tt=typeTeam;typeTeam=function(t,maxB,n,lvs,seed){return _tt(t,maxB+[0,30,65,100,140,185][DIFF()],n,lvs,seed)}}
 
@@ -4715,6 +4754,15 @@ body.inb #rewBar{display:none!important}@media (orientation:landscape){#rewBar{t
 
 // ===== 포켓몬 교환: 친구에게 QR로 포켓몬 보내기 (보내면 내 쪽에서는 사라져요 · 같은 QR은 한 번만 받아요) =====
 const monPack=m=>({n:m.n,lv:m.lv,exp:m.exp,iv:m.iv,moves:m.moves,px:m.px,sh:m.sh?1:0,nick:m.nick,lb:m.lb||0});
+// 거래 규칙: 받는 친구의 제일 높은 레벨보다 높은 포켓몬을 받으면 그 친구 레벨에 맞춰 내려가요 (보낸 쪽 손해)
+function trLvFix(m){try{const mx=Math.max(1,...[...G.party,...G.box].map(x=>x.lv||1));if((m.lv||1)>mx){const o=m.lv;m.lv=mx;m.exp=expAt(mx);m.hp=stOf(m)[0];return o}}catch(e){}return 0}
+// 레벨이 내려간 포켓몬은 접두사도 받은 아이 기준으로 새로 뽑아요 (슬롯 애니메이션)
+function pxSlot(m){return new Promise(async done=>{try{const old=pxOf(m);const o=document.createElement('div');o.id='pxOv';
+  o.innerHTML=`<div class="pxwin2"><div class="pxt2">🎰 접두사 새로 뽑기 · ${esc(META[m.n].name)}</div><div class="pxcur" style="--pc:${old?PXC[old.g]:'#8a9aa0'}"><u>${old?PXG[old.g]:'-'}</u><b>${old?old.n:'없음'}</b><small>두근두근…</small></div><p class="pxh2">거래로 레벨이 내려간 포켓몬은 <b>접두사도 새로 정해져요.</b> 받은 친구의 난이도 · 환생 기준으로 나와요.</p><div class="wbt"><button id="pxSk">⏭ 스킵</button></div></div>`;document.body.appendChild(o);
+  let skip=0;o.querySelector('#pxSk').onclick=()=>{skip=1};const box=o.querySelector('.pxcur');const nx=pxRoll();
+  for(let i=0;i<14&&!skip;i++){const q=PX[ri(0,PX.length-1)];box.style.setProperty('--pc',PXC[q.g]);box.innerHTML=`<u>${PXG[q.g]}</u><b>${q.n}</b><small>…</small>`;sfx('tap');await sleep(60+i*12)}
+  m.px=nx;save();const q=PX[nx];box.style.setProperty('--pc',PXC[q.g]);box.className='pxcur pxf'+q.g;box.innerHTML=`<u>${PXG[q.g]}</u><b>${q.n}</b><small>${pxTxt(q)}</small>`;sfx(q.g>=3?'badge':'get');toast('새 접두사: ['+PXG[q.g]+'] '+q.n);
+  const sk=o.querySelector('#pxSk');if(sk)sk.remove();await sleep(skip?700:1600);o.remove()}catch(e){try{document.getElementById('pxOv').remove()}catch(_){}}done()})}
 function monUnpack(d){const m=mkMon(d.n,d.lv);if(d.exp!=null)m.exp=d.exp;if(d.iv)m.iv=d.iv;if(d.moves&&d.moves.length)m.moves=d.moves;if(d.px!=null)m.px=d.px;if(d.sh)m.sh=1;if(d.nick)m.nick=d.nick;if(d.lb)m.lb=d.lb;m.hp=stOf(m)[0];return m}
 async function qrPack(tag,obj){return tag+'|'+b64u(await zipStr(JSON.stringify(obj)))}
 async function qrUnpack(t){return JSON.parse(await unzipStr(ub64u(t.slice(5))))}
@@ -4732,9 +4780,9 @@ async function tradeSend(m){if(typeof qrcode==='undefined'||typeof CompressionSt
   qrShow(nm(m)+' 보내기',txt,`<p>친구 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 이 화면을 비춰요.</p>`,[['친구가 받았어요 (닫기)',()=>{xfClose();toast(nm(m)+'을(를) 친구에게 보냈어요!')},'main'],['보내기 취소 (되돌리기)',()=>{(wasP&&G.party.length<6?G.party:G.box).push(m);G.trOut=(G.trOut||[]).filter(x=>x.t!==tok);save();try{refreshSpr()}catch(e){}xfClose();toast(nm(m)+'을(를) 되돌렸어요')}]])}
 async function tradeApply(t){let d;try{d=await qrUnpack(t)}catch(e){toast('교환 QR을 읽다가 실패했어요');return}if(!d||d.k!=='pkt'||!d.m||!META[d.m.n]){toast('교환 QR이 아니에요');return}
   G.usedT=G.usedT||{};if(G.usedT[d.t]){toast('이미 받은 포켓몬이에요 (같은 QR은 한 번만)');return}if((G.trOut||[]).some(x=>x.t===d.t)){toast('내가 보낸 QR이에요');return}
-  const m=monUnpack(d.m);m.from=d.from||'친구';G.usedT[d.t]=1;const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
+  const m=monUnpack(d.m);m.from=d.from||'친구';G.usedT[d.t]=1;const lvOld=trLvFix(m);const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
   if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m);save();return}G.box.push(m);save();try{refreshSpr()}catch(e){}
-  try{await CardPack.open({rar:rarM(m),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)');try{spAdd(5)}catch(e){}}
+  try{await CardPack.open({rar:rarM(m),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)'+(lvOld?' · Lv.'+lvOld+' → Lv.'+m.lv+'로 내려갔어요 (내 레벨에 맞춰요)':''));try{spAdd(5)}catch(e){}if(lvOld)await pxSlot(m)}
 
 // ===== 친구 대전: 내 팀 QR을 보여 주고, 친구 팀 QR을 찍으면 그 팀과 배틀 · 이기면 승리 +1 (같은 친구는 하루 3번까지) =====
 async function pvpMine(){if(!G)return;if(typeof qrcode==='undefined'||typeof CompressionStream==='undefined'){toast('이 폰에서는 QR을 못 만들어요');return}
@@ -4754,9 +4802,9 @@ async function pvpApply(t){let d;try{d=await qrUnpack(t)}catch(e){toast('대전 
 // 랭킹에 친구 대전
 try{RKB.pvp={n:'친구 대전',k:()=>'pvp',v:()=>G.pvpW||0,u:'승',d:'친구 팀 QR을 찍고 대전해서 이긴 횟수 (같은 친구는 하루 3번까지)'};RKT.push(['pvp','친구 대전'])}catch(e){}
 // QR 옮기기 창 · 컨텐츠에 추가
-{const _xo=xferOpen;xferOpen=function(){_xo.apply(this,arguments);try{const pb=document.querySelector('.panel .pb');if(pb&&!pb.querySelector('#trBox'))pb.insertAdjacentHTML('beforeend',`<div class="hcard" id="trBox"><b>포켓몬 교환 · 친구 대전</b><p>친구에게 포켓몬을 QR로 보내거나, 내 팀 QR로 친구와 대전해요. 받을 때는 위의 「카메라로 QR 찍기」로 찍으면 돼요.</p><div class="wbt"><button class="main" id="trGo">포켓몬 보내기</button><button id="pvGo">내 팀 QR (대전)</button></div></div>`);
+{const _xo=xferOpen;xferOpen=function(){_xo.apply(this,arguments);try{const pb=document.querySelector('.panel .pb');if(pb&&!pb.querySelector('#trBox'))pb.insertAdjacentHTML('beforeend',`<div class="hcard" id="trBox"><b>포켓몬 교환 · 친구 대전</b><p>친구에게 포켓몬을 QR로 보내거나, 내 팀 QR로 친구와 대전해요. <b>받는 친구의 제일 높은 레벨보다 높은 포켓몬은 그 친구 레벨에 맞춰 내려가고, 접두사도 새로 뽑혀요 🎰</b> 받을 때는 위의 「카메라로 QR 찍기」로 찍으면 돼요.</p><div class="wbt"><button class="main" id="trGo">포켓몬 보내기</button><button id="pvGo">내 팀 QR (대전)</button></div></div>`);
   const a=document.getElementById('trGo');if(a)a.onclick=()=>{sfx('tap');closePanel(1);tradeOpen()};const b=document.getElementById('pvGo');if(b)b.onclick=()=>{sfx('tap');closePanel(1);pvpMine()}}catch(e){}}}
-try{HUB.push({k:'trade',n:'포켓몬 교환',d:'친구에게 포켓몬을 QR로 보내요. 받는 친구는 QR 옮기기 → 카메라로 QR 찍기. 보내면 내 쪽에서는 사라지고, 같은 QR은 한 번만 받아요.',st:()=>'',go:[['포켓몬 보내기',()=>tradeOpen()],['친구 QR 받기',()=>xferScan()]]});
+try{HUB.push({k:'trade',n:'포켓몬 교환',d:'친구에게 포켓몬을 QR로 보내요. 받는 친구는 QR 옮기기 → 카메라로 QR 찍기. 보내면 내 쪽에서는 사라지고, 같은 QR은 한 번만 받아요. 받는 친구의 제일 높은 레벨보다 높은 포켓몬은 그 친구 레벨에 맞춰 내려가고 접두사도 슬롯으로 새로 뽑혀요 (보낸 쪽 손해).',st:()=>'',go:[['포켓몬 보내기',()=>tradeOpen()],['친구 QR 받기',()=>xferScan()]]});
   HUB.push({k:'pvp',n:'친구 대전',d:'내 팀 QR을 친구에게 보여 주고, 친구 팀 QR을 찍으면 그 팀과 배틀! 이기면 친구 대전 1승 (같은 친구는 하루 3번까지) · 랭킹에도 올라가요. 져도 돈을 잃지 않고 체력은 원래대로.',st:()=>'친구 대전 '+(G.pvpW||0)+'승',go:[['내 팀 QR',()=>pvpMine()],['친구 팀 QR 찍기',()=>xferScan()]]});HUBIC.trade='ic_gift';HUBIC.pvp='ic_rank'}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`
 .trg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:8px 4px}
@@ -4895,7 +4943,7 @@ const ODTABS={
    return odDiff()+`<h4>포켓몬 카드팩</h4>${odRows(P.map((p,i)=>[RAR[i],p,RARC[i]]).filter((x,i)=>i<=cap))}<p class="hhint">신화 = 메가진화 · 환상 = 거다이맥스 · 유일 = 원시회귀 · 무한다이맥스. 같은 등급 안에서는 어떤 포켓몬이든 똑같은 확률이에요.${cap<6?' 더 높은 등급은 더 어려운 난이도에서 열려요.':''}</p>
    <h4>기술 카드팩</h4>${odRows(M.map((p,i)=>[RAR[i],p,RARC[i]]).filter((x,i)=>i<=3))}
    <h4>영웅~전설 카드팩</h4>${odRows([[RAR[2],.9,RARC[2]],[RAR[3],.1,RARC[3]]])}
-   <h4>전설 카드팩</h4>${odRows([[RAR[3],1,RARC[3]]])}<h4>신화 · 환상 · 유일 카드팩</h4>${odRows([4,5,6].map(i=>[RAR[i]+' 카드팩 → '+RAR[i],1,RARC[i]]))}<p class="hhint">운영자 선물로만 받아요. 난이도와 상관없이 그 등급이 나와요.</p>
+   <h4>전설 카드팩</h4>${odRows([[RAR[3],1,RARC[3]]])}<h4>환생 퀘스트 추가 팩 (난이도별)</h4>${odRows([['보통 · 영웅~전설 팩',1,RARC[3]],['어려움 · 전설 팩',1,RARC[3]],['지옥 · 신화 팩',1,RARC[4]],['나이트메어 · 환상 팩',1,RARC[5]],['종말 · 유일 팩',1,RARC[6]]])}<p class="hhint">환생한 난이도 기준이에요. 퀘스트 하나마다 이 팩 1장이 더 나와요.</p><h4>신화 · 환상 · 유일 카드팩</h4>${odRows([4,5,6].map(i=>[RAR[i]+' 카드팩 → '+RAR[i],1,RARC[i]]))}<p class="hhint">운영자 선물로만 받아요. 난이도와 상관없이 그 등급이 나와요.</p>
    <p class="hhint">이미 가진 카드가 나오면 몬스터볼 5개 + 합성 재료가 돼요.</p>`}],
  fuse:['합성',()=>`<p class="odnow">같은 등급 영혼(또는 중복 카드) <b>${FUSEN}개</b>를 합치면</p>${odRows(RAR.slice(0,PMAX).map((n,i)=>[n+' → '+RAR[i+1],fuseP(i),RARC[i+1]]))}
    <p class="hhint">실패하면 재료 ${FUSEN}개는 사라지고 몬스터볼 2개를 받아요. 성공하면 위 등급 포켓몬 중 하나가 똑같은 확률로 나와요. 기술 카드는 전설까지 합성돼요. 일괄 합성도 한 번 한 번 똑같은 확률이에요.</p>`],
@@ -6753,9 +6801,9 @@ async function tradeStep(o){const ids=Object.values(o.mem).filter(m=>m.alive&&m.
   if(found.some(x=>!x)){RM.done=1;rmLeave(1);try{closePanel(1)}catch(e){}await say(['올렸던 포켓몬이 없어져서 거래를 취소했어요.']);return}
   if(own.length-found.length+th.mons.length<1){RM.done=1;rmLeave(1);return}
   mlHint('t');G.party=G.party.filter(x=>!found.includes(x));G.box=(G.box||[]).filter(x=>!found.includes(x));
-  const got=[];for(const s of th.mons){const m=upk(s);if(!m)continue;m.from=o.mem[other].name;const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m))soulFrom(m);else{(G.party.length<6?G.party:G.box).push(m)}got.push(nm(m))}
+  const got=[],fixed=[];for(const s of th.mons){const m=upk(s);if(!m)continue;m.from=o.mem[other].name;const lvOld=trLvFix(m);const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m))soulFrom(m);else{(G.party.length<6?G.party:G.box).push(m);if(lvOld)fixed.push(m)}got.push(nm(m)+(lvOld?' (Lv.'+lvOld+'→'+m.lv+')':''))}
   if(!G.party.length&&G.box.length)G.party.push(G.box.shift());mlTick();try{G.invW&&(G.invW.d='')}catch(e){}save();try{refreshSpr()}catch(e){}try{spAdd(5)}catch(e){}
-  RM.done=1;rmLeave(0);sfx('badge');await say(['<b>거래 완료!</b>',(found.length?'보낸 포켓몬 '+found.length+'마리 · ':'')+(got.length?'받은 포켓몬: <b>'+got.map(esc).join(', ')+'</b>':'받은 포켓몬 없음')])}
+  RM.done=1;rmLeave(0);sfx('badge');for(const fm of fixed)await pxSlot(fm);await say(['<b>거래 완료!</b>',(found.length?'보낸 포켓몬 '+found.length+'마리 · ':'')+(got.length?'받은 포켓몬: <b>'+got.map(esc).join(', ')+'</b>':'받은 포켓몬 없음')])}
 
 // =====================================================================
 // 2-2) PVP: 방어덱을 올려 두면 누군가 도전해요 (비동기) · 방어 쪽 능력치 ×1.3 · 이기면 +10점 · 지면 -5점
