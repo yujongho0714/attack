@@ -1479,6 +1479,7 @@ function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.up
     if(!B.hide){cx.save();cx.globalAlpha=.3*Math.max(.2,1-(B.lift||0)/(bsz()*6));cx.fillStyle='#000';cx.beginPath();cx.ellipse(gx,gy+2,bsz()*.5*k,bsz()*.15*k,0,0,7);cx.fill();cx.restore()}
     const one=(xx,yy,al,flt,white)=>{if(B.hide)return;cx.save();if(flt)cx.filter=flt;cx.translate(xx,yy);cx.rotate(B.rot||0);cx.scale(1+(B.sq||0)*.35,1-(B.sq||0));if(B.sink>0){cx.beginPath();cx.rect(-900,-1800,1800,1800);cx.clip();cx.translate(0,B.sink*A.h*sc*.75)}
       drawPm(cx,B.S,B.st,p.row,B.t,0,-A.h*sc*.12,sc,{loop:B.st==='idle',alpha:al,white});cx.restore()};
+    try{if(B.m&&!B.hide&&isMine(B.m)&&rbOf(B.m)>0&&typeof rbAura==='function'){const SS=bsz()*k*(B.sc||1);rbAura(cx,gx,y-SS*.45,SS,rbOf(B.m),performance.now()/1000,1)}}catch(e){}
     try{if(B.m&&B.m.aw&&!B.hide){const SS=bsz()*k*(B.sc||1);awFlame(cx,gx,y-SS*.45,SS,B.m.aw,performance.now()/1000,1)}}catch(e){}
     for(const [hx,hy,q] of B.hist)one(hx,hy,.12*q,'brightness(1.6) saturate(.5)');
     if(B.clones)for(const c of B.clones)if(c.al>0)one(gx+c.dx,gy+c.dy,c.al,'brightness(.6) saturate(.6)');
@@ -7024,7 +7025,7 @@ function awOpen(){if(!G)return;const sl=awSlots();
   const all=[...G.party,...G.box].map(m=>({m,k:awOf(m)*100000+rarM(m)*1000+m.lv})).sort((a,b)=>b.k-a.k).slice(0,80).map(x=>x.m);
   const rows=all.map((m,i)=>{const a=awOf(m),n=a+1,full=a>=AWMAX,ok=n<=sl,r=rarM(m),d=(G.dupes||[]).filter(x=>x.kind==='P'&&x.rar===r).length,cost=awCost(n);
     return `<div class="hrow ${full?'ok':''}"><img class="${a?'awk':''}" src="${THUMB[m.n]||''}" style="width:48px;height:48px;object-fit:contain"><span><b>${nm(m)} <small style="color:${RARC[r]}">[${RAR[r]}]</small></b><div>${awStars(m)}</div><small>지금 능력치 +${a*AWPCT}%${full?' · 최대!':ok?' · 다음 각성 → +'+n*AWPCT+'%':' · 환생하면 별 칸이 열려요'}</small>${full||!ok?'':`<small>재료: 같은 등급 영혼 ${AWNEED}개 (가진 것 ${d}) · 💰 ${cost.toLocaleString()}원 (가진 것 ${G.money.toLocaleString()})</small>`}</span>${full||!ok?'':`<button data-aw="${i}" ${G.money>=cost&&d>=AWNEED?'':'disabled'}>각성하기</button>`}</div>`}).join('');
-  openPanel('각성',`<p class="hhint">포켓몬 아래 ★ 한 칸은 <b>환생할 때마다</b> 하나씩 열려요 (지금 ${sl}/${AWMAX}칸). <b>같은 등급 영혼 ${AWNEED}개</b>와 <b>골드</b>로 각성하면 ★ 하나가 <b style="color:#9a4dff">보라색</b>이 되고 모든 능력치가 +${AWPCT}% 올라가요. 몸 둘레에 보라 불꽃 오라도 생겨요! (영혼은 같은 등급 카드·영혼 어느 것이든 돼요)</p>${sl?'':'<p class="hhint"><b>아직 열린 별 칸이 없어요.</b> 환생하면 첫 별 칸이 열려요.</p>'}${rows}`,null,p=>{p.querySelectorAll('[data-aw]').forEach(b=>b.onclick=()=>awGo(all[+b.dataset.aw]))})}
+  openPanel('각성',`<p class="hhint">포켓몬 아래 ★ 한 칸은 <b>환생할 때마다</b> 하나씩 열려요 (지금 ${sl}/${AWMAX}칸). <b>같은 등급 영혼 ${AWNEED}개</b>와 <b>골드</b>로 각성하면 ★ 하나가 <b style="color:#9a4dff">보라색</b>이 되고 모든 능력치가 +${AWPCT}% 올라가요. 몸 둘레에 보라 <b>픽셀 불꽃</b>도 타올라요! (영혼은 같은 등급 카드·영혼 어느 것이든 돼요)</p>${sl?'':'<p class="hhint"><b>아직 열린 별 칸이 없어요.</b> 환생하면 첫 별 칸이 열려요.</p>'}${rows}`,null,p=>{p.querySelectorAll('[data-aw]').forEach(b=>b.onclick=()=>awGo(all[+b.dataset.aw]))})}
 async function awGo(m){const a=awOf(m),n=a+1;if(n>awSlots()||a>=AWMAX)return;const r=rarM(m),cost=awCost(n);
   if(G.money<cost){toast('골드가 모자라요');return}
   const idx=[];(G.dupes||[]).forEach((x,i)=>{if(x.kind==='P'&&x.rar===r&&idx.length<AWNEED)idx.push(i)});if(idx.length<AWNEED){toast('같은 등급 영혼이 모자라요');return}
@@ -7287,7 +7288,7 @@ function soulLine(){const c=Array(7).fill(0);for(const x of G.dupes||[])if(x.kin
 function awSummary(){return `<div class="awx-c"><b class="t">⭐ 각성이 뭐예요?</b>
 ① <b>환생</b>할 때마다 포켓몬 아래 <span style="color:#d9930a;font-weight:900">금색 ★ 칸</span>이 하나씩 열려요 (최대 ${AWMAX}칸, 지금 ${awSlots()}칸).<br>
 ② 금색 칸에 <b>같은 등급 영혼 ${AWNEED}개</b> + <b>골드</b>(1번째 ${awCost(1).toLocaleString()}원 · 2번째 ${awCost(2).toLocaleString()}원 … 별 번호 × ${awCost(1).toLocaleString()}원)를 내면 ★이 <b style="color:#8a3dff">보라색</b>이 돼요.<br>
-③ 보라 ★ 하나마다 <b>모든 능력치 +${AWPCT}%</b>, 몸 둘레에 <b>오라 이펙트</b>가 생겨요 (별 수에 따라 색이 달라요).</div>
+③ 보라 ★ 하나마다 <b>모든 능력치 +${AWPCT}%</b>, 몸 둘레에 <b>픽셀 불꽃</b>이 타올라요 (별 수에 따라 색이 달라요).</div>
 <div class="awx-c"><b class="t">👻 「같은 등급 영혼」이 뭐예요?</b>각성할 포켓몬과 <b>같은 등급</b>(예: 전설 포켓몬이면 전설 영혼)의 영혼이면 <b>어떤 포켓몬 영혼이든</b> 돼요. 중복 카드도 같은 등급이면 같이 쳐요.<br><br>${soulHow()}<br><br><small>내 영혼: ${soulLine()}</small></div>`}
 function awHelp(){return ovBox('⭐ 각성 설명',awSummary(),[{t:'확인',main:1,v:true}])}
 async function awLackBox(m){const I=awInfo(m);let b;
@@ -7304,16 +7305,15 @@ function awPreview(m){return new Promise(done=>{G.opt=G.opt||{};const o0={aw:G.o
   let n=Math.max(1,Math.min(AWMAX,awOf(m)+1)),alive=1,T=0,last=performance.now();
   const o=document.createElement('div');o.id='awOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(8,6,20,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#fff;text-align:center;padding:8px;box-sizing:border-box';
   const bs='padding:6px 11px;font-weight:900;border:3px solid #2c3050;border-radius:10px;background:#fffdf0;color:#2c3050';
-  o.innerHTML=`<div class="awpv"><canvas width="640" height="520"></canvas><div class="awpc"><b style="font-size:17px;color:#e6c8ff">✨ 각성 효과 미리보기</b><div id="apTx" style="font-size:13px;line-height:1.5"></div><div id="apN" style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center"></div><div style="display:flex;gap:6px;justify-content:center"><button id="apS" style="${bs}"></button><button id="apX" style="${bs};background:#ffd23f">닫기</button></div><small style="opacity:.8">미리보기만 돼요 · 포켓몬은 바뀌지 않아요</small></div></div>`;
+  o.innerHTML=`<div class="awpv"><canvas width="640" height="520"></canvas><div class="awpc"><b style="font-size:17px;color:#e6c8ff">✨ 각성 효과 미리보기 (픽셀 불꽃)</b><div id="apTx" style="font-size:13px;line-height:1.5"></div><div id="apN" style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center"></div><div style="display:flex;gap:6px;justify-content:center"><button id="apX" style="${bs};background:#ffd23f">닫기</button></div><small style="opacity:.8">미리보기만 돼요 · 포켓몬은 바뀌지 않아요</small></div></div>`;
   document.body.appendChild(o);
   const cv=o.querySelector('canvas'),g=cv.getContext('2d'),img=new Image();img.src=faceUrl(m.n,'Normal');
   const stAt=k=>{const keep=m.aw;if(k)m.aw=k;else delete m.aw;try{return stOf(m).slice()}finally{if(keep==null)delete m.aw;else m.aw=keep}};
   const NM=['체력','공격','방어','특공','특방','스피드'];
-  const upd=()=>{const a=stAt(0),b=stAt(n);o.querySelector('#apTx').innerHTML=`<b>${esc(nm(m))}</b> · ★${n} 각성 · 능력치 <b style="color:#e6c8ff">+${n*AWPCT}%</b><br><small>${NM.map((t,i)=>t+' '+a[i]+'→<b>'+b[i]+'</b>').slice(0,3).join(' · ')}<br>${NM.map((t,i)=>t+' '+a[i]+'→<b>'+b[i]+'</b>').slice(3).join(' · ')}</small><br><small>별 수마다 오라 색이 달라요 (1 보라 · 2 파랑 · 3 초록 · 4 금 · 5 빨강 · 6 무지개)</small>`;
+  const upd=()=>{const a=stAt(0),b=stAt(n);o.querySelector('#apTx').innerHTML=`<b>${esc(nm(m))}</b> · ★${n} 각성 · 능력치 <b style="color:#e6c8ff">+${n*AWPCT}%</b><br><small>${NM.map((t,i)=>t+' '+a[i]+'→<b>'+b[i]+'</b>').slice(0,3).join(' · ')}<br>${NM.map((t,i)=>t+' '+a[i]+'→<b>'+b[i]+'</b>').slice(3).join(' · ')}</small><br><small>몸 둘레에 <b>픽셀 불꽃</b>이 타올라요 · 별 수마다 색이 달라요 (1 보라 · 2 파랑 · 3 초록 · 4 금 · 5 빨강 · 6 무지개)</small>`;
     o.querySelector('#apN').innerHTML=[1,2,3,4,5,6].map(k=>`<button data-k="${k}" style="${bs};padding:5px 10px;${k===n?'background:#b46bff;color:#fff':''}">★${k}</button>`).join('');
     o.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');n=+b.dataset.k;upd()});
-    o.querySelector('#apS').textContent='오라 모양: '+(G.opt.awStyle==='spike'?'픽셀 불꽃':'연기 리본')};
-  o.querySelector('#apS').onclick=()=>{sfx('tap');G.opt.awStyle=G.opt.awStyle==='spike'?'smoke':'spike';upd()};
+};
   upd();
   const sx=i=>160-AWMAX*13+13+i*26;
   const draw=now=>{if(!alive)return;const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;g.setTransform(2,0,0,2,0,0);g.clearRect(0,0,320,260);
@@ -7398,17 +7398,18 @@ function rbSummary(){const n=G.rebirth||0,nx=n+1,cap=rbCap(nx);return `<div clas
 • 난이도가 <b>한 단계 위</b>로 올라가고 더 높은 등급 포켓몬 · 보상이 나와요<br>
 • 포켓몬 능력치 <b>+${Math.round(REBSTAT*100)}%</b> (환생할 때마다) · 레벨은 Lv.1부터, 화면에는 +100씩<br>
 • <b>⭐ 각성 별 칸이 1개 열려요</b> (최대 ${AWMAX}칸) → 영혼 ${AWNEED}개 + 골드로 보라 ★ 각성<br>
-• <b>기술 초월 Lv.6~8</b>이 열리고, 기술을 쓸 때 <b>환생 고리</b>가 나와요 (1번 금 · 2번 은 · 3번 무지개)<br>
+• <b>기술 초월 Lv.6~8</b>이 열리고, 기술을 쓸 때 <b>환생 고리</b>가 나오고, 몸 둘레에 <b>환생 오라</b>가 생겨요 (1번 금 · 2번 은 · 3번부터 무지개)<br>
 • 부적 한도 +1 · 경험치 +5% · 퀘스트 보상 강화</div>
 <div class="awx-c"><b class="t">⚠️ 꼭 알아 둬요</b>
 • 4번째 환생부터는 포켓몬을 <b>10마리만</b> 데려가요 (5번째 15마리 · 6번째 20마리…). 안 고른 포켓몬은 영영 사라져요!<br>
 • 3번 환생한 뒤에는 이상한사탕으로 레벨을 못 올려요 (한계 돌파 재료로는 계속 써요)<br>
 • ${cap?'다음 <b>'+nx+'번째 환생</b>은 포켓몬 <b>'+cap+'마리</b>만 데려가요':'다음 <b>'+nx+'번째 환생</b>은 포켓몬을 전부 데려가요'}</div>`}
 function rbInfoOpen(){if(!G)return;const n=G.rebirth||0,nx=n+1,can=!!G.champ,m0=G.party[0];
-  const pre=m0?`<div class="awx-c"><b class="t">🔮 다음 환생 미리보기</b>능력치 환생 보너스 +${Math.round(n*REBSTAT*100)}% → <b>+${Math.round(nx*REBSTAT*100)}%</b><br>별 칸 ${awSlots()} → <b>${Math.min(AWMAX,awSlots()+1)}</b> / ${AWMAX}<br><span style="display:inline-block;margin:4px 0">지금 ${awStarsRaw(awOf(m0),awSlots())}</span><br><span style="display:inline-block">환생 후 ${awStarsRaw(awOf(m0),Math.min(AWMAX,awSlots()+1))}</span><br><small>${nm(m0)} 기준 · 금색 ★이 새로 열리는 칸이에요</small><div class="awbt"><button data-fx="1">🎬 환생 이펙트 미리보기 (기술 고리)</button></div></div>`:'';
+  const pre=m0?`<div class="awx-c"><b class="t">🔮 다음 환생 미리보기</b>능력치 환생 보너스 +${Math.round(n*REBSTAT*100)}% → <b>+${Math.round(nx*REBSTAT*100)}%</b><br>별 칸 ${awSlots()} → <b>${Math.min(AWMAX,awSlots()+1)}</b> / ${AWMAX}<br><span style="display:inline-block;margin:4px 0">지금 ${awStarsRaw(awOf(m0),awSlots())}</span><br><span style="display:inline-block">환생 후 ${awStarsRaw(awOf(m0),Math.min(AWMAX,awSlots()+1))}</span><br><small>${nm(m0)} 기준 · 금색 ★이 새로 열리는 칸이에요</small><div class="awbt"><button data-ra="1">🌀 환생 오라 미리보기</button> <button data-fx="1">🎬 기술 고리 미리보기</button></div></div>`:'';
   openPanel('🌀 환생',`<div class="awx-c" style="background:${can?'#e6ffe9':'#fffdf0'}"><b class="t">${can?'✅ 지금 환생할 수 있어요!':'🔒 아직 환생할 수 없어요'}</b>${can?'챔피언이 됐어요! 아래 「환생하기」로 다음 난이도(<b>'+DNAME[Math.min(5,DIFF()+1)]+'</b>)에 도전해요.':'<b>챔피언</b>이 되면 환생할 수 있어요. (지금 난이도 '+DNAME[DIFF()]+')'}</div>
     <div class="wbt"><button class="main" id="rbiGo">${can?'🌀 환생하기':'환생 조건 보기'}</button></div>${pre}${rbSummary()}<div class="awbt"><button data-awx="1">⭐ 각성 설명 · 각성 화면</button></div>`,null,p=>{
     p.querySelector('#rbiGo').onclick=()=>{sfx('tap');if(can){closePanel(1);rebirthOpen()}else ovBox('환생 조건','환생은 <b>챔피언이 된 뒤</b>에 할 수 있어요.<br>지금 난이도 <b>'+DNAME[DIFF()]+'</b>의 챔피언(리그 우승)이 되면, 환생 안내창이 바로 떠요!',[{t:'확인',main:1,v:1}])};
+    const ra=p.querySelector('[data-ra]');if(ra)ra.onclick=()=>{sfx('tap');if(m0)rbAuraPreview(m0)};
     const fx=p.querySelector('[data-fx]');if(fx)fx.onclick=()=>{sfx('tap');if(SCENE!=='over'){toast('밖에서만 볼 수 있어요');return}const m=G.party[0];if(!m||!m.moves[0])return;skPreviewOpen(m,m.moves[0],Math.min(8,5+Math.min(3,nx)),Math.min(3,nx))};
     const a=p.querySelector('[data-awx]');if(a)a.onclick=()=>{sfx('tap');awOpen()}})}
 async function rbReadyPop(){const n=(G.rebirth||0)+1,cap=rbCap(n);
@@ -7431,6 +7432,336 @@ try{if(!HUB.find(x=>x.k==='rebirth'))HUB.push({k:'rebirth',n:'환생',d:'챔피�
   p.querySelector('#oOff').parentNode.insertAdjacentElement('beforebegin',d);
   d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='open'){closePanel(1);awOpen();return}for(const m of G.party){const c=awOf(m);awSet(m,a==='up'?c+1:a==='dn'?c-1:+a)}toast('🛠 파티 각성 변경')})}catch(e){}},120);return r}}
 
+// ===== 각성 = 픽셀 불꽃 · 환생 = 오라 =====
+// 각성: 연기 리본을 없애고 픽셀 불꽃만 써요 (별 수마다 색 · 6개는 무지개)
+function awFlame(c,x,y,S,aw,T,emb){if(!aw||(G&&G.opt&&G.opt.aw===0))return;
+  const A=AWPAL[Math.min(aw,6)-1],h=(T*70)%360,P=aw>=6?['hsl('+h+',95%,62%)','hsl('+((h+50)%360)+',100%,86%)',A[2]]:A,R=S*.62;
+  c.save();c.globalCompositeOperation='lighter';
+  const g=c.createRadialGradient(x,y,R*.2,x,y,R*1.5);g.addColorStop(0,P[0]);g.addColorStop(1,'rgba(0,0,0,0)');c.globalAlpha=.2;c.fillStyle=g;c.fillRect(x-R*1.6,y-R*1.6,R*3.2,R*3.2);
+  c.restore();awPix(c,x,y,S,aw,T,A);
+  if(emb&&Math.random()<.3+aw*.05)try{const a=Math.random()*6.283;pAdd({x:x+Math.cos(a)*R*.9,y:y+Math.sin(a)*R*.9-R*.1,vx:(Math.random()-.5)*S*.3,vy:-S*(.5+Math.random()*.8),drag:.05,s:S*.05,s1:0,life:.6+Math.random()*.5,st:[A[2],A[0],A[1]],k:'px',glow:1})}catch(e){}}
+// 환생: 몸을 감싸는 부드러운 빛 오라 (후광 + 맥박 광륜 + 천천히 도는 빛줄기 + 맴도는 반짝) · 1번 금 · 2번 은+금 · 3번부터 무지개 · 횟수가 늘수록 커지고 빛줄기가 늘어요
+function rbAura(c,x,y,S,rb,T,emb){if(!rb)return;const n=Math.min(6,rb|0);
+  const col=(i,l)=>n>=3?'hsl('+((T*50+i*47)%360)+',95%,'+(l||64)+'%)':n===2?(i%2?'#ffd23f':'#dfe8fa'):(i%2?'#fff3b0':'#ffc933');
+  const R=S*(.62+n*.04),pu=.5+.5*Math.sin(T*2.4);
+  c.save();c.globalCompositeOperation='lighter';
+  // 후광
+  let g=c.createRadialGradient(x,y,R*.15,x,y,R*1.55);g.addColorStop(0,col(1,70));g.addColorStop(.55,col(0,55));g.addColorStop(1,'rgba(0,0,0,0)');c.globalAlpha=.2+.08*pu;c.fillStyle=g;c.fillRect(x-R*1.7,y-R*1.7,R*3.4,R*3.4);
+  // 빛줄기
+  const nr=6+n*2;c.globalAlpha=.16+.05*pu;
+  for(let k=0;k<nr;k++){const a=k/nr*6.283+T*.35,w=.07+.03*Math.sin(T*1.7+k),L=R*(1.35+.25*Math.sin(T*1.3+k*1.9));c.fillStyle=col(k);c.beginPath();c.moveTo(x+Math.cos(a-w)*R*.5,y+Math.sin(a-w)*R*.5);c.lineTo(x+Math.cos(a)*L,y+Math.sin(a)*L);c.lineTo(x+Math.cos(a+w)*R*.5,y+Math.sin(a+w)*R*.5);c.closePath();c.fill()}
+  // 맥박 광륜 (n겹)
+  c.lineWidth=Math.max(1.5,S*.035);
+  for(let k=0;k<Math.min(3,n);k++){const t=((T*.45+k/Math.min(3,n))%1),r=R*(.8+t*.75);c.globalAlpha=(1-t)*.55;c.strokeStyle=col(k,70);c.beginPath();c.ellipse(x,y,r,r*.92,0,0,6.283);c.stroke()}
+  c.globalAlpha=.5+.2*pu;c.strokeStyle=col(0,72);c.lineWidth=Math.max(2,S*.045);c.beginPath();c.ellipse(x,y,R*.95,R*.9,0,0,6.283);c.stroke();
+  // 맴도는 반짝
+  c.globalAlpha=.9;const ns=3+n*2;
+  for(let k=0;k<ns;k++){const a=k/ns*6.283+T*(.8+k%3*.25)*(k%2?1:-1),r=R*(.85+.25*Math.sin(T*1.6+k)),sx=x+Math.cos(a)*r,sy=y+Math.sin(a)*r*.9,q=S*(.035+.02*Math.sin(T*5+k*2));c.fillStyle=col(k,80);c.beginPath();c.moveTo(sx,sy-q*2.2);c.lineTo(sx+q*.6,sy-q*.6);c.lineTo(sx+q*2.2,sy);c.lineTo(sx+q*.6,sy+q*.6);c.lineTo(sx,sy+q*2.2);c.lineTo(sx-q*.6,sy+q*.6);c.lineTo(sx-q*2.2,sy);c.lineTo(sx-q*.6,sy-q*.6);c.closePath();c.fill()}
+  c.restore();
+  if(emb&&Math.random()<.18+n*.03)try{const a=Math.random()*6.283;pAdd({x:x+Math.cos(a)*R*.8,y:y+Math.sin(a)*R*.7,vy:-S*.35,s:S*.045,s1:0,life:.7+Math.random()*.5,st:n>=3?['#ff3b6b','#ffd23f','#7dff8a','#4aa8ff','#c070ff']:n===2?['#ffffff','#cfd8ea','#ffd23f']:['#fff3b0','#ffd23f','#ffb81f'],k:'star',r:Math.random()*3,glow:1})}catch(e){}}
+// 환생 오라 미리보기 (환생 1~6번 · 포켓몬은 바뀌지 않아요)
+function rbAuraPreview(m){return new Promise(done=>{let n=Math.max(1,Math.min(6,(G.rebirth||0)+1)),alive=1,T=0,last=performance.now();
+  const o=document.createElement('div');o.id='awOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(8,6,20,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#fff;text-align:center;padding:8px;box-sizing:border-box';
+  const bs='padding:6px 11px;font-weight:900;border:3px solid #2c3050;border-radius:10px;background:#fffdf0;color:#2c3050';
+  o.innerHTML=`<div class="awpv"><canvas width="640" height="520"></canvas><div class="awpc"><b style="font-size:17px;color:#ffe9a8">🌀 환생 오라 미리보기</b><div id="rpTx" style="font-size:13px;line-height:1.5"></div><div id="rpN" style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center"></div><div style="display:flex;gap:6px;justify-content:center"><button id="rpX" style="${bs};background:#ffd23f">닫기</button></div><small style="opacity:.8">미리보기만 돼요 · 포켓몬은 바뀌지 않아요</small></div></div>`;
+  document.body.appendChild(o);
+  const cv=o.querySelector('canvas'),g=cv.getContext('2d'),img=new Image();img.src=faceUrl(m.n,'Normal');
+  const upd=()=>{o.querySelector('#rpTx').innerHTML=`<b>${esc(nm(m))}</b> · 환생 <b>${n}번</b> 오라<br><small>${n>=3?'무지개빛 오라':n===2?'은빛 + 금빛 오라':'금빛 오라'} · 환생이 늘수록 오라가 커지고 빛줄기가 늘어요</small><br><small>배틀에서 내 포켓몬 몸 둘레에 나타나요 (각성은 <b>픽셀 불꽃</b>)</small>`;
+    o.querySelector('#rpN').innerHTML=[1,2,3,4,5,6].map(k=>`<button data-k="${k}" style="${bs};padding:5px 10px;${k===n?'background:#ffd23f':''}">${k}번</button>`).join('');
+    o.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');n=+b.dataset.k;upd()})};
+  upd();
+  const draw=now=>{if(!alive)return;const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;g.setTransform(2,0,0,2,0,0);g.clearRect(0,0,320,260);
+    rbAura(g,160,105,96,n,T);
+    g.save();g.beginPath();g.arc(160,105,50,0,6.283);g.clip();g.fillStyle='#26304f';g.fillRect(100,50,120,110);if(img.complete&&img.naturalWidth)g.drawImage(img,112,57,96,96);g.restore();
+    g.strokeStyle='#5a4300';g.lineWidth=6;g.beginPath();g.arc(160,105,52,0,6.283);g.stroke();g.strokeStyle='#ffe9a8';g.lineWidth=2;g.beginPath();g.arc(160,105,52,0,6.283);g.stroke();
+    requestAnimationFrame(draw)};requestAnimationFrame(draw);
+  o.querySelector('#rpX').onclick=()=>{alive=0;o.remove();done()}})}
+
+window.awFlame=awFlame;window.rbAura=rbAura;window.rbAuraPreview=rbAuraPreview;
 }catch(e){console.warn('awx 로드 실패',e)}})();
+// ===== 채널링 연발 (5초 자동 발사 · 홀드하면 방향 · 유성/바위 낙하 · 타입별 다단히트 · GM 투사체 설정) =====
+// 기술 버튼을 한 번만 눌러도 5초 동안 자동으로 쏘고, 누른 채 손가락을 움직이면 그 방향으로 돌려요 (놓으면 상대를 자동 조준)
+// GM 메뉴 「✨ 투사체 설정」에서 크기 · 속도 · 양을 바꾸면 서버로 올라가 모두에게 적용돼요 (되돌리려면 1 · 1 · 1)
+// 되돌리려면: 이 블록(「채널링 연발」 ~ 「채널링 연발 끝」)을 통째로 지우면 옛 방식(한 번에 한 방)으로 돌아가요
+(function(){try{
+if(typeof actPress!=='function'||typeof actUpdate!=='function'||typeof actUI!=='function')return;
+const DUR=5,CHD=3.6,FXK='pka-fxc';
+const CF={size:1,speed:1,count:1,off:0,t:0};
+try{const o=JSON.parse(localStorage.getItem(FXK)||'null');if(o&&typeof o==='object')for(const k in CF)if(o[k]!=null)CF[k]=+o[k]||0}catch(e){}
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const norm=()=>{CF.size=cl(+CF.size||1,.3,4);CF.speed=cl(+CF.speed||1,.3,4);CF.count=cl(+CF.count||1,.2,4);CF.off=CF.off?1:0};
+const keep=()=>{try{localStorage.setItem(FXK,JSON.stringify(CF))}catch(e){}};
+norm();
+const pack=()=>Math.round(CF.size*100)|(Math.round(CF.speed*100)<<10)|(Math.round(CF.count*100)<<20)|(CF.off?1<<30:0);
+const unpack=v=>({size:(v&1023)/100,speed:((v>>10)&1023)/100,count:((v>>20)&1023)/100,off:(v>>30)&1});
+// ---- 서버 (GM이 올리면 모두가 받아요 · 기존 선물 보드와 같은 서명) ----
+let pulling=0,lastPull=0;
+async function pull(force){if(pulling||(!force&&Date.now()-lastPull<120000))return;if(!navigator.onLine||typeof wbCfg!=='function'||!wbCfg())return;pulling=1;
+  try{const L=await fsListAll('fxcfg');if(L){lastPull=Date.now();let best=null;for(const x of L){if(x.id!=='cfg')continue;const sec=Math.floor(x.t/1048576);if(await gmMac(x.id,x.name,x.v,sec)!==x.t%1048576)continue;if(!best||sec>best.sec)best={sec,v:x.v}}
+    if(best&&best.sec>(CF.t||0)){Object.assign(CF,unpack(best.v),{t:best.sec});norm();keep()}}}catch(e){}pulling=0}
+async function push(){if(typeof isGM!=='function'||!isGM()){toast('운영자만 바꿀 수 있어요');return false}if(!wbCfg()){toast('서버 연결 전이에요');return false}
+  norm();const sec=Math.floor(Date.now()/1000),v=pack(),id='cfg',name='fx';const t=sec*1048576+await gmMac(id,name,v,sec);const ok=await fsPut('fxcfg',id,name,v,t);if(ok){CF.t=sec;keep()}return ok}
+setTimeout(()=>{try{pull(1)}catch(e){}},6000);
+// ---- 색 섞기: 기본 타입색 + 어울리는 다른 타입색 + 가끔 무지개 ----
+const MIX={NORMAL:['FAIRY','FIRE','WATER'],FIRE:['DRAGON','PSYCHIC','ELECTRIC'],WATER:['ICE','FAIRY','ELECTRIC'],GRASS:['BUG','POISON','ELECTRIC'],ELECTRIC:['PSYCHIC','WATER','FIRE'],ICE:['WATER','FAIRY','PSYCHIC'],FIGHTING:['FIRE','ROCK','DARK'],POISON:['GHOST','PSYCHIC','GRASS'],GROUND:['ROCK','FIRE','FIGHTING'],FLYING:['ICE','ELECTRIC','FAIRY'],PSYCHIC:['FAIRY','GHOST','ELECTRIC'],BUG:['GRASS','POISON','ELECTRIC'],ROCK:['FIRE','GROUND','DRAGON'],GHOST:['PSYCHIC','DARK','FAIRY'],DRAGON:['FIRE','WATER','PSYCHIC'],DARK:['GHOST','FIRE','PSYCHIC'],STEEL:['ELECTRIC','ICE','FIRE'],FAIRY:['PSYCHIC','WATER','FIRE']};
+const hsl=(h,s,l)=>'hsl('+(((h%360)+360)%360|0)+','+s+'%,'+l+'%)';
+const rbPal=h=>[hsl(h,80,22),hsl(h,85,45),hsl(h,95,62),hsl(h,100,82),'#ffffff'];
+const palsFor=T=>{const L=[stopsOf(T),stopsOf(T)],m=MIX[T]||MIX.NORMAL;L.push(stopsOf(m[(R()*3)|0]));if(R()<.7)L.push(stopsOf(m[(R()*3)|0]));if(R()<.28||T==='FAIRY'&&R()<.4)L.push(rbPal(R()*360),rbPal(R()*360));return L};
+const pk=s=>s.pals[(R()*s.pals.length)|0];
+// ---- 기술 → 연출 ----
+// B 광선 · V 투사체 · F 하늘에서 떨어짐(유성·바위·번개…) · E 땅에서 솟음 · W 퍼지는 충격파
+const B=(st,w,o)=>Object.assign({k:'B',st,w,len:.62,tick:.2,exp:22},o||{});
+const V=(sh,rate,o)=>Object.assign({k:'V',sh,rate,spd:.95,r:.26,sp:.32,rng:.72,exp:.45},o||{});
+const F=(sh,rate,o)=>Object.assign({k:'F',sh,rate,fall:.52,r:.55,aoe:1.15,scat:1.7,dx:.42,exp:.5},o||{});
+const E=(sh,rate,o)=>Object.assign({k:'E',sh,rate,h:2.7,aoe:.95,exp:.45},o||{});
+const W=(sh,rate,o)=>Object.assign({k:'W',sh,rate,R:4.3,exp:.8},o||{});
+const BST={FIRE:'flame',WATER:'wave',ELECTRIC:'zig',GRASS:'smooth',ICE:'ice',PSYCHIC:'wave',DRAGON:'wave',STEEL:'gear',FAIRY:'smooth',DARK:'wave',GHOST:'wave',POISON:'wave',BUG:'zig',ROCK:'smooth',GROUND:'smooth',FLYING:'wave',FIGHTING:'smooth',NORMAL:'smooth'};
+const TD={ // 타입 기본 연출 (특수기)
+  NORMAL:()=>[V('star',9,{spd:1.1}),F('star',3,{fall:.45})],
+  FIRE:()=>[V('flame',11,{sp:.4}),F('meteor',3.4,{dx:.5})],
+  WATER:()=>[V('drop',10,{spd:1.15}),F('drop',3,{r:.5,aoe:1.25}),W('ring',.5,{R:3.6})],
+  GRASS:()=>[V('leaf',13,{sp:.5,curl:1.6}),E('vine',4.2,{h:2.2})],
+  ELECTRIC:()=>[V('bolt',10,{spd:1.3,sp:.36}),F('bolt',4.2,{fall:.3,dx:0,aoe:.95})],
+  ICE:()=>[V('shard',11,{spd:1.1}),F('icicle',4.2,{fall:.42,dx:.12,r:.5})],
+  FIGHTING:()=>[V('burst',12,{spd:.8,rng:.45,r:.3,sp:.5,pierce:1}),W('ring',1.1,{R:3.2})],
+  POISON:()=>[V('sludge',8,{spd:.7,g:.55,sp:.45,r:.32}),F('sludge',3.2,{fall:.6,dx:.2})],
+  GROUND:()=>[E('rock',5.2,{h:2.9}),W('quake',.9,{R:4.6}),F('boulder',1.6,{r:.5,aoe:1,dx:.15})],
+  FLYING:()=>[V('crescent',12,{spd:1.35,sp:.3,r:.34}),V('leaf',7,{curl:2.2,sp:.8,spd:.7})],
+  PSYCHIC:()=>[V('ring',8,{spd:.8,sp:.5,curl:2.4,r:.3}),V('orb',9,{spd:1,sp:.28,home:3.5})],
+  BUG:()=>[V('needle',16,{spd:1.4,sp:.5,home:2.2,r:.2}),V('orb',6,{spd:.6,curl:3,sp:.9,r:.22})],
+  ROCK:()=>[F('boulder',3.4,{r:.8,aoe:1.35,fall:.62}),V('rock',8,{spd:.85,g:.25,r:.3}),E('rock',2.8,{h:2.4})],
+  GHOST:()=>[V('wisp',9,{spd:.62,home:2.6,sp:.9,r:.34}),V('orb',5,{spd:.9,curl:-2,sp:.5})],
+  DRAGON:()=>[F('meteor',4.2,{r:.7,aoe:1.35,dx:.5,fall:.5}),V('flame',9,{spd:1.05,sp:.35,r:.3})],
+  DARK:()=>[V('crescent',11,{spd:1.15,sp:.4,r:.34}),V('orb',6,{spd:.75,curl:2,sp:.7,r:.3})],
+  STEEL:()=>[V('shard',12,{spd:1.45,sp:.22,r:.26}),F('shard',3.6,{fall:.36,dx:.2,aoe:.9})],
+  FAIRY:()=>[F('star',4.4,{r:.5,aoe:1.05,fall:.5,dx:.3}),V('heart',8,{spd:.75,home:2.2,sp:.8,r:.3}),V('star',6,{curl:2,sp:.9})]};
+const PH={ // 물리기: 짧고 빠른 연타
+  FIGHTING:()=>[V('burst',16,{spd:.85,rng:.4,r:.32,sp:.55,pierce:1}),W('ring',1.4,{R:2.8})],NORMAL:()=>[V('crescent',15,{spd:1.1,rng:.45,r:.34,sp:.55,pierce:1}),W('ring',1.2,{R:2.8})],
+  ROCK:()=>[F('boulder',3.6,{r:.75,aoe:1.3}),E('rock',3,{h:2.5})],GROUND:()=>[E('rock',5.4),W('quake',1,{R:4.4})],STEEL:()=>[V('claw',14,{spd:1.1,rng:.45,r:.34,sp:.55,pierce:1}),F('shard',3,{fall:.36})],
+  FLYING:()=>[V('crescent',14,{spd:1.3,r:.34}),V('leaf',8,{curl:2,sp:.8})],BUG:()=>[V('needle',18,{spd:1.5,sp:.5,r:.2,home:1.8}),V('claw',7,{rng:.4})],
+  POISON:()=>[V('claw',13,{spd:1,rng:.45,r:.34,pierce:1}),V('sludge',6,{g:.5,spd:.7})],GHOST:()=>[V('claw',13,{spd:1,rng:.45,r:.34,pierce:1}),V('wisp',6,{home:2.4,sp:.9})],
+  DARK:()=>[V('claw',14,{spd:1.1,rng:.45,r:.34,pierce:1}),V('crescent',8,{spd:1.2})],DRAGON:()=>[V('claw',13,{spd:1.1,rng:.5,r:.36,pierce:1}),F('meteor',3,{r:.6,dx:.5})],
+  FIRE:()=>[V('flame',13,{spd:.9,rng:.5,sp:.5}),W('ring',1,{R:3})],WATER:()=>[V('drop',12,{spd:1.1}),W('ring',.9,{R:3.2})],GRASS:()=>[V('leaf',14,{curl:2,sp:.6}),E('vine',4.5)],
+  ELECTRIC:()=>[V('bolt',13,{spd:1.25,sp:.5,r:.3}),F('bolt',3.4,{fall:.3,dx:0})],ICE:()=>[V('shard',12),F('icicle',3.6,{fall:.4})],PSYCHIC:()=>[V('ring',8,{curl:2.4}),V('orb',8,{home:3})],FAIRY:()=>[V('heart',9,{home:2}),F('star',3.6)]};
+function recipe(m,L){const T=m.type||'NORMAL',id=(m.id||'').toLowerCase(),ph=!!m.ph,pw=m.pw||60;let c;
+  const beamy=/beam|laser|cannon|ray|solar|pulse|gleam|bolt$|thunder$|flamethrower|hydropump|blast|fireblast|photon|snipe|flash|breath|ember|spray|stream|wave$/.test(id);
+  if(/meteor|comet|spacial|starstorm|moonblast|draco/.test(id))c=[F(T==='ROCK'?'boulder':'meteor',5,{r:.8,aoe:1.45,dx:.5,fall:.5}),V(T==='DRAGON'?'flame':'orb',9,{sp:.4}),W('ring',.6,{R:3.6})];
+  else if(/rock|stone|ancient|gem|smack|wrecker|avalanche|boulder|landslide|edge/.test(id))c=[F('boulder',4,{r:.85,aoe:1.4,fall:.6}),V('rock',9,{g:.3}),E('rock',3,{h:2.5})];
+  else if(/quake|bulldoze|rumble|magnitude|earthpower|fissure|eruption/.test(id))c=[E(T==='FIRE'?'flame':'rock',6,{h:3.1}),W('quake',1,{R:4.8}),F('boulder',1.4,{aoe:1})];
+  else if(/surf|tsunami|boom|hypervoice|echo|roar|noise/.test(id))c=[W('ring',1.5,{R:4.6}),V(T==='WATER'?'drop':'ring',9,{sp:.6})];
+  else if(/storm|hurricane|twister|whirl|tornado|gust|typhoon|blizzard|petal|leaves|swarm|buzz|dance|rain|hail/.test(id))c=[V(T==='GRASS'?'leaf':T==='ICE'?'shard':T==='BUG'?'needle':'crescent',16,{curl:2.6,sp:1.1,spd:.8}),F(T==='ICE'?'icicle':T==='ELECTRIC'?'bolt':T==='WATER'?'drop':'star',4.5,{fall:.45})];
+  else if(beamy&&!ph)c=[B(BST[T]||'smooth',T==='NORMAL'?.9:.62,{len:.66}),(TD[T]||TD.NORMAL)()[1]||V('orb',6)];
+  else if(ph&&PH[T])c=PH[T]();else c=(TD[T]||TD.NORMAL)();
+  c=c.slice();
+  // 센 기술일수록 겹쳐 나와요 (위력 · 기술 레벨)
+  if(pw>=85&&c.length<3){const x=(TD[T]||TD.NORMAL)();c.push(x[(R()*x.length)|0])}
+  if(L>=3&&R()<.7)c.push(F(T==='ROCK'||T==='GROUND'?'boulder':T==='ICE'?'icicle':T==='ELECTRIC'?'bolt':T==='WATER'?'drop':T==='GRASS'?'leaf':'meteor',1.8+L*.4,{r:.7,aoe:1.3}));
+  return c}
+// ---- 그리기 ----
+const SQ=.62;
+// 크리티컬 숫자: 큼직한 노랑→주황→빨강 + 진한 테두리 + 붉은 빛 (메이플식) — 데미지 스킨 메뉴에는 안 보여요
+try{if(!DSKIN.mscrit){const grd=(c,x,y,s)=>{const q=c.createLinearGradient(0,y-s*.85,0,y+s*.15);[['0','#fffbd6'],['.3','#ffd84a'],['.62','#ff8a1c'],['1','#e0261a']].forEach(a=>q.addColorStop(+a[0],a[1]));return q};
+  Object.defineProperty(DSKIN,'mscrit',{enumerable:false,value:{n:'크리티컬',draw:(c,p,s)=>{const z=s*1.4;c.save();c.font='900 '+Math.round(z)+'px system-ui,sans-serif';c.textAlign='center';c.lineJoin='round';c.shadowColor='#ff2a10';c.shadowBlur=z*.45;c.lineWidth=z*.22;c.strokeStyle='#3a0600';c.strokeText(p.txt,p.x,p.y);c.shadowBlur=0;c.lineWidth=z*.08;c.strokeStyle='#ffffff';c.strokeText(p.txt,p.x,p.y);c.fillStyle=grd(c,p.x,p.y,z);c.fillText(p.txt,p.x,p.y);c.restore()}}})}}catch(e){}
+function path(c,pts){c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]))}
+function glow(c,x,y,r,p,a){const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,p[4]);g.addColorStop(.3,p[3]);g.addColorStop(.65,p[2]);g.addColorStop(1,'rgba(0,0,0,0)');c.globalAlpha=a==null?1:a;c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();c.globalAlpha=1}
+function rockPoly(c,r,seed,fill,edge,hi){const n=8;const pts=[];for(let i=0;i<n;i++){const a=i/n*6.283,k=.72+((Math.sin(seed*91.7+i*4.1)+1)/2)*.4;pts.push([Math.cos(a)*r*k,Math.sin(a)*r*k*.92])}path(c,pts);c.closePath();c.fillStyle=fill;c.fill();c.lineWidth=Math.max(1.5,r*.12);c.strokeStyle=edge;c.stroke();c.fillStyle=hi;c.globalAlpha=.55;path(c,[pts[0],pts[1],pts[2],[pts[2][0]*.3,pts[2][1]*.3]]);c.closePath();c.fill();c.globalAlpha=1}
+function dp(c,e,t){const p=e.p,r=e.r,a=Math.atan2(e.vy,e.vx),sp=Math.hypot(e.vx,e.vy),fa=e.fade==null?1:e.fade;c.save();c.translate(e.x,e.y);c.globalAlpha=fa;
+  const tail=(len,w,k0,k1)=>{c.save();c.rotate(a);const g=c.createLinearGradient(0,0,-len,0);g.addColorStop(0,k0);g.addColorStop(1,k1);c.fillStyle=g;c.beginPath();c.moveTo(0,-w);c.lineTo(-len,0);c.lineTo(0,w);c.closePath();c.fill();c.restore()};
+  switch(e.sh){
+  case'orb':c.globalCompositeOperation='lighter';tail(Math.min(r*4,sp*.07),r*.7,p[3],'rgba(0,0,0,0)');glow(c,0,0,r*1.7,p);break;
+  case'flame':{c.globalCompositeOperation='lighter';c.rotate(a);const f=1+.15*Math.sin(e.t*40+e.seed*9);[[p[1],1.5],[p[2],1.1],[p[3],.72],[p[4],.4]].forEach(([k,s])=>{c.fillStyle=k;c.globalAlpha=fa*(s>1?.45:.85);c.beginPath();c.arc(0,0,r*s,-1.57,1.57);c.quadraticCurveTo(-r*s*2.4*f,r*s*.5,-r*s*3.2*f,0);c.quadraticCurveTo(-r*s*2.4*f,-r*s*.5,0,-r*s);c.fill()});break}
+  case'bolt':{c.globalCompositeOperation='lighter';c.rotate(a);const L=r*5,pts=[[0,0]];for(let i=1;i<=5;i++)pts.push([-L*i/5,(Math.sin(e.t*50+i*2.3+e.seed*7)*r*.9)]);[[p[2],r*.9],[p[3],r*.5],[p[4],r*.22]].forEach(([k,w])=>{c.strokeStyle=k;c.lineWidth=w;c.lineJoin='round';path(c,pts);c.stroke()});glow(c,0,0,r*1.1,p,.8);break}
+  case'shard':c.rotate(a);c.fillStyle=p[3];c.strokeStyle=p[2];c.lineWidth=Math.max(1,r*.15);path(c,[[r*1.7,0],[0,-r*.55],[-r*1.2,0],[0,r*.55]]);c.closePath();c.fill();c.stroke();c.fillStyle=p[4];c.globalAlpha=fa*.8;path(c,[[r*1.5,0],[0,-r*.3],[r*.2,0]]);c.closePath();c.fill();break;
+  case'icicle':c.rotate(a);c.fillStyle=p[3];c.strokeStyle=p[1];c.lineWidth=Math.max(1,r*.14);path(c,[[r*2.6,0],[-r*.4,-r*.5],[-r*1.4,0],[-r*.4,r*.5]]);c.closePath();c.fill();c.stroke();c.fillStyle=p[4];c.globalAlpha=fa*.85;path(c,[[r*2.4,0],[0,-r*.25],[0,0]]);c.closePath();c.fill();break;
+  case'leaf':c.rotate(e.t*9+e.seed*6);c.fillStyle=p[2];c.strokeStyle=p[0];c.lineWidth=Math.max(1,r*.12);c.beginPath();c.ellipse(0,0,r*1.1,r*.55,0,0,7);c.fill();c.stroke();c.strokeStyle=p[4];c.beginPath();c.moveTo(-r,0);c.lineTo(r,0);c.stroke();break;
+  case'drop':c.rotate(a);tail(r*3,r*.8,p[2],'rgba(0,0,0,0)');c.fillStyle=p[2];c.beginPath();c.arc(0,0,r,0,7);c.fill();c.fillStyle=p[4];c.globalAlpha=fa*.85;c.beginPath();c.arc(r*.3,-r*.3,r*.3,0,7);c.fill();break;
+  case'bubble':c.strokeStyle=p[3];c.lineWidth=Math.max(1.5,r*.14);c.fillStyle=p[2];c.globalAlpha=fa*.28;c.beginPath();c.arc(0,0,r,0,7);c.fill();c.globalAlpha=fa;c.stroke();c.fillStyle=p[4];c.beginPath();c.arc(-r*.35,-r*.35,r*.2,0,7);c.fill();break;
+  case'rock':c.rotate(e.t*5+e.seed*6);rockPoly(c,r,e.seed,p[1],p[0],p[3]);break;
+  case'boulder':c.rotate(e.t*2.4+e.seed*6);rockPoly(c,r,e.seed,p[1],p[0],p[3]);c.globalAlpha=fa*.5;c.strokeStyle=p[0];c.lineWidth=Math.max(1,r*.06);c.beginPath();c.moveTo(-r*.3,-r*.2);c.lineTo(r*.1,r*.1);c.lineTo(r*.4,r*.5);c.stroke();break;
+  case'needle':c.globalCompositeOperation='lighter';c.rotate(a);c.strokeStyle=p[2];c.lineWidth=r*.7;c.lineCap='round';c.beginPath();c.moveTo(-r*3,0);c.lineTo(r*1.5,0);c.stroke();c.strokeStyle=p[4];c.lineWidth=r*.28;c.beginPath();c.moveTo(-r*1.5,0);c.lineTo(r*1.6,0);c.stroke();break;
+  case'star':case'heart':{c.globalCompositeOperation='lighter';glow(c,0,0,r*1.8,p,.6);c.rotate(e.t*5+e.seed*6);c.globalCompositeOperation='source-over';c.fillStyle=p[3];c.strokeStyle=p[4];c.lineWidth=Math.max(1,r*.12);
+    if(e.sh==='heart'){c.beginPath();c.moveTo(0,r*.9);c.bezierCurveTo(-r*1.5,-r*.1,-r*.7,-r*1.1,0,-r*.4);c.bezierCurveTo(r*.7,-r*1.1,r*1.5,-r*.1,0,r*.9);c.fillStyle=p[2];c.fill();c.stroke()}
+    else{const q=[];for(let i=0;i<10;i++){const rr=i%2?r*.45:r*1.15,aa=i/10*6.283-1.57;q.push([Math.cos(aa)*rr,Math.sin(aa)*rr])}path(c,q);c.closePath();c.fill();c.stroke()}break}
+  case'crescent':c.globalCompositeOperation='lighter';c.rotate(a);c.lineCap='round';c.strokeStyle=p[2];c.globalAlpha=fa*.55;c.lineWidth=r*1.1;c.beginPath();c.arc(-r*.6,0,r*1.6,-.95,.95);c.stroke();c.globalAlpha=fa;c.strokeStyle=p[3];c.lineWidth=r*.55;c.stroke();c.strokeStyle=p[4];c.lineWidth=r*.2;c.stroke();break;
+  case'claw':c.globalCompositeOperation='lighter';c.rotate(a);c.lineCap='round';for(let i=-1;i<=1;i++){c.strokeStyle=i?p[2]:p[3];c.lineWidth=r*.38;c.beginPath();c.moveTo(-r*1.8,i*r*.8-r*.5);c.quadraticCurveTo(0,i*r*.8-r*.1,r*1.8,i*r*.8+r*.6);c.stroke()}break;
+  case'burst':{c.globalCompositeOperation='lighter';glow(c,0,0,r*1.7,p,.8);c.rotate(e.t*8);const q=[];for(let i=0;i<16;i++){const rr=i%2?r*.6:r*1.5;q.push([Math.cos(i/16*6.283)*rr,Math.sin(i/16*6.283)*rr])}c.fillStyle=p[3];path(c,q);c.closePath();c.fill();c.fillStyle=p[4];c.beginPath();c.arc(0,0,r*.5,0,7);c.fill();break}
+  case'ring':c.globalCompositeOperation='lighter';c.strokeStyle=p[2];c.lineWidth=Math.max(2,r*.3);c.beginPath();c.arc(0,0,r*(1+.12*Math.sin(e.t*14)),0,7);c.stroke();c.strokeStyle=p[4];c.lineWidth=Math.max(1,r*.1);c.beginPath();c.arc(0,0,r*.72,0,7);c.stroke();glow(c,0,0,r*.9,p,.4);break;
+  case'wisp':{c.globalCompositeOperation='lighter';c.rotate(-1.57+Math.sin(e.t*6+e.seed*5)*.4);c.fillStyle=p[1];c.globalAlpha=fa*.6;c.beginPath();c.arc(0,0,r*1.2,Math.PI,0);c.quadraticCurveTo(r*1.4,r*1.6,0,r*2.4);c.quadraticCurveTo(-r*1.4,r*1.6,-r*1.2,0);c.fill();c.fillStyle=p[2];c.globalAlpha=fa;c.beginPath();c.arc(0,0,r*.85,Math.PI,0);c.quadraticCurveTo(r*.9,r,0,r*1.6);c.quadraticCurveTo(-r*.9,r,-r*.85,0);c.fill();c.globalCompositeOperation='source-over';c.fillStyle=p[0];c.beginPath();c.arc(-r*.3,0,r*.14,0,7);c.arc(r*.3,0,r*.14,0,7);c.fill();break}
+  case'sludge':c.fillStyle=p[1];c.strokeStyle=p[0];c.lineWidth=Math.max(1,r*.12);c.beginPath();for(let i=0;i<=12;i++){const aa=i/12*6.283,rr=r*(1+.16*Math.sin(e.t*12+i*2.1+e.seed*8));i?c.lineTo(Math.cos(aa)*rr,Math.sin(aa)*rr):c.moveTo(rr,0)}c.closePath();c.fill();c.stroke();c.fillStyle=p[3];c.globalAlpha=fa*.8;c.beginPath();c.arc(-r*.3,-r*.3,r*.28,0,7);c.fill();break;
+  case'meteor':{c.rotate(a);c.globalCompositeOperation='lighter';const g=c.createLinearGradient(0,0,-r*7,0);g.addColorStop(0,p[4]);g.addColorStop(.25,p[3]);g.addColorStop(.6,p[2]);g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.beginPath();c.moveTo(0,-r*1.1);c.lineTo(-r*7,0);c.lineTo(0,r*1.1);c.closePath();c.fill();glow(c,0,0,r*1.9,p,.9);c.globalCompositeOperation='source-over';c.rotate(e.t*6-a);rockPoly(c,r*.95,e.seed,p[0],p[2],p[3]);break}
+  }
+  c.restore()}
+function ell(c,x,y,R,fill,stroke,lw,al){c.save();c.globalAlpha=al;c.beginPath();c.ellipse(x,y,Math.max(1,R),Math.max(1,R*SQ),0,0,7);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||3;c.stroke()}c.restore()}
+function drawBeam(c,b,o,u,s,t){const a=Math.atan2(u.y,u.x),len=b.len,w=b.w*(1+.1*Math.sin(t*34+b.ph)),p=b.p,u0=Math.min(1,s.t/.25),L=len*u0;c.save();c.translate(o.x,o.y);c.rotate(a);c.globalCompositeOperation='lighter';c.lineCap='round';c.lineJoin='round';
+  const lay=(ww,k,al)=>{c.globalAlpha=al;c.strokeStyle=k;c.lineWidth=ww;c.beginPath();c.moveTo(0,0);c.lineTo(L,0);c.stroke()};
+  if(b.st==='zig'){const n=14;for(const [ww,k,al] of [[w*.9,p[2],.5],[w*.5,p[3],.85],[w*.2,p[4],1]]){c.globalAlpha=al;c.strokeStyle=k;c.lineWidth=ww;c.beginPath();c.moveTo(0,0);for(let i=1;i<=n;i++)c.lineTo(L*i/n,i===n?0:(Math.sin(t*70+i*3.7+b.ph)+Math.sin(t*43+i*1.9))*w*.42);c.stroke()}}
+  else if(b.st==='flame'){for(let i=0;i<26;i++){const q=i/26,x=q*L,rr=w*(.35+q*.85)*(.85+.3*Math.sin(t*30+i*1.7)),y=Math.sin(t*22+i*2.1)*w*.3*q;c.globalAlpha=.55;c.fillStyle=q<.25?p[4]:q<.5?p[3]:q<.8?p[2]:p[1];c.beginPath();c.arc(x,y,rr,0,7);c.fill()}lay(w*.5,p[4],.55)}
+  else if(b.st==='wave'){lay(w*1.5,p[1],.25);for(let k=0;k<3;k++){c.globalAlpha=.7;c.strokeStyle=k===1?p[4]:k?p[3]:p[2];c.lineWidth=w*(k===1?.22:.4);c.beginPath();for(let i=0;i<=22;i++){const x=L*i/22;c.lineTo(x,Math.sin(x*.045-t*16+k*2.1+b.ph)*w*.42)}c.stroke()}}
+  else if(b.st==='ice'||b.st==='gear'){lay(w*1.4,p[1],.3);lay(w*.8,p[3],.7);lay(w*.3,p[4],.95);for(let i=0;i<10;i++){const x=((i/10*L+t*L*.9)%L);c.globalAlpha=.85;if(b.st==='ice'){c.fillStyle=p[4];path(c,[[x+w*.5,0],[x,-w*.45],[x-w*.5,0],[x,w*.45]]);c.closePath();c.fill()}else{c.strokeStyle=p[4];c.lineWidth=w*.1;c.beginPath();c.ellipse(x,0,w*.18,w*.62,0,0,7);c.stroke()}}}
+  else{lay(w*1.6,p[1],.28);lay(w*1.1,p[2],.5);lay(w*.65,p[3],.8);lay(w*.28,p[4],1)}
+  c.globalAlpha=1;glow(c,0,0,w*1.5*(.9+.1*Math.sin(t*40)),p,.95);glow(c,L,0,w*.8,p,.5);c.restore()}
+function drawPillar(c,z,s){const u=z.t/z.life,up=u<.2?u/.2:u>.75?(1-u)/.25:1,h=z.h*up,w=z.w,p=z.p,x=z.x,y=z.y;c.save();c.translate(x,y);
+  switch(z.sh){
+  case'rock':c.globalAlpha=Math.min(1,up*1.4);c.fillStyle=p[1];c.strokeStyle=p[0];c.lineWidth=Math.max(2,w*.12);path(c,[[-w*.6,0],[-w*.3,-h*.8],[0,-h],[w*.3,-h*.7],[w*.6,0]]);c.closePath();c.fill();c.stroke();c.fillStyle=p[3];c.globalAlpha=.5*up;path(c,[[-w*.55,0],[-w*.28,-h*.78],[0,-h],[-w*.05,-h*.3]]);c.closePath();c.fill();break;
+  case'crystal':c.globalAlpha=Math.min(1,up*1.4);c.fillStyle=p[3];c.strokeStyle=p[1];c.lineWidth=Math.max(2,w*.1);path(c,[[-w*.5,0],[-w*.35,-h*.7],[0,-h],[w*.35,-h*.7],[w*.5,0]]);c.closePath();c.fill();c.stroke();c.fillStyle=p[4];c.globalAlpha=.7*up;path(c,[[-w*.1,-h*.1],[0,-h],[w*.1,-h*.1]]);c.closePath();c.fill();break;
+  case'vine':c.strokeStyle=p[1];c.lineWidth=w*.4;c.lineCap='round';c.globalAlpha=Math.min(1,up*1.4);c.beginPath();for(let i=0;i<=10;i++){const q=i/10;i?c.lineTo(Math.sin(z.t*9+q*5+z.ph)*w*.5*q,-h*q):c.moveTo(0,0)}c.stroke();c.strokeStyle=p[3];c.lineWidth=w*.15;c.stroke();c.fillStyle=p[2];for(let i=1;i<4;i++){c.beginPath();c.ellipse(Math.sin(z.t*9+i*1.6+z.ph)*w*.5*i/4+w*.3*(i%2?1:-1),-h*i/4,w*.28,w*.13,0,0,7);c.fill()}break;
+  default:c.globalCompositeOperation='lighter';{const g=c.createLinearGradient(0,0,0,-h);g.addColorStop(0,p[2]);g.addColorStop(.6,p[3]);g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.globalAlpha=.9*up;c.beginPath();c.moveTo(-w*.55,0);c.quadraticCurveTo(-w*.4+Math.sin(z.t*14+z.ph)*w*.2,-h*.6,0,-h);c.quadraticCurveTo(w*.4+Math.sin(z.t*14+z.ph+2)*w*.2,-h*.6,w*.55,0);c.closePath();c.fill();c.fillStyle=p[4];c.globalAlpha=.7*up;c.beginPath();c.moveTo(-w*.2,0);c.lineTo(0,-h*.8);c.lineTo(w*.2,0);c.closePath();c.fill()}}
+  c.restore()}
+function drawBolt(c,z){const u=z.t/z.life,al=u<.15?u/.15:1-(u-.15)/.85,x1=z.x,y1=z.y,x0=z.x+z.dx,y0=z.y-z.H,pts=[[x0,y0]];for(let i=1;i<9;i++)pts.push([x0+(x1-x0)*i/9+(Math.sin(z.t*60+i*3.1+z.ph)*z.w),y0+(y1-y0)*i/9]);pts.push([x1,y1]);c.save();c.globalCompositeOperation='lighter';c.lineJoin='round';c.lineCap='round';
+  [[z.w*1.1,z.p[2],.55],[z.w*.6,z.p[3],.9],[z.w*.25,z.p[4],1]].forEach(([w,k,a])=>{c.globalAlpha=al*a;c.strokeStyle=k;c.lineWidth=w;path(c,pts);c.stroke()});glow(c,x1,y1,z.w*2.4,z.p,al*.8);c.restore()}
+// ---- 본체 ----
+const CN={s:null,u:{x:1,y:0},hold:null,E:[],Z:[],cf:CF,pull,push,recipe};
+const fcen=()=>{const f=BS.foe,S=bsz();return{x:f.ax,y:f.ay-S*.5,r:S*.6}};
+const org=()=>{const m=BS.me,S=bsz();return{x:m.ax,y:m.ay-S*.55}};
+const segd=(px,py,ax,ay,bx,by)=>{const dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy;let t=l?((px-ax)*dx+(py-ay)*dy)/l:0;t=cl(t,0,1);return Math.hypot(px-(ax+dx*t),py-(ay+dy*t))};
+const tpoint=()=>{const o=org(),S=bsz(),f=fcen();let dx=f.x-o.x,dy=f.y-o.y;const L=Math.hypot(dx,dy)||1;const D=cl(L,S*2.2,VW*.62),u=CN.u;return{x:o.x+u.x*D,y:o.y+u.y*D+S*.5,D}};
+function hint(on){let d=document.getElementById('chHint');if(!on){d&&d.remove();return}if(d)return;d=document.createElement('div');d.id='chHint';d.textContent='홀드기술이지만 방향을 조작하세요!!';d.style.cssText="position:fixed;left:50%;top:20%;transform:translateX(-50%);z-index:50;pointer-events:none;padding:7px 14px;font:700 16px Galmuri11,sans-serif;color:#fff;background:rgba(20,24,50,.82);box-shadow:0 0 0 2px #ffd23f;white-space:nowrap";(document.getElementById('actUI')||document.body).appendChild(d)}
+function lim(){return CN.E.length<160&&SH.sd.length<380}
+function spawnV(s,sp){const o=org(),S=bsz(),u=CN.u,a0=Math.atan2(u.y,u.x),pr=pk(s);let a=a0+(R()-.5)*2*sp.sp;if(sp.fan)a=a0+Math.sin(s.t*3)*sp.sp;
+  const spd=VW*sp.spd*CF.speed*(.85+R()*.3),r=S*sp.r*CF.size*(.8+R()*.4)*s.sz,life=Math.max(.25,VW*sp.rng/spd);
+  CN.E.push({k:'p',sh:sp.sh,x:o.x+Math.cos(a0)*S*.45+(R()-.5)*S*.3,y:o.y+Math.sin(a0)*S*.45+(R()-.5)*S*.3,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,r,t:0,life,p:pr,seed:R(),g:(sp.g||0)*S*8,curl:sp.curl||0,home:sp.home||0,pierce:sp.pierce||0,hc:0,st:sp.sh})}
+function spawnF(s,sp,P,big){const S=bsz(),pr=pk(s),H=VH*.95,dx=(sp.dx*(R()<.5?1:.8))*H*(big?1:1),T=Math.max(.2,sp.fall/CF.speed*(.85+R()*.3)),x0=P.x+dx,y0=P.y-H;
+  const r=S*sp.r*CF.size*(big?1.35:.8+R()*.4)*s.sz,aoe=S*sp.aoe*CF.size*(big?1.4:1)*s.sz;
+  CN.E.push({k:'f',sh:sp.sh,x:x0,y:y0,x0,y0,px:P.x,py:P.y,T,t:0,r,aoe,p:pr,seed:R(),vx:(P.x-x0)/T,vy:(P.y-y0)/T,big:big?1:0,done:0});
+  CN.Z.push({k:'mark',x:P.x,y:P.y,R:aoe,t:0,life:T,p:pr,sh:sp.sh})}
+function spawnE(s,sp,P){const S=bsz(),pr=pk(s),w=S*sp.aoe*CF.size*s.sz*.9,delay=.32/CF.speed;CN.Z.push({k:'mark',x:P.x,y:P.y,R:w,t:0,life:delay,p:pr,sh:sp.sh});CN.Z.push({k:'pil',x:P.x,y:P.y,w,h:S*sp.h*CF.size*s.sz,t:-delay,life:.75/Math.max(.6,CF.speed),p:pr,sh:sp.sh,aoe:w,ph:R()*6,done:0})}
+function spawnW(s,sp,P){const S=bsz(),pr=pk(s);CN.Z.push({k:'ring',x:P.x,y:P.y,R0:S*.5,R1:S*sp.R*CF.size*s.sz,t:0,life:.9/CF.speed,p:pr,sh:sp.sh,hit:0})}
+function dealHit(x,y,k,pow){const s=CN.s;if(!s||s.ended)return;const f=BS.foe,def=f.m,AB=BS.me,S=bsz();if(s.hitN>=s.cap)return;s.hitN++;
+  const cr=s.dmg>0&&R()<.2,d=s.dmg>0?Math.max(1,Math.round(s.perHit*(k||1)*(cr?1.5:1))):0,now=performance.now();
+  if(d>0){def.hp=Math.max(0,def.hp-d);bbox()}else if(!s.noEf){s.noEf=1;try{FX2.num(f.ax,f.ay-S*1.6,'효과 없음','#9be7ff',1)}catch(e){}}
+  if(d>0){f.dlt={v:d,t:1.6};if(now-s.lastHurt>260){s.lastHurt=now;f.st='hurt';f.t=0}f.blink=.1;
+    if(cr){s.stk=((s.stk||0)+1)%4;try{FX2.num(f.ax+(R()-.5)*S*.8,f.ay-S*1.5-(f.lift||0)-s.stk*S*.62,String(d),'#ffd23f',1,'mscrit')}catch(e){}try{snd('crit',.5)}catch(e){}try{FX2.hit(8,.02)}catch(e){}}
+    else if(now-s.lastNum>90){s.lastNum=now;try{FX2.num(f.ax+(R()-.5)*S*1.1,f.ay-S*1.4-(f.lift||0)-R()*S*.4,String(d),s.e>=2?'#ffb030':'#ffffff',pow>1,dskin())}catch(e){}}
+    if(now-s.lastSnd>110){s.lastSnd=now;try{snd(pow>1?'hit_heavy':'hit_light',pow>1?.5:.32)}catch(e){}}
+    try{FX2.hit(2+pow*3,.008)}catch(e){}
+    const L=Math.hypot(f.ax-AB.ax,f.ay-AB.ay)||1;f.kx=(f.kx||0)+(f.ax-AB.ax)/L*VW*.012;f.ky=(f.ky||0)+(f.ay-AB.ay)/L*VW*.012}
+  try{hitSpark(x,y,s.T,S*.7,Math.min(1.2,.35*pow))}catch(e){}
+  if(s.e>=2&&d>0&&!s.sup){s.sup=1;try{superPop()}catch(e){}}
+  if(def.hp<=0)finish(true)}
+function finish(ko){const s=CN.s;if(!s||s.ended)return;s.ended=1;hint(0);ACT.cd[s.id]=cdOf(s.m)*1.1;CN.hold=null;try{BS.me&&(BS.me.glow=0)}catch(e){}
+  if(ko&&ACT.on){(async()=>{try{banner('기절!','#ff5a5a');await sleep(700);actEnd({t:'rt'})}catch(e){}})()}}
+function start(i,id,m,dir){const me=BS.me,f=BS.foe,atk=me.m,def=f.m,S=bsz();
+  if(dir&&(dir.x||dir.y))CN.u={x:dir.x,y:dir.y};else{const o=org(),fc=fcen(),dx=fc.x-o.x,dy=fc.y-o.y,L=Math.hypot(dx,dy)||1;CN.u={x:dx/L,y:dy/L}}
+  try{callout(true,m.name);me.lastMv=m}catch(e){}
+  let crit=false,r={d:1,e:1};try{r=dmgCalc(atk,def,m,false)}catch(e){}
+  let dmg=Math.max(1,Math.floor(r.d*.33*(.85+R()*.15)));if(r.e===0)dmg=0;try{if(OPER.on&&OPER.one)dmg=def.hp}catch(e){}
+  let L=1;try{if(atk.moves.includes(m.id)){if(useMv(atk,m.id))toast('⬆ '+m.name+' 기술 레벨 Lv.'+mlv(atk,m.id)+'!');L=cl(mlv(atk,m.id)|0||1,1,5)}}catch(e){}
+  const T=m.type||'NORMAL',comps=recipe(m,L).map(sp=>({sp,acc:R()*.5,t:0}));
+  const cnt=CF.count*(1+.12*(L-1)),sz=1+.07*(L-1);
+  let exp=0;for(const c of comps){const sp=c.sp;exp+=sp.k==='B'?sp.exp:(sp.rate*(DUR-.4)*sp.exp)}
+  exp+=4;const budget=dmg*CHD*(1+.06*(L-1));
+  const s=CN.s={i,id,m,T,L,dmg,crit,e:r.e,t:0,comps,pals:palsFor(T),sz,cnt,perHit:budget/exp,cap:Math.ceil(exp*Math.max(1,CF.count)*1.5)+12,hitN:0,lastHurt:0,lastNum:0,lastSnd:0,ended:0,fin:0,pose:0,beams:[]};
+  // 광선은 양(count)이 많으면 줄기가 늘어요
+  for(const c of comps)if(c.sp.k==='B'){const n=cl(Math.round(CF.count),1,4);for(let q=0;q<n;q++){const off=n===1?0:(q-(n-1)/2)*.2;s.beams.push({sp:c.sp,off,w:S*c.sp.w*CF.size*sz*(n>1?.75:1),len:VW*c.sp.len*(1+.04*L),p:pk(s),ph:R()*6,tickT:0,st:c.sp.st})}}
+  CN.E=[];CN.Z=[];ACT.cd[id]=cdOf(m);
+  try{snd(TSND[T]||'mf4_whoosh',.5)}catch(e){}try{A2.castSnd(T,L,1)}catch(e){}
+  try{FX2.num(org().x,org().y-S*1.4,L>=5?'★ 궁극기!':L>=4?'극 기술!':L>=3?'강화 기술!':m.name,SKFX.col(T),L>=3,null)}catch(e){}
+  try{FX2.flash(SKFX.col(T),.15)}catch(e){}
+  try{me.glow=SKFX.col(T)}catch(e){}}
+function poseMe(s){const me=BS.me;try{const sp=me.S&&me.S.meta.anims;me.st=sp&&sp.shoot?'shoot':sp&&sp.attack?'attack':'idle';me.t=0}catch(e){}}
+function emit(s,fr){const S=bsz(),tp=tpoint(),o=org();
+  for(const c of s.comps){const sp=c.sp;if(sp.k==='B')continue;c.t+=fr;if(s.t<.18)continue;c.acc+=fr*sp.rate*s.cnt;let n=Math.min(8,Math.floor(c.acc));c.acc-=n;if(s.t>DUR-.3)continue;
+    for(let q=0;q<n&&lim();q++){
+      if(sp.k==='V')spawnV(s,sp);
+      else if(sp.k==='F'){const sc=S*sp.scat*CF.size*s.sz,a=R()*6.283,rr=Math.sqrt(R())*sc;spawnF(s,sp,{x:tp.x+Math.cos(a)*rr,y:tp.y+Math.sin(a)*rr*SQ})}
+      else if(sp.k==='E'){const u=CN.u,pp={x:-u.y,y:u.x},d=S*1.4+R()*Math.max(S,tp.D),w=(R()-.5)*S*1.8*CF.size;spawnE(s,sp,{x:o.x+u.x*d+pp.x*w,y:org().y+S*.55+u.y*d*.6+pp.y*w*.6})}
+      else if(sp.k==='W'){spawnW(s,sp,sp.sh==='quake'&&R()<.5?{x:tp.x,y:tp.y}:{x:BS.me.ax,y:BS.me.ay})}}}
+  // 마무리: 마지막에 큰 것들이 우수수
+  if(!s.fin&&s.t>=DUR-.85){s.fin=1;const fc=comps0(s);if(fc){const n=Math.round(5*Math.max(1,CF.count)*.8)+1;for(let q=0;q<n&&lim();q++){const a=R()*6.283,rr=Math.sqrt(R())*S*2.4*CF.size;setTimeout(()=>{try{if(CN.s===s&&!s.ended)spawnF(s,fc,{x:tp.x+Math.cos(a)*rr,y:tp.y+Math.sin(a)*rr*SQ},1)}catch(e){}},q*110)}try{FX2.flash(SKFX.col(s.T),.2)}catch(e){}}}}
+function comps0(s){const T=s.T;const sh=T==='ROCK'||T==='GROUND'?'boulder':T==='ICE'?'icicle':T==='ELECTRIC'?'bolt':T==='WATER'?'drop':T==='GRASS'?'leaf':T==='FAIRY'?'star':T==='STEEL'?'shard':T==='POISON'?'sludge':'meteor';return F(sh,0,{r:.9,aoe:1.5,fall:.6,dx:.45})}
+function boom(e,P,pow,sh){const s=CN.s,S=bsz(),T=s.T;
+  CN.Z.push({k:'blast',x:P.x,y:P.y,R:e.aoe||S*1.1,t:0,life:.42,p:e.p,sh:sh||e.sh});
+  if((sh||e.sh)==='bolt')CN.Z.push({k:'bolt',x:P.x,y:P.y,dx:(R()-.5)*S*1.2,H:VH*.95,w:Math.max(S*.3,e.r*.5),t:0,life:.3,ph:R()*9,p:e.p});
+  try{const st=e.p;for(let i=0;i<(e.big?14:8);i++){const a=R()*6.283,v=S*(2+R()*4);pAdd({x:P.x,y:P.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.7-S*1.6,g:S*5,drag:.05,s:S*.14+R()*S*.16,s1:0,life:.4+R()*.5,st,k:(sh==='boulder'||sh==='rock')?'shard':R()<.5?'px':'star',r:a,vr:(R()-.5)*10,glow:1})}
+    pAdd({x:P.x,y:P.y,s:S*.3,s1:(e.aoe||S)*1.3,life:.3,st:[e.p[4],e.p[3],e.p[2],e.p[1],e.p[0]],k:'ring',glow:1})}catch(er){}
+  const g=!/bolt|star|drop/.test(sh||'');if((sh==='boulder'||sh==='rock'||sh==='meteor')&&s.t-(s.lastMark||-9)>.5){s.lastMark=s.t;try{arenaMark(P.x,P.y,T,S)}catch(er){}}
+  try{snd(sh==='boulder'||sh==='rock'?'rock':sh==='meteor'?'hit_heavy':sh==='bolt'?'zap':sh==='icicle'?'ice_charge':'hit_light',.28)}catch(er){}
+  try{FX2.hit(pow>1?8:3,.01)}catch(er){}
+  const f=BS.foe,dx=f.ax-P.x,dy=(f.ay-P.y)/SQ;if(Math.hypot(dx,dy)<=(e.aoe||S)+S*.35)dealHit(f.ax,f.ay-S*.5,1,pow)}
+function step(dt){const s=CN.s;if(!s)return;if(!ACT.on||ACT.pause){return}const fr=FX2.stop>0?0:dt;if(!fr)return;
+  if(ACT.down||!BS.me||!BS.foe||BS.me.m.hp<=0){hint(0);finish(false);CN.E=[];CN.Z=[];CN.s=null;try{BS.me&&(BS.me.glow=0)}catch(e){}return}
+  const me=BS.me,f=BS.foe,S=bsz();
+  if(!s.ended){s.t+=fr;ACT.cd[s.id]=cdOf(s.m);hint(s.t<2.6&&!(CN.hold&&CN.hold.d));
+    // 조준: 누르고 있으면 손가락 방향, 놓으면 상대를 자동 조준
+    let ux,uy;const h=CN.hold;if(h&&h.d&&h.u){ux=h.u.x;uy=h.u.y}else{const o=org(),fc=fcen(),dx=fc.x-o.x,dy=fc.y-o.y,L=Math.hypot(dx,dy)||1;ux=dx/L;uy=dy/L}
+    const ca=Math.atan2(CN.u.y,CN.u.x),ta=Math.atan2(uy,ux);let da=ta-ca;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;const na=ca+da*Math.min(1,fr*(h&&h.d?16:9));CN.u={x:Math.cos(na),y:Math.sin(na)};
+    me.row=dirRow(CN.u.x,CN.u.y);if(s.t-s.pose>.5){s.pose=s.t;poseMe(s)}
+    if(s.t>=.18)for(const b of s.beams){b.tickT-=fr;const o=org(),a=Math.atan2(CN.u.y,CN.u.x)+b.off,ex=o.x+Math.cos(a)*b.len,ey=o.y+Math.sin(a)*b.len;
+      for(let i=0;i<2&&lim();i++){const q=R()*b.len*Math.min(1,s.t/.25);pAdd({x:o.x+Math.cos(a)*q+(R()-.5)*b.w,y:o.y+Math.sin(a)*q+(R()-.5)*b.w,vx:(R()-.5)*S*2,vy:(R()-.5)*S*2-S*.5,drag:.08,s:S*(.08+R()*.1),s1:0,life:.25+R()*.3,st:b.p,k:b.st==='flame'?'puff':R()<.5?'px':'star',glow:1})}
+      if(b.tickT<=0){b.tickT=b.sp.tick;const fc=fcen();if(segd(fc.x,fc.y,o.x,o.y,ex,ey)<=b.w*.55+fc.r*.8){dealHit(fc.x,fc.y,1,1);try{pAdd({x:fc.x,y:fc.y,s:S*.5,s1:S*1.4,life:.25,st:b.p,k:'ring',glow:1})}catch(e){}}}}
+    emit(s,fr)}
+  // 투사체
+  const fc=fcen(),keep=[];
+  for(const e of CN.E){e.t+=fr;
+    if(e.k==='p'){if(e.home){const dx=fc.x-e.x,dy=fc.y-e.y,L=Math.hypot(dx,dy)||1,sp=Math.hypot(e.vx,e.vy)||1,k=Math.min(1,fr*e.home);e.vx+=(dx/L*sp-e.vx)*k;e.vy+=(dy/L*sp-e.vy)*k}
+      if(e.curl){const c=Math.cos(e.curl*fr),sn=Math.sin(e.curl*fr),vx=e.vx*c-e.vy*sn;e.vy=e.vx*sn+e.vy*c;e.vx=vx}
+      e.vy+=e.g*fr;const px=e.x,py=e.y;e.x+=e.vx*fr;e.y+=e.vy*fr;e.hc-=fr;
+      if(!s.ended&&e.hc<=0&&segd(fc.x,fc.y,px,py,e.x,e.y)<=fc.r*.85+e.r*.9){dealHit(e.x,e.y,.9+e.r/(S*2),e.r>S*.5?1.2:1);e.hc=.28;try{for(let i=0;i<3;i++){const a=R()*6.283;pAdd({x:e.x,y:e.y,vx:Math.cos(a)*S*2,vy:Math.sin(a)*S*2,drag:.1,s:S*.1,s1:0,life:.3,st:e.p,k:'star',glow:1})}}catch(er){}if(!e.pierce)e.t=e.life+1}
+      if(e.t<e.life){if(!(e.sh==='flame'||e.sh==='orb'||e.sh==='meteor')||R()<.35)if(lim()&&R()<.6)pAdd({x:e.x,y:e.y,vx:(R()-.5)*S,vy:(R()-.5)*S,drag:.1,s:e.r*.45,s1:0,life:.25,st:e.p,k:e.sh==='sludge'||e.sh==='wisp'?'puff':'px',glow:1});e.fade=Math.min(1,(e.life-e.t)/.12+.2);keep.push(e)}
+      else if(e.t<=e.life+.001||!e.pierce){}}
+    else{ // 떨어지는 것
+      const u=Math.min(1,e.t/e.T);e.x=e.x0+(e.px-e.x0)*u;e.y=e.y0+(e.py-e.y0)*u;
+      if(lim()&&R()<.8)pAdd({x:e.x,y:e.y,vx:(R()-.5)*S,vy:(R()-.5)*S,drag:.1,s:e.r*.5,s1:0,life:.35,st:e.p,k:e.sh==='boulder'?'puff':R()<.5?'px':'star',glow:1});
+      if(u>=1&&!e.done){e.done=1;if(!s.ended||1)boom(e,{x:e.px,y:e.py},e.big?1.6:1,e.sh)}else keep.push(e)}}
+  CN.E=keep;
+  // 땅에 생기는 것
+  const kz=[];for(const z of CN.Z){z.t+=fr;
+    if(z.k==='pil'){if(z.t>=0&&!z.done){z.done=1;try{snd(z.sh==='rock'?'rock':'hit_light',.22)}catch(e){}const dx=f.ax-z.x,dy=(f.ay-z.y)/SQ;if(!s.ended&&Math.hypot(dx,dy)<=z.aoe+S*.4)dealHit(f.ax,f.ay-S*.5,1,1);try{for(let i=0;i<7;i++){const a=R()*6.283;pAdd({x:z.x,y:z.y,vx:Math.cos(a)*S*3,vy:-S*(2+R()*3),g:S*6,drag:.04,s:S*.14+R()*S*.1,s1:0,life:.5,st:z.p,k:z.sh==='rock'?'shard':'px',glow:1})}}catch(er){}}}
+    if(z.k==='ring'){const u=Math.min(1,z.t/z.life),Rr=z.R0+(z.R1-z.R0)*u;if(!z.hit&&!s.ended){const dd=Math.hypot(f.ax-z.x,(f.ay-z.y)/SQ);if(Math.abs(dd-Rr)<S*.6){z.hit=1;dealHit(f.ax,f.ay-S*.5,1,1.1)}}}
+    if(z.t<z.life+(z.k==='pil'?0:0))kz.push(z)}
+  CN.Z=kz;
+  // 끝
+  if(s.ended&&!CN.E.length&&!CN.Z.length){CN.s=null;try{me.glow=0}catch(e){}}
+  else if(!s.ended&&s.t>=DUR){finish(false);try{me.glow=0}catch(e){}}}
+// 그리기
+function drawUnder(){const s=CN.s;if(!s||!ACT.on||!BS.me)return;const c=cx,S=bsz();
+  for(const z of CN.Z){if(z.k==='mark'){const u=Math.min(1,z.t/z.life);c.save();ell(c,z.x,z.y,z.R,z.p[1],null,0,.12+.14*u);ell(c,z.x,z.y,z.R*(1-u*.35),null,z.p[3],Math.max(2,S*.06),.35+.4*u);ell(c,z.x,z.y,z.R*u,z.p[2],null,0,.18);c.restore()}}
+  const h=CN.hold;if(h&&h.d&&!s.ended){const o=org(),u=CN.u;c.save();c.globalAlpha=.4;c.strokeStyle='#ffffff';c.lineWidth=Math.max(2,S*.07);c.setLineDash([S*.3,S*.25]);c.beginPath();c.moveTo(o.x,o.y);c.lineTo(o.x+u.x*VW*.5,o.y+u.y*VW*.5);c.stroke();c.restore()}}
+function drawOver(){const s=CN.s;if(!s||!ACT.on||!BS.me)return;const c=cx,S=bsz(),t=performance.now()/1000;
+  for(const z of CN.Z){if(z.k==='ring'){const u=Math.min(1,z.t/z.life),Rr=z.R0+(z.R1-z.R0)*u,al=1-u;c.save();c.globalCompositeOperation='lighter';ell(c,z.x,z.y,Rr,z.p[1],null,0,.18*al);ell(c,z.x,z.y,Rr,null,z.p[2],S*.28*al+2,.8*al);ell(c,z.x,z.y,Rr*.97,null,z.p[4],Math.max(1,S*.08),.9*al);c.restore()}
+    else if(z.k==='blast'){const u=z.t/z.life,Rr=z.R*(.35+u*.75),al=1-u;c.save();c.globalCompositeOperation='lighter';ell(c,z.x,z.y,Rr,z.p[2],null,0,.45*al);ell(c,z.x,z.y,Rr,null,z.p[4],Math.max(2,S*.1*al),.9*al);glow(c,z.x,z.y-S*.3,Rr*.8,z.p,.8*al);c.restore()}
+    else if(z.k==='pil'&&z.t>=0)drawPillar(c,z,s);else if(z.k==='bolt')drawBolt(c,z)}
+  // 번개 기둥: 떨어지는 번개는 즉시 줄을 그어요
+  for(const e of CN.E){if(e.k==='f'&&e.sh==='bolt')continue;dp(c,e,t)}
+  const o=org();if(!s.ended)for(const b of s.beams){const a=Math.atan2(CN.u.y,CN.u.x)+b.off;drawBeam(c,b,o,{x:Math.cos(a),y:Math.sin(a)},s,t)}
+  // 남은 시간 막대
+  if(!s.ended){const me=BS.me,w=S*1.5,x=me.ax-w/2,y=me.ay-S*1.95,q=1-s.t/DUR;c.save();c.fillStyle='rgba(0,0,0,.55)';c.fillRect(x-2,y-2,w+4,S*.17+4);c.fillStyle=s.pals[0][2];c.fillRect(x,y,w*Math.max(0,q),S*.17);c.restore()}}
+// ---- 끼워 넣기 ----
+const _ap=actPress;
+actPress=function(i,dir){if(CF.off||!ACT.on||typeof G==='undefined'||!G||G.mode==='turn')return _ap.apply(this,arguments);
+  const id=BS.me&&BS.me.m.moves[i];if(!id)return;const m=mv(id);
+  const shake=()=>{const b=document.querySelector('.ask[data-i="'+i+'"]');b&&(b.classList.remove('no'),void b.offsetWidth,b.classList.add('no'))};
+  if(CN.s&&!CN.s.ended){shake();return}
+  if((ACT.cd[id]||0)>0){shake();return}
+  if(ACT.busy||ACT.roll>0){ACT.buf={i,t:.35,dir};return}
+  start(i,id,m,dir)};
+const _au=actUpdate;actUpdate=function(dt){const r=_au.apply(this,arguments);try{step(dt)}catch(e){console.warn('채널링',e);CN.s=null;CN.E=[];CN.Z=[]}return r};
+const _ado=actDrawOver;actDrawOver=function(){const r=_ado.apply(this,arguments);try{drawOver()}catch(e){console.warn('채널링 그리기',e)}return r};
+const _adu=actDrawUnder;actDrawUnder=function(){const r=_adu.apply(this,arguments);try{drawUnder()}catch(e){}return r};
+// 기술 버튼: 누르면 바로 5초 발사 · 누른 채 움직이면 방향 (손가락을 놓으면 자동 조준)
+const _ui=actUI;actUI=function(on){const r=_ui.apply(this,arguments);try{if(on){hint(0);CN.s=null;CN.E=[];CN.Z=[];CN.hold=null;pull();if(!CF.off)bind()}}catch(e){console.warn(e)}return r};
+function bind(){const u=document.getElementById('actUI');if(!u)return;
+  u.querySelectorAll('.ask').forEach(b0=>{const b=b0.cloneNode(true);b0.replaceWith(b);
+    b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const i=+b.dataset.i;ACT.man=ACT.t;const was=CN.s;actPress(i,null);
+      if(CN.s&&CN.s!==was&&CN.s.i===i){CN.hold={i,pid:e.pointerId,sx:e.clientX,sy:e.clientY,d:0,u:null};try{b.setPointerCapture(e.pointerId)}catch(_){}}});
+    b.addEventListener('pointermove',e=>{const h=CN.hold;if(!h||e.pointerId!==h.pid)return;const dx=e.clientX-h.sx,dy=e.clientY-h.sy,L=Math.hypot(dx,dy);if(L>16){h.d=1;h.u={x:dx/L,y:dy/L}}else if(L<8){h.d=0}});
+    const up=e=>{const h=CN.hold;if(h&&e.pointerId===h.pid)CN.hold=null};b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up)})}
+// ---- GM 메뉴: ✨ 투사체 설정 (모두에게 적용) ----
+function fxPanel(){const rows=[['size','투사체 크기',.3,4,.05],['speed','투사체 속도',.3,4,.05],['count','투사체 양',.2,4,.05]];
+  openPanel('✨ 투사체 설정 (모두에게 적용)',`<p class="hhint">5초 연발 기술의 크기 · 속도 · 양이에요. 「모두에게 적용」을 누르면 서버로 올라가서, 게임을 켜는 모두에게 적용돼요. 1.0이 기본이에요.</p>
+   ${rows.map(([k,n,a,b,st])=>`<div class="fxr"><b>${n}</b><input type="range" data-k="${k}" min="${a}" max="${b}" step="${st}" value="${CF[k]}"><output data-o="${k}">${(+CF[k]).toFixed(2)}</output></div>`).join('')}
+   <label class="fxr"><b>5초 연발 끄기</b><input type="checkbox" id="fxOff" ${CF.off?'checked':''}><small>켜면 모두 옛 방식(한 번에 한 방)</small></label>
+   <div class="fxb"><button id="fxPush">📡 모두에게 적용</button><button id="fxRst">1 · 1 · 1 되돌리기</button></div>`,null,p=>{
+    p.querySelectorAll('input[type=range]').forEach(r=>r.oninput=()=>{CF[r.dataset.k]=+r.value;p.querySelector('[data-o="'+r.dataset.k+'"]').textContent=(+r.value).toFixed(2);keep()});
+    p.querySelector('#fxOff').onchange=e=>{CF.off=e.target.checked?1:0;keep()};
+    p.querySelector('#fxRst').onclick=()=>{sfx('tap');CF.size=CF.speed=CF.count=1;keep();p.querySelectorAll('input[type=range]').forEach(r=>{r.value=1;p.querySelector('[data-o="'+r.dataset.k+'"]').textContent='1.00'})};
+    p.querySelector('#fxPush').onclick=async()=>{sfx('tap');norm();keep();const ok=await push();toast(ok?'✅ 모두에게 적용했어요 (게임을 켜거나 전투에 들어갈 때 받아가요)':'올리지 못했어요')}})}
+{const _gd=gmDraw;gmDraw=function(){const r=_gd.apply(this,arguments);try{if(isGM()){const p=document.querySelector('.panel');if(p&&!p.querySelector('#fxGm')){const t=p.querySelector('.pb');const b=document.createElement('button');b.id='fxGm';b.textContent='✨ 투사체 설정 (크기 · 속도 · 양)';b.onclick=()=>{sfx('tap');fxPanel()};t&&t.prepend(b)}}}catch(e){}return r}}
+{const c=document.createElement('style');c.textContent=`#fxGm{width:100%;margin:0 0 10px;padding:9px;border:0;border-radius:0;font:700 15px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#c070ff 0 50%,#8a3ad0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer}
+.fxr{display:grid;grid-template-columns:96px 1fr 48px;align-items:center;gap:8px;margin:8px 4px;font-size:14px}.fxr input[type=range]{width:100%}.fxr small{grid-column:2/-1;color:#5a6080;font-size:12px}.fxr output{text-align:right;font-weight:700}
+.fxb{display:flex;gap:8px;margin:12px 4px}.fxb button{flex:1;padding:10px;border:0;font:700 14px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#5a8aff 0 50%,#2a5ad0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer}`;document.head.appendChild(c)}
+window.CHN=CN;
+}catch(e){console.warn('채널링 연발 로드 실패',e)}})();
+// ===== 채널링 연발 끝 =====
 </script>
 </body></html>
