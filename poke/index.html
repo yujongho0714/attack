@@ -1467,7 +1467,7 @@ const bsz=()=>VW>VH?Math.min(VW*.105,VH*.17)*(ACT.on?.95:1):Math.min(VW*.3,VH*.1
 // 큰 포켓몬(거다이맥스 등)은 그림이 커서 오라·불꽃도 그림 크기에 맞춰 키워요 (보통 크기는 ×1)
 const AFX=B=>{try{const an=B.S.meta.anims.idle,h=an.h,cl=Math.max(.7,Math.min(1.6,30/Math.max(16,h*.6)));return Math.max(1,Math.min(4,h*(B.S.meta.k||1)*cl/50))}catch(e){return 1}};
 function bsc(S,mine){const A=S.meta.anims.idle;return (S.meta.k||1)*bsz()/24*(mine?1.15:1)*Math.max(.7,Math.min(1.6,30/Math.max(16,A.h*.6)))}
-function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.update(dt);try{actUpdate(dt)}catch(e){console.warn(e)}const fr=FX2.stop>0?0:dt;cx.setTransform(1,0,0,1,0,0);
+function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.update(dt);try{GMFX.update(dt)}catch(e){}try{actUpdate(dt)}catch(e){console.warn(e)}const fr=FX2.stop>0?0:dt;cx.setTransform(1,0,0,1,0,0);
   const [sx,sy]=FX2.shakeXY();cx.setTransform(d,0,0,d,sx*d,sy*d);const th=THEME[BS.bg]||THEME.meadow;const im=bgImg(STG[BS.bg]||'grass');
   const CAM=camOn();if(CAM){camUpd(dt);const z=1+(ACT.zp||0);if(z!==1){cx.translate(VW/2,VH/2);cx.scale(z,z);cx.translate(-VW/2,-VH/2)}cx.translate(-(ACT.cx||0)+(ACT.bx||0),-(ACT.cy||0)+(ACT.by||0))}const BW=CAM?WW():VW,BH=CAM?WH():VH;
   if(CAM&&STADOK()){cx.drawImage(STAD,0,0,BW,BH);arenaMarks()}else if(im.complete&&im.naturalWidth){const k=Math.max(BW/im.naturalWidth,BH/im.naturalHeight)*1.05;cx.drawImage(im,(BW-im.naturalWidth*k)/2,(BH-im.naturalHeight*k)/2,im.naturalWidth*k,im.naturalHeight*k);cx.fillStyle='rgba(10,8,20,.12)';cx.fillRect(-30,-30,BW+60,BH+60);if(CAM)arenaMarks()}
@@ -1488,7 +1488,7 @@ function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.up
     const blink=B.blink>0&&((B.blink-=dt)*20|0)%2===0;if(!blink)one(gx+(B.shake>0?Math.sin((B.shake-=dt)*70)*6:0),y,B.alpha??1,B.glow?'drop-shadow(0 0 4px '+B.glow+') drop-shadow(0 0 10px '+B.glow+')':B.ice>0?'saturate(.3) brightness(1.4) hue-rotate(160deg)':'',B.white);if(B.ice>0)B.ice-=dt}
   if(BS.ball&&ico(BALLF[BS.ball.col]||'ball_POKEBALL').naturalWidth){const b=BS.ball,r=VW*.035,im=ico(BALLF[b.col]||'ball_POKEBALL');const f=((Math.floor(((b.rot||0)/(Math.PI*2))*8)%8)+8)%8;const k=r*2/26;cx.save();cx.imageSmoothingEnabled=false;cx.translate(b.x,b.y);cx.drawImage(im,f*32,0,32,64,-16*k,-32*k,32*k,64*k);cx.restore()}
   else if(BS.ball){const b=BS.ball,r=VW*.035;cx.save();cx.translate(b.x,b.y);cx.rotate(b.rot||0);cx.fillStyle=b.col||'#e83838';cx.beginPath();cx.arc(0,0,r,Math.PI,0);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(0,0,r,0,Math.PI);cx.fill();cx.strokeStyle='#222';cx.lineWidth=2;cx.beginPath();cx.arc(0,0,r,0,7);cx.moveTo(-r,0);cx.lineTo(r,0);cx.stroke();cx.fillStyle='#fff';cx.beginPath();cx.arc(0,0,r*.3,0,7);cx.fill();cx.stroke();cx.restore()}
-  actDrawOver();FX2.draw(cx);VFX.draw(cx);cx.setTransform(d,0,0,d,0,0);FX2.overlay(cx,VW,VH);if(BS.flash>0){BS.flash-=dt;cx.fillStyle='rgba(255,255,255,'+Math.max(0,BS.flash*2)+')';cx.fillRect(0,0,VW,VH)}cx.setTransform(1,0,0,1,0,0)}
+  actDrawOver();FX2.draw(cx);VFX.draw(cx);try{GMFX.draw(cx)}catch(e){}cx.setTransform(d,0,0,d,0,0);FX2.overlay(cx,VW,VH);if(BS.flash>0){BS.flash-=dt;cx.fillStyle='rgba(255,255,255,'+Math.max(0,BS.flash*2)+')';cx.fillRect(0,0,VW,VH)}cx.setTransform(1,0,0,1,0,0)}
 // ---------- 기술 쓰기 ----------
 function dmgCalc(a,d,m,crit){const A=stOf(a),D=stOf(d),Ma=META[a.n],Md=META[d.n];const at=m.ph?A[1]:A[3],df=m.ph?D[2]:D[4];const e=eff(m.type,Md.types),stab=Ma.types.includes(m.type)?1.5:1;
   const ml=a.moves.includes(m.id)?mlv(a,m.id):1;const base=((2*a.lv/5+2)*m.pw*(1+.08*(ml-1))*at/Math.max(1,df))/50+2;const mine=G.party.includes(a),wx=wxMul(m.type,Md.types);return{d:Math.max(1,Math.floor(base*stab*e*(crit?1.5:1)*wx*(mine?1:DDMG[DIFF()]))),e}}
@@ -2087,7 +2087,7 @@ function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
   <h4>기술 가르치기 (맨 앞 포켓몬: ${G.party[0]?nm(G.party[0]):'-'})</h4><div class="nw"><input id="oMv" list="oMvL" placeholder="기술 이름"><button class="it" id="oMvGo">배우기</button><button class="it" id="oMvMax">기술 레벨 최대</button></div>
   <datalist id="oMvL">${GMOVES.map(m=>`<option value="${m[1]}">`).join('')}</datalist>
   <h4>내 포켓몬</h4><div><button class="it" id="oLv">모두 레벨 +10</button><button class="it" id="oLv100">모두 Lv.100</button><button class="it" id="oHeal">모두 회복</button><button class="it" id="oEvo">진화 확인</button></div>
-  <h4>가방 · 돈 · 진행</h4><div><button class="it" id="oItem">아이템 99개씩</button><button class="it" id="oMoney">💰 +100000</button><button class="it" id="oBadge">배지 8개</button><button class="it" id="oChamp">챔피언 클리어</button><button class="it" id="oDex">도감 전부 잡음</button><button class="it" id="oVisit">마을 전부 가 봄</button><button class="it" id="oTest">🛠 테스트 모드 켜기/끄기</button></div>
+  <h4>가방 · 돈 · 진행</h4><div><button class="it" id="oItem">아이템 99개씩</button><button class="it" id="oMoney">💰 +100000</button><button class="it" id="oBadge">배지 8개</button><button class="it" id="oChamp">챔피언 클리어</button><button class="it" id="oDex">도감 전부 잡음</button><button class="it" id="oVisit">마을 전부 가 봄</button><button class="it" id="oTest">🛠 테스트 모드 켜기/끄기</button><button class="it" id="oFx">🎬 기술 이펙트 관리자</button></div>
   <label><input type="checkbox" id="oGod" ${OPER.god?'checked':''}> 무적 (내 포켓몬 체력이 안 닳음)</label><label><input type="checkbox" id="oOne" ${OPER.one?'checked':''}> 한 방에 쓰러뜨리기</label><label><input type="checkbox" id="oNoEnc" ${G.repel>9e8?'checked':''}> 야생 포켓몬 안 나오기</label>
   <h4>순간이동</h4><div class="nw"><select id="oArea">${ar.join('')}</select><button class="it" id="oGo">이동</button></div>
   <h4>🎁 선물 코드 만들기 (아이에게 직접 주기)</h4><div class="nw"><select id="oGk"><option value="P">포켓몬</option><option value="M">기술</option></select><input id="oGid" placeholder="이름/번호 또는 기술 이름"><input id="oGlv" inputmode="numeric" placeholder="레벨" value="10" style="max-width:64px"></div>
@@ -2101,7 +2101,7 @@ function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
     const lvAll=k=>{for(const m of G.party){const S0=stOf(m);m.lv=k(m);m.exp=expAt(m.lv);const S1=stOf(m);m.hp=Math.max(1,m.hp+S1[0]-S0[0]);m.evoReady=1;for(const [l,id] of learnset(META[m.n]))if(l<=m.lv&&!m.moves.includes(id)){if(m.moves.length>=4)m.moves.shift();m.moves.push(id)}}save();operOpen()};
     q('#oLv').onclick=()=>lvAll(m=>Math.min(100,m.lv+10));q('#oLv100').onclick=()=>lvAll(()=>100);q('#oHeal').onclick=()=>{healAll();save();toast('✅ 회복')};q('#oEvo').onclick=()=>{closePanel(1);evolveAfterMenu()};
     q('#oItem').onclick=()=>{for(const k in ITEMS)G.bag[k]=99;save();toast('✅ 아이템 99개씩')};q('#oMoney').onclick=()=>{G.money+=100000;save();hud();toast('✅ +100000원')};
-    q('#oBadge').onclick=()=>{G.badges=8;save();hud();toast('✅ 배지 8개')};q('#oChamp').onclick=()=>{G.badges=8;G.champ=(G.champ||0)+1;save();hud();toast('✅ 챔피언')};q('#oTest').onclick=()=>{gmTestToggle()};
+    q('#oBadge').onclick=()=>{G.badges=8;save();hud();toast('✅ 배지 8개')};q('#oChamp').onclick=()=>{G.badges=8;G.champ=(G.champ||0)+1;save();hud();toast('✅ 챔피언')};q('#oTest').onclick=()=>{gmTestToggle()};q('#oFx').onclick=()=>{gfOpen()};
     q('#oDex').onclick=()=>{for(const n of SPECIES){G.dex.s[META[n].dex]=1;G.dex.c[META[n].dex]=1}save();toast('✅ 도감 전부')};q('#oVisit').onclick=()=>{for(let a=0;a<18;a+=2)G.visit[a]=1;save();toast('✅ 마을 전부')};
     q('#oGod').onchange=e=>{OPER.god=e.target.checked};q('#oOne').onchange=e=>{OPER.one=e.target.checked};q('#oNoEnc').onchange=e=>{G.repel=e.target.checked?1e9+9:0;save()};
     q('#oGo').onclick=()=>{const a=+q('#oArea').value;closePanel(1);const A=genArea(a);const b=A.bld.find(b=>b.kind==='center'||b.kind==='home'||b.kind==='league');fade(1).then(()=>{place(a,b?b.door.x:A.GX,b?b.door.y+1:A.H-2,0);fade(0)})};
@@ -4550,7 +4550,7 @@ async function loadPool(prog){const L=(await UP.index()).filter(x=>x.k==='pmd');
   let OM=null;try{OM=await (await fetch('poke_meta.json',{cache:'no-cache'})).json();LS.set('pka-om',OM)}catch(e){OM=LS.get('pka-om',null)}
   const localDex=new Set(Object.values(META).map(m=>m.dex));if(OM)for(const d in OM){const dex=+d;if(!dex||localDex.has(dex))continue;const o=OM[d],n='sc:'+d;META[n]={dex,name:o.n,types:o.t,stats:o.s,moves:o.m,anim:true,online:1};THUMB[n]=faceUrl(n)}
   BYDEX={};for(const n in META){const d=META[n].dex;if(!d)continue;if(!BYDEX[d]||/shiny|_\d+$/i.test(BYDEX[d]))BYDEX[d]=n}SPECIES=Object.values(BYDEX).sort((a,b)=>META[a].dex-META[b].dex);
-  for(const n of SPECIES)for(const q of META[n].moves)if(q.id)mvOf(q);try{FXA=await UP.fxaAll()||{}}catch(e){FXA={}}return SPECIES.length}
+  for(const n of SPECIES)for(const q of META[n].moves)if(q.id)mvOf(q);try{FXA=await UP.fxaAll()||{}}catch(e){FXA={}}try{await GMFX.load()}catch(e){}return SPECIES.length}
 async function title(noSync){SCENE='title';bt('title').classList.add('on');if(!RESOK)await resPreload();const T=bt('tInfo');T.textContent='포켓몬 불러오는 중…';let n=0;
   if(!noSync)try{await Promise.race([UP.autoSync(),sleep(6000)])}catch(e){}
   try{n=await loadPool((i,N)=>T.textContent='포켓몬 불러오는 중… '+Math.round(i/N*100)+'%')}catch(e){T.textContent='불러오기 실패: '+e.message}
@@ -5900,6 +5900,7 @@ const SKFX={
   sized(x,L){const k=this.szOf(L);return k===1?x:Object.assign({},x,{S:x.S*k})},
   // x: 연출용 상태 · L: 기술 레벨 · mine: 내 포켓몬인지 · adv: 어드벤처 모드(실시간)인지
   async run(x,id,m,L,mine,adv){
+    {const _o=(typeof GMFX!=='undefined')?GMFX.ov(m&&m.id,GMFX.tierOf(x,mine)):null;if(_o)return GMFX.run(x,_o)}
     L=Math.max(1,Math.min(5,L|0||1));
     if(!mine||L<2||!MV.R[id])return MV.R[id](x);
     const V=VFX,T=m.type,c=this.col(T),k=adv?.5:1;
@@ -6173,6 +6174,230 @@ function skPlay(cv,T,L,rb,faceSrc){
 // ===== 「써 보기」 시연 모드: 진짜 전투 화면 · 진짜 기술 연출(SKFX.run) · 진짜 포켓몬 상대 =====
 // 저장 기록은 건드리지 않아요 (상대 HP · 기술 사용 횟수 · 도감 · 경험치 · 환생 횟수 전부 그대로). 상대는 내 포켓몬 중 이 타입에 약한 다른 종이에요.
 let SKDEMO=0;
+// ===== 🎬 GM 기술 이펙트 관리자 (관리자 전용) =====
+// 올린 html · json 에서 이펙트를 뽑아 「팩」으로 저장 → 기술(예: 파괴광선)마다 어떤 이펙트로 보일지 · 연사 속도 · 발사 시간을 바꿔요.
+// packs = {팩id:{name,from,code:{spawn,emit,stream,proj},skills:{이펙트id:{…}}}} · moves = {기술id:{fx:'팩id|이펙트id',rate:초당 발사 횟수,dur:발사 시간(초)}}
+// 이 기기에 저장 → 「내보내기」로 받은 fxcustom.json 을 poke 폴더에 올리면 모든 아이에게 적용돼요 (기술은 자동으로 상대를 겨냥해요)
+const GMFX=(()=>{
+  const KEY='pka-gmfx',FR=1/60,BASE='https://yujongho0714.github.io/attack/poke/';
+  let REM={packs:{},moves:{}},LOC=LS.get(KEY,null)||{packs:{},moves:{}},TMP=null;
+  if(!LOC.packs)LOC.packs={};if(!LOC.moves)LOC.moves={};
+  const gm=()=>{try{return !!(isGM()||OPER.on)}catch(e){return false}};
+  const saveLoc=()=>LS.set(KEY,LOC);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,+v||a));
+  const DEF={rate:60,dur:2};
+  // 기술 하나에 「일반 · 환생 · 각성」 세 가지 연출을 따로 정해요: moves[기술id]={n:{…},r:{…},a:{…}}
+  // 각 단계={fx:'팩id|이펙트id',rate,dur,th:굵기,br:밝기,sh:선명도,sat:채도,col:0|1,c1:바꿀 색}
+  // 옛 모양({fx,rate,dur})은 「일반」으로 읽어요 · 각성이 비면 환생 → 일반 순서로 대신 써요
+  const TIERS=['n','r','a'],TNAME={n:'일반',r:'환생',a:'각성'};
+  const norm=m=>!m?null:m.off?{off:1}:m.fx?{n:m}:m;
+  const pkOf=v=>String(v&&v.fx||'').split('|')[0];
+  function all(){const P=Object.assign({},REM.packs),M={};
+    if(gm())Object.assign(P,LOC.packs);
+    for(const k in P)if(!P[k])delete P[k];
+    const put=src=>{for(const k in src){const v=norm(src[k]);if(!v)continue;if(v.off){delete M[k];continue}M[k]=v}};
+    put(REM.moves);if(gm())put(LOC.moves);
+    for(const k of Object.keys(M)){const o={};for(const t of TIERS){const v=M[k][t];if(v&&v.fx&&P[pkOf(v)])o[t]=v}if(TIERS.some(t=>o[t]))M[k]=o;else delete M[k]}
+    return{packs:P,moves:M}}
+  // ---------- 올린 파일에서 뽑기 ----------
+  function bm(s,i){let d=0;for(let k=i;k<s.length;k++){const c=s[k];
+    if(c==='/'&&s[k+1]==='/'){k=s.indexOf('\n',k);if(k<0)break;continue}
+    if(c==='/'&&s[k+1]==='*'){const e=s.indexOf('*/',k+2);if(e<0)break;k=e+1;continue}
+    if(c==="'"||c==='"'||c==='`'){const q=c;k++;while(k<s.length&&s[k]!==q){if(s[k]==='\\')k++;k++}continue}
+    if(c==='{')d++;else if(c==='}'){d--;if(!d)return k}}return -1}
+  function fnSrc(s,name){const i=s.indexOf('function '+name+'(');if(i<0)return '';const j=s.indexOf('{',s.indexOf(')',i));if(j<0)return '';const e=bm(s,j);return e<0?'':s.slice(i,e+1)}
+  function skillsOf(s){const i=s.indexOf('const SKILLS');if(i<0)return null;const j=s.indexOf('{',s.indexOf('=',i));const e=bm(s,j);if(e<0)return null;
+    try{return Function('"use strict";return ('+s.slice(j,e+1)+')')()}catch(err){return null}}
+  function projBody(s){const m=/projectiles\.forEach\(\s*(?:\(?pr\)?)\s*=>\s*\{/.exec(s);if(!m)return '';const j=m.index+m[0].length-1;const e=bm(s,j);return e<0?'':s.slice(j+1,e)}
+  // 칼날(slashProjectiles)을 따로 쓰는 이펙트(호흡 · 혈귀술)용: 칼날을 그리는 코드를 따로 뽑아요
+  function slashBody(s){const m=/slashProjectiles\.forEach\(\s*\(?sp\)?\s*=>\s*\{/.exec(s);if(!m)return '';const j=m.index+m[0].length-1;const e=bm(s,j);return e<0?'':s.slice(j+1,e)}
+  const SPAWN0='function spawnParticles(x,y,count,color,maxSpd,maxR){for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2;const spd=1+Math.random()*maxSpd;particles.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,radius:1.5+Math.random()*maxR,color,alpha:1,decay:.045})}}';
+  // ---------- 이펙트 실행 틀 ----------
+  const FAC={};
+  function factory(id,pack){if(FAC[id])return FAC[id];const c=pack.code||{};
+    const src='let ctx=null,frameTick=0,shakeMag=0,hitstopFrames=0;const channel={skillId:null},enemies=[],floatTexts=[],width=800,height=600;const damageEnemy=()=>{},findNearestEnemy=()=>null,applyChannelDamage=()=>{};\n'+(c.spawn||SPAWN0)+'\n'+c.emit+'\n'+c.stream+'\nreturn{emit:emitSkillVFX,stream:drawActiveChannelStream,spawn:spawnParticles,tick:t=>{frameTick=t},setCtx:q=>{ctx=q}}';
+    const f=new Function('player','particles','projectiles','slashProjectiles','playSlashWhoosh','playPulseSound',src);
+    const pd=c.proj?new Function('ctx','pr','frameTick',c.proj):null;const sd=c.sproj?new Function('ctx','sp','frameTick',c.sproj):null;return FAC[id]={f,pd,sd}}
+  function inst(id,pack){const F=factory(id,pack);const player={x:0,y:0,aimAngle:0,energy:100,maxEnergy:100,invulnTimer:0},particles=[],projectiles=[],slash=[];
+    return{player,particles,projectiles,slash,api:F.f(player,particles,projectiles,slash,()=>{},()=>{}),pd:F.pd,sd:F.sd}}
+  const nop=new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:nop,apply:()=>nop,set:()=>true});
+  // 올린 이펙트가 실제로 돌아가는지 한 번 돌려 봐요 (안 되는 건 뺌)
+  function validate(id,pack){const bad=[];FAC[id]=null;
+    for(const sid of Object.keys(pack.skills)){try{const r=inst(id,pack);const sk=Object.assign({},pack.skills[sid],{range:300});r.api.setCtx(nop);
+      for(let f=1;f<=8;f++){r.api.tick(f);r.api.emit(sk);r.api.stream(sk)}
+      if(r.pd)for(const q of r.projectiles)r.pd(nop,q,1);if(r.sd)for(const q of r.slash)r.sd(nop,q,1)}catch(e){bad.push(sid+' ('+(e&&e.message||e)+')');delete pack.skills[sid]}}
+    if(!Object.keys(pack.skills).length)throw new Error('쓸 수 있는 이펙트가 없어요'+(bad.length?' · '+bad.join(', '):''));return bad}
+  const slug=(t,u)=>{let b=String(t||'').replace(/\.[a-z0-9]+$/i,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'pack';let n=b,i=2;while(all().packs[n]||u&&u.has(n))n=b+'-'+(i++);return n};
+  function fromHtml(t,fname){
+    const sk=skillsOf(t);if(!sk||!Object.keys(sk).length)throw new Error('이펙트 목록(SKILLS)을 못 찾았어요');
+    const emit=fnSrc(t,'emitSkillVFX'),stream=fnSrc(t,'drawActiveChannelStream');
+    if(!emit||!stream)throw new Error('이펙트 그리는 코드(emitSkillVFX · drawActiveChannelStream)를 못 찾았어요');
+    const tt=/<title>([^<]*)<\/title>/i.exec(t);const skills={};
+    for(const k of Object.keys(sk)){const o=sk[k]||{};skills[o.id||k]={id:o.id||k,name:o.name||k,type:o.type||'',icon:o.icon||'✨',group:o.group||'',primary:o.primary||'#ffffff',secondary:o.secondary||'#ffffff',core:o.core||'#ffffff',range:+o.range||360,width:+o.width||40,dps:+o.dps||20,knockback:+o.knockback||0}}
+    return{name:(tt&&tt[1].trim())||String(fname||'이펙트').replace(/\.[a-z0-9]+$/i,''),from:fname||'',code:{spawn:fnSrc(t,'spawnParticles'),emit,stream,proj:projBody(t),sproj:slashBody(t)},skills}}
+  // 파일(텍스트) 하나 넣기 → 결과 글
+  function importText(t,fname){const out=[];let J=null;try{J=JSON.parse(t)}catch(e){}
+    if(J){
+      const add=(pk,hint)=>{if(!pk||!pk.code||!pk.code.emit||!pk.code.stream||!pk.skills)throw new Error('이펙트 묶음 모양이 아니에요');const id=slug(hint,new Set(Object.keys(LOC.packs)));const bad=validate(id,pk);LOC.packs[id]=pk;out.push('✅ '+(pk.name||id)+' · 이펙트 '+Object.keys(pk.skills).length+'개'+(bad.length?' (못 쓰는 '+bad.length+'개 뺌)':''))};
+      if(J.packs){for(const k of Object.keys(J.packs)){if(J.packs[k]){const id=k;FAC[id]=null;const pk=J.packs[k];const bad=validate(id,pk);LOC.packs[id]=pk;out.push('✅ '+(pk.name||id)+' · 이펙트 '+Object.keys(pk.skills).length+'개'+(bad.length?' (못 쓰는 '+bad.length+'개 뺌)':''))}}
+        for(const k of Object.keys(J.moves||{})){const v=J.moves[k];if(v&&(v.fx||v.n||v.r||v.a))LOC.moves[k]=v}if(J.moves&&Object.keys(J.moves).length)out.push('✅ 기술 설정 '+Object.keys(J.moves).length+'개')}
+      else add(J,fname);
+    }else{const pk=fromHtml(t,fname);const id=slug(fname,new Set(Object.keys(LOC.packs)));const bad=validate(id,pk);LOC.packs[id]=pk;out.push('✅ '+pk.name+' · 이펙트 '+Object.keys(pk.skills).length+'개'+(bad.length?' (못 쓰는 '+bad.length+'개 뺌)':''))}
+    saveLoc();return out.join('\n')}
+  // ---------- 기술 ↔ 이펙트 ----------
+  function list(){const a=all(),o=[];for(const pid of Object.keys(a.packs)){const P=a.packs[pid];for(const sid of Object.keys(P.skills||{})){const s=P.skills[sid];o.push({key:pid+'|'+sid,pid,sid,pack:P.name||pid,name:s.name,icon:s.icon,type:s.type,color:s.primary})}}return o}
+  function cfgOf(m,tier){if(!m)return null;const o=tier==='a'?['a','r','n']:tier==='r'?['r','n']:['n'];for(const t of o)if(m[t]&&m[t].fx)return m[t];return null}
+  const nf=(v,a,b,d)=>{if(v===undefined||v===null||v===''||isNaN(+v))return d;return Math.max(a,Math.min(b,+v))};
+  function infoAll(moveId){const a=all(),m=a.moves[moveId];if(!m)return null;const r={};for(const t of TIERS)if(m[t]){const[p,s]=String(m[t].fx).split('|');const P=a.packs[p];if(P&&P.skills[s])r[t]={key:m[t].fx,name:P.skills[s].name,icon:P.skills[s].icon}}return Object.keys(r).length?r:null}
+  function infoOf(moveId){const i=infoAll(moveId);const f=i&&(i.n||i.r||i.a);return f?Object.assign({rate:DEF.rate,dur:DEF.dur},f):null}
+  // 어느 단계로 보일지: 각성한 포켓몬 → 각성 · 환생한 트레이너의 포켓몬 → 환생 · 나머지 → 일반 (「써 보기」에서 환생을 고르면 그 값을 따라요)
+  function tierOf(x,mine){try{const am=x&&x.A&&x.A.m;if(am&&(am.aw|0)>0)return 'a';const rb=(typeof SKRB==='number')?SKRB:(mine?(G&&G.rebirth|0):0);if(rb>0)return 'r'}catch(e){}return 'n'}
+  function ov(moveId,tier){if(!moveId)return null;const a=all();let v=null;
+    if(TMP&&TMP.mv===moveId)v=TMP.cfg||TMP;else v=cfgOf(a.moves[moveId],tier);
+    if(!v||!v.fx)return null;const[p,s]=String(v.fx).split('|');const pack=a.packs[p];if(!pack||!pack.skills[s])return null;
+    return{key:p,pack,sk:pack.skills[s],rate:clamp(v.rate||DEF.rate,1,120),dur:clamp(v.dur||DEF.dur,.3,4),th:nf(v.th,.3,3,1),br:nf(v.br,.3,2.5,1),sh:nf(v.sh,0,2,1),sat:nf(v.sat,0,2,1),col:v.col&&v.c1?v.c1:null}}
+  const cln=c=>({fx:c.fx,rate:clamp(c.rate||DEF.rate,1,120),dur:clamp(c.dur||DEF.dur,.3,4),th:nf(c.th,.3,3,1),br:nf(c.br,.3,2.5,1),sh:nf(c.sh,0,2,1),sat:nf(c.sat,0,2,1),col:c.col?1:0,c1:c.c1||'#ff4040'});
+  function setAll(id,cfg){const m={};for(const t of TIERS)if(cfg&&cfg[t]&&cfg[t].fx)m[t]=cln(cfg[t]);if(TIERS.some(t=>m[t])){LOC.moves[id]=m;saveLoc()}else resetMove(id)}
+  function resetMove(id){if(REM.moves[id])LOC.moves[id]={off:1};else delete LOC.moves[id];saveLoc()}
+  function delPack(id){const strip=m=>{const o=Object.assign({},m);for(const t of TIERS)if(o[t]&&pkOf(o[t])===id)delete o[t];return TIERS.some(t=>o[t])?o:null};
+    for(const k of Object.keys(LOC.moves)){const m=norm(LOC.moves[k]);if(!m||m.off)continue;const r=strip(m);if(r)LOC.moves[k]=r;else delete LOC.moves[k]}
+    for(const k of Object.keys(REM.moves)){if(LOC.moves[k])continue;const m=norm(REM.moves[k]);if(!m)continue;if(TIERS.some(t=>m[t]&&pkOf(m[t])===id)){const r=strip(m);LOC.moves[k]=r||{off:1}}}
+    if(REM.packs[id])LOC.packs[id]=null;else delete LOC.packs[id];FAC[id]=null;saveLoc()}
+  const setTmp=t=>{TMP=t};
+  function exportJson(){const a=all();return JSON.stringify({v:1,packs:a.packs,moves:a.moves})}
+  async function load(){try{const r=await fetch(BASE+'fxcustom.json?'+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();if(j&&j.packs)REM={packs:j.packs||{},moves:j.moves||{}}}catch(e){}}
+  // ---------- 색 · 밝기 · 선명도 · 굵기 (올린 이펙트는 색을 코드에 박아 둬서 「그리는 붓」을 가로채서 바꿔요) ----------
+  function parseCol(s){s=String(s||'').trim();let m;
+    if((m=/^#([0-9a-f]{3})$/i.exec(s))){const h=m[1];return[parseInt(h[0]+h[0],16),parseInt(h[1]+h[1],16),parseInt(h[2]+h[2],16),1]}
+    if((m=/^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(s)))return[parseInt(m[1].slice(0,2),16),parseInt(m[1].slice(2,4),16),parseInt(m[1].slice(4,6),16),m[2]?parseInt(m[2],16)/255:1];
+    if((m=/^rgba?\(([^)]+)\)$/i.exec(s))){const p=m[1].split(',').map(x=>parseFloat(x));if(p.length>=3&&p.slice(0,3).every(isFinite))return[p[0],p[1],p[2],p.length>3&&isFinite(p[3])?p[3]:1]}
+    return null}
+  function rgb2hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0;const l=(mx+mn)/2;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return[h,s,l]}
+  function hsl2rgb(h,s,l){h=(((h%360)+360)%360)/360;if(s===0)return[l*255,l*255,l*255];const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;const f=t=>{if(t<0)t+=1;if(t>1)t-=1;return t<1/6?p+(q-p)*6*t:t<1/2?q:t<2/3?p+(q-p)*(2/3-t)*6:p};return[f(h+1/3)*255,f(h)*255,f(h-1/3)*255]}
+  function remap(s,st){if(typeof s!=='string')return s;let v=st.cache.get(s);if(v!==undefined)return v;const c=parseCol(s);if(!c){st.cache.set(s,s);return s}
+    let[h,sa,l]=rgb2hsl(c[0],c[1],c[2]);if(sa>.08)h+=st.dh;sa=Math.min(1,sa*st.sat);l=Math.max(0,Math.min(1,st.br<=1?l*st.br:l+(1-l)*(st.br-1)*.6));
+    const[r,g,b]=hsl2rgb(h,sa,l);v='rgba('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+','+c[3]+')';st.cache.set(s,v);return v}
+  function wrapCtx(cx,st){const gw=g=>{if(g&&g.addColorStop){const o=g.addColorStop.bind(g);g.addColorStop=(p,c)=>o(p,remap(c,st))}return g};
+    return new Proxy(cx,{get(t,k){const v=t[k];if(typeof v==='function'){if(k==='createLinearGradient'||k==='createRadialGradient'||k==='createConicGradient')return(...a)=>gw(v.apply(t,a));return v.bind(t)}return v},
+      set(t,k,v){if(k==='fillStyle'||k==='strokeStyle'||k==='shadowColor')t[k]=remap(v,st);else if(k==='shadowBlur')t[k]=v*st.glow;else t[k]=v;return true}})}
+  function hueD(tgt,prim){const a=parseCol(tgt),b=parseCol(prim);if(!a)return 0;return rgb2hsl(a[0],a[1],a[2])[0]-(b?rgb2hsl(b[0],b[1],b[2])[0]:0)}
+  // ---------- 전투 화면에서 재생 (매 프레임 60칸씩 · 상대를 자동으로 겨냥) ----------
+  const PL=[];
+  function step(p){const r=p.r,a=p.x.a,b=p.x.b,dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy)||1,k=p.k;
+    r.player.x=0;r.player.y=0;r.player.aimAngle=Math.atan2(dy,dx);p.range=Math.max(60,dist/k);p.f++;r.api.tick(p.f);
+    const sk=Object.assign({},p.sk,{range:p.range});
+    if(p.t<p.dur){p.tok+=p.rate*FR;let n=0;while(p.tok>=1&&n++<6){p.tok-=1;try{r.api.emit(sk)}catch(e){}}}
+    const tx=dx/k,ty=dy/k;
+    for(const arr of [r.projectiles,r.slash])for(let i=arr.length-1;i>=0;i--){const q=arr[i];q.x+=q.vx;q.y+=q.vy;q.rot+=q.rotSpeed||0;q.life--;
+      if(q.life<=0){arr.splice(i,1);continue}
+      if(Math.hypot(q.x-tx,q.y-ty)<(q.radius||10)+28){try{r.api.spawn(q.x,q.y,8,q.color||'#ffffff',6,4)}catch(e){}if(!q.pierce)arr.splice(i,1)}}
+    for(let i=r.particles.length-1;i>=0;i--){const q=r.particles[i];q.x+=q.vx;q.y+=q.vy;if(q.expand)q.radius+=q.expand;q.alpha-=q.decay;if(q.alpha<=0)r.particles.splice(i,1)}
+    p.t+=FR;
+    while(p.hit<p.hn&&p.t>=(p.hit+1)*p.dur/p.hn){p.hit++;try{p.x.hit(1/p.hn)}catch(e){}try{FX2.hit(3,0)}catch(e){}}
+    if((p.t>=p.dur&&!r.particles.length&&!r.projectiles.length&&!r.slash.length)||p.t>p.dur+1.2)fin(p)}
+  function fin(p){if(p.done)return;p.done=1;while(p.hit<p.hn){p.hit++;try{p.x.hit(1/p.hn)}catch(e){}}p.res()}
+  function play(o,x){return new Promise(res=>{const k=Math.max(.5,(x.S||60)/55),dur=o.dur,r=inst(o.key,o.pack);
+    const st=(o.col||o.br!==1||o.sh!==1||o.sat!==1)?{dh:o.col?hueD(o.col,o.sk.primary):0,sat:o.sat,br:o.br,glow:Math.max(0,2-o.sh),cache:new Map()}:null;
+    const p={r,sk:o.sk,x,k,st,th:o.th,t:0,f:0,acc:0,tok:0,dur,rate:o.rate,hit:0,hn:Math.max(1,Math.min(10,Math.round(dur/.25))),res,done:0,range:300};
+    PL.push(p);try{x.pose(x.A,'shoot')}catch(e){}})}
+  async function run(x,o){try{await play(o,x)}catch(e){try{x.hit(1)}catch(_){}}}
+  function update(dt){if(!PL.length)return;for(let i=PL.length-1;i>=0;i--){const p=PL[i];p.acc+=Math.min(dt,.1);let n=0;while(p.acc>=FR&&!p.done&&n++<12){p.acc-=FR;step(p)}if(p.done)PL.splice(i,1)}}
+  function draw(cx){for(const p of PL){const r=p.r,a=p.x.a;cx.save();cx.translate(a.x,a.y);cx.scale(p.k,p.k);const cp=p.st?wrapCtx(cx,p.st):cx;r.api.setCtx(cp);
+    const ang=r.player.aimAngle,ca=Math.cos(ang),sn=Math.sin(ang),th=p.th||1,rs=Math.sqrt(th);
+    if(p.t<p.dur){cx.save();if(th!==1){cx.rotate(ang);cx.scale(1,th);cx.rotate(-ang)}try{r.api.stream(Object.assign({},p.sk,{range:p.range}))}catch(e){}cx.restore()}
+    cx.save();cx.globalCompositeOperation='lighter';
+    const tp=q=>{if(th===1)return q;const u=q.x*ca+q.y*sn,v=(-q.x*sn+q.y*ca)*th;return Object.assign({},q,{x:u*ca-v*sn,y:u*sn+v*ca,radius:(q.radius||1)*rs})};
+    if(r.pd)for(const q of r.projectiles){try{r.pd(cp,tp(q),p.f)}catch(e){}}
+    if(r.sd)for(const q of r.slash){try{r.sd(cp,tp(q),p.f)}catch(e){}}
+    for(const q of r.particles){const z=tp(q);cx.save();cx.globalAlpha=Math.max(0,q.alpha);cp.fillStyle=q.color;cx.beginPath();cx.arc(z.x,z.y,Math.max(.1,z.radius),0,6.283);cx.fill();cx.restore()}
+    cx.restore();cx.restore()}}
+  function clear(){while(PL.length){const p=PL.pop();p.done=1;try{p.res()}catch(e){}}}
+  try{const c=FX2.clear;FX2.clear=function(){try{clear()}catch(e){}return c.apply(this,arguments)}}catch(e){}
+  return{all,list,infoOf,infoAll,ov,tierOf,setAll,resetMove,delPack,setTmp,importText,exportJson,load,run,update,draw,clear,gm,DEF,TIERS,TNAME,extract:fromHtml,_inst:inst,_validate:validate}
+})();
+
+// ===== 관리자 화면 (운영자 패널 안의 「🎬 기술 이펙트 관리자」) =====
+// ① 이펙트 html · json 올리기  ② 미리보기에 쓸 「실험 포켓몬」 하나 고르기  ③ 모든 기술 목록 → 기술을 눌러 일반 · 환생 · 각성 연출을 따로 정하기
+// 기술마다 정하면 모든 포켓몬에게 적용돼요 · 굵기 · 밝기 · 선명도 · 채도 · 색깔도 정할 수 있어요
+const GFUI={mi:null,q:'',view:'main',mv:null,tier:'n',cfg:{n:null,r:null,a:null},msg:'',lim:100000,only:0};
+const GF0={rate:60,dur:2,th:1,br:1,sh:1,sat:1,col:0,c1:'#ff4040'};
+function gfMons(){return[...G.party.map(m=>({m,g:'파티'})),...G.box.slice(0,300).map(m=>({m,g:'보관함'}))].map(x=>{if(!x.m.uid)x.m.uid=Date.now().toString(36)+ri(0,1e6);return x})}
+function gfMon(){const L=gfMons();if(!GFUI.mi)GFUI.mi=LS.get('pka-gfmon',null);return((L.find(x=>x.m.uid===GFUI.mi))||L[0]||{}).m}
+function gfIds(){const q=GFUI.q.trim().toLowerCase(),F=GMFX.all().moves,o=[],seen=new Set();
+  const src=Object.keys(MOVES);try{for(const g of GMOVES)src.push(g[0]);for(const n of SPECIES)for(const x of ((META[n]||{}).moves||[]))if(x&&x.id)src.push(String(x.id).toLowerCase())}catch(e){}
+  for(const id of src){if(seen.has(id))continue;seen.add(id);const v=MOVES[id];if(!v||!v.name)continue;if(GFUI.only&&!F[id])continue;if(q&&!(String(v.name).toLowerCase().includes(q)||id.toLowerCase().includes(q)))continue;o.push(id)}
+  o.sort((a,b)=>(F[b]?1:0)-(F[a]?1:0)||String(MOVES[a].name).localeCompare(String(MOVES[b].name),'ko'));return o}
+function gfTags(id){const i=GMFX.infoAll(id);return GMFX.TIERS.map(t=>i&&i[t]?`<span style="color:#1a8fc0">${GMFX.TNAME[t]} ${i[t].icon}</span>`:`<span style="opacity:.45">${GMFX.TNAME[t]} –</span>`).join(' · ')}
+function gfLoad(id){const m=GMFX.all().moves[id]||{};GFUI.cfg={};for(const t of GMFX.TIERS)GFUI.cfg[t]=m[t]?Object.assign({},GF0,m[t]):null}
+function gfOpen(){
+  if(!GMFX.gm()){toast('관리자만 쓸 수 있어요');return}
+  if(!G||SCENE!=='over')return;
+  const m=gfMon();if(!m){toast('포켓몬이 없어요');return}
+  const F=GMFX.list(),all=GMFX.all();let body='';
+  if(GFUI.view==='edit'&&GFUI.mv&&MOVES[GFUI.mv]){
+    const id=GFUI.mv,mo=mv(id),t=GFUI.tier,c=GFUI.cfg[t];
+    const groups={};F.forEach(f=>(groups[f.pack]=groups[f.pack]||[]).push(f));
+    const sl=(k,label,min,max,step,val)=>`<label style="display:block;margin:4px 0;font-size:13px">${label} <b id="${k}V">${(+val).toFixed(2)}</b><input type="range" id="${k}" min="${min}" max="${max}" step="${step}" value="${val}" style="width:100%"></label>`;
+    const tabs=GMFX.TIERS.map(x=>`<button class="it" data-tier="${x}" style="${x===t?'outline:3px solid #7be0ff;font-weight:900;':''}">${GMFX.TNAME[x]}${GFUI.cfg[x]?' ✓':''}</button>`).join('');
+    body=`<h4 style="color:${TCOL[mo.type]}">🎬 ${esc(mo.name)} <small>${TN[mo.type]}</small></h4>
+    <p style="font-size:12px;margin:2px 0">이 기술의 연출을 <b>일반 · 환생 · 각성</b>으로 따로 정해요. 저장하면 <b>모든 포켓몬</b>이 이 기술을 쓸 때 바뀌어요. 각성한 포켓몬은 <b>각성</b>, 환생한 트레이너는 <b>환생</b>, 나머지는 <b>일반</b>이 나와요. 비어 있으면 아래 단계(각성→환생→일반) 설정을 써요.</p>
+    <div class="nw" style="gap:4px;justify-content:center">${tabs}</div>`;
+    if(!c){body+=`<p style="margin:8px 0">${GMFX.TNAME[t]} 단계는 설정이 없어요 (${t==='n'?'기본 연출':'아래 단계 설정을 그대로 써요'}).</p><div><button class="it" id="gfMk">＋ ${GMFX.TNAME[t]} 설정 만들기</button></div>`}
+    else{body+=`<h4>이펙트</h4><select id="gfFx" style="width:100%"><option value="">— 이펙트 고르기 —</option>${Object.keys(groups).map(g=>`<optgroup label="${esc(g)}">${groups[g].map(f=>`<option value="${esc(f.key)}" ${c.fx===f.key?'selected':''}>${f.icon} ${esc(f.name)} · ${esc(f.type)}</option>`).join('')}</optgroup>`).join('')}</select>
+      ${F.length?'':'<p style="font-size:12px">추가된 이펙트가 없어요. 먼저 목록으로 가서 「파일 올리기」로 html · json 을 올려 주세요.</p>'}
+      <div class="nw"><label>초당 발사 횟수 <input id="gfRate" inputmode="decimal" value="${c.rate}" style="max-width:70px"></label><label>발사 시간(초) <input id="gfDur" inputmode="decimal" value="${c.dur}" style="max-width:70px"></label></div>
+      <h4>모양</h4>${sl('gfTh','굵기',.3,3,.05,c.th)}${sl('gfBr','밝기',.3,2.5,.05,c.br)}${sl('gfSh','선명도 (낮을수록 번져요)',0,2,.05,c.sh)}${sl('gfSat','채도 (색의 진하기)',0,2,.05,c.sat)}
+      <label style="display:block;margin:6px 0"><input type="checkbox" id="gfCol" ${c.col?'checked':''}> 색깔 바꾸기 <input type="color" id="gfC1" value="${/^#[0-9a-f]{6}$/i.test(c.c1)?c.c1:'#ff4040'}" style="vertical-align:middle;width:46px;height:30px"></label>
+      <small>색깔은 이펙트의 원래 색 계열을 고른 색으로 돌려 바꿔요 (흰색 · 회색 부분은 그대로예요).</small>
+      <div style="margin-top:6px"><button class="it" id="gfPv" ${c.fx?'':'disabled'}>▶ 미리보기</button>${t!=='n'?'<button class="it" id="gfCp">📋 아래 단계 설정 복사</button>':''}<button class="it" id="gfEmp">✕ ${GMFX.TNAME[t]} 비우기</button></div>`}
+    body+=`<div style="margin-top:8px"><button class="it" id="gfSave">💾 저장 (일반 · 환생 · 각성 모두)</button><button class="it" id="gfRst">↺ 이 기술 기본으로</button><button class="it" id="gfBack">← 목록</button></div>${GFUI.msg?`<p style="white-space:pre-line;font-size:12px">${esc(GFUI.msg)}</p>`:''}`;
+  }else{
+    GFUI.view='main';
+    const packs=Object.keys(all.packs),mons=gfMons(),ids=gfIds(),show=ids.slice(0,GFUI.lim);
+    body=`<p style="font-size:12px;margin:2px 0">바꾼 건 이 기기에 저장돼요. 모두에게 적용하려면 「내보내기」로 받은 <b>fxcustom.json</b> 을 poke 폴더에 올려 주세요.</p>
+    <h4>① 이펙트 추가 (html · json)</h4>
+    <div><label class="it" style="display:inline-block">📥 파일 올리기<input type="file" id="gfFile" accept=".html,.htm,.json,text/html,application/json" multiple hidden></label><button class="it" id="gfExp">📤 내보내기</button></div>
+    ${GFUI.msg?`<p style="white-space:pre-line;font-size:12px">${esc(GFUI.msg)}</p>`:''}
+    ${packs.length?packs.map(pid=>{const P=all.packs[pid];return `<div style="margin:6px 0"><b>🎬 ${esc(P.name||pid)}</b> <small>${Object.keys(P.skills).length}개</small> <button class="it" data-delpk="${esc(pid)}">삭제</button><div>${Object.keys(P.skills).map(sid=>`<button class="it" data-pvfx="${esc(pid+'|'+sid)}" style="font-size:12px">${P.skills[sid].icon} ${esc(P.skills[sid].name)} ▶</button>`).join('')}</div></div>`}).join(''):'<p>아직 추가된 이펙트가 없어요.</p>'}
+    <h4>② 실험 포켓몬 (미리보기 외형)</h4><select id="gfMon" style="max-width:100%">${mons.map(x=>`<option value="${esc(x.m.uid)}" ${x.m===m?'selected':''}>${x.g} · ${esc(nm(x.m))} Lv.${dLv(x.m)}</option>`).join('')}</select>
+    <h4>③ 모든 기술 <small>(${ids.length}개 · 눌러서 설정)</small></h4>
+    <div class="nw"><input id="gfQ" placeholder="기술 찾기 (예: 파괴광선)" value="${esc(GFUI.q)}"><button class="it" id="gfQg">찾기</button></div>
+    <label style="font-size:13px"><input type="checkbox" id="gfOnly" ${GFUI.only?'checked':''}> 설정한 기술만 보기</label>
+    ${show.map(id=>{const v=mv(id);return `<div class="nw" style="align-items:center;gap:4px"><div style="flex:1;min-width:0"><b style="color:${TCOL[v.type]||'#333'}">${esc(v.name)}</b> <small>${TN[v.type]||''}</small><br><small>${gfTags(id)}</small></div><button class="it" data-pvmv="${esc(id)}">▶</button><button class="it" data-ed="${esc(id)}">설정</button></div>`}).join('')||'<p>맞는 기술이 없어요.</p>'}
+    ${ids.length>show.length?`<div><button class="it" id="gfMore">더 보기 (${show.length}/${ids.length})</button></div>`:''}`;
+  }
+  openPanel('🎬 기술 이펙트 관리자',body,null,p=>{
+    const q=s=>p.querySelector(s);
+    const preview=(mvId,tmp)=>{GMFX.setTmp(tmp);sfx('tap');skPreviewOpen(m,mvId).then(()=>{GMFX.setTmp(null);if(SCENE==='over')gfOpen()},()=>{GMFX.setTmp(null)})};
+    const readUI=()=>{const c=GFUI.cfg[GFUI.tier];if(!c||!q('#gfFx'))return;c.fx=q('#gfFx').value;c.rate=Math.max(1,Math.min(120,+q('#gfRate').value||60));c.dur=Math.max(.3,Math.min(4,+q('#gfDur').value||2));
+      c.th=+q('#gfTh').value;c.br=+q('#gfBr').value;c.sh=+q('#gfSh').value;c.sat=+q('#gfSat').value;c.col=q('#gfCol').checked?1:0;c.c1=q('#gfC1').value};
+    if(GFUI.view==='edit'){
+      ['gfTh','gfBr','gfSh','gfSat'].forEach(k=>{const e=q('#'+k);if(e)e.oninput=()=>{q('#'+k+'V').textContent=(+e.value).toFixed(2)}});
+      p.querySelectorAll('[data-tier]').forEach(b=>b.onclick=()=>{readUI();GFUI.tier=b.dataset.tier;sfx('tap');gfOpen()});
+      const mk=q('#gfMk');if(mk)mk.onclick=()=>{const T=GMFX.TIERS,i=T.indexOf(GFUI.tier);let base=null;for(let j=i-1;j>=0&&!base;j--)base=GFUI.cfg[T[j]];GFUI.cfg[GFUI.tier]=Object.assign({},GF0,base||{});sfx('tap');gfOpen()};
+      const cp=q('#gfCp');if(cp)cp.onclick=()=>{const T=GMFX.TIERS,i=T.indexOf(GFUI.tier);let base=null;for(let j=i-1;j>=0&&!base;j--)base=GFUI.cfg[T[j]];if(!base){toast('복사할 아래 단계 설정이 없어요');return}GFUI.cfg[GFUI.tier]=Object.assign({},base);sfx('tap');gfOpen()};
+      const em=q('#gfEmp');if(em)em.onclick=()=>{GFUI.cfg[GFUI.tier]=null;sfx('tap');gfOpen()};
+      const pv=q('#gfPv');if(pv)pv.onclick=()=>{readUI();const c=GFUI.cfg[GFUI.tier];if(!c||!c.fx)return;preview(GFUI.mv,{mv:GFUI.mv,cfg:Object.assign({},c)})};
+      q('#gfSave').onclick=()=>{readUI();GMFX.setAll(GFUI.mv,GFUI.cfg);GFUI.msg='✅ '+mv(GFUI.mv).name+' 이펙트를 저장했어요 (모든 포켓몬에게 적용)';sfx('get');gfOpen()};
+      q('#gfRst').onclick=()=>{if(!confirm(mv(GFUI.mv).name+' 이펙트를 기본 연출로 되돌릴까요?'))return;GMFX.resetMove(GFUI.mv);gfLoad(GFUI.mv);GFUI.msg='↺ '+mv(GFUI.mv).name+' 기본 연출로 되돌렸어요';gfOpen()};
+      q('#gfBack').onclick=()=>{readUI();GFUI.view='main';GFUI.msg='';sfx('tap');gfOpen()};
+    }else{
+      q('#gfMon').onchange=e=>{GFUI.mi=e.target.value;LS.set('pka-gfmon',GFUI.mi);gfOpen()};
+      const find=()=>{GFUI.q=q('#gfQ').value;GFUI.lim=100000;gfOpen()};
+      q('#gfQg').onclick=find;q('#gfQ').onkeydown=e=>{if(e.key==='Enter')find()};
+      q('#gfOnly').onchange=e=>{GFUI.only=e.target.checked?1:0;GFUI.lim=100000;gfOpen()};
+      const mo=q('#gfMore');if(mo)mo.onclick=()=>{GFUI.lim+=60;gfOpen()};
+      p.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{GFUI.mv=b.dataset.ed;GFUI.view='edit';GFUI.tier='n';GFUI.msg='';gfLoad(GFUI.mv);sfx('tap');gfOpen()});
+      p.querySelectorAll('[data-pvmv]').forEach(b=>b.onclick=()=>preview(b.dataset.pvmv,null));
+      p.querySelectorAll('[data-pvfx]').forEach(b=>b.onclick=()=>{const id=(m.moves&&m.moves[0])||'tackle';preview(id,{mv:id,cfg:{fx:b.dataset.pvfx,rate:GMFX.DEF.rate,dur:GMFX.DEF.dur}})});
+      p.querySelectorAll('[data-delpk]').forEach(b=>b.onclick=()=>{if(!confirm('이 이펙트 묶음을 지울까요? (쓰던 기술은 기본 연출로 돌아가요)'))return;GMFX.delPack(b.dataset.delpk);GFUI.msg='🗑 지웠어요';gfOpen()});
+      q('#gfExp').onclick=async()=>{const txt=GMFX.exportJson();const f=new File([txt],'fxcustom.json',{type:'application/json'});
+        try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'fxcustom.json'});return}}catch(e){if(e&&e.name==='AbortError')return}
+        const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download='fxcustom.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('fxcustom.json 을 저장했어요')};
+      q('#gfFile').onchange=async e=>{const out=[];for(const f of [...e.target.files]){try{out.push(GMFX.importText(await f.text(),f.name))}catch(err){out.push('❌ '+f.name+' · '+(err&&err.message||err))}}GFUI.msg=out.join('\n');gfOpen()};
+    }
+  })}
+
 async function skPreviewOpen(m,id,L0,rb0){
   if(!G||SKDEMO||SCENE!=='over')return;
   const mo=mv(id),T=mo.type,cur=mlv(m,id);
