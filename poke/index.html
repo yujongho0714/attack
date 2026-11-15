@@ -7207,4 +7207,230 @@ setInterval(()=>{try{const t=$('title'),m=$('mini');const on=!!G&&G.party&&G.par
     const av=lim-top2;if(av>=60){c.style.left='calc(8px + env(safe-area-inset-left))';c.style.bottom='auto';c.style.top=top2+'px';c.style.width='min(200px,32vw)';c.style.maxHeight=Math.min(110,av)+'px';c.style.overflow='hidden'}
     else{c.style.left=c.style.bottom=c.style.top=c.style.width=c.style.maxHeight=c.style.overflow=''}}}catch(e){}},400);
 }catch(e){console.warn('cpfix',e)}})();
-</script></body></html>
+</script><script id="awx">
+// ===== 각성 · 환생 보강 =====
+// ① 별(★)을 2.5D 이중 테두리 + 번쩍임으로  ② 운영자는 각성을 마음대로 올리고 내리기  ③ 편성 창 포켓몬마다 「메뉴」(각성 · 스킬 바꾸기 · 접두사 · 설명)
+// ④ 환생이 가능해지면 바로 안내창  ⑤ 영혼이 뭔지 · 부족하면 무엇이 얼마나 부족한지 설명  ⑥ 사이드 메뉴에 「환생」 「각성」  ⑦ 효과 미리보기(각성 오라 · 환생 이펙트)
+(function(){try{
+if(typeof awOf!=='function'||typeof awOpen!=='function')return;
+const st=document.createElement('style');st.textContent=`
+.aw2{display:inline-flex;gap:3px;align-items:center;vertical-align:middle;font-size:0;line-height:0;--sz:15px}
+.aw2.big{--sz:26px;gap:5px}
+.aw2 .sg{--st:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);position:relative;display:inline-block;width:var(--sz);height:var(--sz);flex:none;
+ filter:drop-shadow(0 1px 0 var(--dk)) drop-shadow(0 2px 0 var(--dk)) drop-shadow(0 3px 2px #0007) drop-shadow(0 0 4px var(--gl))}
+.aw2 .sg b{position:absolute;inset:0;background:var(--bd);clip-path:var(--st)}
+.aw2 .sg b::before{content:"";position:absolute;inset:9%;background:var(--hi);clip-path:var(--st)}
+.aw2 .sg b::after{content:"";position:absolute;inset:18%;clip-path:var(--st);background:radial-gradient(circle at 34% 26%,rgba(255,255,255,.9),rgba(255,255,255,0) 42%),linear-gradient(150deg,var(--c1),var(--c2) 50%,var(--c3))}
+.aw2 .sg::after{content:"";position:absolute;inset:18%;clip-path:var(--st);pointer-events:none;mix-blend-mode:screen;
+ background:linear-gradient(112deg,transparent 38%,rgba(255,255,255,.95) 50%,transparent 62%) -80% 0/260% 100% no-repeat;animation:awsw 2.4s linear infinite;animation-delay:calc(var(--i,0)*.3s)}
+.aw2 .sg::before{content:"";position:absolute;right:-20%;top:-24%;width:48%;height:48%;background:#fff;z-index:3;opacity:0;pointer-events:none;
+ clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);animation:awsp 2.4s ease-in-out infinite;animation-delay:calc(var(--i,0)*.3s + .9s)}
+.aw2 .sg.p{--bd:#2a0a55;--hi:#f0deff;--c1:#e2b8ff;--c2:#a257ff;--c3:#5b1fc7;--gl:#b46bffcc;--dk:#3b1480}
+.aw2 .sg.o{--bd:#5a3b00;--hi:#fff2b0;--c1:#ffe680;--c2:#ffb81f;--c3:#c77800;--gl:#ffc93388;--dk:#7a4a00}
+.aw2 .sg.x{--bd:#262b40;--hi:#6f7896;--c1:#a2abc6;--c2:#6c7491;--c3:#454c68;--gl:transparent;--dk:#1b1f30;opacity:.85}
+.aw2 .sg.x::before,.aw2 .sg.x::after,.aw2 .sg.o::before{display:none}
+.aw2 .sg.o::after{opacity:.55;animation-duration:3.6s}
+.aw2.full .sg.p{--bd:#6a4300;--hi:#fff2b0;--dk:#7a4a00;--gl:#ffd23fcc}
+@keyframes awsw{0%{background-position:-80% 0}55%,100%{background-position:170% 0}}
+@keyframes awsp{0%,100%{opacity:0;transform:scale(.2) rotate(0)}14%{opacity:1;transform:scale(1) rotate(45deg)}30%{opacity:0;transform:scale(.3) rotate(90deg)}}
+.tm .tmM{display:block;margin-top:3px;font-size:11.5px!important;padding:3px 9px!important;border:2px solid #2c3050;border-radius:8px;background:#ffe9a8;color:#2c3050;font-weight:900}
+.awbt{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.awbt button{padding:4px 8px;font-size:12px;font-weight:900;border:2px solid #2c3050;border-radius:8px;background:#fffdf0;color:#2c3050}.awbt button.main{background:#b46bff;color:#fff}.awbt button.adm{background:#ffd9d9}
+.awx-c{padding:8px 10px;border:2px solid #2c3050;border-radius:10px;background:#fffdf0;margin:6px 0;font-size:13px;line-height:1.55}
+.awx-c b.t{display:block;font-size:14px;margin-bottom:2px}
+.awx-ok{color:#1f9d4a}.awx-no{color:#d63a2a}
+.awpv{display:flex;flex-direction:column;align-items:center;gap:6px;max-height:100%}.awpv canvas{height:min(46vh,292px);width:auto;max-width:92vw}.awpc{display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
+@media (orientation:landscape){.awpv{flex-direction:row;gap:16px}.awpv canvas{height:min(82vh,300px)}.awpc{max-width:min(50vw,380px)}}`;
+document.head.appendChild(st);
+
+const awAdmin=()=>{try{return !!(OPER.on||(typeof isGM==='function'&&isGM()))}catch(e){return false}};
+const mkN=(a,b)=>'<b class="'+(a>=b?'awx-ok':'awx-no')+'">'+a.toLocaleString()+' / '+b.toLocaleString()+'</b>'+(a>=b?' ✅':' ❌');
+
+// ---------- ① 2.5D 별 ----------
+function awStarsRaw(a,sl,big){let h='';for(let i=0;i<AWMAX;i++){const k=i<a?'p':i<sl?'o':'x';h+='<i class="sg '+k+'" style="--i:'+i+'"><b></b></i>'}return '<span class="aws aw2'+(big?' big':'')+(a>=AWMAX?' full':'')+'">'+h+'</span>'}
+awStars=function(m,big){return awStarsRaw(awOf(m),awSlots(),big)};
+const AWK={p:['#2a0a55','#f0deff','#e2b8ff','#a257ff','#5b1fc7','#b46bff','#3b1480'],o:['#5a3b00','#fff2b0','#ffe680','#ffb81f','#c77800','#ffc933','#7a4a00'],x:['#262b40','#6f7896','#a2abc6','#6c7491','#454c68','#000000','#1b1f30']};
+function awDrawStar(g,x,y,r,kind,T,i){const P=AWK[kind];
+  const path=(cx,cy,R)=>{g.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,q=k%2?R*.45:R;g.lineTo(cx+Math.cos(a)*q,cy+Math.sin(a)*q)}g.closePath()};
+  g.save();
+  for(let d=4;d>=1;d--){path(x,y+d*r*.09,r);g.fillStyle=P[6];g.fill()}
+  if(kind!=='x'){g.shadowColor=P[5];g.shadowBlur=r*1.1}
+  path(x,y,r);g.fillStyle=P[0];g.fill();g.shadowBlur=0;
+  path(x,y,r*.84);g.fillStyle=P[1];g.fill();
+  path(x,y,r*.68);const gr=g.createLinearGradient(x-r,y-r,x+r,y+r);gr.addColorStop(0,P[2]);gr.addColorStop(.5,P[3]);gr.addColorStop(1,P[4]);g.fillStyle=gr;g.fill();
+  g.save();path(x,y,r*.68);g.clip();
+  const hg=g.createRadialGradient(x-r*.3,y-r*.35,0,x-r*.3,y-r*.35,r*.7);hg.addColorStop(0,'rgba(255,255,255,.85)');hg.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=hg;g.fillRect(x-r,y-r,2*r,2*r);
+  if(kind!=='x'){const ph=((T*.7+i*.18)%1.8)-.4,sx=x-r+ph*2.4*r,sg=g.createLinearGradient(sx-r*.4,y-r,sx+r*.4,y+r);sg.addColorStop(0,'rgba(255,255,255,0)');sg.addColorStop(.5,'rgba(255,255,255,.95)');sg.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=sg;g.fillRect(x-r,y-r,2*r,2*r)}
+  g.restore();g.restore()}
+
+// 각성 성공 화면 (별을 2.5D로)
+awShow=function(m,n){return new Promise(done=>{const o=document.createElement('div');o.id='awOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(8,6,20,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;text-align:center';
+  o.innerHTML=`<canvas width="640" height="520" style="height:min(56vh,292px);width:auto;max-width:92vw"></canvas><b style="font-size:22px;color:#e6c8ff">각성 성공!</b><div style="font-size:15px">${esc(nm(m))} · 별 ${n}개 · 능력치 +${n*AWPCT}%</div><button style="padding:8px 26px;font-size:16px;font-weight:900;border:3px solid #2c3050;border-radius:10px;background:#ffd23f;color:#2c3050">확인</button>`;document.body.appendChild(o);
+  const cv=o.querySelector('canvas'),g=cv.getContext('2d'),img=new Image();img.src=faceUrl(m.n,'Normal');let T=0,last=performance.now(),flash=1,alive=1,P=[];
+  const sx=i=>160-AWMAX*13+13+i*26;
+  for(let i=0;i<30;i++){const a=Math.random()*6.283,v=50+Math.random()*150;P.push({x:sx(n-1),y:218,vx:Math.cos(a)*v,vy:Math.sin(a)*v-40,t:0,life:.6+Math.random()*.6,s:2+Math.random()*3})}
+  const draw=now=>{if(!alive)return;const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;g.setTransform(2,0,0,2,0,0);g.clearRect(0,0,320,260);
+    awFlame(g,160,105,Math.min(96,40+T*80),n,T);
+    g.save();g.beginPath();g.arc(160,105,50,0,6.283);g.clip();g.fillStyle='#26304f';g.fillRect(100,50,120,110);if(img.complete&&img.naturalWidth)g.drawImage(img,112,57,96,96);g.restore();
+    g.strokeStyle='#2a0a55';g.lineWidth=6;g.beginPath();g.arc(160,105,52,0,6.283);g.stroke();g.strokeStyle='#e6c8ff';g.lineWidth=2;g.beginPath();g.arc(160,105,52,0,6.283);g.stroke();
+    for(let i=0;i<AWMAX;i++){let r=11;if(i===n-1&&T<.7)r=11*(1+1.2*(1-T/.7));awDrawStar(g,sx(i),218,r,i<n?'p':i<awSlots()?'o':'x',T,i)}
+    g.globalCompositeOperation='lighter';P=P.filter(p=>(p.t+=dt)<p.life);for(const p of P){p.vy+=60*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;g.globalAlpha=1-p.t/p.life;g.fillStyle='#e6c8ff';g.beginPath();g.arc(p.x,p.y,p.s,0,6.283);g.fill()}g.globalAlpha=1;g.globalCompositeOperation='source-over';
+    if(flash>0){g.fillStyle='rgba(230,200,255,'+flash*.7+')';g.fillRect(0,0,320,260);flash=Math.max(0,flash-dt*2)}
+    requestAnimationFrame(draw)};requestAnimationFrame(draw);
+  o.querySelector('button').onclick=()=>{alive=0;o.remove();done()}})};
+
+// ---------- 각성 정보 · 설명 ----------
+function awInfo(m){const a=awOf(m),n=a+1,r=rarM(m),sl=awSlots(),full=a>=AWMAX,slotOk=n<=sl,have=(G.dupes||[]).filter(x=>x.kind==='P'&&x.rar===r).length,cost=awCost(n);
+  return{a,n,r,sl,full,slotOk,have,cost,lackS:Math.max(0,AWNEED-have),lackG:Math.max(0,cost-G.money),can:!full&&slotOk&&have>=AWNEED&&G.money>=cost}}
+function awCan(){try{if(!G)return false;const sl=awSlots();if(!sl)return false;const cnt={};for(const x of G.dupes||[])if(x.kind==='P')cnt[x.rar]=(cnt[x.rar]||0)+1;return [...G.party,...G.box].some(m=>{const a=awOf(m);return a<sl&&a<AWMAX&&(cnt[rarM(m)]||0)>=AWNEED&&G.money>=awCost(a+1)})}catch(e){return false}}
+const soulHow=()=>'<b>영혼은 어떻게 모아요?</b><br>① 이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 영혼 1개<br>② 보관함에서 중복 포켓몬을 「분해」하면 영혼 '+(typeof BXSOUL!=='undefined'?BXSOUL:10)+'개<br>③ 중복으로 받은 포켓몬 카드 · 선물도 영혼이 돼요';
+function soulLine(){const c=Array(7).fill(0);for(const x of G.dupes||[])if(x.kind==='P'&&x.rar>=0&&x.rar<7)c[x.rar]++;return c.map((n,i)=>n?'<span style="color:'+RARC[i]+'">'+RAR[i]+' '+n+'</span>':'').filter(Boolean).join(' · ')||'없음'}
+function awSummary(){return `<div class="awx-c"><b class="t">⭐ 각성이 뭐예요?</b>
+① <b>환생</b>할 때마다 포켓몬 아래 <span style="color:#d9930a;font-weight:900">금색 ★ 칸</span>이 하나씩 열려요 (최대 ${AWMAX}칸, 지금 ${awSlots()}칸).<br>
+② 금색 칸에 <b>같은 등급 영혼 ${AWNEED}개</b> + <b>골드</b>(1번째 ${awCost(1).toLocaleString()}원 · 2번째 ${awCost(2).toLocaleString()}원 … 별 번호 × ${awCost(1).toLocaleString()}원)를 내면 ★이 <b style="color:#8a3dff">보라색</b>이 돼요.<br>
+③ 보라 ★ 하나마다 <b>모든 능력치 +${AWPCT}%</b>, 몸 둘레에 <b>오라 이펙트</b>가 생겨요 (별 수에 따라 색이 달라요).</div>
+<div class="awx-c"><b class="t">👻 「같은 등급 영혼」이 뭐예요?</b>각성할 포켓몬과 <b>같은 등급</b>(예: 전설 포켓몬이면 전설 영혼)의 영혼이면 <b>어떤 포켓몬 영혼이든</b> 돼요. 중복 카드도 같은 등급이면 같이 쳐요.<br><br>${soulHow()}<br><br><small>내 영혼: ${soulLine()}</small></div>`}
+function awHelp(){return ovBox('⭐ 각성 설명',awSummary(),[{t:'확인',main:1,v:true}])}
+async function awLackBox(m){const I=awInfo(m);let b;
+  if(I.full)b='이미 ★ '+AWMAX+'개예요. 더 올릴 수 없어요!';
+  else if(!I.slotOk)b='<b class="awx-no">아직 각성할 별 칸이 없어요.</b><br>별 칸은 <b>환생할 때마다 하나씩</b> 열려요. (지금 열린 칸 '+I.sl+' / '+AWMAX+' · 이 포켓몬 보라 ★ '+I.a+'개)<br>챔피언이 된 뒤 <b>환생</b>하면 다음 칸이 열려요!';
+  else b='<b>★'+I.n+' 각성에 필요한 것</b><br>👻 <b style="color:'+RARC[I.r]+'">'+RAR[I.r]+'</b> 영혼 '+mkN(I.have,AWNEED)+(I.lackS?' <b class="awx-no">'+I.lackS+'개 부족</b>':'')+'<br>💰 골드 '+mkN(G.money,I.cost)+(I.lackG?' <b class="awx-no">'+I.lackG.toLocaleString()+'원 부족</b>':'')+'<br><br>'+(I.lackS?'<b>'+RAR[I.r]+' 등급</b> 영혼만 세요. 어떤 '+RAR[I.r]+' 포켓몬 영혼이든 돼요.<br><br>'+soulHow()+'<br><br>':'')+'<small>내 영혼: '+soulLine()+'</small>';
+  const v=await ovBox('각성 재료가 부족해요',b,I.slotOk||I.full?[{t:'확인',main:1,v:0}]:[{t:'환생 설명 보기',main:1,v:'rb'},{t:'닫기',v:0}]);if(v==='rb')rbInfoOpen()}
+const _awGo=awGo;
+awGo=async function(m){const I=awInfo(m);if(I.full||!I.slotOk||I.lackS||I.lackG){await awLackBox(m);return}return _awGo(m)};
+function awSet(m,n){n=Math.max(0,Math.min(AWMAX,n|0));if(n<=0)delete m.aw;else m.aw=n;try{m.hp=stOf(m)[0]}catch(e){}save();try{refreshSpr()}catch(e){}sfx('tap');toast('🛠 '+nm(m)+' 각성 ★'+n)}
+
+// ---------- ⑦ 각성 효과 미리보기 ----------
+function awPreview(m){return new Promise(done=>{G.opt=G.opt||{};const o0={aw:G.opt.aw,st:G.opt.awStyle};G.opt.aw=1;
+  let n=Math.max(1,Math.min(AWMAX,awOf(m)+1)),alive=1,T=0,last=performance.now();
+  const o=document.createElement('div');o.id='awOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(8,6,20,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#fff;text-align:center;padding:8px;box-sizing:border-box';
+  const bs='padding:6px 11px;font-weight:900;border:3px solid #2c3050;border-radius:10px;background:#fffdf0;color:#2c3050';
+  o.innerHTML=`<div class="awpv"><canvas width="640" height="520"></canvas><div class="awpc"><b style="font-size:17px;color:#e6c8ff">✨ 각성 효과 미리보기</b><div id="apTx" style="font-size:13px;line-height:1.5"></div><div id="apN" style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center"></div><div style="display:flex;gap:6px;justify-content:center"><button id="apS" style="${bs}"></button><button id="apX" style="${bs};background:#ffd23f">닫기</button></div><small style="opacity:.8">미리보기만 돼요 · 포켓몬은 바뀌지 않아요</small></div></div>`;
+  document.body.appendChild(o);
+  const cv=o.querySelector('canvas'),g=cv.getContext('2d'),img=new Image();img.src=faceUrl(m.n,'Normal');
+  const stAt=k=>{const keep=m.aw;if(k)m.aw=k;else delete m.aw;try{return stOf(m).slice()}finally{if(keep==null)delete m.aw;else m.aw=keep}};
+  const NM=['체력','공격','방어','특공','특방','스피드'];
+  const upd=()=>{const a=stAt(0),b=stAt(n);o.querySelector('#apTx').innerHTML=`<b>${esc(nm(m))}</b> · ★${n} 각성 · 능력치 <b style="color:#e6c8ff">+${n*AWPCT}%</b><br><small>${NM.map((t,i)=>t+' '+a[i]+'→<b>'+b[i]+'</b>').slice(0,3).join(' · ')}<br>${NM.map((t,i)=>t+' '+a[i]+'→<b>'+b[i]+'</b>').slice(3).join(' · ')}</small><br><small>별 수마다 오라 색이 달라요 (1 보라 · 2 파랑 · 3 초록 · 4 금 · 5 빨강 · 6 무지개)</small>`;
+    o.querySelector('#apN').innerHTML=[1,2,3,4,5,6].map(k=>`<button data-k="${k}" style="${bs};padding:5px 10px;${k===n?'background:#b46bff;color:#fff':''}">★${k}</button>`).join('');
+    o.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');n=+b.dataset.k;upd()});
+    o.querySelector('#apS').textContent='오라 모양: '+(G.opt.awStyle==='spike'?'픽셀 불꽃':'연기 리본')};
+  o.querySelector('#apS').onclick=()=>{sfx('tap');G.opt.awStyle=G.opt.awStyle==='spike'?'smoke':'spike';upd()};
+  upd();
+  const sx=i=>160-AWMAX*13+13+i*26;
+  const draw=now=>{if(!alive)return;const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;g.setTransform(2,0,0,2,0,0);g.clearRect(0,0,320,260);
+    awFlame(g,160,105,96,n,T);
+    g.save();g.beginPath();g.arc(160,105,50,0,6.283);g.clip();g.fillStyle='#26304f';g.fillRect(100,50,120,110);if(img.complete&&img.naturalWidth)g.drawImage(img,112,57,96,96);g.restore();
+    g.strokeStyle='#2a0a55';g.lineWidth=6;g.beginPath();g.arc(160,105,52,0,6.283);g.stroke();g.strokeStyle='#e6c8ff';g.lineWidth=2;g.beginPath();g.arc(160,105,52,0,6.283);g.stroke();
+    for(let i=0;i<AWMAX;i++)awDrawStar(g,sx(i),218,11,i<n?'p':'x',T,i);
+    requestAnimationFrame(draw)};requestAnimationFrame(draw);
+  o.querySelector('#apX').onclick=()=>{alive=0;G.opt.aw=o0.aw;if(o0.st===undefined)delete G.opt.awStyle;else G.opt.awStyle=o0.st;if(o0.aw===undefined)delete G.opt.aw;o.remove();done()}})}
+
+// ---------- 각성 화면 (다시 만듦) ----------
+function awRefresh(){const sc=[document.querySelector('.panel .pb'),document.querySelector('.panel')].map(e=>e?e.scrollTop:0);awOpen();[document.querySelector('.panel .pb'),document.querySelector('.panel')].forEach((e,i)=>{if(e)e.scrollTop=sc[i]})}
+awOpen=function(){if(!G)return;const sl=awSlots(),adm=awAdmin();
+  const all=[...G.party,...G.box].map(m=>({m,k:awOf(m)*100000+rarM(m)*1000+m.lv})).sort((a,b)=>b.k-a.k).slice(0,80).map(x=>x.m);
+  const rows=all.map((m,i)=>{const I=awInfo(m);
+    let line;if(I.full)line='<small class="awx-ok"><b>최대!</b> 능력치 +'+I.a*AWPCT+'%</small>';
+    else if(!I.slotOk)line='<small>능력치 +'+I.a*AWPCT+'% · <b class="awx-no">환생하면 별 칸이 열려요</b></small>';
+    else line='<small>능력치 +'+I.a*AWPCT+'% → 다음 +'+I.n*AWPCT+'%</small><small>👻 '+RAR[I.r]+' 영혼 '+mkN(I.have,AWNEED)+' · 💰 '+mkN(G.money,I.cost)+'</small>'+(I.can?'<small class="awx-ok"><b>지금 각성할 수 있어요!</b></small>':'<small class="awx-no">'+(I.lackS?'영혼 '+I.lackS+'개 부족 ':'')+(I.lackG?'골드 '+I.lackG.toLocaleString()+'원 부족':'')+'</small>');
+    return `<div class="hrow ${I.full?'ok':''}"><img class="${I.a?'awk':''}" src="${THUMB[m.n]||''}" style="width:48px;height:48px;object-fit:contain"><span style="flex:1;min-width:0"><b>${nm(m)} <small style="color:${RARC[I.r]}">[${RAR[I.r]}]</small></b><div>${awStars(m)}</div>${line}
+      <div class="awbt">${I.full?'':`<button class="${I.can?'main':''}" data-g="${i}">각성하기</button>`}<button data-p="${i}">미리보기</button>${adm?`<button class="adm" data-u="${i}">★ +1</button><button class="adm" data-d="${i}">★ −1</button>`:''}</div></span></div>`}).join('');
+  openPanel('각성',`${adm?'<div class="awx-c" style="background:#ffe9e9"><b class="t">🛠 운영자 모드</b>★ +1 / −1 단추로 별을 마음대로 올리고 내릴 수 있어요 (재료 · 골드 · 별 칸 상관없이).</div>':''}${awSummary()}${sl?'':'<p class="hhint"><b>아직 열린 별 칸이 없어요.</b> 환생하면 첫 별 칸이 열려요.</p>'}
+    <div class="awbt" style="margin-bottom:6px"><button data-rbi="1">🌀 환생 설명 · 미리보기</button></div>${rows}`,null,p=>{
+    p.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>awGo(all[+b.dataset.g]));
+    p.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{sfx('tap');awPreview(all[+b.dataset.p])});
+    p.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{awSet(all[+b.dataset.u],awOf(all[+b.dataset.u])+1);awRefresh()});
+    p.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{awSet(all[+b.dataset.d],awOf(all[+b.dataset.d])-1);awRefresh()});
+    const r=p.querySelector('[data-rbi]');if(r)r.onclick=()=>{sfx('tap');rbInfoOpen()}})};
+
+// 포켓몬 한 마리 각성 창
+async function awOne(m){const started=awOf(m);
+  for(let guard=0;guard<60;guard++){const I=awInfo(m),adm=awAdmin();
+    const mat=I.full?'<b style="color:#8a3dff">★ 최대예요!</b>':!I.slotOk?'<b class="awx-no">아직 별 칸이 없어요</b> · 환생하면 칸이 열려요':'다음 각성 <b>★'+I.n+'</b> → 능력치 <b>+'+I.n*AWPCT+'%</b><br>👻 <b style="color:'+RARC[I.r]+'">'+RAR[I.r]+'</b> 영혼 '+mkN(I.have,AWNEED)+'<br>💰 골드 '+mkN(G.money,I.cost);
+    const body=`<div style="text-align:center"><img src="${faceUrl(m.n,'Normal')}" style="width:64px;height:64px;image-rendering:pixelated"><br><b>${esc(nm(m))}</b> <small>Lv.${dLv(m)}</small><br>${awStars(m,1)}<br><small>지금 각성 능력치 +${I.a*AWPCT}% · 열린 별 칸 ${I.sl}/${AWMAX}</small></div><div class="awx-c">${mat}</div>`;
+    const B=[];if(!I.full)B.push({t:'⭐ 각성하기',main:1,v:'go'});B.push({t:'✨ 각성 효과 미리보기',v:'pv'},{t:'📖 영혼 · 각성 설명',v:'help'});
+    if(adm)B.push({t:'🛠 운영자: ★ +1',v:'up'},{t:'🛠 운영자: ★ −1',v:'dn'});B.push({t:'닫기',v:false});B.col=1;
+    const v=await ovBox('⭐ 각성',body,B);
+    if(v==='go'){await awGo(m);if(awOf(m)>started)return 'awakened'}
+    else if(v==='pv')await awPreview(m);else if(v==='help')await awHelp();
+    else if(v==='up')awSet(m,awOf(m)+1);else if(v==='dn')awSet(m,awOf(m)-1);else return v}
+}
+
+// ---------- ③ 편성 창 포켓몬 메뉴 ----------
+async function monMenu(m){let changed=0;
+  for(let guard=0;guard<60;guard++){const I=awInfo(m),adm=awAdmin();
+    const body=`<div style="text-align:center"><img src="${faceUrl(m.n,'Normal')}" style="width:64px;height:64px;image-rendering:pixelated"><br><b>${esc(nm(m))}</b> <small>Lv.${dLv(m)} · <span style="color:${RARC[I.r]}">${RAR[I.r]}</span></small><br>${awStars(m,1)}<br><small>각성 +${I.a*AWPCT}% · 환생 ${G.rebirth||0}번 · 별 칸 ${I.sl}/${AWMAX}</small></div>`;
+    const B=[{t:'⭐ 각성하기',main:1,v:'aw'},{t:'✨ 스킬 바꾸기',v:'sk'}];if(typeof pxReroll==='function')B.push({t:'🎰 접두사 바꾸기',v:'px'});
+    B.push({t:'🎬 각성 효과 미리보기',v:'pv'},{t:'📖 환생 · 각성 설명',v:'info'});
+    if(adm)B.push({t:'🛠 운영자: 각성 ★ +1',v:'up'},{t:'🛠 운영자: 각성 ★ −1',v:'dn'});B.push({t:'닫기',v:false});B.col=1;
+    const v=await ovBox(esc(nm(m))+' 메뉴',body,B);
+    if(v==='aw'){const r=await awOne(m);if(r==='awakened')return;changed=1}
+    else if(v==='sk'){monSkillOpen(m);return}
+    else if(v==='px'){pxReroll(m);return}
+    else if(v==='pv')await awPreview(m);
+    else if(v==='info'){const r=await ovBox('📖 환생 · 각성 설명',rbSummary()+awSummary(),[{t:'🌀 환생 창 열기',main:1,v:'rb'},{t:'닫기',v:false}]);if(r==='rb'){rbInfoOpen();return}}
+    else if(v==='up'){awSet(m,awOf(m)+1);changed=1}else if(v==='dn'){awSet(m,awOf(m)-1);changed=1}
+    else{const h=document.querySelector('.panel .ph b');if(changed&&h&&/포켓몬 편성/.test(h.textContent))teamOpen();return}}}
+function monSkillOpen(m){const adm=awAdmin();
+  const cards=[...new Set((G.gifts||[]).filter(g=>g.kind==='M'&&GMOVES[g.id]).map(g=>GMOVES[g.id][0]))].filter(id=>!m.moves.includes(id));
+  const types=((META[m.n]||{}).types||[]);
+  const mvRow=id=>{const v=mv(id),L=mlv(m,id),stab=types.includes(v.type);return `<div class="skm"><span class="tyb" style="background:${TCOL[v.type]}">${TN[v.type]}</span><div class="skn"><b>${v.name}</b> <small>Lv.${L} · 위력 ${v.pw||'-'} · ${v.ph?'물리':'특수'}${stab?' · 같은 타입 ×1.5':''}</small></div></div>`};
+  const slotBtns=id=>{let h='';m.moves.forEach((x,i)=>{h+=`<button data-c="${id}" data-s="${i}">${mv(x).name} 자리에</button>`});if(m.moves.length<4)h+=`<button data-c="${id}" data-s="${m.moves.length}">빈 자리에</button>`;return h};
+  const cardRows=cards.map(id=>{const v=mv(id),pl=cuPlan(m,id),cnt=cuCount(id),L=mlv(m,id);
+    return `<div class="awx-c"><div class="skm" style="border:0"><span class="tyb" style="background:${TCOL[v.type]}">${TN[v.type]}</span><div class="skn"><b>${v.name}</b> <small>${TN[v.type]} · 위력 ${v.pw||'-'} · ${v.ph?'물리':'특수'}${types.includes(v.type)?' · 같은 타입 ×1.5':''} · 카드 ${cnt}장 · 이 포켓몬 기준 Lv.${L}</small>${pl&&pl.gain>=.15?'<small class="awx-ok"><b>💡 추천!</b> 예상 공격력이 올라가요</small>':''}</div></div><div class="awbt">${slotBtns(id)}</div></div>`}).join('');
+  openPanel('✨ 스킬 바꾸기 · '+nm(m),`<div class="awx-c"><b class="t">지금 기술</b>${m.moves.map(mvRow).join('')||'<small>없어요</small>'}<small>기술은 쓸수록 레벨이 올라가요. 바꿔도 이전 기술 기록은 남아요.</small></div>
+    <b>가방의 기술 카드로 바꾸기</b><small> · 아래에서 바꿀 자리를 눌러요 (카드 1장이 사라져요)</small>${cardRows||'<div class="awx-c">쓸 수 있는 기술 카드가 없어요.<br><small>카드팩 · 선물 · 합성으로 기술 카드를 모아요. 이 포켓몬이 이미 가진 기술 카드는 보이지 않아요.</small></div>'}
+    ${adm?`<div class="awx-c" style="background:#ffe9e9"><b class="t">🛠 운영자: 카드 없이 기술 배우기</b><div class="nw"><input id="smN" list="smL" placeholder="기술 이름"><datalist id="smL">${GMOVES.map(x=>`<option value="${x[1]}">`).join('')}</datalist><select id="smS">${[0,1,2,3].map(i=>`<option value="${i}">${m.moves[i]?mv(m.moves[i]).name+' 자리':'빈 자리'}</option>`).join('')}</select><button class="it" id="smGo">배우기</button></div></div>`:''}
+    <div class="awbt"><button data-sk="1">📊 기술 레벨 · 써 보기</button><button data-back="1">← 편성으로</button></div>`,null,p=>{
+    p.querySelectorAll('[data-c]').forEach(b=>b.onclick=async()=>{const id=b.dataset.c,slot=+b.dataset.s,nv=mv(id),old=m.moves[slot]?mv(m.moves[slot]):null;
+      const ok=await askConfirm('스킬 바꾸기',`정말 <b>${nm(m)}</b>에게 <b style="color:${TCOL[nv.type]}">${nv.name}</b>을(를) 가르칠까요?<br>${old?`<b>${old.name}</b> → <b>${nv.name}</b>`:`빈 자리에 <b>${nv.name}</b>을(를) 배워요`}<br><small>기술 카드 1장이 사라져요 · 바꿔도 기존 기술 기록은 남아요</small>`,'바꾸기');
+      if(!ok)return;if(SKL.swap(m,{id,slot}))monSkillOpen(m)});
+    const go=p.querySelector('#smGo');if(go)go.onclick=()=>{const v=p.querySelector('#smN').value.trim(),i=GMOVES.findIndex(x=>x[1]===v||x[0]===v);if(i<0){toast('기술을 못 찾았어요');return}const id=GMOVES[i][0],slot=+p.querySelector('#smS').value;if(m.moves.includes(id)){toast('이미 가진 기술이에요');return}if(slot>=m.moves.length)m.moves.push(id);else m.moves[slot]=id;save();toast('🛠 '+nm(m)+' → '+GMOVES[i][1]);monSkillOpen(m)};
+    const sk=p.querySelector('[data-sk]');if(sk)sk.onclick=()=>{sfx('tap');if(SCENE!=='over'){toast('밖에서만 열려요');return}skillOpen()};
+    const bk=p.querySelector('[data-back]');if(bk)bk.onclick=()=>{sfx('tap');teamOpen()}})}
+function awxTeam(){const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');
+  const put=(cards,L)=>cards.forEach((c,i)=>{const m=L[i];if(!m||c.querySelector('.tmM'))return;const b=document.createElement('button');b.className='tmM';b.textContent='⭐ 메뉴';b.onclick=e=>{e.stopPropagation();sfx('tap');monMenu(m)};const ti=c.querySelector('.ti');(ti||c).appendChild(b)});
+  if(tg[0])put([...tg[0].querySelectorAll('.tm.p')],G.party);if(tg[1])put([...tg[1].querySelectorAll('.tm.b')],G.box)}
+{const _t=teamOpen;teamOpen=function(){const r=_t.apply(this,arguments);setTimeout(awxTeam,160);return r}}
+
+// ---------- ④ 환생 안내 · 미리보기 ----------
+function rbSummary(){const n=G.rebirth||0,nx=n+1,cap=rbCap(nx);return `<div class="awx-c"><b class="t">🌀 환생이 뭐예요?</b>챔피언이 되면 이야기를 <b>처음부터 다시</b> 할 수 있어요. 포켓몬 · 가방 · 돈 · 도감 · 장비는 그대로, <b>배지와 체육관은 처음부터</b>예요. 지금 환생 <b>${n}번</b>.</div>
+<div class="awx-c"><b class="t">🎁 환생하면 좋은 점</b>
+• 난이도가 <b>한 단계 위</b>로 올라가고 더 높은 등급 포켓몬 · 보상이 나와요<br>
+• 포켓몬 능력치 <b>+${Math.round(REBSTAT*100)}%</b> (환생할 때마다) · 레벨은 Lv.1부터, 화면에는 +100씩<br>
+• <b>⭐ 각성 별 칸이 1개 열려요</b> (최대 ${AWMAX}칸) → 영혼 ${AWNEED}개 + 골드로 보라 ★ 각성<br>
+• <b>기술 초월 Lv.6~8</b>이 열리고, 기술을 쓸 때 <b>환생 고리</b>가 나와요 (1번 금 · 2번 은 · 3번 무지개)<br>
+• 부적 한도 +1 · 경험치 +5% · 퀘스트 보상 강화</div>
+<div class="awx-c"><b class="t">⚠️ 꼭 알아 둬요</b>
+• 4번째 환생부터는 포켓몬을 <b>10마리만</b> 데려가요 (5번째 15마리 · 6번째 20마리…). 안 고른 포켓몬은 영영 사라져요!<br>
+• 3번 환생한 뒤에는 이상한사탕으로 레벨을 못 올려요 (한계 돌파 재료로는 계속 써요)<br>
+• ${cap?'다음 <b>'+nx+'번째 환생</b>은 포켓몬 <b>'+cap+'마리</b>만 데려가요':'다음 <b>'+nx+'번째 환생</b>은 포켓몬을 전부 데려가요'}</div>`}
+function rbInfoOpen(){if(!G)return;const n=G.rebirth||0,nx=n+1,can=!!G.champ,m0=G.party[0];
+  const pre=m0?`<div class="awx-c"><b class="t">🔮 다음 환생 미리보기</b>능력치 환생 보너스 +${Math.round(n*REBSTAT*100)}% → <b>+${Math.round(nx*REBSTAT*100)}%</b><br>별 칸 ${awSlots()} → <b>${Math.min(AWMAX,awSlots()+1)}</b> / ${AWMAX}<br><span style="display:inline-block;margin:4px 0">지금 ${awStarsRaw(awOf(m0),awSlots())}</span><br><span style="display:inline-block">환생 후 ${awStarsRaw(awOf(m0),Math.min(AWMAX,awSlots()+1))}</span><br><small>${nm(m0)} 기준 · 금색 ★이 새로 열리는 칸이에요</small><div class="awbt"><button data-fx="1">🎬 환생 이펙트 미리보기 (기술 고리)</button></div></div>`:'';
+  openPanel('🌀 환생',`<div class="awx-c" style="background:${can?'#e6ffe9':'#fffdf0'}"><b class="t">${can?'✅ 지금 환생할 수 있어요!':'🔒 아직 환생할 수 없어요'}</b>${can?'챔피언이 됐어요! 아래 「환생하기」로 다음 난이도(<b>'+DNAME[Math.min(5,DIFF()+1)]+'</b>)에 도전해요.':'<b>챔피언</b>이 되면 환생할 수 있어요. (지금 난이도 '+DNAME[DIFF()]+')'}</div>
+    <div class="wbt"><button class="main" id="rbiGo">${can?'🌀 환생하기':'환생 조건 보기'}</button></div>${pre}${rbSummary()}<div class="awbt"><button data-awx="1">⭐ 각성 설명 · 각성 화면</button></div>`,null,p=>{
+    p.querySelector('#rbiGo').onclick=()=>{sfx('tap');if(can){closePanel(1);rebirthOpen()}else ovBox('환생 조건','환생은 <b>챔피언이 된 뒤</b>에 할 수 있어요.<br>지금 난이도 <b>'+DNAME[DIFF()]+'</b>의 챔피언(리그 우승)이 되면, 환생 안내창이 바로 떠요!',[{t:'확인',main:1,v:1}])};
+    const fx=p.querySelector('[data-fx]');if(fx)fx.onclick=()=>{sfx('tap');if(SCENE!=='over'){toast('밖에서만 볼 수 있어요');return}const m=G.party[0];if(!m||!m.moves[0])return;skPreviewOpen(m,m.moves[0],Math.min(8,5+Math.min(3,nx)),Math.min(3,nx))};
+    const a=p.querySelector('[data-awx]');if(a)a.onclick=()=>{sfx('tap');awOpen()}})}
+async function rbReadyPop(){const n=(G.rebirth||0)+1,cap=rbCap(n);
+  const v=await ovBox('🌀 환생할 수 있어요!',`챔피언이 되어서 <b>${n}번째 환생</b>을 할 수 있어요!<br><br>• 난이도 <b>${DNAME[Math.min(5,DIFF()+1)]}</b>(으)로 처음부터 · 능력치 +${Math.round(REBSTAT*100)}%<br>• ⭐ <b>각성 별 칸</b>이 1개 열려요<br>• 기술 초월 · 환생 고리 이펙트<br>${cap?'<br>⚠️ 이번에는 포켓몬을 <b>'+cap+'마리만</b> 데려가요!':''}<br><small>지금 안 해도 돼요. 사이드 메뉴 「환생」에서 언제든 할 수 있어요.</small>`,[{t:'📖 설명 · 미리보기 보기',main:1,v:'info'},{t:'🌀 바로 환생하기',v:'go'},{t:'나중에',v:false}]);
+  if(v==='info')rbInfoOpen();else if(v==='go')rebirthOpen()}
+setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over'||PANEL||DLG.on)return;if(document.querySelector('#clrOv,#itInfo,#gAsk,#awOv,#lgOv,#rbPk,#dlg.on'))return;G.opt=G.opt||{};const key=String(G.rebirth||0);if(G.opt.rbPop===key)return;G.opt.rbPop=key;save();rbReadyPop()}catch(e){}},2500);
+
+// ---------- ⑥ 사이드 메뉴 단추 · 빨간 점 · 컨텐츠 카드 ----------
+const side=document.getElementById('side');
+if(side){const mk=(id,html,fn)=>{if(document.getElementById(id))return;const b=document.createElement('button');b.id=id;b.innerHTML=html;b.onclick=()=>{if(!G)return;sfx('tap');fn()};side.insertBefore(b,document.getElementById('bSkill')||document.getElementById('bHub')||null)};
+  mk('bRebirth','<svg class="sic" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9" fill="none" stroke="#1c2550" stroke-width="5" stroke-linecap="round"/><path d="M12 3a9 9 0 1 0 9 9" fill="none" stroke="#4aa8ff" stroke-width="2.6" stroke-linecap="round"/><path d="M12 0.5l5 3.2-5 3.2z" fill="#4aa8ff" stroke="#1c2550" stroke-width="1.2" stroke-linejoin="round"/></svg><span>환생</span>',()=>rbInfoOpen());
+  mk('bAwake','<svg class="sic" viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#a257ff" stroke="#2a0a55" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 5.5l1.7 4 4.3.4-3.3 2.8 1 4.2L12 14.7 8.3 17l1-4.2L6 10l4.3-.4z" fill="#e2b8ff" opacity=".85"/></svg><span>각성</span>',()=>awOpen())}
+try{NOTI.rebirth=()=>!!(G&&G.champ);NOTI.awake=()=>awCan();NOTI_BTN.bRebirth=['rebirth'];NOTI_BTN.bAwake=['awake']}catch(e){}
+try{const h=HUB.find(x=>x.k==='awake');if(h){h.d='환생하면 포켓몬 아래 금색 ★ 칸이 하나씩 열려요(최대 6칸). 같은 등급 영혼 10개와 골드로 각성하면 ★이 보라색 2.5D 별이 되고 모든 능력치가 +6% 올라가요. 영혼은 이미 잡은 포켓몬을 쓰러뜨리거나 중복 포켓몬을 분해하면 얻어요. 편성 창 포켓몬마다 「⭐ 메뉴」에서도 각성할 수 있어요.';h.go=[['각성하기',()=>awOpen()],['각성 · 영혼 설명',()=>awHelp()]].concat((h.go||[]).slice(1))}}catch(e){}
+try{if(!HUB.find(x=>x.k==='rebirth'))HUB.push({k:'rebirth',n:'환생',d:'챔피언이 되면 이야기를 처음부터 다시! 난이도가 한 단계 올라가고, 능력치 · 각성 별 칸 · 기술 초월이 늘어요. 환생 설명과 효과 미리보기를 볼 수 있어요.',st:()=>'환생 '+((G&&G.rebirth)||0)+'번 · '+((G&&G.champ)?'지금 가능!':'챔피언이 되면'),go:[['환생 설명 · 미리보기',()=>rbInfoOpen()],['환생하기',()=>{if(G&&G.champ)rebirthOpen();else rbInfoOpen()}]]})}catch(e){}
+
+// ---------- ② 운영자 패널에 각성 도구 ----------
+{const _o=operOpen;operOpen=function(){const r=_o.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel .pb');if(!p||p.querySelector('#oAwx')||!p.querySelector('#oOff'))return;
+  const d=document.createElement('div');d.id='oAwx';d.innerHTML='<h4>⭐ 각성 (운영자)</h4><div><button class="it" data-a="up">파티 ★ +1</button><button class="it" data-a="dn">파티 ★ −1</button><button class="it" data-a="6">파티 ★ 전부 6</button><button class="it" data-a="0">파티 ★ 전부 0</button><button class="it" data-a="open">각성 화면 열기</button></div>';
+  p.querySelector('#oOff').parentNode.insertAdjacentElement('beforebegin',d);
+  d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='open'){closePanel(1);awOpen();return}for(const m of G.party){const c=awOf(m);awSet(m,a==='up'?c+1:a==='dn'?c-1:+a)}toast('🛠 파티 각성 변경')})}catch(e){}},120);return r}}
+
+}catch(e){console.warn('awx 로드 실패',e)}})();
+</script>
+</body></html>
