@@ -1548,11 +1548,14 @@ async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FA
   BS.ball=null;BS.foe.hide=0;BS.foe.in=.3;await msg(['안 돼! 포켓몬이 볼에서 나와 버렸다!','아쉽다! 조금만 더 하면 잡을 수 있었는데!','으앗! 잡은 줄 알았는데!'][Math.min(2,n)]);return false}
 async function caught(f){if(f.hpx){const r=f.hp/stOf(f)[0];delete f.hpx;f.hp=Math.max(1,Math.round(stOf(f)[0]*r))}const M=META[f.n];G.dex.c[M.dex]=1;f.hp=Math.max(1,f.hp);askEvo(M.dex);if(G.party.length<6){G.party.push(f);await msg(nm(f)+'(이)가 동료가 됐다!',900)}else{G.box.push(f);await msg(nm(f)+'(은)는 보관함으로 보내졌다.',900)}
   if(AUTO.hunt&&AUTO.hunt.n===f.n){AUTO.hunt=null;AUTO.huntOnly=0;AUTO.on=G.autoQuest?1:0;toast('🎉 찾던 포켓몬을 잡았어요!')}}
-async function giveExp(f,part){const M=META[f.n];const base=Math.max(1,Math.round(bst(M.stats)/4.2*f.lv/7*(BS.trainer?1.5:1)*DEXP[DIFF()]*(1+.05*(G.rebirth||0))));for(const m of G.party){if(m.hp<=0)continue;const g=part.has(m.uid)?base:Math.round(base*.5);m.exp+=g;if(m===BS.me.m)await msg('<b>'+nm(m)+'</b>(은)는 경험치 '+g+'을(를) 얻었다!',FAST()?400:800);
-  const cap=lvCap();while(m.exp>=expAt(m.lv+1)&&m.lv<cap){await gainLv(m,1)}if(m.lv>=cap&&cap<100){m.exp=Math.min(m.exp,expAt(cap+1)-1);if(!BS.capMsg){BS.capMsg=1;await msg('레벨 제한 Lv.'+cap+'! 배지를 더 모으면 더 올라가요',FAST()?600:1100)}}}bbox()}
+async function giveExp(f,part){const M=META[f.n];const base=Math.max(1,Math.round(bst(M.stats)/4.2*f.lv/7*(BS.trainer?1.5:1)*DEXP[DIFF()]*(1+.05*(G.rebirth||0))));for(const m of G.party){if(m.hp<=0)continue;const g=part.has(m.uid)?base:Math.round(base*.5);if(m.exp<expAt(m.lv))m.exp=expAt(m.lv);m.exp+=g;if(m===BS.me.m)await msg('<b>'+nm(m)+'</b>(은)는 경험치 '+g+'을(를) 얻었다!',FAST()?400:800);
+  const cap=lvCap();while(m.exp>=expAt(m.lv+1)&&m.lv<cap){await gainLv(m,1)}if(m.lv>=cap&&cap<100){m.exp=Math.min(m.exp,expAt(m.lv+1)-1);if(!BS.capMsg){BS.capMsg=1;await msg('레벨 제한 Lv.'+cap+'! 배지를 더 모으면 더 올라가요',FAST()?600:1100)}}}bbox()}
 // 배지별 레벨 제한: 배지가 늘수록 올라가요 (챔피언이 되면 100)
 function lvCap(){if(!G)return 100;if(G.champ)return 100;const b=G.badges;return b>=8?76:Math.round((12+6*b)*1.18)+6}
 function lvCapInfo(){const c=lvCap();ovBox('레벨 제한 Lv.'+c,'지금은 Lv.'+c+'까지만 올릴 수 있어요.<br><small>'+((G.badges||0)>=8?'챔피언을 클리어하면 제한이 풀려요 (최대 Lv.100)':'배지를 더 모으면 올릴 수 있어요')+(G.rebirth?'<br>환생하면 배지가 처음부터라 제한도 다시 낮아져요 (환생 '+G.rebirth+'번)':'')+'</small>',[{t:'확인',main:1,v:1}])}
+// 3환생 이후에는 이상한사탕으로 레벨을 못 올려요 · 한계 돌파 재료로는 계속 써요
+function candyLock(){return !!(G&&(G.rebirth||0)>=3)}
+function candyLockInfo(){ovBox('이상한사탕을 못 써요','<b>3번 환생</b>한 뒤에는 이상한사탕으로 레벨을 올릴 수 없어요.<br><small>직접 싸워서 키워 봐요! 사탕은 <b>한계 돌파</b> 재료로는 계속 쓸 수 있어요.</small>',[{t:'확인',main:1,v:1}])}
 async function gainLv(m,keep){const S0=stOf(m);m.lv++;if(!keep)m.exp=Math.max(m.exp,expAt(m.lv));const S1=stOf(m);m.hp+=S1[0]-S0[0];m.evoReady=1;sfx('lv');if(BS.on)bbox();try{lvShow(m,S0,S1)}catch(e){}
   await msg('<b>'+nm(m)+'</b>(은)는 레벨 <b>'+m.lv+'</b>(으)로 올랐다!',FAST()?450:900,[m.n,'Joyous']);
   for(const [l,id] of learnset(META[m.n]))if(l===m.lv&&!m.moves.includes(id)){const nmv=mv(id);if(m.moves.length<4){m.moves.push(id);await msg(nm(m)+'(은)는 새로 <b>'+nmv.name+'</b>을(를) 배웠다!')}else{const w=m.moves.slice().sort((a,b)=>mv(a).pw-mv(b).pw)[0];if(mv(w).pw<nmv.pw){m.moves[m.moves.indexOf(w)]=id;await msg(nm(m)+'(은)는 '+mv(w).name+'을(를) 잊고 <b>'+nmv.name+'</b>을(를) 배웠다!')}}}}
@@ -1973,7 +1976,7 @@ function menuOpen(tab){if(SCENE!=='over')return;if(typeof tab==='number')MENUTAB
     Q('#oGift').onclick=()=>{closePanel(1);giftOpen()};Q('#oName').onclick=()=>{closePanel(1);nameOpen()};Q('#oFont').onclick=()=>{closePanel(1);fontOpen()};Q('#oDiff').onclick=()=>{closePanel(1);diffOpen()};Q('#oFuse').onclick=()=>{closePanel(1);fuseOpen()};Q('#oMe').onclick=()=>{closePanel(1);wardrobe()};Q('#oDsk').onclick=()=>{closePanel(1);dskinOpen()};Q('#oBgm').onclick=()=>{BGM.toggle();closePanel(1);menuOpen()};Q('#oMode').onclick=()=>{modeToggle();closePanel(1);menuOpen()};Q('#oS').onclick=()=>{save();toast('💾 저장했어요')};Q('#oT').onclick=()=>{save();closePanel(1);location.reload()}})}
 // ===== 가방 전용 화면: 아이템 · 기술 카드 · 접두사 주문서만 보여요 (포켓몬 · 메뉴는 안 나와요) =====
 function bagItBind(p){
-  p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.heal||it.lv){const m=(typeof ITPICK!=='undefined'&&ITPICK)||G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{if(m.lv>=lvCap()){G.bag[k]++;lvCapInfo();return}m.lv++;m.exp=expAt(m.lv);m.hp=stOf(m)[0];m.evoReady=1;toast(nm(m)+' 레벨 '+m.lv+'!');evolveAfterMenu()}save();bagOpen()}});
+  p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.lv&&candyLock()){candyLockInfo();return}if(it.heal||it.lv){const m=(typeof ITPICK!=='undefined'&&ITPICK)||G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{if(m.lv>=lvCap()){G.bag[k]++;lvCapInfo();return}const S0c=stOf(m);m.lv++;m.exp=expAt(m.lv);const S1c=stOf(m);m.hp=Math.min(S1c[0],m.hp+S1c[0]-S0c[0]);m.evoReady=1;let lrn='';for(const [l,id] of learnset(META[m.n]))if(l===m.lv&&!m.moves.includes(id)){const nmv=mv(id);if(m.moves.length<4){m.moves.push(id);lrn+=' · '+nmv.name+' 습득!'}else{const w=m.moves.slice().sort((a,b)=>mv(a).pw-mv(b).pw)[0];if(mv(w).pw<nmv.pw){m.moves[m.moves.indexOf(w)]=id;lrn+=' · '+mv(w).name+' → '+nmv.name+'!'}}}toast(nm(m)+' 레벨 '+m.lv+'!'+lrn);evolveAfterMenu()}save();bagOpen()}});
 }
 const BCN=['🔴 볼','🍎 열매','💊 회복 · 성장','🏷 접두사 주문서','⭐ 타입 부적','📊 스탯 부적','✨ 변신 · 특수','🧊 큐브 · 알 · 기타'];
 function bagCat(k){const it=ITEMS[k];if(!it)return 7;if(k==='oran'||k==='sitrus'||k==='razz')return 1;if(it.ball)return 0;if(it.heal||it.lv)return 2;if(k==='pxsc'||k==='spxsc')return 3;if(it.charm)return 4;if(it.stat)return 5;if(it.form||it.shinyItem||k==='dmax'||k==='porb')return 6;return 7}
@@ -3197,9 +3200,9 @@ function itCanUse(k){const it=ITEMS[k],L=[...G.party,...G.box];
   if(it.form)return L.filter(m=>formsOf(m).some(f=>f.k===it.form||(it.form==='gmax'&&f.k==='emax')));
   if(it.heal)return G.party.filter(m=>m.hp>0&&m.hp<stOf(m)[0]);
   if(it.charm)return G.party.filter(m=>chFed(m)<chMax());
-  if(it.lv){const c=lvCap();return G.party.filter(m=>m.lv<c)}return null}
+  if(it.lv){if(candyLock())return[];const c=lvCap();return G.party.filter(m=>m.lv<c)}return null}
 function itemInfo(k,onUse){const it=ITEMS[k],D=itD(k),can=itCanUse(k);
-  let mine='';if(can){mine=can.length?`<div class="iiw"><b>지금 쓸 수 있는 내 포켓몬</b><div>${can.slice(0,8).map(m=>`<span><img src="${THUMB[m.n]||''}">${nm(m)}</span>`).join('')}${can.length>8?` 외 ${can.length-8}마리`:''}</div></div>`:`<div class="iiw no">${it.form?'내 포켓몬 중에는 쓸 수 있는 애가 없어요':it.heal?'다친 포켓몬이 없어요 (쓰러진 포켓몬은 포켓몬센터로)':it.lv?'모두 레벨 제한(Lv.'+lvCap()+')이라 더 올릴 수 없어요'+((G.badges||0)>=8?' · 챔피언을 클리어하면 풀려요':G.rebirth?' · 환생해서 배지가 처음부터예요 · 배지를 모으면 올라요':' · 배지를 더 모으면 올릴 수 있어요'):'쓸 포켓몬이 없어요'}</div>`}
+  let mine='';if(can){mine=can.length?`<div class="iiw"><b>지금 쓸 수 있는 내 포켓몬</b><div>${can.slice(0,8).map(m=>`<span><img src="${THUMB[m.n]||''}">${nm(m)}</span>`).join('')}${can.length>8?` 외 ${can.length-8}마리`:''}</div></div>`:`<div class="iiw no">${it.form?'내 포켓몬 중에는 쓸 수 있는 애가 없어요':it.heal?'다친 포켓몬이 없어요 (쓰러진 포켓몬은 포켓몬센터로)':it.lv?(candyLock()?'3환생 이후에는 레벨업에 못 써요 (한계 돌파 재료로는 쓸 수 있어요)':'모두 레벨 제한(Lv.'+lvCap()+')이라 더 올릴 수 없어요'+((G.badges||0)>=8?' · 챔피언을 클리어하면 풀려요':G.rebirth?' · 환생해서 배지가 처음부터예요 · 배지를 모으면 올라요':' · 배지를 더 모으면 올릴 수 있어요')):'쓸 포켓몬이 없어요'}</div>`}
   const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>가진 것 ${G.bag[k]||0}개</small></div></div>
    <p class="iis">${D.s}</p><dl>${D.use?`<dt>어디에 써요?</dt><dd>${D.use}</dd>`:''}${D.good?`<dt>뭐가 좋아요?</dt><dd>${D.good}</dd>`:''}${D.who?`<dt>누구한테 좋아요?</dt><dd>${D.who}</dd>`:''}${D.tip?`<dt>꿀팁</dt><dd>${D.tip}</dd>`:''}</dl>${(()=>{try{return itRecBlock(k)}catch(e){return ''}})()||mine}
    <div class="wbt">${onUse&&!it.ball?`<button class="main" id="iiU">${it.charm?'먹이기':'사용하기'}</button>`:''}<button id="iiX">닫기</button></div></div>`;
@@ -3999,10 +4002,10 @@ function diffOpen(){if(!G)return;const cur=DIFF(),mx=dMax();
   openPanel('난이도',`<p class="hhint">난이도가 높을수록 상대가 세지고 레벨도 높고, <b>더 높은 등급 포켓몬</b>이 나와요. 대신 보상이 커져요. 부적 먹이기 한도도 늘어나요.</p><div class="dfg">${DNAME.map((n,i)=>{const lk=i>mx;return `<div class="dfc${i===cur?' on':''}${lk?' lk':''}" style="--dc:${DCOL[i]}"><b>${n}</b><small>상대 레벨 +${Math.round(DLV[i]*100)}% · 상대 공격 ×${DDMG[i]}</small><small>경험치 ×${DEXP[i]}</small><small>${DDESC[i]}</small><small>부적 한도 ${CHMAX[i]+(G.rebirth||0)}개</small>${lk?`<em>${DNAME[i-1]}에서 챔피언이 되면 열려요</em>`:i===cur?'<em>지금 난이도</em>':`<button data-df="${i}">이 난이도로</button>`}</div>`}).join('')}</div>
    <div class="hcard"><b>환생 ${G.rebirth?'('+G.rebirth+'번 함)':''}</b><p>챔피언이 되면 이야기를 처음부터 다시 할 수 있어요. 포켓몬 · 가방 · 돈 · 도감 · 장비 · 카드팩은 그대로, 배지와 체육관은 처음부터! 환생할 때마다 <b>부적 한도 +1</b> · <b>경험치 +5%</b>.</p><div class="wbt"><button class="main" id="dfRb" ${G.champ?'':'disabled'}>${G.champ?'환생하기':'챔피언이 되면 할 수 있어요'}</button></div></div>`,null,p=>{
     p.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{G.opt.diff=+b.dataset.df;save();sfx('get');toast('난이도: '+DNAME[DIFF()]);diffOpen()});const rb=p.querySelector('#dfRb');if(rb)rb.onclick=()=>{closePanel(1);rebirthOpen()}})}
-function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax();
-  openPanel('환생',`<p class="hhint">어떤 난이도로 다시 시작할까요? 지금까지 모은 포켓몬 ${G.party.length+G.box.length}마리 · 가방 · 돈 · 도감 · 장비는 그대로예요. 배지 · 상위 배지 · 체육관 · 라이벌 · 맵 아이템은 처음부터예요.</p>
-   <div class="dfg">${DNAME.map((n,i)=>i>mx?'':`<div class="dfc" style="--dc:${DCOL[i]}"><b>${n}</b><small>${DDESC[i]}</small><button data-rb="${i}">${n}(으)로 환생</button></div>`).join('')}</div>`,null,p=>{
-    p.querySelectorAll('[data-rb]').forEach(b=>b.onclick=()=>{const d=+b.dataset.rb;if(!confirm(DNAME[d]+' 난이도로 환생할까요? 배지와 이야기는 처음부터예요.'))return;
+function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax(),tg=Math.min(5,DIFF()+1);
+  openPanel('환생',`<p class="hhint">환생하면 난이도가 <b>차례대로 다음 단계</b>로 올라가요. 지금까지 모은 포켓몬 ${G.party.length+G.box.length}마리 · 가방 · 돈 · 도감 · 장비는 그대로예요. 배지 · 상위 배지 · 체육관 · 라이벌 · 맵 아이템은 처음부터예요.</p>
+   <div class="dfg">${DNAME.map((n,i)=>i!==tg||i>mx?'':`<div class="dfc" style="--dc:${DCOL[i]}"><b>${n}</b><small>${DDESC[i]}</small><button data-rb="${i}">${n}(으)로 환생</button></div>`).join('')}</div>`,null,p=>{
+    p.querySelectorAll('[data-rb]').forEach(b=>b.onclick=()=>{const d=+b.dataset.rb;if(d!==tg||d>mx)return;if(!confirm(DNAME[d]+' 난이도로 환생할까요? 배지와 이야기는 처음부터예요.'))return;
       G.rebirth=(G.rebirth||0)+1;G.opt.diff=d;G.badges=0;G.champ=0;G.ub=0;G.badgeSeen=0;G.qrw=1;G.beat={};G.got={};G.flags={r1:1};G.visit={0:1};G.nav=null;G.rematch={};G.champOn={};
       try{for(const k in AREAS)delete AREAS[k]}catch(e){}try{buildLoc()}catch(e){}healAll();closePanel(1);save();
       const A=genArea(0);const b2=A.bld.find(x=>x.kind==='home')||A.bld.find(x=>x.kind==='center');place(0,b2?b2.out.x:A.spawn.x,b2?b2.out.y:A.spawn.y,0);hud();sfx('badge');
@@ -4284,11 +4287,12 @@ const rarCapOk=n=>{try{return rarOf(n)<=rarCap()}catch(e){return true}};
 {const _ri=rollItem;rollItem=function(kind,rar){if(kind!=='P'||window.PKNOCAP)return _ri.apply(this,arguments);const cap=Math.max(4,rarCap());if(rar!=null&&rar>cap)rar=cap;let g=_ri.call(this,kind,rar);for(let i=0;i<6&&g&&g.rar>cap;i++)g=_ri.call(this,kind,cap);return g}}
 try{const h=HUB.find(x=>x.k==='card');if(h)h.d+=' 난이도마다 한 등급씩 열려요: 쉬움·보통 전설까지 · 어려움 신화 · 지옥 환상 · 나이트메어 유일. 카드팩·합성은 어느 난이도든 운 좋으면 신화까지!'}catch(e){}
 
+setInterval(()=>{try{if(!G||G._expFix)return;for(const m of [...G.party,...G.box]){if(m&&m.lv&&m.exp<expAt(m.lv))m.exp=expAt(m.lv)}G._expFix=1;save()}catch(e){}},3000);
 // ===== 난이도 클리어 연출: 챔피언이 되면 새 장이 열리듯 멋지게 + 전설 포켓몬 하나 고르기 =====
-const CLRN=['쉬움','보통','어려움','지옥','나이트메어'];
+const CLRN=['쉬움','보통','어려움','지옥','나이트메어','종말'];
 function clrKey(){return DIFF()+'-'+(G.rebirth||0)}
 setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over'||DLG.on||PANEL||document.getElementById('clrOv'))return;G.clr=G.clr||{};const k=clrKey();if(G.clr[k])return;clearScene(DIFF(),k)}catch(e){}},2500);
-async function clearScene(d,ck){const nx=d<4?CLRN[d+1]:null;const o=document.createElement('div');o.id='clrOv';
+async function clearScene(d,ck){const nx=d<5?CLRN[d+1]:null;const o=document.createElement('div');o.id='clrOv';
   o.innerHTML=`<div class="clrbg"></div><div class="clrray"></div><i class="clrbar t"></i><i class="clrbar b"></i><div class="clrp"></div>
    <div class="clrc"><small class="clr1">${CLRN[d]} 난이도</small><h1 class="clr2">CHAMPION</h1><p class="clr3">${esc(G.name||'')}, 챔피언이 됐어요!</p>
    <div class="clr4"><span>${nx?'새로운 장이 열렸어요':'모든 난이도를 정복했어요'}</span><b>${nx?'CHAPTER '+(d+2)+' · '+nx:'LEGEND OF '+esc(G.name||'')}</b></div>
