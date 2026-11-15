@@ -28,7 +28,9 @@ body.inb #bTx{display:block}#bMenu{position:fixed;left:8px;right:8px;bottom:calc
 body.inb #bMenu:not(:empty){display:grid}body.inb #bMenu:not(:empty)~#bTx{bottom:calc(var(--mh2,190px) + env(safe-area-inset-bottom))}
 #bMenu button{min-height:54px;border:3px solid #2c3050;border-radius:12px;background:#fffdf0;font-weight:900;font-size:16px;color:#2c3050;box-shadow:0 3px 0 #2c3050;padding:4px}#bMenu button[style]{color:#fff;text-shadow:0 1px 2px #000a}#bMenu button small{display:block;font-size:11px;opacity:.9}#bMenu button:disabled{opacity:.4}
 #bMenu .mf{background:#ff7a5a;color:#fff}
-#dlg{position:fixed;left:8px;right:8px;bottom:calc(200px + env(safe-area-inset-bottom));z-index:9;background:#fffdf2;border:4px solid #2c3050;border-radius:14px;padding:14px 16px 22px;font-weight:800;font-size:17px;color:#2c3050;display:none;line-height:1.4;box-shadow:0 5px 0 #0005}#dlg.on{display:block}#dlg:after{content:'▼';position:absolute;right:12px;bottom:4px;font-size:12px;animation:bl .8s infinite}@keyframes bl{50%{opacity:0}}
+#gmTm{position:fixed;left:14px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:6;display:none;padding:6px 10px;border-radius:999px;border:2px solid #2c3050;background:#fffdf2;color:#2c3050;font-weight:900;font-size:13px;box-shadow:0 2px 0 #0005}#gmTm.show{display:block}#gmTm.on{background:#ff9f1c;color:#fff;border-color:#7a4500;animation:gmp 1.6s infinite}@keyframes gmp{50%{box-shadow:0 0 0 5px #ff9f1c55}}
+#hellFx{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;background:radial-gradient(ellipse at 50% 45%,rgba(8,4,28,.15) 0%,rgba(2,0,14,.75) 100%);transition:opacity .8s}#hellFx.on{display:block}#hellFx .fl{position:absolute;inset:0;background:#dfe8ff;opacity:0}#hellFx.zap .fl{animation:hfz .7s ease-out}#hellFx svg{position:absolute;top:0;height:70%;width:30%;opacity:0;filter:drop-shadow(0 0 6px #bcd0ff) drop-shadow(0 0 14px #7fa0ff)}#hellFx.zap svg{animation:hfb .7s ease-out}@keyframes hfz{0%{opacity:0}6%{opacity:.85}12%{opacity:.15}20%{opacity:.7}100%{opacity:0}}@keyframes hfb{0%{opacity:0}6%{opacity:1}14%{opacity:.2}22%{opacity:1}60%{opacity:.5}100%{opacity:0}}
+#dlg{max-height:calc(100vh - 215px - env(safe-area-inset-bottom) - env(safe-area-inset-top));max-height:calc(100dvh - 215px - env(safe-area-inset-bottom) - env(safe-area-inset-top));overflow:hidden;box-sizing:border-box;position:fixed;left:8px;right:8px;bottom:calc(200px + env(safe-area-inset-bottom));z-index:9;background:#fffdf2;border:4px solid #2c3050;border-radius:14px;padding:14px 16px 22px;font-weight:800;font-size:17px;color:#2c3050;display:none;line-height:1.4;box-shadow:0 5px 0 #0005}#dlg.on{display:block}#dlg:after{content:'▼';position:absolute;right:12px;bottom:4px;font-size:12px;animation:bl .8s infinite}@keyframes bl{50%{opacity:0}}
 #toasts{position:fixed;left:0;right:0;top:calc(100px + env(safe-area-inset-top));z-index:12;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}.toast{background:#2c3050ee;color:#fff;font-weight:800;padding:8px 14px;border-radius:12px;font-size:14px;animation:tin .25s}@keyframes tin{from{transform:translateY(-8px);opacity:0}}
 #fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:20;transition:opacity .2s}
 .panel{position:fixed;inset:calc(10px + env(safe-area-inset-top)) 8px calc(10px + env(safe-area-inset-bottom));z-index:15;background:#fffdf2;border:4px solid #2c3050;border-radius:16px;display:flex;flex-direction:column;color:#2c3050;box-shadow:0 6px 0 #0006}
@@ -1865,8 +1867,10 @@ let META={},SPECIES=[],BYDEX={},FXA={},THUMB={},LOC={};let G=null;
 const AUTO={on:0,hunt:null,goal:null,stuck:0};
 // ---------- 대화 · 알림 · 화면 전환 ----------
 const dlgH=l=>typeof l==='string'?l:(l.f?faceImg(l.f[0],l.f[1]):'')+l.t;
-const DLG={on:0,L:[],r:null,next(){if(!this.on)return;this.L.shift();if(this.L.length){bt('dlg').innerHTML=dlgH(this.L[0]);sfx('tap')}else{this.on=0;bt('dlg').classList.remove('on');const r=this.r;this.r=null;r&&r()}}};
-function say(L){return new Promise(r=>{DLG.on=1;DLG.L=L.slice();DLG.r=r;bt('dlg').innerHTML=dlgH(DLG.L[0]);bt('dlg').classList.add('on');})}
+// 긴 글은 글자를 줄여서 위가 안 잘리게 맞춰요
+function dlgFit(){try{const e=bt('dlg');e.style.fontSize='';let f=17;while(e.scrollHeight>e.clientHeight+2&&f>11){f--;e.style.fontSize=f+'px'}}catch(_){}}
+const DLG={on:0,L:[],r:null,next(){if(!this.on)return;this.L.shift();if(this.L.length){bt('dlg').innerHTML=dlgH(this.L[0]);dlgFit();sfx('tap')}else{this.on=0;bt('dlg').classList.remove('on');const r=this.r;this.r=null;r&&r()}}};
+function say(L){return new Promise(r=>{DLG.on=1;DLG.L=L.slice();DLG.r=r;bt('dlg').innerHTML=dlgH(DLG.L[0]);bt('dlg').classList.add('on');dlgFit();})}
 bt('dlg').addEventListener('pointerdown',()=>DLG.next());
 function toast(t){const d=document.createElement('div');d.className='toast';d.innerHTML=t;bt('toasts').appendChild(d);setTimeout(()=>d.remove(),2400)}
 function fade(v){bt('fade').style.opacity=v;return sleep(220)}
@@ -4039,7 +4043,7 @@ function diffOpen(){if(!G)return;const cur=DIFF(),mx=dMax();
    <div class="hcard"><b>환생 ${G.rebirth?'('+G.rebirth+'번 함)':''}</b><p>챔피언이 되면 이야기를 처음부터 다시 할 수 있어요. 포켓몬 · 가방 · 돈 · 도감 · 장비 · 카드팩은 그대로, 배지와 체육관은 처음부터! 환생할 때마다 <b>부적 한도 +1</b> · <b>경험치 +5%</b>. <b>4번째 환생부터는 데려갈 포켓몬을 10마리만</b> 골라요 (5번째 15마리 · 6번째 20마리…). 고른 포켓몬은 접두사 · 기술 · 부적 · 사탕이 그대로예요. 환생 퀘스트 추가 팩은 <b>난이도별</b>이에요: 어려움 전설 · 지옥 신화 · 나이트메어 환상 · <b>종말 유일</b>.</p>${rbRuleHtml((G.rebirth||0)+1)}<div class="wbt"><button class="main" id="dfRb" ${G.champ?'':'disabled'}>${G.champ?'환생하기':'챔피언이 되면 할 수 있어요'}</button></div></div>`,null,p=>{
     p.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{G.opt.diff=+b.dataset.df;save();sfx('get');toast('난이도: '+DNAME[DIFF()]);diffOpen()});const rb=p.querySelector('#dfRb');if(rb)rb.onclick=()=>{closePanel(1);rebirthOpen()}})}
 function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax(),tg=Math.min(5,DIFF()+1);
-  openPanel('환생',`<p class="hhint">환생하면 난이도가 <b>차례대로 다음 단계</b>로 올라가요. 지금까지 모은 포켓몬 ${G.party.length+G.box.length}마리${rbCap((G.rebirth||0)+1)?' (<b>이번 환생부터는 '+rbCap((G.rebirth||0)+1)+'마리만 골라서 데려가요</b> · 나머지는 떠나요)':''} · 가방 · 돈 · 도감 · 장비 · 접두사는 그대로예요. <b>포켓몬 레벨은 Lv.1부터 다시</b> 시작하고(화면에는 환생마다 +100, 1환생은 Lv.101~), 능력치는 환생마다 +${Math.round(REBSTAT*100)}%예요. 배지 · 상위 배지 · 체육관 · 라이벌 · 맵 아이템은 처음부터예요.</p>${rbRuleHtml((G.rebirth||0)+1)}
+  openPanel('환생',`<p class="hhint">환생하면 난이도가 <b>차례대로 다음 단계</b>로 올라가요. <b>1~3번째 환생은 포켓몬을 전부, 4번째 환생부터는 10마리만</b>(5번째 15마리 · 6번째 20마리…) 데려가요. 지금까지 모은 포켓몬 ${G.party.length+G.box.length}마리${rbCap((G.rebirth||0)+1)?' (<b>이번 환생부터는 '+rbCap((G.rebirth||0)+1)+'마리만 골라서 데려가요</b> · 나머지는 떠나요)':''} · 가방 · 돈 · 도감 · 장비 · 접두사는 그대로예요. <b>포켓몬 레벨은 Lv.1부터 다시</b> 시작하고(화면에는 환생마다 +100, 1환생은 Lv.101~), 능력치는 환생마다 +${Math.round(REBSTAT*100)}%예요. 배지 · 상위 배지 · 체육관 · 라이벌 · 맵 아이템은 처음부터예요.</p>${rbRuleHtml((G.rebirth||0)+1)}
    <div class="dfg">${DNAME.map((n,i)=>i!==tg||i>mx?'':`<div class="dfc" style="--dc:${DCOL[i]}"><b>${n}</b><small>${DDESC[i]}</small><button data-rb="${i}">${n}(으)로 환생</button></div>`).join('')}</div>`,null,p=>{
     p.querySelectorAll('[data-rb]').forEach(b=>b.onclick=()=>{const d=+b.dataset.rb;if(d!==tg||d>mx)return;const cap0=rbCap((G.rebirth||0)+1);if(!confirm(DNAME[d]+' 난이도로 환생할까요? 배지와 이야기는 처음부터예요.'+(cap0?'\n\n⚠️ 주의! 이번 환생은 포켓몬을 '+cap0+'마리만 데려가요.\n다음 화면에서 고르지 않은 포켓몬은 영영 사라져요!':'')))return;
       const cap=rbCap((G.rebirth||0)+1);const go=()=>{G.rebirth=(G.rebirth||0)+1;resetAllLv();G._lvReset=1;G.opt.diff=d;G.rbd=d;G.badges=0;G.champ=0;G.ub=0;G.badgeSeen=0;G.qrw=1;G.beat={};G.got={};G.flags={r1:1};G.visit={0:1};G.nav=null;G.rematch={};G.champOn={};
@@ -4050,6 +4054,8 @@ function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax(),tg=Math.min(5,DIFF
 // ===== 4번째 환생부터: 데려갈 포켓몬 고르기 (4환생 10마리 · 5환생 15마리 · 6환생 20마리…) =====
 // 고른 포켓몬은 그대로(접두사 · 기술 · 부적 · 사탕 · 이로치 · 잠금) · 고르지 않은 포켓몬은 영혼도 없이 떠나요
 function rbCap(n){return n>=4?10+5*(n-4):0}
+// 환생 안내문 (n = 다음 환생 번호): 몇 번째 환생부터 포켓몬이 줄어드는지 꼭 알려 줘요
+function rbBrief(n){const c=rbCap(n);return ['<b>🌀 환생 안내</b><br>챔피언이 되면 「환생」으로 이야기를 처음부터 다시 할 수 있어요.','포켓몬은 Lv.1부터 다시 키워요.<br>능력치는 환생마다 +'+Math.round(REBSTAT*100)+'%, 화면 레벨은 +100씩 올라가요.<br>배지 · 체육관은 처음부터예요.','⚠️ <b>1~3번째 환생</b>은 포켓몬을 <b>전부</b> 데려가요.','⚠️ <b>4번째 환생부터</b>는 포켓몬을 <b>10마리만</b> 데려가요.<br>(5번째 15마리 · 6번째 20마리…)<br><b>안 고른 포켓몬은 영영 사라져요!</b>',c?'👉 다음은 <b>'+n+'번째 환생</b>이라<br>포켓몬 <b>'+c+'마리만</b> 데려가요!':'👉 다음은 <b>'+n+'번째 환생</b>이에요.<br>이번에는 전부 데려가요.<br>(줄어드는 건 <b>4번째</b>부터 · 앞으로 '+(4-n)+'번 남았어요)','아끼는 포켓몬은 <b>팀 화면에서 🔒 자물쇠</b>를 채워 두세요.<br>영혼이 필요하면 환생 <b>전에</b> 중복 포켓몬을 분해해 두세요.','😊 대신 도감은 그대로 유지되고,<br>환상 · 유일 포켓몬 팩을 더 받아요.']}
 // 이야기: 왜 포켓몬이 줄어드나요?
 function rbStory(n,c){return ['<b>🌀 시간의 문</b> 앞에 섰어요. 챔피언이 된 트레이너만 이 문을 지나 새로운 모험을 시작할 수 있어요.','문 너머 <b>시간의 길</b>은 아주 좁아서, 모든 포켓몬이 함께 건널 수 없어요. 마음이 가장 잘 통한 <b>파트너만</b> 같이 갈 수 있죠.','트레이너가 강해질수록 길이 넓어져요. <b>4번째 환생은 10마리, 5번째는 15마리…</b> 문을 지날수록 더 많은 파트너와 건널 수 있어요.','함께 건너지 못한 포켓몬들은 시간의 틈으로 흩어져요. 하지만 <b>도감에는 그 기억이 그대로 남아요.</b>','그리고 틈에서 새어 나온 신비한 힘이 <b>환상 · 유일 포켓몬</b>을 깨워요! 나이트메어와 종말의 문을 지나면 더 큰 선물이 기다려요.','<b>'+n+'번째 환생!</b> 함께 건널 파트너 <b>'+c+'마리</b>를 골라요. 흩어지는 포켓몬은 영영 돌아오지 않으니 신중하게!']}
 const RBBOX='background:#ffe9e6;border:3px solid #c0304a;color:#7a1020;padding:8px 10px;margin:8px 0;line-height:1.55;font-weight:800;font-size:14px';
@@ -4079,9 +4085,20 @@ function rbPick(cap,go){const all=[...G.party,...G.box];all.forEach(m=>{if(!m.ui
       save();try{refreshSpr()}catch(e){}closePanel(1);setTimeout(()=>{try{mlTick()}catch(e){}},50);go()}};
   openPanel('환생 · 데려갈 포켓몬',`<div id="rbB"></div>`,null,draw)}
 
+// ===== 지옥 난이도부터: 화면이 어두워지고, 마을에서는 번개가 쳐요 =====
+(function(){let el=null,nextZap=0;const OP=[0,0,0,.55,.7,.85];
+  function thunder(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const n=AC.sampleRate*1.2,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2);const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=380;const g=AC.createGain();g.gain.value=.5;s.connect(f);f.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
+  function bolt(){const x0=10+Math.random()*80;let x=x0,y=0,pts=[x+',0'];while(y<100){y+=8+Math.random()*10;x+=(Math.random()-.5)*26;pts.push(Math.max(2,Math.min(98,x)).toFixed(1)+','+Math.min(y,100).toFixed(1))}return pts.join(' ')}
+  function make(){el=document.createElement('div');el.id='hellFx';el.innerHTML='<div class="fl"></div><svg id="hfB" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" points=""/></svg>';document.body.appendChild(el)}
+  function zap(){const sv=el.querySelector('#hfB');sv.style.left=(Math.random()*70)+'%';sv.querySelector('polyline').setAttribute('points',bolt());el.classList.remove('zap');void el.offsetWidth;el.classList.add('zap');setTimeout(thunder,180+Math.random()*250)}
+  setInterval(()=>{try{if(!el)make();const d=(typeof DIFF==='function'&&G)?DIFF():0;const on=!!G&&d>=3&&typeof SCENE!=='undefined'&&SCENE==='over';el.classList.toggle('on',on);if(!on)return;el.style.opacity=OP[Math.min(5,d)];
+    let town=false;try{town=!!genArea(G.a).town}catch(e){}
+    if(town&&Date.now()>nextZap){if(nextZap)zap();nextZap=Date.now()+5000+Math.random()*7000}else if(!town)nextZap=0}catch(e){}},500);
+})();
+
 // 환생 규칙 안내: 4번째 환생 전에 여러 번 알려 줘요 (환생 3번 이상이면 하루에 한 번씩 · 나머지는 한 번)
 setInterval(()=>{try{if(!G||typeof SCENE==='undefined'||SCENE!=='over'||DLG.on||PANEL||document.getElementById('mg'))return;const r=G.rebirth||0,day=new Date().toISOString().slice(0,10);
-  if(r>=3){if(G.rbWarnD===day)return;G.rbWarnD=day}else{if(G.rbWarn1)return;G.rbWarn1=1}save();
+  if(r>=3){if(G.rbWarnD===day)return;G.rbWarnD=day}else{if(G.rbIntro)return;G.rbIntro=1;G.rbWarn1=1;save();say(rbBrief(r+1));return}save();
   const nx=r+1,c=rbCap(nx);
   say(['<b>⚠️ 환생 규칙이 바뀌었어요! 꼭 읽어요</b>','🌀 환생의 문 너머 <b>시간의 길</b>은 좁아서, 마음이 가장 잘 통한 파트너만 함께 건널 수 있게 됐어요.',c?'다음 <b>'+nx+'번째 환생</b>은 포켓몬을 <b>'+c+'마리만</b> 데려갈 수 있어요.':'<b>4번째 환생</b>부터는 포켓몬을 <b>10마리만</b> 데려갈 수 있어요. (5번째 15마리 · 6번째 20마리…)','<b>안 고른 포켓몬은 영영 사라져요!</b> 되돌릴 수 없고 영혼도 안 줘요.','고른 포켓몬은 접두사 · 기술 · 부적 · 사탕이 그대로예요.','아끼는 포켓몬은 환생하기 전에 <b>팀 화면에서 🔒 자물쇠</b>를 채워 두세요. 영혼이 필요하면 환생하기 <b>전에</b> 중복 포켓몬을 분해해 두세요.','😊 대신 <b>환상 · 유일 포켓몬</b>을 얻을 수 있어요! (환생 퀘스트마다 나이트메어는 환상 팩, 종말은 유일 팩이 더 나와요) 그리고 <b>도감은 그대로 유지돼요.</b>'])}catch(e){}},5000);
 try{HUB.push({k:'diff',n:'난이도 · 환생',d:'쉬움 · 보통 · 어려움 · 지옥 · 나이트메어. 높을수록 상대가 세고 더 높은 등급 포켓몬이 나오지만 보상이 커요. 챔피언이 되면 환생해서 더 높은 난이도로 처음부터! 4번째 환생부터는 데려갈 포켓몬을 10마리(5번째 15마리…)만 골라요.',st:()=>DNAME[DIFF()]+(G.rebirth?' · 환생 '+G.rebirth:''),go:[['난이도 · 환생',()=>diffOpen()]]})}catch(e){}
@@ -4194,6 +4211,20 @@ try{const h=HUB.find(x=>x.k==='card');if(h){h.n='카드팩 · 영혼 합성';h.d
 
 // ===== 운영자(GM): 번호 010-2252-0714 · 이름은 「GM」 · 랭킹에는 안 나와요 (월드보스 데미지는 같이 깎아요) =====
 const GMNUM='01022520714';let isGM=()=>!!(G&&String(G.num||'').replace(/\D/g,'')===GMNUM);
+// ===== 운영자 테스트 모드: 트레이너 전투를 건너뛰고 보상 확인 · 지역에 들어올 때마다 처음 상태로 (게이트 무시) =====
+const gmT=()=>{try{return !!(G&&G.gmTest&&isGM())}catch(e){return false}};
+function gmResetArea(a){try{const A=genArea(a);G.beat=G.beat||{};G.got=G.got||{};for(const n of (A.npc||[]))if(n.kind==='trainer'){delete G.beat[n.id]}for(const it of (A.items||[]))delete G.got[it.id]}catch(e){}}
+function gmTestToggle(){if(!isGM())return;G.gmTest=G.gmTest?0:1;if(G.gmTest)gmResetArea(G.a);save();gmTmUi();toast(G.gmTest?'🛠 테스트 모드 ON · 트레이너 스킵 · 들어갈 때마다 처음처럼 · 게이트 무시':'🛠 테스트 모드 OFF')}
+function gmTmUi(){try{let b=document.getElementById('gmTm');if(!b){b=document.createElement('button');b.id='gmTm';b.onclick=()=>{sfx('tap');gmTestToggle()};document.body.appendChild(b)}const show=!!G&&isGM()&&typeof SCENE!=='undefined'&&SCENE==='over';b.classList.toggle('show',show);b.classList.toggle('on',!!(G&&G.gmTest));b.textContent=(G&&G.gmTest)?'🛠 TEST ON':'🛠 테스트'}catch(e){}}
+setInterval(gmTmUi,700);
+{const _b=battle;battle=async function(o){
+  if(gmT()&&o&&o.trainer&&!o.pvp&&!o.wb){const L=['🛠 <b>GM 테스트</b> · <b>'+o.trainer+'</b> 전투를 건너뛰고 승리 처리했어요.'];
+    if(o.money&&!o.noMoney){const mo=Math.round(o.money*1.5*DMONEY[DIFF()]);G.money+=mo;L.push('💰 상금 '+mo.toLocaleString()+'원 지급'+(DIFF()?' (난이도 ×'+DMONEY[DIFF()]+')':''))}
+    if(DIFF()){try{REWQ.push({kind:R()<.5?'P':'M',msg:'난이도 보너스! 카드팩 1장 (GM 테스트라 확정)',why:'난이도 보너스'});L.push('🎁 난이도 보너스 카드팩 1장 (테스트라 확정)')}catch(e){}}
+    save();await say([L.join('<br>')]);return 'win'}
+  return _b.apply(this,arguments)}}
+{const _g=gateOk;gateOk=function(A){if(gmT()&&!(G.a===0&&!G.party.length))return true;return _g.apply(this,arguments)}}
+{const _p=place;place=function(a){const r=_p.apply(this,arguments);if(gmT())gmResetArea(a);return r}}
 let isGMName=raw=>{const n=rkSplit(String(raw||'')).name.trim();return n==='GM'||n==='유종호'||n.startsWith('[GM]')};
 {const _n=rkName;rkName=function(){return isGM()?'[GM]'+(G.name||'유종호').slice(0,8):_n.apply(this,arguments)}}
 {const _rp=rankPush;rankPush=async function(){if(isGM()){toast('운영자(GM)는 랭킹에 올라가지 않아요');return false}return _rp.apply(this,arguments)}}
@@ -4375,8 +4406,8 @@ async function clearScene(d,ck){const nx=d<5?CLRN[d+1]:null;const o=document.cre
   try{sfx('badge')}catch(e){}requestAnimationFrame(()=>o.classList.add('on'));
   await new Promise(r=>o.querySelector('#clrPick').onclick=()=>{sfx('tap');r()});
   const got=await legendPick();/* 전설을 실제로 받은 뒤에만 「받음」으로 기록해요 · 고르다 앱이 꺼지면 다음에 다시 고를 수 있어요 */if(ck){G.clr=G.clr||{};G.clr[ck]=1;save()}o.classList.add('out');await sleep(500);o.remove();
-  if(nx)await say(['새 난이도 <b>'+nx+'</b>에 도전할 수 있어요!','「환생」하면 포켓몬 · 아이템 · 장비는 그대로, 스토리는 처음부터. 더 강한 포켓몬과 더 좋은 접두사가 나와요!']);
-  if(nx&&typeof rebirthOpen==='function'){const go=await new Promise(r=>{itAsk(nx+' 난이도로 환생할까요?','지금 바로 하지 않아도 돼요. 나중에 메뉴 → 환생에서 할 수 있어요.',()=>r(1));setTimeout(()=>{const n=document.querySelector('#gAsk #gaN');if(n)n.addEventListener('click',()=>r(0))},50)});if(go)rebirthOpen()}}
+  if(nx){const n1=(G.rebirth||0)+1;await say(['새 난이도 <b>'+nx+'</b>에 도전할 수 있어요!','「환생」하면 아이템 · 장비 · 도감은 그대로, 스토리는 처음부터. 더 강한 포켓몬과 더 좋은 접두사가 나와요!',...rbBrief(n1)])}
+  if(nx&&typeof rebirthOpen==='function'){const go=await new Promise(r=>{{const n1=(G.rebirth||0)+1,c1=rbCap(n1);itAsk(nx+' 난이도로 환생할까요?','다음은 <b>'+n1+'번째 환생</b>이에요.<br>'+(c1?'⚠️ 포켓몬을 <b>'+c1+'마리만</b> 데려가고, 안 고른 포켓몬은 <b>영영 사라져요!</b>':'이번에는 포켓몬을 <b>전부</b> 데려가요. (<b>4번째 환생부터 10마리만</b> 데려가요)')+'<br>배지 · 스토리는 처음부터 다시예요.<br><small>지금 바로 하지 않아도 돼요. 나중에 메뉴 → 환생에서 할 수 있어요.</small>',()=>r(1))};setTimeout(()=>{const n=document.querySelector('#gAsk #gaN');if(n)n.addEventListener('click',()=>r(0))},50)});if(go)rebirthOpen()}}
 function legendPick(){return new Promise(done=>{const L=SPECIES.filter(s=>META[s]&&!META[s].form&&rarOf(s)===3).sort((a,b)=>META[a].dex-META[b].dex);
   const o=document.createElement('div');o.id='lgOv';o.innerHTML=`<div class="lgw"><div class="lgt">전설 포켓몬 고르기 · ${L.length}마리 중 하나</div><p class="lgh">한 마리만 고를 수 있어요. 잘 보고 골라요! (레벨은 내 제일 센 포켓몬 정도로 와요)</p>
    <input class="lgs" placeholder="이름으로 찾기"><div class="lgg">${L.map(s=>`<button class="lgc" data-n="${encodeURIComponent(s)}"><img src="${THUMB[s]||''}" alt="" loading="lazy"><b>${META[s].name}</b><small>${META[s].types.map(t=>TN[t]).join('·')}</small></button>`).join('')}</div></div>`;
@@ -4755,6 +4786,7 @@ setInterval(()=>{try{let b=document.getElementById('rewBar');const L=G&&SCENE===
 body.inb #rewBar{display:none!important}@media (orientation:landscape){#rewBar{top:calc(82px + env(safe-area-inset-top))}}`;document.head.appendChild(c)})();
 
 // ===== 포켓몬 교환: 친구에게 QR로 포켓몬 보내기 (보내면 내 쪽에서는 사라져요 · 같은 QR은 한 번만 받아요) =====
+const TRX=5*60000;   // 교환 QR 유효시간 5분
 const monPack=m=>({n:m.n,lv:m.lv,exp:m.exp,iv:m.iv,moves:m.moves,px:m.px,sh:m.sh?1:0,nick:m.nick,lb:m.lb||0});
 // 거래 규칙: 받는 친구의 제일 높은 레벨보다 높은 포켓몬을 받으면 그 친구 레벨에 맞춰 내려가요 (보낸 쪽 손해)
 // 보낸 친구의 환생 횟수(srcRb)가 나보다 적으면, 그 친구 기준(레벨·능력치)으로 받아요
@@ -4767,7 +4799,15 @@ function pxSlot(m){return new Promise(async done=>{try{const old=pxOf(m);const o
   for(let i=0;i<14&&!skip;i++){const q=PX[ri(0,PX.length-1)];box.style.setProperty('--pc',PXC[q.g]);box.innerHTML=`<u>${PXG[q.g]}</u><b>${q.n}</b><small>…</small>`;sfx('tap');await sleep(60+i*12)}
   m.px=nx;save();const q=PX[nx];box.style.setProperty('--pc',PXC[q.g]);box.className='pxcur pxf'+q.g;box.innerHTML=`<u>${PXG[q.g]}</u><b>${q.n}</b><small>${pxTxt(q)}</small>`;sfx(q.g>=3?'badge':'get');toast('새 접두사: ['+PXG[q.g]+'] '+q.n);
   const sk=o.querySelector('#pxSk');if(sk)sk.remove();await sleep(skip?700:1600);o.remove()}catch(e){try{document.getElementById('pxOv').remove()}catch(_){}}done()})}
-function monUnpack(d){const m=mkMon(d.n,d.lv);if(d.exp!=null)m.exp=d.exp;if(d.iv)m.iv=d.iv;if(d.moves&&d.moves.length)m.moves=d.moves;if(d.px!=null)m.px=d.px;if(d.sh)m.sh=1;if(d.nick)m.nick=d.nick;if(d.lb)m.lb=d.lb;m.hp=stOf(m)[0];return m}
+// 받은 포켓몬 값 검사: QR을 위조해도 말이 안 되는 값(없는 접두사, 별 한계 초과, 개체값 범위 밖, 없는 기술)은 버려요
+function monSane(m){try{m.lv=Math.max(1,Math.min(100,Math.floor(+m.lv)||1));
+  if(!(Array.isArray(m.iv)&&m.iv.length===6&&m.iv.every(x=>Number.isInteger(x)&&x>=0&&x<=31)))m.iv=[0,0,0,0,0,0].map(()=>ri(0,31));
+  if(m.px!=null&&!(Number.isInteger(m.px)&&PX[m.px]))delete m.px;
+  m.lb=Math.max(0,Math.min(LBMAX,Math.floor(+m.lb)||0));if(!m.lb)delete m.lb;
+  if(Array.isArray(m.moves)){m.moves=m.moves.filter(x=>typeof x==='string'&&MV_OK(x)).slice(0,4)}else m.moves=[];
+  if(m.nick!=null){m.nick=String(m.nick).slice(0,12);if(!m.nick)delete m.nick}
+  const lo=expAt(m.lv),hi=expAt(Math.min(100,m.lv+1));m.exp=Math.max(lo,Math.min(hi,+m.exp||lo))}catch(e){}return m}
+function monUnpack(d){const m=mkMon(d.n,Math.max(1,Math.min(100,Math.floor(+d.lv)||1)));if(d.exp!=null)m.exp=d.exp;if(d.iv)m.iv=d.iv;if(d.moves&&d.moves.length)m.moves=d.moves;if(d.px!=null)m.px=d.px;if(d.sh)m.sh=1;if(d.nick)m.nick=d.nick;if(d.lb)m.lb=d.lb;monSane(m);m.hp=stOf(m)[0];return m}
 async function qrPack(tag,obj){return tag+'|'+b64u(await zipStr(JSON.stringify(obj)))}
 async function qrUnpack(t){return JSON.parse(await unzipStr(ub64u(t.slice(5))))}
 function qrShow(title,txt,lines,btns){xfClose();const o=document.createElement('div');o.id='xfOv';o.innerHTML=`<div class="xfq"></div><div class="xfs"><b>${title}</b>${lines}<div class="wbt">${btns.map((b,i)=>`<button data-qb="${i}" class="${b[2]||''}">${b[0]}</button>`).join('')}</div></div>`;document.body.appendChild(o);
@@ -4779,10 +4819,14 @@ function tradeOpen(){if(!G)return;const all=[...G.party.map((m,i)=>({m,w:'p',i})
     p.querySelector('#trScan').onclick=()=>{closePanel(1);xferScan()};
     p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const x=all[+b.dataset.k];sfx('tap');itAsk('<b>'+nm(x.m)+'</b>을(를) 친구에게 보낼까요?','보내면 내 쪽에서는 사라져요. QR 화면에서 「보내기 취소」를 누르면 되돌릴 수 있어요.',()=>tradeSend(x.m))})})}
 async function tradeSend(m){if(typeof qrcode==='undefined'||typeof CompressionStream==='undefined'){toast('이 폰에서는 QR 보내기를 못 해요 (크롬 최신 버전 필요)');return}
-  const tok=Date.now().toString(36)+Math.random().toString(36).slice(2,7);const txt=await qrPack('PKT1',{k:'pkt',t:tok,from:(G.name||'').slice(0,8),m:Object.assign(monPack(m),{rb:rbOf(m)})});
-  const wasP=G.party.includes(m);G.party=G.party.filter(x=>x!==m);G.box=G.box.filter(x=>x!==m);G.trOut=G.trOut||[];G.trOut.push({t:tok,d:Date.now(),n:m.n});save();try{refreshSpr()}catch(e){}closePanel(1);
-  qrShow(nm(m)+' 보내기',txt,`<p>친구 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 이 화면을 비춰요.</p>`,[['친구가 받았어요 (닫기)',()=>{xfClose();toast(nm(m)+'을(를) 친구에게 보냈어요!')},'main'],['보내기 취소 (되돌리기)',()=>{(wasP&&G.party.length<6?G.party:G.box).push(m);G.trOut=(G.trOut||[]).filter(x=>x.t!==tok);save();try{refreshSpr()}catch(e){}xfClose();toast(nm(m)+'을(를) 되돌렸어요')}]])}
+  const tok=Date.now().toString(36)+Math.random().toString(36).slice(2,7);const txt=await qrPack('PKT1',{k:'pkt',t:tok,x:Date.now()+TRX,from:(G.name||'').slice(0,8),m:Object.assign(monPack(m),{rb:rbOf(m)})});
+  const wasP=G.party.includes(m);G.party=G.party.filter(x=>x!==m);G.box=G.box.filter(x=>x!==m);G.trOut=G.trOut||[];G.trOut.push({t:tok,d:Date.now(),n:m.n,x:Date.now()+TRX,wp:wasP?1:0,mon:JSON.parse(JSON.stringify(m))});save();try{refreshSpr()}catch(e){}closePanel(1);
+  qrShow(nm(m)+' 보내기',txt,`<p>친구 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 이 화면을 비춰요.</p><p><small>⏱ QR은 5분 안에만 받을 수 있어요. 아무도 안 받으면 5분 뒤 포켓몬이 자동으로 돌아와요.</small></p>`,[['친구가 받았어요 (닫기)',()=>{trOutDone(tok);xfClose();toast(nm(m)+'을(를) 친구에게 보냈어요!')},'main'],['보내기 취소 (되돌리기)',()=>{const e=(G.trOut||[]).find(x=>x.t===tok);if(!e||!e.mon){xfClose();return}if(Date.now()<e.x+60000){toast('친구가 받는 중일 수 있어서 QR 시간(5분)이 지나야 취소돼요');return}trOutBack(e);xfClose();toast(nm(m)+'을(를) 되돌렸어요')}]])}
+function trOutDone(t){const e=(G.trOut||[]).find(x=>x.t===t);if(e){delete e.mon;save()}}
+function trOutBack(e){if(!e||!e.mon)return 0;const m=e.mon;delete e.mon;(e.wp&&G.party.length<6?G.party:G.box).push(m);save();try{refreshSpr()}catch(_){}return 1}
+setInterval(()=>{try{if(!G||!G.trOut)return;for(const e of G.trOut)if(e.mon&&Date.now()>(e.x||0)+60000){const m=e.mon;if(trOutBack(e))toast(nm(m)+'이(가) 안 받아져서 돌아왔어요')}}catch(_){}},10000);
 async function tradeApply(t){let d;try{d=await qrUnpack(t)}catch(e){toast('교환 QR을 읽다가 실패했어요');return}if(!d||d.k!=='pkt'||!d.m||!META[d.m.n]){toast('교환 QR이 아니에요');return}
+  if(d.x&&Date.now()>d.x+30000){toast('QR 유효시간(5분)이 지났어요. 친구에게 다시 보내 달라고 해요');return}
   G.usedT=G.usedT||{};if(G.usedT[d.t]){toast('이미 받은 포켓몬이에요 (같은 QR은 한 번만)');return}if((G.trOut||[]).some(x=>x.t===d.t)){toast('내가 보낸 QR이에요');return}
   const m=monUnpack(d.m);m.from=d.from||'친구';G.usedT[d.t]=1;const rbFx=trRbFix(m,d.m.rb);const lvOld=trLvFix(m);const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
   if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m);save();return}G.box.push(m);save();try{refreshSpr()}catch(e){}
@@ -6681,7 +6725,7 @@ const pk=m=>[String(m.n).replace(/^sc:/,'').replace(/\//g,'_'),m.lv,m.sh?1:0,m.p
 const upk=s=>{const a=String(s).split('|');const n='sc:'+(a[0]||'').replace(/_/g,'/');if(!META[n])return null;const m=mkMon(n,Math.max(1,Math.min(100,+a[1]||1)));
   if(+a[2])m.sh=1;if(a[3]!=='')m.px=+a[3];if(+a[4])m.lb=+a[4];if(a[5]!==''&&META[n].form)m.fr=+a[5];if(a[6]!=='')m.fx=+a[6];if(+a[7])m.gift=1;
   const iv=(a[8]||'').split('-').map(Number);if(iv.length===6&&iv.every(x=>x>=0&&x<=31))m.iv=iv;const mv=(a[9]||'').split(',').filter(x=>x&&MV_OK(x));if(mv.length)m.moves=mv.slice(0,4);
-  m.hp=stOf(m)[0];return m};
+  monSane(m);m.hp=stOf(m)[0];return m};
 const MV_OK=id=>{try{return !!mv(id)}catch(e){return false}};
 
 // =====================================================================
