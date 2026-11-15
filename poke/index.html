@@ -28,7 +28,7 @@ body.inb #bTx{display:block}#bMenu{position:fixed;left:8px;right:8px;bottom:calc
 body.inb #bMenu:not(:empty){display:grid}body.inb #bMenu:not(:empty)~#bTx{bottom:calc(var(--mh2,190px) + env(safe-area-inset-bottom))}
 #bMenu button{min-height:54px;border:3px solid #2c3050;border-radius:12px;background:#fffdf0;font-weight:900;font-size:16px;color:#2c3050;box-shadow:0 3px 0 #2c3050;padding:4px}#bMenu button[style]{color:#fff;text-shadow:0 1px 2px #000a}#bMenu button small{display:block;font-size:11px;opacity:.9}#bMenu button:disabled{opacity:.4}
 #bMenu .mf{background:#ff7a5a;color:#fff}
-#gmTm{position:fixed;left:14px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:6;display:none;padding:6px 10px;border-radius:999px;border:2px solid #2c3050;background:#fffdf2;color:#2c3050;font-weight:900;font-size:13px;box-shadow:0 2px 0 #0005}#gmTm.show{display:block}#gmTm.on{background:#ff9f1c;color:#fff;border-color:#7a4500;animation:gmp 1.6s infinite}@keyframes gmp{50%{box-shadow:0 0 0 5px #ff9f1c55}}
+#gmTm{position:fixed;left:calc(8px + env(safe-area-inset-left));bottom:calc(252px + env(safe-area-inset-bottom));z-index:7;display:none;padding:6px 10px;border-radius:999px;border:2px solid #2c3050;background:#fffdf2;color:#2c3050;font-weight:900;font-size:13px;box-shadow:0 2px 0 #0005}#gmTm.show{display:block}#gmTm.on{background:#ff9f1c;color:#fff;border-color:#7a4500;animation:gmp 1.6s infinite}@keyframes gmp{50%{box-shadow:0 0 0 5px #ff9f1c55}}
 #hellFx{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;background:radial-gradient(ellipse at 50% 45%,rgba(8,4,28,.15) 0%,rgba(2,0,14,.75) 100%);transition:opacity .8s}#hellFx.on{display:block}#hellFx .fl{position:absolute;inset:0;background:#dfe8ff;opacity:0}#hellFx.zap .fl{animation:hfz .7s ease-out}#hellFx svg{position:absolute;top:0;height:70%;width:30%;opacity:0;filter:drop-shadow(0 0 6px #bcd0ff) drop-shadow(0 0 14px #7fa0ff)}#hellFx.zap svg{animation:hfb .7s ease-out}@keyframes hfz{0%{opacity:0}6%{opacity:.85}12%{opacity:.15}20%{opacity:.7}100%{opacity:0}}@keyframes hfb{0%{opacity:0}6%{opacity:1}14%{opacity:.2}22%{opacity:1}60%{opacity:.5}100%{opacity:0}}
 #dlg{max-height:calc(100vh - 215px - env(safe-area-inset-bottom) - env(safe-area-inset-top));max-height:calc(100dvh - 215px - env(safe-area-inset-bottom) - env(safe-area-inset-top));overflow:hidden;box-sizing:border-box;position:fixed;left:8px;right:8px;bottom:calc(200px + env(safe-area-inset-bottom));z-index:9;background:#fffdf2;border:4px solid #2c3050;border-radius:14px;padding:14px 16px 22px;font-weight:800;font-size:17px;color:#2c3050;display:none;line-height:1.4;box-shadow:0 5px 0 #0005}#dlg.on{display:block}#dlg:after{content:'▼';position:absolute;right:12px;bottom:4px;font-size:12px;animation:bl .8s infinite}@keyframes bl{50%{opacity:0}}
 #toasts{position:fixed;left:0;right:0;top:calc(100px + env(safe-area-inset-top));z-index:12;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}.toast{background:#2c3050ee;color:#fff;font-weight:800;padding:8px 14px;border-radius:12px;font-size:14px;animation:tin .25s}@keyframes tin{from{transform:translateY(-8px);opacity:0}}
@@ -485,7 +485,7 @@ body #bM{left:calc(10px + env(safe-area-inset-left))!important;right:auto!import
  #title h1{font-size:clamp(26px,9vh,48px)!important;margin-top:3vh!important;-webkit-text-stroke:3px #1c2550!important}
  #title h1::before{width:9vh!important;height:9vh!important}
 }
-</style><script src="lib/pixelfx.js" defer></script><script src="lib/qrcode.js" defer></script></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
+</style><script src="lib/pixelfx.js" defer></script><script src="lib/dotskillfx.js" defer></script><script src="lib/qrcode.js" defer></script></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
@@ -1479,6 +1479,7 @@ function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.up
     if(!B.hide){cx.save();cx.globalAlpha=.3*Math.max(.2,1-(B.lift||0)/(bsz()*6));cx.fillStyle='#000';cx.beginPath();cx.ellipse(gx,gy+2,bsz()*.5*k,bsz()*.15*k,0,0,7);cx.fill();cx.restore()}
     const one=(xx,yy,al,flt,white)=>{if(B.hide)return;cx.save();if(flt)cx.filter=flt;cx.translate(xx,yy);cx.rotate(B.rot||0);cx.scale(1+(B.sq||0)*.35,1-(B.sq||0));if(B.sink>0){cx.beginPath();cx.rect(-900,-1800,1800,1800);cx.clip();cx.translate(0,B.sink*A.h*sc*.75)}
       drawPm(cx,B.S,B.st,p.row,B.t,0,-A.h*sc*.12,sc,{loop:B.st==='idle',alpha:al,white});cx.restore()};
+    try{if(B.m&&B.m.aw&&!B.hide){const SS=bsz()*k*(B.sc||1);awFlame(cx,gx,y-SS*.45,SS,B.m.aw,performance.now()/1000,1)}}catch(e){}
     for(const [hx,hy,q] of B.hist)one(hx,hy,.12*q,'brightness(1.6) saturate(.5)');
     if(B.clones)for(const c of B.clones)if(c.al>0)one(gx+c.dx,gy+c.dy,c.al,'brightness(.6) saturate(.6)');
     const blink=B.blink>0&&((B.blink-=dt)*20|0)%2===0;if(!blink)one(gx+(B.shake>0?Math.sin((B.shake-=dt)*70)*6:0),y,B.alpha??1,B.glow?'drop-shadow(0 0 4px '+B.glow+') drop-shadow(0 0 10px '+B.glow+')':B.ice>0?'saturate(.3) brightness(1.4) hue-rotate(160deg)':'',B.white);if(B.ice>0)B.ice-=dt}
@@ -2083,7 +2084,7 @@ function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
   <h4>기술 가르치기 (맨 앞 포켓몬: ${G.party[0]?nm(G.party[0]):'-'})</h4><div class="nw"><input id="oMv" list="oMvL" placeholder="기술 이름"><button class="it" id="oMvGo">배우기</button><button class="it" id="oMvMax">기술 레벨 최대</button></div>
   <datalist id="oMvL">${GMOVES.map(m=>`<option value="${m[1]}">`).join('')}</datalist>
   <h4>내 포켓몬</h4><div><button class="it" id="oLv">모두 레벨 +10</button><button class="it" id="oLv100">모두 Lv.100</button><button class="it" id="oHeal">모두 회복</button><button class="it" id="oEvo">진화 확인</button></div>
-  <h4>가방 · 돈 · 진행</h4><div><button class="it" id="oItem">아이템 99개씩</button><button class="it" id="oMoney">💰 +100000</button><button class="it" id="oBadge">배지 8개</button><button class="it" id="oChamp">챔피언 클리어</button><button class="it" id="oDex">도감 전부 잡음</button><button class="it" id="oVisit">마을 전부 가 봄</button></div>
+  <h4>가방 · 돈 · 진행</h4><div><button class="it" id="oItem">아이템 99개씩</button><button class="it" id="oMoney">💰 +100000</button><button class="it" id="oBadge">배지 8개</button><button class="it" id="oChamp">챔피언 클리어</button><button class="it" id="oDex">도감 전부 잡음</button><button class="it" id="oVisit">마을 전부 가 봄</button><button class="it" id="oTest">🛠 테스트 모드 켜기/끄기</button></div>
   <label><input type="checkbox" id="oGod" ${OPER.god?'checked':''}> 무적 (내 포켓몬 체력이 안 닳음)</label><label><input type="checkbox" id="oOne" ${OPER.one?'checked':''}> 한 방에 쓰러뜨리기</label><label><input type="checkbox" id="oNoEnc" ${G.repel>9e8?'checked':''}> 야생 포켓몬 안 나오기</label>
   <h4>순간이동</h4><div class="nw"><select id="oArea">${ar.join('')}</select><button class="it" id="oGo">이동</button></div>
   <h4>🎁 선물 코드 만들기 (아이에게 직접 주기)</h4><div class="nw"><select id="oGk"><option value="P">포켓몬</option><option value="M">기술</option></select><input id="oGid" placeholder="이름/번호 또는 기술 이름"><input id="oGlv" inputmode="numeric" placeholder="레벨" value="10" style="max-width:64px"></div>
@@ -2097,7 +2098,7 @@ function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
     const lvAll=k=>{for(const m of G.party){const S0=stOf(m);m.lv=k(m);m.exp=expAt(m.lv);const S1=stOf(m);m.hp=Math.max(1,m.hp+S1[0]-S0[0]);m.evoReady=1;for(const [l,id] of learnset(META[m.n]))if(l<=m.lv&&!m.moves.includes(id)){if(m.moves.length>=4)m.moves.shift();m.moves.push(id)}}save();operOpen()};
     q('#oLv').onclick=()=>lvAll(m=>Math.min(100,m.lv+10));q('#oLv100').onclick=()=>lvAll(()=>100);q('#oHeal').onclick=()=>{healAll();save();toast('✅ 회복')};q('#oEvo').onclick=()=>{closePanel(1);evolveAfterMenu()};
     q('#oItem').onclick=()=>{for(const k in ITEMS)G.bag[k]=99;save();toast('✅ 아이템 99개씩')};q('#oMoney').onclick=()=>{G.money+=100000;save();hud();toast('✅ +100000원')};
-    q('#oBadge').onclick=()=>{G.badges=8;save();hud();toast('✅ 배지 8개')};q('#oChamp').onclick=()=>{G.badges=8;G.champ=(G.champ||0)+1;save();hud();toast('✅ 챔피언')};
+    q('#oBadge').onclick=()=>{G.badges=8;save();hud();toast('✅ 배지 8개')};q('#oChamp').onclick=()=>{G.badges=8;G.champ=(G.champ||0)+1;save();hud();toast('✅ 챔피언')};q('#oTest').onclick=()=>{gmTestToggle()};
     q('#oDex').onclick=()=>{for(const n of SPECIES){G.dex.s[META[n].dex]=1;G.dex.c[META[n].dex]=1}save();toast('✅ 도감 전부')};q('#oVisit').onclick=()=>{for(let a=0;a<18;a+=2)G.visit[a]=1;save();toast('✅ 마을 전부')};
     q('#oGod').onchange=e=>{OPER.god=e.target.checked};q('#oOne').onchange=e=>{OPER.one=e.target.checked};q('#oNoEnc').onchange=e=>{G.repel=e.target.checked?1e9+9:0;save()};
     q('#oGo').onclick=()=>{const a=+q('#oArea').value;closePanel(1);const A=genArea(a);const b=A.bld.find(b=>b.kind==='center'||b.kind==='home'||b.kind==='league');fade(1).then(()=>{place(a,b?b.door.x:A.GX,b?b.door.y+1:A.H-2,0);fade(0)})};
@@ -2709,7 +2710,7 @@ async function itRun(k,it,m,go){
   try{if(!document.querySelector('.panel'))bagOpen()}catch(e){}}
 
 // ===== 포켓몬 편성 (출전 최대 6마리 · 나머지는 보관함) =====
-function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${dLv(m)}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}<div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
+function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf${m.aw?' awk':''}"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${dLv(m)}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}<div>${awStars(m)}</div><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
   openPanel('포켓몬 편성 · 출전 '+G.party.length+' / 6',`<h4>출전 중 (최대 6마리)</h4><div class="tg">${G.party.map((m,i)=>row(m,i,'p')).join('')}${Array(6-G.party.length).fill(nxt?`<div class="tm empty add"><span>빈 자리</span><button data-add="1">＋ 추천순 <small>${nm(nxt)} Lv.${dLv(nxt)}</small></button></div>`:'<div class="tm empty">빈 자리</div>').join('')}</div>
     <h4>보관함 ${G.box.length}마리</h4><div class="tg">${G.box.length?G.box.map((m,i)=>row(m,i,'b')).join(''):'<small>보관함이 비어 있어요</small>'}</div>`,null,p=>{
     p.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{if(G.party.length>=6||!G.box.length)return;const best=G.box.map((m,i)=>({i,s:recScore(m)})).sort((a,c)=>c.s-a.s)[0];const m=G.box.splice(best.i,1)[0];G.party.push(m);sfx('get');save();refreshSpr();toast('추천순 · '+nm(m)+' 출전!');teamOpen()});
@@ -3656,7 +3657,7 @@ async function rankFetch(b){const c=wbCfg();if(!c)return null;try{const r=await 
   return (j.documents||[]).map(d=>({id:d.name.split('/').pop(),name:(d.fields.name||{}).stringValue||'?',v:+((d.fields.v||{}).integerValue||0)})).sort((a,b)=>b.v-a.v)}catch(e){return null}}
 async function rankPush(b){const c=wbCfg();if(!c){toast('서버 연결 전이에요');return false}if(!navigator.onLine){toast('랭킹 등록은 인터넷이 켜져 있어야 해요');return false}wbS();const v=Math.floor(RKB[b].v());
   try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${RKB[b].k()}/players/${G.pid}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:(G.name||'트레이너').slice(0,12)},v:{integerValue:String(v)},t:{integerValue:String(Date.now())}}})});
-    if(!r.ok)throw 0;toast('랭킹에 등록했어요! '+v+RKB[b].u);return true}catch(e){toast('등록 실패 · 이미 더 높은 기록이 있거나 인터넷을 확인해 주세요');return false}}
+    if(!r.ok)throw 0;toast('랭킹에 등록했어요! '+(RKB[b].f?RKB[b].f(v).replace(/<[^>]+>/g,''):v+RKB[b].u));return true}catch(e){toast('등록 실패 · 이미 더 높은 기록이 있거나 인터넷을 확인해 주세요');return false}}
 function rankOpen(b){b=b||'tower';const tabs=`<div class="tabs"><button data-rk="wb">월드보스</button>${Object.keys(RKB).map(k=>`<button data-rk="${k}" class="${k===b?'on':''}">${RKB[k].n}</button>`).join('')}</div>`;
   const body=L=>{const me=L?L.findIndex(x=>x.id===G.pid):-1,mv=Math.floor(RKB[b].v());return `<div class="wbme"><span>내 기록 <b>${mv.toLocaleString()}${RKB[b].u}</b></span><span>내 순위 <b>${me>=0?(me+1)+'위':'등록 전'}</b></span></div>
     <div class="wbt"><button class="main" id="rkP">랭킹 등록하기 (내 최고 기록)</button><button id="rkR">새로고침</button></div><p class="wbpd">${RKB[b].d}. 「랭킹 등록하기」를 눌러야 올라가요 (인터넷 필요).</p>
@@ -3687,6 +3688,15 @@ function rkSplit(raw){const i=raw.lastIndexOf('#');if(i<0)return{name:raw,rep:nu
 {const _rp=rankPush;rankPush=async function(){const n0=String(G.name||'').split('#')[0];try{G.name=rkName();return await _rp.apply(this,arguments)}finally{G.name=n0}}}
 RKB.dex={n:'획득 수',k:()=>'dex',v:()=>Object.keys(G.dex.c||{}).length,u:'마리',d:'도감에 잡은 포켓몬 수'};
 RKB.adv.n='진행도';RKB.tower.n='격투 탑';
+// ===== 진행도 랭킹: 「나이트메어 · 3번째 관장 · 3환생」처럼 어디까지 왔는지 보여요 =====
+// 순위: 환생 횟수 → 난이도 → 진행 단계 → 도감 수 순서 · 한 숫자(v)에 담아서 보내고 보여 줄 때 풀어요
+const advStage=()=>G.champ?9+Math.min(4,G.ub||0):Math.min(8,G.badges||0);
+const advV=()=>(G.rebirth||0)*1e6+Math.min(5,DIFF())*1e5+advStage()*1e3+Math.min(999,Object.keys(G.dex.c||{}).length);
+function advFmt(v){const rb=Math.floor(v/1e6),d=Math.floor(v/1e5)%10,S=Math.floor(v/1e3)%100,dx=v%1e3;
+  const st=S===0?'모험 시작':S<8?S+'번째 관장':S===8?'포켓몬 리그':S===9?'챔피언':'상위 체육관 '+(S-9);
+  return (DNAME[d]||'')+' '+st+' <small>'+(rb?rb+'환생 · ':'')+'도감 '+dx+'마리</small>'}
+RKB.adv={n:'진행도',k:()=>'adv2',v:()=>advV(),u:'',d:'환생 횟수 → 난이도 → 진행 단계(관장 · 리그 · 챔피언 · 상위 체육관) → 도감 수 순서로 순위가 정해져요',f:advFmt};
+const rkv=(b,v)=>RKB[b].f?RKB[b].f(v):v.toLocaleString()+RKB[b].u;
 const RKT=[['dex','획득 수'],['adv','진행도'],['wb','월드보스'],['tower','격투 탑']];
 async function rankOpen(b){if(!G)return;b=b||G.rkTab||'dex';G.rkTab=b;
   const tabs=`<div class="tabs rkt">${RKT.map(([k,n])=>`<button data-rk="${k}" class="${k===b?'on':''}">${n}</button>`).join('')}</div>`;
@@ -3699,8 +3709,8 @@ async function rankOpen(b){if(!G)return;b=b||G.rkTab||'dex';G.rkTab=b;
         h.querySelector('#rkW').onclick=()=>{closePanel(1);wbOpen()}}
       else{if(b!=='tower'&&navigator.onLine&&wbCfg()&&RKB[b].v()>0)await rankPush(b).catch(()=>{});// 획득 수 · 진행도는 열 때 내 기록을 자동으로 올려요
         const L=await rankFetch(b);if(!p.isConnected)return;const me=L?L.findIndex(x=>x.id===G.pid):-1,mv=Math.floor(RKB[b].v());
-        h.innerHTML=`<div class="rkme"><span>내 기록 <b>${mv.toLocaleString()}${RKB[b].u}</b></span><span>내 순위 <b>${me>=0?(me+1)+'위':'등록 전'}</b></span></div><p class="hhint">${RKB[b].d}${b==='tower'?' · 「랭킹 등록하기」를 눌러야 올라가요':' · 랭킹을 열면 내 기록이 자동으로 올라가요'}</p>
-          ${L&&L.length?podium(L,x=>x.v.toLocaleString()+RKB[b].u):''}<div class="rkl">${L?L.slice(3,50).map((x,i)=>row(x,i+3,x.v.toLocaleString()+RKB[b].u)).join('')||(L.length?'':'<p class="hhint">아직 아무도 없어요. 첫 번째로 올라가 봐요!</p>'):'<p class="hhint">'+(wbCfg()?'인터넷이 꺼져 있거나 서버에 연결이 안 돼요':'서버 연결 전이에요')+'</p>'}</div>
+        h.innerHTML=`<div class="rkme"><span>내 기록 <b>${rkv(b,mv)}</b></span><span>내 순위 <b>${me>=0?(me+1)+'위':'등록 전'}</b></span></div><p class="hhint">${RKB[b].d}${b==='tower'?' · 「랭킹 등록하기」를 눌러야 올라가요':' · 랭킹을 열면 내 기록이 자동으로 올라가요'}</p>
+          ${L&&L.length?podium(L,x=>rkv(b,x.v)):''}<div class="rkl">${L?L.slice(3,50).map((x,i)=>row(x,i+3,rkv(b,x.v))).join('')||(L.length?'':'<p class="hhint">아직 아무도 없어요. 첫 번째로 올라가 봐요!</p>'):'<p class="hhint">'+(wbCfg()?'인터넷이 꺼져 있거나 서버에 연결이 안 돼요':'서버 연결 전이에요')+'</p>'}</div>
           <div class="wbt"><button id="rkR">새로고침</button>${b==='tower'?'<button class="main" id="rkP">랭킹 등록하기 (내 최고 기록)</button>':''}</div>`;
         const pp=h.querySelector('#rkP');if(pp)pp.onclick=async()=>{if(await rankPush(b))load()}}
       h.querySelector('#rkR').onclick=()=>{sfx('tap');h.innerHTML='<p class="hhint">불러오는 중…</p>';load()};
@@ -3715,7 +3725,7 @@ async function rankOpen(b){if(!G)return;b=b||G.rkTab||'dex';G.rkTab=b;
 .rkn{font-size:20px;text-align:center}.rkr.t1 .rkn{color:#c98a00}.rkr.t2 .rkn{color:#7a8aa0}.rkr.t3 .rkn{color:#a0602a}
 .rkp{width:52px;height:52px;display:grid;place-items:center;background:#e8f0ff;box-shadow:inset 0 0 0 2px #1c255040}.rkp img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}.rkp i{width:24px;height:24px;background:#c8d0e0}
 .rkm{font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkm small{background:#1c2550;color:#ffd23f;padding:1px 6px;font-size:11px;margin-left:4px}
-.rkr em{font-style:normal;font-weight:700;font-size:16px;text-align:right}.rkr em small{display:block;font-size:11px;opacity:.7}`;document.head.appendChild(c)})();
+.rkr em{font-style:normal;font-weight:700;font-size:16px;text-align:right}.rkr em small{display:block;font-size:11px;opacity:.7}.rkme b small{font-size:11px;opacity:.85;margin-left:4px}.pdc em small{display:block;font-size:11px;opacity:.75}`;document.head.appendChild(c)})();
 try{const h=HUB.find(x=>x.k==='rank');if(h){h.d='획득 수 · 진행도 · 월드보스 · 격투 탑 랭킹. 이름 왼쪽에 친구들의 대표 포켓몬이 나와요. 사이드메뉴 「랭킹」에서 바로 볼 수 있어요.';h.go=[['랭킹 보기',()=>rankOpen()]]}}catch(e){}
 
 // ===== 1 · 2 · 3위 시상대 (특별한 프레임 · 왕관 · 메달) =====
@@ -4787,7 +4797,7 @@ body.inb #rewBar{display:none!important}@media (orientation:landscape){#rewBar{t
 
 // ===== 포켓몬 교환: 친구에게 QR로 포켓몬 보내기 (보내면 내 쪽에서는 사라져요 · 같은 QR은 한 번만 받아요) =====
 const TRX=5*60000;   // 교환 QR 유효시간 5분
-const monPack=m=>({n:m.n,lv:m.lv,exp:m.exp,iv:m.iv,moves:m.moves,px:m.px,sh:m.sh?1:0,nick:m.nick,lb:m.lb||0});
+const monPack=m=>({n:m.n,lv:m.lv,exp:m.exp,iv:m.iv,moves:m.moves,px:m.px,sh:m.sh?1:0,nick:m.nick,lb:m.lb||0,aw:m.aw||0});
 // 거래 규칙: 받는 친구의 제일 높은 레벨보다 높은 포켓몬을 받으면 그 친구 레벨에 맞춰 내려가요 (보낸 쪽 손해)
 // 보낸 친구의 환생 횟수(srcRb)가 나보다 적으면, 그 친구 기준(레벨·능력치)으로 받아요
 function trRbFix(m,v){try{const r=(v===undefined||v===null||v==='')?NaN:+v;const mine=(G&&G.rebirth)||0;if(!isNaN(r)&&r>=0&&r<mine){m.rbx=r;m.hp=stOf(m)[0];return 1}}catch(e){}return 0}
@@ -4803,11 +4813,11 @@ function pxSlot(m){return new Promise(async done=>{try{const old=pxOf(m);const o
 function monSane(m){try{m.lv=Math.max(1,Math.min(100,Math.floor(+m.lv)||1));
   if(!(Array.isArray(m.iv)&&m.iv.length===6&&m.iv.every(x=>Number.isInteger(x)&&x>=0&&x<=31)))m.iv=[0,0,0,0,0,0].map(()=>ri(0,31));
   if(m.px!=null&&!(Number.isInteger(m.px)&&PX[m.px]))delete m.px;
-  m.lb=Math.max(0,Math.min(LBMAX,Math.floor(+m.lb)||0));if(!m.lb)delete m.lb;
+  m.lb=Math.max(0,Math.min(LBMAX,Math.floor(+m.lb)||0));if(!m.lb)delete m.lb;m.aw=Math.max(0,Math.min(6,Math.floor(+m.aw)||0));if(!m.aw)delete m.aw;
   if(Array.isArray(m.moves)){m.moves=m.moves.filter(x=>typeof x==='string'&&MV_OK(x)).slice(0,4)}else m.moves=[];
   if(m.nick!=null){m.nick=String(m.nick).slice(0,12);if(!m.nick)delete m.nick}
   const lo=expAt(m.lv),hi=expAt(Math.min(100,m.lv+1));m.exp=Math.max(lo,Math.min(hi,+m.exp||lo))}catch(e){}return m}
-function monUnpack(d){const m=mkMon(d.n,Math.max(1,Math.min(100,Math.floor(+d.lv)||1)));if(d.exp!=null)m.exp=d.exp;if(d.iv)m.iv=d.iv;if(d.moves&&d.moves.length)m.moves=d.moves;if(d.px!=null)m.px=d.px;if(d.sh)m.sh=1;if(d.nick)m.nick=d.nick;if(d.lb)m.lb=d.lb;monSane(m);m.hp=stOf(m)[0];return m}
+function monUnpack(d){const m=mkMon(d.n,Math.max(1,Math.min(100,Math.floor(+d.lv)||1)));if(d.exp!=null)m.exp=d.exp;if(d.iv)m.iv=d.iv;if(d.moves&&d.moves.length)m.moves=d.moves;if(d.px!=null)m.px=d.px;if(d.sh)m.sh=1;if(d.nick)m.nick=d.nick;if(d.lb)m.lb=d.lb;if(d.aw)m.aw=d.aw;monSane(m);m.hp=stOf(m)[0];return m}
 async function qrPack(tag,obj){return tag+'|'+b64u(await zipStr(JSON.stringify(obj)))}
 async function qrUnpack(t){return JSON.parse(await unzipStr(ub64u(t.slice(5))))}
 function qrShow(title,txt,lines,btns){xfClose();const o=document.createElement('div');o.id='xfOv';o.innerHTML=`<div class="xfq"></div><div class="xfs"><b>${title}</b>${lines}<div class="wbt">${btns.map((b,i)=>`<button data-qb="${i}" class="${b[2]||''}">${b[0]}</button>`).join('')}</div></div>`;document.body.appendChild(o);
@@ -5162,7 +5172,7 @@ const bxCan=m=>!!(m&&!m.lock&&G.box.includes(m)&&bxCnt(bxKey(m))>=2);
 // 일괄 분해할 포켓몬: 같은 포켓몬끼리 묶어서 출전 중 · 잠금 · 제일 좋은 1마리는 남겨요
 function bxAllList(){const grp=new Map();for(const m of [...G.party,...G.box]){const d=bxKey(m);if(!grp.has(d))grp.set(d,[]);grp.get(d).push(m)}const out=[];
   for(const L of grp.values()){if(L.length<2)continue;const keep=new Set(L.filter(m=>m.lock||G.party.includes(m)));if(!keep.size)keep.add(L.slice().sort((a,b)=>bxScore(b)-bxScore(a))[0]);for(const m of L)if(!keep.has(m)&&G.box.includes(m))out.push(m)}return out}
-function bxDo(list){if(!list.length)return 0;G.dupes=G.dupes||[];for(const m of list){const i=G.box.indexOf(m);if(i<0||m.lock)continue;G.box.splice(i,1);const d=bxDex(m),r=rarM(m);for(let k=0;k<BXSOUL;k++)G.dupes.push({kind:'P',id:d,rar:r,lv:m.lv,sh:0,soul:1})}save();try{refreshSpr()}catch(e){}return list.length}
+function bxDo(list){if(!list.length)return 0;G.dupes=G.dupes||[];for(const m of list){const i=G.box.indexOf(m);if(i<0||m.lock||m.aw)continue;G.box.splice(i,1);const d=bxDex(m),r=rarM(m);for(let k=0;k<BXSOUL;k++)G.dupes.push({kind:'P',id:d,rar:r,lv:m.lv,sh:0,soul:1})}save();try{refreshSpr()}catch(e){}return list.length}
 const bxWarn=L=>{const sh=L.filter(m=>m.sh).length,px=L.filter(m=>m.px!=null).length;return (sh||px)?`<br><b style="color:#c0304a">주의! ${[sh?'이로치 '+sh+'마리':'',px?'접두사 '+px+'마리':''].filter(Boolean).join(' · ')}가 들어 있어요.</b> 지키고 싶으면 자물쇠를 먼저 채워요.`:''};
 function bxOne(m){if(!bxCan(m)){toast(m&&m.lock?'자물쇠가 채워져 있어요':'같은 포켓몬이 1마리뿐이라 분해할 수 없어요');return}
   itAsk('<b>'+nm(m)+'</b> Lv.'+dLv(m)+'을(를) 정말 분해할까요?','분해하면 되돌릴 수 없어요. '+META[m.n].name+'의 영혼 '+BXSOUL+'개를 받아요.'+bxWarn([m]),()=>{bxDo([m]);sfx('get');toast(META[m.n].name+'의 영혼 +'+BXSOUL);teamOpen()})}
@@ -5476,8 +5486,8 @@ setTimeout(()=>{try{dexInfo()}catch(e){}},8000);
 @media (max-width:640px){.pdxbody{flex-direction:column}.pdxl{flex:0 0 auto}.pdxscr{min-height:140px}.pdxctl{display:none}}`;document.head.appendChild(c)})();
 
 // ===== 등급의 차이: 신화 · 환상 · 유일은 더 크고 · 오라가 있고 · 기술이 더 세요 / 도감 효과 (아주 조금) =====
-// 도감 효과: 잡은 종류 50마리마다 내 포켓몬 모든 능력치 +1% (최대 +8%)
-let DXB={t:0,v:0};const dexBonus=()=>{if(!G||!G.dex)return 0;const n=Date.now();if(n-DXB.t>2000){DXB={t:n,v:Math.min(.08,Math.floor(Object.keys(G.dex.c).length/50)*.01)}}return DXB.v};
+// 도감 효과: 잡은 종류 25마리마다 내 포켓몬 모든 능력치 +1% (최대 +25%)
+let DXB={t:0,v:0};const dexBonus=()=>{if(!G||!G.dex)return 0;const n=Date.now();if(n-DXB.t>2000){DXB={t:n,v:Math.min(.25,Math.floor(Object.keys(G.dex.c).length/25)*.01)}}return DXB.v};
 {const _s=stOf;stOf=function(m){const s=_s.apply(this,arguments);try{const b=dexBonus();if(b&&G&&(G.party.includes(m)||G.box.includes(m)))return s.map(v=>Math.round(v*(1+b)))}catch(e){}return s}}
 // 크기: 신화 ×1.12 · 환상(거다이맥스) ×1.45 · 유일(원시 · 무한) ×1.3
 const GSC=[1,1,1,1,1.12,1.45,1.3];const gradeOf=m=>{try{return m&&META[m.n]?rarM(m):0}catch(e){return 0}};
@@ -5497,7 +5507,7 @@ const GAU={4:['#ff5ab4','#ffd0ec'],5:['#ff2a4a','#ff9a3a'],6:['#ffd23f','#a050ff
 // 도감 · 편성에서 보이게
 const gradeTxt=n=>{const g=rarOf(n);return g>=4?RAR[g]+' 보너스: 기술 위력 +'+Math.round(GPW[g]*100)+'% · 크기 ×'+GSC[g]+' · 자기 타입 최강 기술':''};
 try{const _dd=dexDev;dexDev=async function(n,isNew){await _dd.apply(this,arguments);try{const o=document.getElementById('pdx');if(!o)return;const t=gradeTxt(n),b=dexBonus();const lcd=o.querySelector('.pdxlcd');if(t&&lcd&&!lcd.querySelector('.pdxgr')){const h=lcd.querySelector('.pdxno');h.insertAdjacentHTML('afterend','<p class="pdxgr">'+t+'</p>')}
-  const f=o.querySelector('.pdxfoot span');if(f)f.innerHTML+=' · 도감 효과 <b>모든 능력치 +'+Math.round(b*100)+'%</b> <small>(50종마다 +1%, 최대 +8%)</small>'}catch(e){}}}catch(e){}
+  const f=o.querySelector('.pdxfoot span');if(f)f.innerHTML+=' · 도감 효과 <b>모든 능력치 +'+Math.round(b*100)+'%</b> <small>(25종마다 +1%, 최대 +25%)</small>'}catch(e){}}}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`.pdxgr{margin:4px 0;padding:4px 8px;background:#3a1a2a;color:#ffb0d8;font-size:13px;box-shadow:0 0 0 2px #ff5ab4}.pdxfoot small{color:#ffd0d0;font-size:11px}`;document.head.appendChild(c)})();
 
 // ===== 자동 켤 때 고르기 =====
@@ -6957,6 +6967,180 @@ window.pvMenuOpen=pvMenuOpen;
 {const go=()=>{const a=document.getElementById('bPvp');if(a)a.onclick=()=>{sfx('tap');pvMenuOpen()};const b=document.getElementById('bTrd');if(b)b.onclick=()=>{sfx('tap');rmOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()}
 console.log('v202611160050 loaded')
 }catch(e){console.warn('v44 로드 실패',e)}})();
+
+// ===== 각성 시스템 =====
+// 별(★)은 환생할 때마다 한 칸씩 열려요 (최대 6칸) · 같은 등급 영혼 10개 + 골드로 각성하면 ★ 하나가 보라색 · 모든 능력치 +6% · 보라 불꽃 오라
+// 기록에는 포켓몬의 새 칸 m.aw(각성한 별 수)에만 저장해요 → 예전 코드로 되돌려도 기록은 그대로예요 · 메뉴 「각성」에서 불꽃을 끌 수 있어요
+const AWMAX=6,AWNEED=10,AWPCT=6;
+const awSlots=()=>Math.min(AWMAX,(G&&G.rebirth)||0);
+const awCost=n=>50000*n;// n번째 각성에 드는 골드(원)
+const awOf=m=>Math.max(0,Math.min(AWMAX,(m&&m.aw)|0));
+{const _s=stOf;stOf=function(m){const S=_s(m);const a=awOf(m);if(!a)return S;const o=S.slice?S.slice():S,k=1+a*AWPCT/100;for(let i=0;i<6;i++)o[i]=Math.round(o[i]*k);return o}}
+// 보라 불꽃 오라: 몸 둘레에서 위로 일렁이는 불꽃 4겹(진한 보라 → 연보라 → 흰 심지) · 별이 많을수록 크고 많아요
+const AWPAL=[['#9a4dff','#e0c8ff','#4b1a99'],['#3d8bff','#c4e0ff','#143a8c'],['#2fd37a','#ccffe0','#0d5a33'],['#ffc933','#fff3b8','#7a5200'],['#ff4d3a','#ffd0b8','#7a1208'],['#ff6adf','#ffffff','#3a1a8c']];
+// 픽셀 불꽃 오라: 작은 격자(44×58)에 불꽃 모양을 계산해서 도트 그대로 확대해 그려요 · 노랑 테두리 → 주황 → 빨강 결 → 짙은 심
+const AWB={'#9a4dff':['#2a0a4a','#e6c4ff','#b46bff','#7a2fd0','#4b1a99'],'#3d8bff':['#0a2a66','#cfeaff','#6ab4ff','#2f78ea','#143a9c'],'#2fd37a':['#0a4a22','#d4ffe0','#5fe898','#25b563','#0f6a38'],'#ffc933':['#6a3a00','#fff6c0','#ffd83a','#ff9c1a','#c25a00'],'#ff4d3a':['#4a0a08','#ffd89a','#ff9a2a','#e8301a','#8a0f0a'],'#ff6adf':['#2a0a4a','#ffffff','#ff9ae8','#b46bff','#5a2ac0']};
+const _awC=h=>{const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]};
+const _awHsl=(h,s,l)=>{const f=n=>{const k=(n+h/30)%12,a=s*Math.min(l,1-l);return Math.round((l-a*Math.max(-1,Math.min(k-3,9-k,1)))*255)};return[f(0),f(8),f(4)]};
+// 픽셀 불꽃 오라: 도트 불 시뮬레이션(아래에서 열이 솟구치며 식어요) → 열 세기마다 노랑 테두리 · 주황 · 빨강 결 · 짙은 심으로 칠해요
+const AWF=new Map();let _awCv=null,_awId=null,_awG=null;
+function awPix(c,x,y,S,aw,T,A){const W=46,H=60;if(!_awCv){_awCv=document.createElement('canvas');_awCv.width=W;_awCv.height=H;_awId=_awCv.getContext('2d').createImageData(W,H)}
+  const key=aw+':'+Math.round(x/30);let st=AWF.get(key);if(!st){if(AWF.size>16)AWF.clear();st={f:new Uint8Array(W*H),t:T};AWF.set(key,st);for(let n=0;n<90;n++)awStep(st.f,W,H)}
+  const steps=Math.min(4,Math.floor((T-st.t)*26));if(steps>0||T<st.t){const n=T<st.t?1:steps;for(let k=0;k<n;k++)awStep(st.f,W,H);st.t=T}
+  let pal;if(aw>=6){const h=(T*70)%360;pal=[[.14,.8],[.9,1],[.66,1],[.52,1],[.34,.9]].map(([l,s],k)=>_awHsl((h+k*10)%360,s,l))}else pal=(AWB[A[0]]||AWB['#9a4dff']).map(_awC);
+  const f0=st.f,f=_awG||(_awG=new Uint8Array(W*H)),d=_awId.data;
+  for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=j*W+i,l=i>0?f0[k-1]:0,r=i<W-1?f0[k+1]:0,u=j>0?f0[k-W]:0,b=j<H-1?f0[k+W]:0;f[k]=(f0[k]*4+l+r+u+b)>>3}
+  for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=j*W+i,o=k*4,q=f[k];
+    if(q<3){d[o+3]=0;continue}
+    const edge=!(i>0&&f[k-1]>=3&&i<W-1&&f[k+1]>=3&&j>0&&f[k-W]>=3&&j<H-1&&f[k+W]>=3);
+    const col=edge?pal[0]:pal[q>22?4:q>14?3:q>7?2:1];d[o]=col[0];d[o+1]=col[1];d[o+2]=col[2];d[o+3]=255}
+  _awCv.getContext('2d').putImageData(_awId,0,0);
+  const bw=S*1.5,bh=S*2.05;c.save();c.imageSmoothingEnabled=false;c.globalCompositeOperation='source-over';c.drawImage(_awCv,x-bw/2,y-bh*.7,bw,bh);c.restore()}
+function awStep(f,W,H){for(let i=0;i<W;i++){const u=Math.abs((i+.5)/W*2-1);{f[(H-1)*W+i]=u<.7?30:u<.84?18:0;f[(H-2)*W+i]=u<.62?30:f[(H-2)*W+i]}}
+  for(let i=0;i<W;i++){const u=Math.abs((i+.5)/W*2-1),side=.2+.95*u*u;for(let j=1;j<H;j++){const s=j*W+i,v=f[s];if(!v){f[s-W]=0;continue}
+    const r=(Math.random()*3)|0,dst=s-r+1,dec=(r&1)+(Math.random()<side?1:0);if(dst-W>=0&&dst-W<W*H)f[dst-W]=v>dec?v-dec:0}}}
+// 각성 오라: 별 수마다 색이 달라요 (1 보라 · 2 파랑 · 3 초록 · 4 금 · 5 빨강 · 6 무지개) · 모양은 연기 리본(smoke) / 뾰족한 기(spike) 중 선택
+function awFlame(c,x,y,S,aw,T,emb){if(!aw||(G&&G.opt&&G.opt.aw===0))return;
+  const sty=(G&&G.opt&&G.opt.awStyle)||'smoke',A=AWPAL[Math.min(aw,6)-1],h=(T*70)%360,P=aw>=6?['hsl('+h+',95%,62%)','hsl('+((h+50)%360)+',100%,86%)',A[2]]:A,R=S*.62;
+  c.save();c.globalCompositeOperation='lighter';
+  const g=c.createRadialGradient(x,y,R*.2,x,y,R*1.5);g.addColorStop(0,P[0]);g.addColorStop(1,'rgba(0,0,0,0)');c.globalAlpha=.2;c.fillStyle=g;c.fillRect(x-R*1.6,y-R*1.6,R*3.2,R*3.2);
+  if(sty==='spike'){c.restore();awPix(c,x,y,S,aw,T,A);c.save()
+  }else{
+    const nr=4+aw,W0=S*.2;c.globalCompositeOperation='source-over';
+    for(let k=0;k<nr;k++){const ph=k*2.1,a0=k/nr*6.283+T*.3*(k%2?1:-1),arc=2.6+.4*Math.sin(k*1.3),pts=[];
+      for(let i=0;i<=30;i++){const t=i/30,ang=a0+t*arc,r=R*(.95+.3*Math.sin(t*5+T*1.2+ph)+.16*Math.sin(t*12-T*2+ph*2)+t*.25);pts.push([x+Math.cos(ang)*r*1.05,y+Math.sin(ang)*r*.95-t*R*.3])}
+      for(const [ws,al,col] of [[1,.14,P[0]],[.55,.3,P[0]],[.2,.6,P[1]]]){const L=[],Q=[];
+        for(let i=0;i<=30;i++){const t=i/30,w=W0*ws*Math.pow(Math.sin(Math.PI*t),.7)*(.75+.25*Math.sin(t*9+T*2+ph)),p=pts[i],q=pts[Math.min(30,i+1)],o=pts[Math.max(0,i-1)],dx=q[0]-o[0],dy=q[1]-o[1],d=Math.hypot(dx,dy)||1,nx=-dy/d,ny=dx/d;L.push([p[0]+nx*w,p[1]+ny*w]);Q.push([p[0]-nx*w,p[1]-ny*w])}
+        c.beginPath();L.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));for(let i=30;i>=0;i--)c.lineTo(Q[i][0],Q[i][1]);c.closePath();c.globalAlpha=al;c.fillStyle=col;c.fill()}}
+  }
+  c.restore();
+  if(emb&&Math.random()<.3+aw*.05)try{const a=Math.random()*6.283;pAdd({x:x+Math.cos(a)*R*.9,y:y+Math.sin(a)*R*.9-R*.1,vx:(Math.random()-.5)*S*.3,vy:-S*(.5+Math.random()*.8),drag:.05,s:S*.05,s1:0,life:.6+Math.random()*.5,st:[A[2],A[0],A[1]],k:'px',glow:1})}catch(e){}}
+// 별 줄: 보라 = 각성 성공 · 금색 = 열린 칸 · 회색 = 환생하면 열려요
+function awStars(m){const a=awOf(m),sl=awSlots();let h='';for(let i=0;i<AWMAX;i++)h+='<i class="'+(i<a?'p':i<sl?'o':'x')+'"'+(i<a?' style="color:'+AWPAL[i][0]+';text-shadow:0 0 6px '+AWPAL[i][0]+'"':'')+'>★</i>';return '<span class="aws">'+h+'</span>'}
+(function(){const c=document.createElement('style');c.textContent=`.aws{display:inline-flex;gap:1px;font-size:13px;line-height:1.1}.aws i{font-style:normal}.aws .p{color:#b46bff;text-shadow:0 0 6px #b46bff,0 0 10px #7a2fd0}.aws .o{color:#ffd23f}.aws .x{color:#8a90a8;opacity:.45}
+.awk{animation:awg 1.1s ease-in-out infinite}@keyframes awg{0%,100%{box-shadow:0 0 6px 2px #7a2fd0,0 -3px 10px 3px #9a4dff}40%{box-shadow:0 0 12px 4px #9a4dff,0 -9px 16px 4px #c08aff}70%{box-shadow:0 0 8px 3px #7a2fd0,0 -5px 12px 2px #b46bff}}`;document.head.appendChild(c)})();
+// 각성 화면
+function awOpen(){if(!G)return;const sl=awSlots();
+  const all=[...G.party,...G.box].map(m=>({m,k:awOf(m)*100000+rarM(m)*1000+m.lv})).sort((a,b)=>b.k-a.k).slice(0,80).map(x=>x.m);
+  const rows=all.map((m,i)=>{const a=awOf(m),n=a+1,full=a>=AWMAX,ok=n<=sl,r=rarM(m),d=(G.dupes||[]).filter(x=>x.kind==='P'&&x.rar===r).length,cost=awCost(n);
+    return `<div class="hrow ${full?'ok':''}"><img class="${a?'awk':''}" src="${THUMB[m.n]||''}" style="width:48px;height:48px;object-fit:contain"><span><b>${nm(m)} <small style="color:${RARC[r]}">[${RAR[r]}]</small></b><div>${awStars(m)}</div><small>지금 능력치 +${a*AWPCT}%${full?' · 최대!':ok?' · 다음 각성 → +'+n*AWPCT+'%':' · 환생하면 별 칸이 열려요'}</small>${full||!ok?'':`<small>재료: 같은 등급 영혼 ${AWNEED}개 (가진 것 ${d}) · 💰 ${cost.toLocaleString()}원 (가진 것 ${G.money.toLocaleString()})</small>`}</span>${full||!ok?'':`<button data-aw="${i}" ${G.money>=cost&&d>=AWNEED?'':'disabled'}>각성하기</button>`}</div>`}).join('');
+  openPanel('각성',`<p class="hhint">포켓몬 아래 ★ 한 칸은 <b>환생할 때마다</b> 하나씩 열려요 (지금 ${sl}/${AWMAX}칸). <b>같은 등급 영혼 ${AWNEED}개</b>와 <b>골드</b>로 각성하면 ★ 하나가 <b style="color:#9a4dff">보라색</b>이 되고 모든 능력치가 +${AWPCT}% 올라가요. 몸 둘레에 보라 불꽃 오라도 생겨요! (영혼은 같은 등급 카드·영혼 어느 것이든 돼요)</p>${sl?'':'<p class="hhint"><b>아직 열린 별 칸이 없어요.</b> 환생하면 첫 별 칸이 열려요.</p>'}${rows}`,null,p=>{p.querySelectorAll('[data-aw]').forEach(b=>b.onclick=()=>awGo(all[+b.dataset.aw]))})}
+async function awGo(m){const a=awOf(m),n=a+1;if(n>awSlots()||a>=AWMAX)return;const r=rarM(m),cost=awCost(n);
+  if(G.money<cost){toast('골드가 모자라요');return}
+  const idx=[];(G.dupes||[]).forEach((x,i)=>{if(x.kind==='P'&&x.rar===r&&idx.length<AWNEED)idx.push(i)});if(idx.length<AWNEED){toast('같은 등급 영혼이 모자라요');return}
+  const set=new Set(idx);G.dupes=G.dupes.filter((x,i)=>!set.has(i));G.money-=cost;m.aw=n;m.hp=stOf(m)[0];save();closePanel(1);
+  try{sfx('badge')}catch(e){}try{A2.tone(500,1800,.6,'sine',.12);A2.tone(800,2600,.5,'triangle',.07,.1)}catch(e){}
+  await awShow(m,n);awOpen()}
+function awShow(m,n){return new Promise(done=>{const o=document.createElement('div');o.id='awOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(8,6,20,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;text-align:center';
+  o.innerHTML=`<canvas width="640" height="520" style="width:min(92vw,360px);height:auto"></canvas><b style="font-size:22px;color:#e6c8ff">각성 성공!</b><div style="font-size:15px">${esc(nm(m))} · 별 ${n}개 · 능력치 +${n*AWPCT}%</div><button style="padding:8px 26px;font-size:16px;font-weight:900;border:3px solid #2c3050;border-radius:10px;background:#ffd23f;color:#2c3050">확인</button>`;document.body.appendChild(o);
+  const cv=o.querySelector('canvas'),g=cv.getContext('2d'),img=new Image();img.src=faceUrl(m.n,'Normal');let T=0,last=performance.now(),flash=1,alive=1,P=[];
+  const sx=i=>160-AWMAX*13+13+i*26;
+  for(let i=0;i<30;i++){const a=Math.random()*6.283,v=50+Math.random()*150;P.push({x:sx(n-1),y:218,vx:Math.cos(a)*v,vy:Math.sin(a)*v-40,t:0,life:.6+Math.random()*.6,s:2+Math.random()*3})}
+  const star=(x,y,r)=>{g.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,q=i%2?r*.45:r;g.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}g.closePath()};
+  const draw=now=>{if(!alive)return;const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;g.setTransform(2,0,0,2,0,0);g.clearRect(0,0,320,260);
+    awFlame(g,160,105,Math.min(96,40+T*80),n,T);
+    g.save();g.beginPath();g.arc(160,105,50,0,6.283);g.clip();g.fillStyle='#26304f';g.fillRect(100,50,120,110);if(img.complete&&img.naturalWidth)g.drawImage(img,112,57,96,96);g.restore();
+    g.strokeStyle='#b46bff';g.lineWidth=3;g.beginPath();g.arc(160,105,52,0,6.283);g.stroke();
+    for(let i=0;i<AWMAX;i++){const x=sx(i),y=218;let r=10;if(i===n-1&&T<.7)r=10*(1+1.2*(1-T/.7));
+      if(i<n){g.save();g.shadowColor='#b46bff';g.shadowBlur=12;star(x,y,r);g.fillStyle='#b46bff';g.fill();g.restore();star(x,y,r);g.strokeStyle='#e6c8ff';g.lineWidth=1;g.stroke()}
+      else if(i<awSlots()){star(x,y,r);g.fillStyle='#ffd23f';g.fill()}else{star(x,y,r);g.strokeStyle='#4a5272';g.lineWidth=1.2;g.stroke()}}
+    g.globalCompositeOperation='lighter';P=P.filter(p=>(p.t+=dt)<p.life);for(const p of P){p.vy+=60*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;g.globalAlpha=1-p.t/p.life;g.fillStyle='#e6c8ff';g.beginPath();g.arc(p.x,p.y,p.s,0,6.283);g.fill()}g.globalAlpha=1;g.globalCompositeOperation='source-over';
+    if(flash>0){g.fillStyle='rgba(230,200,255,'+flash*.7+')';g.fillRect(0,0,320,260);flash=Math.max(0,flash-dt*2)}
+    requestAnimationFrame(draw)};requestAnimationFrame(draw);
+  const close=()=>{alive=0;o.remove();done()};o.querySelector('button').onclick=close})}
+try{HUB.push({k:'awake',n:'각성',d:'포켓몬 아래 ★은 환생할 때마다 한 칸씩 열려요(최대 6칸). 같은 등급 영혼 10개와 골드로 각성하면 ★ 하나가 보라색이 되고 모든 능력치가 +6% 올라가요. 각성한 포켓몬은 몸 둘레에 별 수마다 색이 다른 오라(연기 리본 / 픽셀 불꽃)가 일렁여요.',st:()=>'별 칸 '+awSlots()+'/'+AWMAX,go:[['각성하기',()=>awOpen()],['불꽃 켜기 / 끄기',()=>{G.opt=G.opt||{};G.opt.aw=G.opt.aw===0?1:0;save();toast('각성 불꽃 '+(G.opt.aw===0?'꺼짐':'켜짐'));closePanel(1)}],['오라 모양 바꾸기 (연기 리본 / 픽셀 불꽃)',()=>{G.opt=G.opt||{};G.opt.awStyle=G.opt.awStyle==='spike'?'smoke':'spike';save();toast('각성 오라: '+(G.opt.awStyle==='spike'?'픽셀 불꽃':'연기 리본'));closePanel(1)}]]})}catch(e){}
+</script>
+<script>// ===== 도트 스킬 이펙트 (DotSkillFX) 연결 · lib/dotskillfx.js =====
+// 기술을 쓸 때 기존 연출(MV.R) 대신 도트 이펙트 엔진으로 보여줘요. 설정 → 「도트 스킬 이펙트」에서 켜고 끄기
+// 기본은 도트 스타일 · 환생했거나 각성한 포켓몬은 자동으로 검기(칼날) 스타일로 바뀌어요
+(function(){try{
+if(window.__dsfx)return;window.__dsfx=1;
+const DS={fx:null};
+const ok=()=>typeof DotSkillFX!=='undefined'&&typeof FX2!=='undefined'&&typeof SKFX!=='undefined';
+const on=()=>ok()&&!(G&&G.opt&&G.opt.dsfx===0);                       // 기본 켜짐
+const pxs=()=>{try{return Math.max(2,Math.min(5,Math.round(bsz()/34)))}catch(e){return 3}};
+function dsFx(){if(!ok())return null;if(!DS.fx)DS.fx=DotSkillFX.create({px:pxs()});return DS.fx}
+// 기술마다 따로 정한 연출: [종류, 단계(1~3)]  종류 = shot 탄 · beam 빔 · slash 베기 · area 광역 · hold 연타 · ult 필살
+const MAP={
+ tackle:['slash',1],headbutt:['slash',2],hyperbeam:['ult',3],quickattack:['slash',1],scratch:['slash',1],
+ ember:['shot',1],flamewheel:['slash',2],flamethrower:['beam',2],
+ watergun:['shot',1],bubblebeam:['hold',1],surf:['area',2],
+ vinewhip:['slash',1],razorleaf:['hold',2],energyball:['shot',3],
+ thundershock:['area',1],spark:['slash',2],thunderbolt:['beam',3],
+ powdersnow:['area',1],icepunch:['slash',2],icebeam:['beam',2],
+ karatechop:['slash',1],brickbreak:['slash',2],closecombat:['hold',3],
+ acid:['shot',1],poisonjab:['slash',2],sludgebomb:['shot',3],
+ mudshot:['shot',2],bulldoze:['area',1],earthquake:['area',3],
+ peck:['slash',1],wingattack:['slash',2],airslash:['slash',3],
+ confusion:['area',1],psybeam:['beam',1],psychic:['area',3],
+ bugbite:['slash',1],xscissor:['slash',3],bugbuzz:['hold',3],
+ rockthrow:['shot',2],ancientpower:['shot',3],stoneedge:['area',3],
+ lick:['slash',1],shadowclaw:['slash',3],shadowball:['shot',3],
+ dragonbreath:['beam',1],dragonclaw:['slash',3],outrage:['ult',3],
+ bite:['slash',1],crunch:['slash',2],darkpulse:['beam',2],
+ metalclaw:['slash',1],ironhead:['slash',2],flashcannon:['beam',3],
+ fairywind:['area',1],drainingkiss:['shot',2],moonblast:['beam',3]};
+// 목록에 없는 기술(인터넷에서 받은 기술 등)은 이름으로 정해서 늘 같은 연출이 나와요
+function hs(s){let h=7;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+function pick(id,m){
+  if(MAP[id])return MAP[id];
+  const h=hs(id),pw=m.pw||0,lv=pw>=100?3:pw>=70?2:1;
+  const A=m.ph?['slash','slash','hold','area']:['shot','beam','area','shot','hold'];
+  return [A[h%A.length],Math.max(1,Math.min(3,lv+(h%3===0?1:0)))]}
+function dsKind(id,m,L,mine){
+  if(!(m.pw>0))return ['area',1];
+  if(mine&&L>=5)return ['ult',3];
+  return pick(id,m)}
+const HITS={shot:1,slash:1,area:1,beam:5,ult:3};
+async function dsRun(x,id,m,L,mine,adv){
+  const fx=dsFx();if(!fx)throw new Error('dsfx off');
+  const V=VFX,mon=(x.A&&x.A.m)||{};
+  fx.px=pxs();
+  const aw=Math.max(0,Math.min(6,mon.aw|0)),rbg=mine?Math.max(0,Math.min(6,(G&&G.rebirth)|0)):0,rb=Math.max(aw,rbg);
+  const blade=aw>0||rbg>0;                                                 // 환생 · 각성한 포켓몬만 검기 스타일
+  const [kind0,base]=dsKind(m.id||id,m,L,mine);const kind=kind0;
+  const lv=Math.max(1,Math.min(3,base+(L>=4?1:0)));
+  const self=!(m.pw>0);                                                   // 능력치 기술 등 → 내 몸에서 터짐
+  const sw=u=>new Promise(r=>setTimeout(r,u*1000));
+  const N=kind==='hold'?(lv>=3?8:4):HITS[kind];
+  let c=0;let fin=false;let res;const hitP=new Promise(r=>{res=r});
+  const give=()=>{if(c>=N)return;c++;try{x.hit(1/N)}catch(e){}if(c>=N){fin=true;res()}};
+  const base_o={type:m.type,style:blade?'blade':'dot',from:{x:x.a.x,y:x.a.y},to:self?{x:x.a.x,y:x.a.y}:{x:x.b.x,y:x.b.y},rebirth:rb,awake:aw,lv};
+  const melee=kind==='slash'&&!self&&m.ph;
+  if(melee){                                                              // 물리 베기: 달려가서 벤다
+    x.A.trail=1;const dx=(x.fb.x-x.fa.x)*.78,dy=(x.fb.y-x.fa.y)*.78;
+    try{await V.tween(x.A,{ox:dx,oy:dy},adv?.12:.16,'in')}catch(e){}
+    x.pose(x.A,'attack');fx.cast(Object.assign({},base_o,{kind:'slash',onHit:(p,big)=>{give()}}));
+    await Promise.race([hitP,sw(1.2)]);
+    try{await V.tween(x.B,{ox:x.d*x.S*.3,lift:x.S*.12},.1,'out')}catch(e){}
+    V.tween(x.B,{ox:0,lift:0},.3,'io');
+    await V.tween(x.A,{ox:0,oy:0,lift:0},.22,'out');x.A.trail=0}
+  else if(kind==='hold'){                                                 // 연타
+    x.pose(x.A,'attack');
+    const h=fx.hold(Object.assign({},base_o,{kind:'beam',interval:lv>=3?.1:.12,auto:lv>=3?.8:.5,onHit:()=>give(),onFinish:()=>{res()}}));
+    await Promise.race([hitP,sw(1.6)])}
+  else{
+    x.pose(x.A,kind==='slash'?'attack':'shoot');
+    if(L>=3&&kind!=='ult'){x.A.glow=SKFX.col(m.type);await sw(.18);x.A.glow=0}
+    fx.cast(Object.assign({},base_o,{kind,onHit:(p,big)=>{give();if(big&&c>=N){try{FX2.hit(8,.06)}catch(e){}}}}));
+    await Promise.race([hitP,sw(kind==='ult'?2.2:1.4)])}
+  // 남은 입자가 다 사라질 때까지 (최대 3초)
+  const t0=performance.now();while(fx.busy()&&performance.now()-t0<3000)await sw(.05);
+  if(c<N){try{x.hit((N-c)/N)}catch(e){}}                                  // 못 맞은 몫은 마저 반영
+}
+// 기술 연출 교체
+{const _r=SKFX.run;SKFX.run=function(x,id,m,L,mine,adv){
+  if(!on())return _r.apply(SKFX,arguments);
+  const a=arguments;return dsRun.apply(null,a).catch(e=>{try{console.warn('dsfx',e)}catch(_){}return _r.apply(SKFX,a)})}}
+// 매 프레임: 업데이트 · 그리기(카메라 안) · 번쩍임/배너(화면 위)
+{const _u=FX2.update;FX2.update=function(dt){_u.apply(this,arguments);try{const f=DS.fx;if(f&&(f.busy()||f.flash>0||f.banner))f.update(FX2.stop>0?0:dt)}catch(e){}}}
+{const _d=FX2.draw;FX2.draw=function(c){_d.apply(this,arguments);try{const f=DS.fx;if(f&&f.busy()){const b=f.banner,fl=f.flash;f.banner=null;f.flash=0;f.draw(c);f.banner=b;f.flash=fl}}catch(e){}}}
+{const _o=FX2.overlay;FX2.overlay=function(c,W,H){_o.apply(this,arguments);try{const f=DS.fx;if(f&&(f.flash>0||f.banner)){const P=f.P,o=f.px;f.P=[];f.px=Math.max(2,Math.round(o*(typeof DPR!=='undefined'?DPR:1)));c.save();c.setTransform(1,0,0,1,0,0);f.draw(c);c.restore();f.px=o;f.P=P}}catch(e){}}}
+// 설정 칸
+try{HUB.push({k:'dsfx',n:'도트 스킬 이펙트',d:'기술을 쓸 때 18속성 도트 이펙트로 보여줘요. 기술마다 탄 · 빔 · 베기 · 광역 · 연타 · 필살로 다르게 나오고, 기술 레벨이 오를수록 커져요. 환생했거나 각성한 포켓몬은 자동으로 검기 스타일로 바뀌고, 연기(환생)와 스파이크(각성)도 붙어요.',
+  st:()=>(G&&G.opt&&G.opt.dsfx===0?'꺼짐 (기존 연출)':'켜짐')+(ok()?'':' · 파일 못 불러옴'),
+  go:[['켜기 / 끄기',()=>{G.opt=G.opt||{};G.opt.dsfx=G.opt.dsfx===0?1:0;save();toast('도트 스킬 이펙트 '+(G.opt.dsfx===0?'꺼짐':'켜짐'));closePanel(1)}]]})}catch(e){}
+}catch(e){try{console.warn('dsfx init',e)}catch(_){}}})();
 </script>
 <script>(function(){var b=document.getElementById('tFull');function upd(){var fs=document.fullscreenElement||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches;b.style.display=fs?'none':''}
 b.onclick=function(){var d=document.documentElement;var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};if(d.requestFullscreen)d.requestFullscreen({navigationUI:'hide'}).then(go).catch(function(){go();alert('이 브라우저는 자동으로 못 돌려요. 크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')});else{go();alert('크롬에서 열고 「홈 화면에 추가」로 설치하면 항상 가로로 열려요!')}};
