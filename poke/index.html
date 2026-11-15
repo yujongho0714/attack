@@ -7875,4 +7875,21 @@ window.CHN=CN;
 }catch(e){console.warn('채널링 연발 로드 실패',e)}})();
 // ===== 채널링 연발 끝 =====
 </script>
+<script id="gfbtn">
+// ===== 🎬 기술 이펙트 관리자 바로가기 버튼 (GM/운영자 전용) =====
+// 이펙트 관리자(gfOpen)는 「운영자」 패널 안에만 있어서, GM 번호로 들어오면 안 보였어요 → 화면에 직접 버튼을 달아요.
+(()=>{try{
+if(window.__gfbtn)return;window.__gfbtn=1;
+const css=document.createElement('style');
+css.textContent='#gfBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(304px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px "Galmuri11",sans-serif;color:#1c2550;background:#7be0ff;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#gfBtn.show{display:flex}';
+document.head.appendChild(css);
+setInterval(()=>{try{
+  let b=document.getElementById('gfBtn');
+  const on=!!G&&(isGM()||OPER.on)&&SCENE==='over'&&!document.body.classList.contains('inb');
+  if(!on){if(b)b.classList.remove('show');return}
+  if(!b){b=document.createElement('button');b.id='gfBtn';b.textContent='🎬 이펙트';b.onclick=()=>{try{sfx('tap')}catch(e){}gfOpen()};document.body.appendChild(b)}
+  b.classList.add('show');
+}catch(e){}},1000);
+}catch(e){console.warn('gfbtn',e)}})();
+</script>
 </body></html>
