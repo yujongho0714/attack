@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<AnimData><Anims>
+<Anim><Name>Attack</Name><FrameWidth>176</FrameWidth><FrameHeight>192</FrameHeight><Durations><Duration>3</Duration><Duration>3</Duration><Duration>3</Duration><Duration>3</Duration><Duration>3</Duration><Duration>3</Duration><Duration>3</Duration><Duration>3</Duration><Duration>3</Duration><Duration>3</Duration></Durations></Anim>
+<Anim><Name>Charge</Name><FrameWidth>128</FrameWidth><FrameHeight>192</FrameHeight><Durations><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration></Durations></Anim>
+<Anim><Name>Idle</Name><FrameWidth>128</FrameWidth><FrameHeight>192</FrameHeight><Durations><Duration>12</Duration><Duration>12</Duration><Duration>12</Duration><Duration>12</Duration><Duration>12</Duration><Duration>12</Duration></Durations></Anim>
+<Anim><Name>Shoot</Name><FrameWidth>128</FrameWidth><FrameHeight>192</FrameHeight><Durations><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration><Duration>4</Duration></Durations></Anim>
+<Anim><Name>Walk</Name><FrameWidth>128</FrameWidth><FrameHeight>192</FrameHeight><Durations><Duration>6</Duration></Durations></Anim>
+</Anims></AnimData>
