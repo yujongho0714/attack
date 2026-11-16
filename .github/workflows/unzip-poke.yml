@@ -1,0 +1,23 @@
+name: unzip-poke
+on:
+  push:
+    paths:
+      - 'poke_upload.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          set -e
+          if [ ! -f poke_upload.zip ]; then echo "zip 없음 - 종료"; exit 0; fi
+          unzip -o -q poke_upload.zip
+          rm poke_upload.zip
+          git config user.email "noreply@github.com"
+          git config user.name "unzip-bot"
+          git add -A
+          git commit -m "poke: 새 캐릭터 이미지 + 게임 파일 업데이트" || exit 0
+          git push
