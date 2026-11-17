@@ -1482,8 +1482,8 @@ function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.up
     if(!B.hide){cx.save();cx.globalAlpha=.3*Math.max(.2,1-(B.lift||0)/(bsz()*6));cx.fillStyle='#000';cx.beginPath();cx.ellipse(gx,gy+2,bsz()*.5*k,bsz()*.15*k,0,0,7);cx.fill();cx.restore()}
     const one=(xx,yy,al,flt,white)=>{if(B.hide)return;cx.save();if(flt)cx.filter=flt;cx.translate(xx,yy);cx.rotate(B.rot||0);cx.scale(1+(B.sq||0)*.35,1-(B.sq||0));if(B.sink>0){cx.beginPath();cx.rect(-900,-1800,1800,1800);cx.clip();cx.translate(0,B.sink*A.h*sc*.75)}
       drawPm(cx,B.S,B.st,p.row,B.t,0,-A.h*sc*.12,sc,{loop:B.st==='idle',alpha:al,white});cx.restore()};
-    try{if(B.m&&!B.hide&&isMine(B.m)&&rbOf(B.m)>0&&typeof rbAura==='function'){const SS=bsz()*k*(B.sc||1)*(AFX(B));rbAura(cx,gx,y-SS*.45,SS,rbOf(B.m),performance.now()/1000,1)}}catch(e){}
-    try{if(B.m&&B.m.aw&&!B.hide){const SS=bsz()*k*(B.sc||1)*AFX(B);awFlame(cx,gx,y-SS*.45,SS,B.m.aw,performance.now()/1000,1)}}catch(e){}
+    try{if(B.m&&!B.hide&&isMine(B.m)&&rbOf(B.m)>0&&typeof rbAura==='function'){const SS=bsz()*k*(B.sc||1)*Math.min(1.8,AFX(B));rbAura(cx,gx,y-SS*.45,SS,rbOf(B.m),performance.now()/1000,1)}}catch(e){}
+    try{if(B.m&&B.m.aw&&!B.hide){const SS=bsz()*k*(B.sc||1)*Math.min(1.5,AFX(B));awFlame(cx,gx,y-SS*.45,SS,B.m.aw,performance.now()/1000,1)}}catch(e){}
     for(const [hx,hy,q] of B.hist)one(hx,hy,.12*q,'brightness(1.6) saturate(.5)');
     if(B.clones)for(const c of B.clones)if(c.al>0)one(gx+c.dx,gy+c.dy,c.al,'brightness(.6) saturate(.6)');
     const blink=B.blink>0&&((B.blink-=dt)*20|0)%2===0;if(!blink)one(gx+(B.shake>0?Math.sin((B.shake-=dt)*70)*6:0),y,B.alpha??1,B.glow?'drop-shadow(0 0 4px '+B.glow+') drop-shadow(0 0 10px '+B.glow+')':B.ice>0?'saturate(.3) brightness(1.4) hue-rotate(160deg)':'',B.white);if(B.ice>0)B.ice-=dt}
