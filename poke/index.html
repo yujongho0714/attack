@@ -6512,7 +6512,7 @@ function gfOpen(){
     const groups={};F.forEach(f=>(groups[f.group||f.pack]=groups[f.group||f.pack]||[]).push(f));
     const sl=(k,label,min,max,step,val,dg)=>`<label style="display:block;margin:4px 0;font-size:13px">${label} <b id="${k}V">${(+val).toFixed(dg===undefined?2:dg)}</b><input type="range" id="${k}" min="${min}" max="${max}" step="${step}" value="${val}" style="width:100%"></label>`;
     const tabs=GMFX.TIERS.map(x=>`<button class="it" data-tier="${x}" style="${x===t?'outline:3px solid #7be0ff;font-weight:900;':''}">${GMFX.TNAME[x]}${GFUI.cfg[x]?' ✓':''}</button>`).join('');
-    body=`<h4 style="color:${TCOL[mo.type]}">🎬 ${esc(mo.name)} <small>${TN[mo.type]}</small></h4>
+    body+=`<h4 style="color:${TCOL[mo.type]}">🎬 ${esc(mo.name)} <small>${TN[mo.type]}</small></h4>
     <p style="font-size:12px;margin:2px 0">이 기술의 연출을 <b>일반 · 환생 · 각성</b>으로 따로 정해요. 저장하면 <b>모든 포켓몬</b>이 이 기술을 쓸 때 바뀌어요. 각성한 포켓몬은 <b>각성</b>, 환생한 트레이너는 <b>환생</b>, 나머지는 <b>일반</b>이 나와요. 비어 있으면 아래 단계(각성→환생→일반) 설정을 써요.</p>
     <div class="nw" style="gap:4px;justify-content:center">${tabs}</div>
     <details style="margin:6px 0;font-size:12px"><summary style="font-weight:900;cursor:pointer">📖 이 화면 사용법 (처음이면 눌러 보세요)</summary>
@@ -6556,7 +6556,7 @@ function gfOpen(){
   }else{
     GFUI.view='main';
     const packs=Object.keys(all.packs),mons=gfMons(),ids=gfIds(),show=ids.slice(0,GFUI.lim);
-    body=`<p style="font-size:12px;margin:2px 0">바꾼 건 이 기기에 저장돼요. 모두에게 적용하려면 「내보내기」로 받은 <b>fxcustom.json</b> 을 poke 폴더에 올려 주세요.</p>
+    body+=`<p style="font-size:12px;margin:2px 0">바꾼 건 이 기기에 저장돼요. 모두에게 적용하려면 「내보내기」로 받은 <b>fxcustom.json</b> 을 poke 폴더에 올려 주세요.</p>
     <details style="margin:6px 0;font-size:12px"><summary style="font-weight:900;cursor:pointer">📖 처음이라면 이렇게 하세요 (사용법)</summary>
     <ol style="margin:4px 0 4px 18px;padding:0;line-height:1.5">
     <li><b>이펙트 고르기</b> — 아래 「③ 모든 기술」에서 바꾸고 싶은 기술 옆의 「설정」을 눌러요. 찾기 칸에 기술 이름을 쓰면 빨리 찾을 수 있어요.</li>
@@ -7501,6 +7501,7 @@ function awPix(c,x,y,S,aw,T,A){const W=46,H=60;if(!_awCv){_awCv=document.createE
   for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=j*W+i,l=i>0?f0[k-1]:0,r=i<W-1?f0[k+1]:0,u=j>0?f0[k-W]:0,b=j<H-1?f0[k+W]:0;f[k]=(f0[k]*4+l+r+u+b)>>3}
   for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=j*W+i,o=k*4,q=f[k];
     if(q<3){d[o+3]=0;continue}
+    {const jj=j-(H-9);if(jj>0){const uu=Math.abs((i+.5)/W*2-1),m=Math.sqrt(Math.max(0,1-(jj/9)*(jj/9)));if(uu>.78*m){d[o+3]=0;continue}}}
     const edge=!(i>0&&f[k-1]>=3&&i<W-1&&f[k+1]>=3&&j>0&&f[k-W]>=3&&j<H-1&&f[k+W]>=3);
     const col=edge?pal[0]:pal[q>22?4:q>14?3:q>7?2:1];d[o]=col[0];d[o+1]=col[1];d[o+2]=col[2];d[o+3]=255}
   _awCv.getContext('2d').putImageData(_awId,0,0);
