@@ -2117,8 +2117,8 @@ function operOpen(){if(!OPER.on&&!(typeof isGM==='function'&&isGM())){operLogin(
 // 카드팩 뜯기 연출 (게임 + 출석앱 공용, 다른 코드에 의존하지 않음)
 // CardPack.open({rar:0..3, sh:0/1, kind:'P'|'M', name, sub, img(초상화 url), col(타입색), base:'cardpack/'}) → Promise
 const CardPack=(()=>{
-  const COL=['#c9d3dc','#4aa8ff','#c070ff','#ffb020','#ff3b6b','#22e6d0','#ffffff'],COL2=['#8a98a6','#1d5fd0','#6a1fc0','#ff6a00','#a0002a','#0a7a8a','#ff2aa0'],RN=['일반','희귀','영웅','전설','신화','환상','유일'];
-  const TAPS=[1,1,3,3,4,5,6];
+  const COL=['#c9d3dc','#4aa8ff','#c070ff','#ffb020','#ff3b6b','#22e6d0','#ffffff','#8a96ff','#ffd75a'],COL2=['#8a98a6','#1d5fd0','#6a1fc0','#ff6a00','#a0002a','#0a7a8a','#ff2aa0','#2a2f8a','#a05a00'],RN=['일반','희귀','영웅','전설','신화','환상','유일','불멸','태초'];
+  const TAPS=[1,1,3,3,4,5,6,7,8];
   let AC=null;function tone(f,d,ty,v,at){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+(at||0);o.type=ty||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
   function noise(d,v){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const n=AC.sampleRate*d,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=v||.2;s.buffer=b;s.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
   const S={tap:r=>tone(300+r*120,.08,'square',.06),tear:()=>noise(.35,.25),
@@ -2129,8 +2129,8 @@ const CardPack=(()=>{
   function bolt(c,x1,y1,x2,y2,w){c.beginPath();c.moveTo(x1,y1);const n=8;for(let i=1;i<n;i++){const t=i/n;c.lineTo(x1+(x2-x1)*t+(Math.random()-.5)*40,y1+(y2-y1)*t+(Math.random()-.5)*40)}c.lineTo(x2,y2);c.lineWidth=w;c.stroke()}
 
   async function open(o){
-    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(6,o.rar|0)),PR=RF;let R=0;let CS=RF;
-    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=(await loadImg(o.base+'pk'+t+'.webp',800))||(t>3?await loadImg(o.base+'pk3.webp',800):null);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>frmI[t]=v);
+    o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(8,o.rar|0)),PR=RF;let R=0;let CS=RF;
+    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=(await loadImg(o.base+'pk'+t+'.webp',800))||(t>6?await loadImg(o.base+'pk6.webp',800):null)||(t>3?await loadImg(o.base+'pk3.webp',800):null);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>v||(t>6?loadImg(o.base+'frame6.webp',4000):null)).then(v=>frmI[t]=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
@@ -2192,7 +2192,7 @@ const CardPack=(()=>{
         if(ph==='tear'){const k=Math.min(1,e/500);const cut=.2;
           if(pk){c.save();c.translate(W/2+k*pw*.6,H*.48-phh/2-k*H*.5);c.rotate(k*1.2);c.drawImage(pk,0,0,pk.width,pk.height*cut,-pw/2,0,pw,phh*cut);c.restore();
             c.save();c.globalAlpha=1-k;c.translate(W/2,H*.48+k*H*.6);c.drawImage(pk,0,pk.height*cut,pk.width,pk.height*(1-cut),-pw/2,-phh/2+phh*cut,pw,phh*(1-cut));c.restore()}
-          if(e>250&&!rev){rev=1;flash=1;S.rev(R);burst(30+Math.min(R,3)*40,5+Math.min(R,3)*2,C,70);if(o.sh)burst(40,7,'#fff',80);if(R>=2)bolts=1}
+          if(e>250&&!rev){rev=1;flash=1;S.rev(R);burst(30+Math.min(R,3)*40,5+Math.min(R,3)*2,C,70);if(o.sh)burst(40,7,'#fff',80);if(R>=2)bolts=1;if(R>=7){shake=Math.max(shake,40);S.boom();burst(110,11,C,90);setTimeout(()=>{if(!closed){flash=1;burst(70,13,'#fff',80);S.rev(4)}},280)}}
           if(e>500)setPh('card')}
         if(ph==='card'||ph==='show'){const k=ph==='show'?1:Math.min(1,e/(R>=3?1400:R>=2?1000:600));const ease=1-Math.pow(1-k,3);
           // 빛줄기
@@ -2205,6 +2205,7 @@ const CardPack=(()=>{
             const n=R*10;for(let i=0;i<n;i++){const a=now/(900-R*150)*(i%2?1:-1)+i*Math.PI*2/n,rx=cw*(.62+.06*Math.sin(now/300+i)),ry=chh*(.6+.05*Math.cos(now/280+i));c.fillStyle=R>=6||R===3?'hsl('+((i*36+now/5)%360)+',100%,70%)':R===5?'#aafff4':R===4?'#ff9ab0':R>=2?'#e2b8ff':'#bfe0ff';c.globalAlpha=.5+.5*Math.sin(now/120+i);c.beginPath();c.arc(Math.cos(a)*rx,Math.sin(a)*ry,2+R*1.2,0,7);c.fill()}
             if(R>=2){c.globalAlpha=.7*pul;c.lineWidth=3+R;c.strokeStyle=R>=6||R===3?'hsl('+((now/4)%360)+',100%,65%)':R===5?'#22e6d0':R===4?'#ff3b6b':'#c070ff';c.shadowColor=c.strokeStyle;c.shadowBlur=25;rr(c,-cw*.58,-chh*.56,cw*1.16,chh*1.12,cw*.1);c.stroke()}c.restore()}
           c.save();c.translate(W/2,y);c.scale(sc,sc);c.shadowColor=o.sh?'#fff':R>=3?'#ffd060':C;c.shadowBlur=30+R*25;card(0,0,cw,chh,now,sx||.001);c.restore();
+          if(R>=7){const hu=(now/6)%360,pu=.5+.5*Math.sin(now/180);c.save();c.translate(W/2,H*.48);for(let i=0;i<(R>=8?3:2);i++){c.save();c.rotate(now/(R>=8?700:1100)*(i%2?-1:1)+i);c.globalAlpha=.35+.25*pu;c.lineWidth=R>=8?5:3;c.strokeStyle=R>=8?'hsl('+((hu+i*90)%360)+',100%,70%)':'#dfe4ff';c.shadowColor=c.strokeStyle;c.shadowBlur=22;c.beginPath();c.ellipse(0,0,cw*(.78+i*.12),chh*(.62+i*.08),0,0,Math.PI*1.6);c.stroke();c.restore()}c.restore();c.save();c.textAlign='center';c.textBaseline='middle';c.font='900 '+Math.round(Math.min(W*.09,38))+'px sans-serif';const tx=R>=8?'✦ 태초 ✦':'✦ 불멸 ✦';c.lineWidth=8;c.strokeStyle='#1c2550';c.strokeText(tx,W/2,H*.1);c.fillStyle=R>=8?'hsl('+hu+',100%,72%)':'#e8ecff';c.shadowColor=R>=8?'#fff':'#8a96ff';c.shadowBlur=18+10*pu;c.fillText(tx,W/2,H*.1);c.restore();if(Math.random()<(R>=8?.7:.4))P.push({x:Math.random()*W,y:H+10,vx:(Math.random()-.5)*1.5,vy:-(2+Math.random()*3),l:160,L:160,s:2+Math.random()*3,c:R>=8?'hsl('+(Math.random()*360|0)+',100%,75%)':'#f4f6ff',k:'star'})}
           if(ph==='card'&&k>=1){setPh('show');if(R>=1)burst(20+Math.min(R,3)*20,4+Math.min(R,3),C,60)}
           if(ph==='show'&&R<RF&&e>750){setR(R+1,1);upFx();pt=now}if(ph==='show'){if(R>=3&&Math.random()<.5)P.push({x:Math.random()*W,y:-10,vx:(Math.random()-.5)*2,vy:2+Math.random()*3,l:200,L:200,s:4+Math.random()*4,c:'hsl('+(Math.random()*360|0)+',90%,60%)',k:'conf'});
             if(R>=1&&Math.random()<.2+R*.1)P.push({x:W/2+(Math.random()-.5)*cw,y:H*.48+(Math.random()-.5)*chh,vx:0,vy:-.3,l:40,L:40,s:3+Math.random()*3,c:'#fff',k:'star'});
@@ -2466,12 +2467,12 @@ setInterval(()=>{try{if(AUTO.on&&AUTO.guide&&!AUTO.huntOnly&&G){const t=objectiv
 // 합성 확률 (등급별): 일반→희귀 8% · 희귀→영웅 5% · 영웅→전설 10% · 전설→신화 15% · 신화→환상 20% · 환상→유일 25%
 const FUSEN=5;// 합성 한 번에 드는 같은 등급 영혼(재료) 수
 const FUSER=[.08,.05,.10,.15,.20,.25];const fuseP=r=>FUSER[r]!=null?FUSER[r]:.005;const fusePct=r=>(fuseP(r)*100).toFixed(1).replace(/\.0$/,'')+'%';
-const RW=[68.5,22,7,1.8,.5,.15,.05],FTIER={mega:4,gmax:5,primal:6,emax:6};const PMAX=6,MMAX=3;
+const RW=[68.5,22,7,1.8,.5,.15,.05],FTIER={mega:4,gmax:5,primal:6,emax:6};const PMAX=6,MMAX=3,PRMAX=8;
 function rollRar(kind){let u=R()*100;const n=kind==='M'?4:7;for(let i=0;i<n;i++){u-=RW[i];if(u<0)return i}return 0}
-const RPOOL={P:[[],[],[],[],[],[],[]],M:[[],[],[],[]]};
-function rpoolInit(){if(RPOOL.ok)return;for(const d in RARP){const n=BYDEX[+d];if(n&&META[n]&&(!META[n].adm||(window.NCPK&&window.NCPK(+d))))RPOOL.P[Math.min(PMAX,RARP[d])].push(+d)}GMOVES.forEach(([id],i)=>{if(MOVES[id]&&RARM[id]!=null)RPOOL.M[RARM[id]].push(i)});
+const RPOOL={P:[[],[],[],[],[],[],[],[],[]],M:[[],[],[],[]]};
+function rpoolInit(){if(RPOOL.ok)return;for(const d in RARP){const n=BYDEX[+d];if(n&&META[n]&&(!META[n].adm||(window.NCPK&&window.NCPK(+d))))RPOOL.P[Math.min(PRMAX,RARP[d])].push(+d)}GMOVES.forEach(([id],i)=>{if(MOVES[id]&&RARM[id]!=null)RPOOL.M[RARM[id]].push(i)});
   try{for(const d in FORMS)for(const [p,k] of FORMS[d]){const fk='sc:'+p;if(META[fk]&&FTIER[k])RPOOL.P[FTIER[k]].push(fk)}}catch(e){}RPOOL.ok=RPOOL.P[4].length>0||!Object.keys(META).some(k=>k.startsWith('sc:'))?1:0}
-function rollItem(kind,rar){rpoolInit();if(rar==null)rar=rollRar(kind);let r=Math.min(rar,kind==='M'?MMAX:PMAX);while(r>0&&!RPOOL[kind][r].length)r--;const L=RPOOL[kind][r];let id=L[R()*L.length|0],f=null;if(typeof id==='string'){f=id;id=META[f].dex}
+function rollItem(kind,rar){rpoolInit();if(rar==null)rar=rollRar(kind);let r=Math.min(rar,kind==='M'?MMAX:PRMAX);while(r>0&&!RPOOL[kind][r].length)r--;const L=RPOOL[kind][r];let id=L[R()*L.length|0],f=null;if(typeof id==='string'){f=id;id=META[f].dex}
   const lv=Math.max(3,Math.min(100,(G.party.length?topLv():5)-2+(R()*5|0)));const o={kind,id,rar:r,lv,sh:kind==='P'&&R()<1/100?1:0,serial:0,key:'pk'+Date.now().toString(36)+(R()*1e6|0)};if(f)o.f=f;return o}
 function isDup(g){if(g.kind==='P'&&g.f)return !!((G.forms||{})[g.f]||[...G.party,...G.box].some(m=>m.n===g.f)||(G.gifts||[]).some(x=>x.f===g.f));if(g.kind==='P')return !!(G.dex.c[g.id]||(G.gifts||[]).some(x=>x.kind==='P'&&x.id===g.id));G.mvown=G.mvown||{};return !!(G.mvown[g.id]||(G.gifts||[]).some(x=>x.kind==='M'&&x.id===g.id))}
 const PKN={P:'🎴 포켓몬 카드팩',M:'📀 기술 카드팩'};
@@ -3799,7 +3800,7 @@ rankFetch=async function(b){const c=wbCfg();if(!c)return null;
   // 진행도: 아직 아무것도 안 한 기록(보통 · 모험 시작 · 도감 0마리)은 빼요
   if(b==='adv')L=L.filter(x=>x.v>=1e6||x.v%1e5>0);
   // 운영자는 서버에 안 올라가지만, 자기 진행도가 어디쯤인지는 볼 수 있게 내 화면에만 끼워 줘요 (id가 달라서 왕관 · 순위 휘장에는 영향 없어요)
-  try{if((b==='adv'||b==='dex')&&rkStaff()){const v=Math.floor(RKB[b].v());if(v>0){const nm0=(String(G.name||'').split('#')[0]||'운영자').slice(0,6)+'·미등록';L.push({id:G.pid+'~preview',name:nm0+repTag(),v,preview:1});L.sort((a,b)=>b.v-a.v)}}}catch(e){}
+  try{if(false&&(b==='adv'||b==='dex')&&rkStaff()){const v=Math.floor(RKB[b].v());if(v>0){const nm0=(String(G.name||'').split('#')[0]||'운영자').slice(0,6)+'·미등록';L.push({id:G.pid+'~preview',name:nm0+repTag(),v,preview:1});L.sort((a,b)=>b.v-a.v)}}}catch(e){}
   return L};
 const rkStaff=()=>{try{return !!((typeof isGM==='function'&&isGM())||(typeof isOp==='function'&&isOp()))}catch(e){return false}};
 // 난이도 배지: 쉬움 · 보통 · 어려움은 담백하게, 지옥부터 점점 화려하게
@@ -4062,7 +4063,7 @@ async function sfAuto(c){const sf=gSF(c);if(sf.none||sf.b||sf.s>=15)return;close
 
 // ===== 카드팩 가방 · 히든 포탈 · 스탯 부적 =====
 // 카드팩은 받자마자 열리지 않고 가방에 쌓여요. 1장 · 10장 · 원하는 만큼 골라서 열고, 한 장씩 손가락으로 잘라요.
-const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅~전설 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'},P4:{n:'신화 카드팩',img:'cardpack/pk4.webp'},P5:{n:'환상 카드팩',img:'cardpack/pk5.webp'},P6:{n:'유일 카드팩',img:'cardpack/pk6.webp'}};
+const PKT={P:{n:'포켓몬 카드팩',img:'cardpack/pk0.webp'},M:{n:'기술 카드팩',img:'cardpack/pk1.webp'},P2:{n:'영웅~전설 카드팩',img:'cardpack/pk2.webp'},P3:{n:'전설 카드팩',img:'cardpack/pk3.webp'},P4:{n:'신화 카드팩',img:'cardpack/pk4.webp'},P5:{n:'환상 카드팩',img:'cardpack/pk5.webp'},P6:{n:'유일 카드팩',img:'cardpack/pk6.webp'},P7:{n:'불멸 카드팩',img:'cardpack/pk6.webp'},P8:{n:'태초 카드팩',img:'cardpack/pk6.webp'}};
 const PRNG={P2:[2,3]},PRNGP=.1;// 영웅~전설 팩: 영웅 90% · 전설 10%
 function packAdd(list,why){G.packs=G.packs||{};const c={};for(const k0 of list){const k=PKT[k0]?k0:k0[0];G.packs[k]=(G.packs[k]||0)+1;c[k]=(c[k]||0)+1}save();
   toast((why?why+' · ':'')+Object.keys(c).map(k=>PKT[k].n+' '+c[k]+'장').join(', ')+' 가방에 넣었어요');sfx('get');packBadge()}
@@ -4104,7 +4105,7 @@ try{HUB.push({k:'portal',n:'히든 포탈 (하루 5번)',d:'자동 사냥 중 �
 // 등급별 카드팩 (운영자 선물용): 일반 · 희귀 · 영웅 포켓몬팩 + 일반~전설 기술팩
 try{const O=Object.assign({},PKT);for(const k in PKT)delete PKT[k];
   const add={P0:{n:'일반 포켓몬 카드팩',img:'cardpack/pk0.webp'},P1:{n:'희귀 포켓몬 카드팩',img:'cardpack/pk0.webp'},PH:{n:'영웅 포켓몬 카드팩',img:'cardpack/pk2.webp'},M0:{n:'일반 기술 카드팩',img:'cardpack/pk1.webp'},M1:{n:'희귀 기술 카드팩',img:'cardpack/pk1.webp'},M2:{n:'영웅 기술 카드팩',img:'cardpack/pk1.webp'},M3:{n:'전설 기술 카드팩',img:'cardpack/pk1.webp'}};
-  for(const k of ['P','M','P0','P1','PH','P2','P3','P4','P5','P6','M0','M1','M2','M3'])PKT[k]=O[k]||add[k];for(const k in O)if(!PKT[k])PKT[k]=O[k]}catch(e){}
+  for(const k of ['P','M','P0','P1','PH','P2','P3','P4','P5','P6','P7','P8','M0','M1','M2','M3'])PKT[k]=O[k]||add[k];for(const k in O)if(!PKT[k])PKT[k]=O[k]}catch(e){}
 
 // ===== 난이도 5단계 (쉬움·보통·어려움·지옥·나이트메어) · 환생 =====
 // 지옥은 어려움에서 챔피언이 되면, 나이트메어는 지옥에서, 종말은 나이트메어에서 챔피언이 되면 열려요. 환생: 챔피언이 되면 이야기를 처음부터 (포켓몬·가방·돈·도감·장비는 그대로)
@@ -5064,7 +5065,7 @@ const ODTABS={
    return odDiff()+`<h4>포켓몬 카드팩</h4>${odRows(P.map((p,i)=>[RAR[i],p,RARC[i]]).filter((x,i)=>i<=cap))}<p class="hhint">신화 = 메가진화 · 환상 = 거다이맥스 · 유일 = 원시회귀 · 무한다이맥스. 같은 등급 안에서는 어떤 포켓몬이든 똑같은 확률이에요.${cap<6?' 더 높은 등급은 더 어려운 난이도에서 열려요.':''}</p>
    <h4>기술 카드팩</h4>${odRows(M.map((p,i)=>[RAR[i],p,RARC[i]]).filter((x,i)=>i<=3))}
    <h4>영웅~전설 카드팩</h4>${odRows([[RAR[2],.9,RARC[2]],[RAR[3],.1,RARC[3]]])}
-   <h4>전설 카드팩</h4>${odRows([[RAR[3],1,RARC[3]]])}<h4>환생 퀘스트 추가 팩 (난이도별)</h4>${odRows([['보통 · 영웅~전설 팩',1,RARC[3]],['어려움 · 전설 팩',1,RARC[3]],['지옥 · 신화 팩',1,RARC[4]],['나이트메어 · 환상 팩',1,RARC[5]],['종말 · 유일 팩',1,RARC[6]]])}<p class="hhint">환생한 난이도 기준이에요. 퀘스트 하나마다 이 팩 1장이 더 나와요.</p><h4>신화 · 환상 · 유일 카드팩</h4>${odRows([4,5,6].map(i=>[RAR[i]+' 카드팩 → '+RAR[i],1,RARC[i]]))}<p class="hhint">운영자 선물로만 받아요. 난이도와 상관없이 그 등급이 나와요.</p>
+   <h4>전설 카드팩</h4>${odRows([[RAR[3],1,RARC[3]]])}<h4>환생 퀘스트 추가 팩 (난이도별)</h4>${odRows([['보통 · 영웅~전설 팩',1,RARC[3]],['어려움 · 전설 팩',1,RARC[3]],['지옥 · 신화 팩',1,RARC[4]],['나이트메어 · 환상 팩',1,RARC[5]],['종말 · 유일 팩',1,RARC[6]]])}<p class="hhint">환생한 난이도 기준이에요. 퀘스트 하나마다 이 팩 1장이 더 나와요.</p><h4>신화 · 환상 · 유일 · 불멸 · 태초 카드팩</h4>${odRows([4,5,6,7,8].map(i=>[RAR[i]+' 카드팩 → '+RAR[i],1,RARC[i]]))}<p class="hhint">운영자 선물로만 받아요. 난이도와 상관없이 그 등급이 나와요.</p>
    <p class="hhint">이미 가진 카드가 나오면 몬스터볼 5개 + 합성 재료가 돼요.</p>`}],
  fuse:['합성',()=>`<p class="odnow">같은 등급 영혼(또는 중복 카드) <b>${FUSEN}개</b>를 합치면</p>${odRows(RAR.slice(0,PMAX).map((n,i)=>[n+' → '+RAR[i+1],fuseP(i),RARC[i+1]]))}
    <p class="hhint">실패하면 재료 ${FUSEN}개는 사라지고 몬스터볼 2개를 받아요. 성공하면 위 등급 포켓몬 중 하나가 똑같은 확률로 나와요. 기술 카드는 전설까지 합성돼요. 일괄 합성도 한 번 한 번 똑같은 확률이에요.</p>`],
@@ -5555,6 +5556,8 @@ let DXB={t:0,v:0};const dexBonus=()=>{if(!G||!G.dex)return 0;const n=Date.now();
 // 크기: 신화 ×1.12 · 환상(거다이맥스) ×1.45 · 유일(원시 · 무한) ×1.3
 const GSC=[1,1,1,1,1.12,1.45,1.3,1.45,1.6];const gradeOf=m=>{try{return m&&META[m.n]?rarM(m):0}catch(e){return 0}};
 {const _b=bsc;bsc=function(S,mine){const k=_b.apply(this,arguments);try{const m=mine?BS.me&&BS.me.m:BS.foe&&BS.foe.m;return k*(GSC[gradeOf(m)]||1)}catch(e){return k}}}
+/* 크기 상한: 화면에 그려지는 키(배율×프레임높이)를 일반 포켓몬(프레임 50px 기준)의 최대 1.8배로 제한 (갸라도스 1.79 기준). 월드보스는 제외 */
+const BSC_MAX=1.8;{const _b=bsc;bsc=function(S,mine){const k=_b.apply(this,arguments);try{if(BS.wb)return k;const h=Math.max(1,S.meta.anims.idle.h),r=bsz()/24*(mine?1.15:1),mx=r*BSC_MAX*50/h;return k>mx?mx:k}catch(e){return k}}}
 // 기술 위력: 신화 +15% · 환상 +25% · 유일 +35%
 const GPW=[0,0,0,0,.15,.25,.35,.5,.7];
 {const _d=dmgCalc;dmgCalc=function(a){const r=_d.apply(this,arguments);try{const b=GPW[gradeOf(a)]||0;if(b&&r&&r.d)r.d=Math.round(r.d*(1+b))}catch(e){}return r}}
@@ -7169,11 +7172,13 @@ async function ncInject(){let L=null;try{L=await (await fetch('newchars.json',{c
   try{const r=await fetch('ncrelease.json',{cache:'no-cache'});if(r.ok){REL=await r.json()||{};try{LS.set('pka-ncrel0',REL)}catch(e){}}}catch(e){REL=LS.get('pka-ncrel0',null)||{}}
   for(const x of L){apply(x);const key='sc:'+x.id,dex=+x.id;if(!x.art){if(!x.base||!META['sc:'+x.base])continue;NCAL[key]='sc:'+x.base}
     if(x.por)NCPOR[key]=1;if(META[key])continue;
-    META[key]={dex,name:x.n,types:x.t,stats:x.s,moves:x.m,anim:true,online:1,adm:1};if(NCAL[key])META[key].alias=NCAL[key];THUMB[key]=faceUrl(key);BYDEX[dex]=key;
+    META[key]={dex,name:x.n,types:x.t,stats:x.s,moves:x.m,anim:true,online:1,adm:1,rec:(x.rec||[]).map(r=>[r[0],r[3]||0])};if(NCAL[key])META[key].alias=NCAL[key];THUMB[key]=faceUrl(key);BYDEX[dex]=key;
     for(const q of x.m||[])if(q.id)try{mvOf(q)}catch(e){}
     for(const r of x.rec||[])try{mvOf({id:r[0]})}catch(e){}}
   relApply()}
 {const _lp=loadPool;loadPool=async function(){const r=await _lp.apply(this,arguments);try{await ncInject()}catch(e){console.warn('신캐',e)}return r}}
+// 신캐 일반 획득(야생·카드팩·진화 등): 전용기술이 없으면 추천 기술 4개를 위력 낮은 순으로 Lv1·14·28·42에 배움
+{const _l=learnset;learnset=function(M){try{if(M&&M.rec&&M.rec.length&&!(M.moves&&M.moves.length)){const R=M.rec.slice(0,4).sort((a,b)=>a[1]-b[1]),LV=[1,14,28,42];return R.map((r,i)=>[LV[i],r[0]]).filter((x,i,A)=>A.findIndex(y=>y[1]===x[1])===i)}}catch(e){}return _l.apply(this,arguments)}}
 
 // ---------- 운영자 패널: 🆕 신캐 ----------
 let T='전체',Q='',LIM=60;const TABS=['전체','EX','S','A','B','C','D','출시됨','아트없음'];
