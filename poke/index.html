@@ -2082,6 +2082,7 @@ function packFor(g){try{if(g.kind==='P'){const n=g.f&&META[g.f]?g.f:BYDEX[g.id],
 // ===== 운영자 모드 (관장님): 무엇이든 주고·바꾸고·선물 코드도 직접 만들기 =====
 const OPER={on:LS.get('pka-op',0)===1};
 async function operLogin(){return new Promise(r=>{openPanel('🔑 운영자 모드',`<p>운영자 비밀번호를 넣어 주세요.</p><div class="nw"><input id="opPw" type="password" autocomplete="off"><button id="opOk" class="it">확인</button></div><p id="opM"></p>`,r,p=>{p.querySelector('#opOk').onclick=()=>{if(p.querySelector('#opPw').value==='jungdo2'){OPER.on=1;LS.set('pka-op',1);toast('🛠 운영자 모드 켜짐');closePanel(1);hud();r(true)}else p.querySelector('#opM').textContent='❌ 비밀번호가 달라요'}})})}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('#oNc');if(!b)return;try{if(window.ncOpen)window.ncOpen();else toast('신캐 기능을 못 불러왔어요 · 화면을 새로고침해 주세요')}catch(er){toast('신캐 패널 오류: '+er.message)}});
 function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
   const ar=[];for(let a=0;a<NA;a++)ar.push(`<option value="${a}">${areaName(a)}</option>`);
   openPanel('🛠 운영자',`
@@ -2090,7 +2091,7 @@ function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
   <h4>기술 가르치기 (맨 앞 포켓몬: ${G.party[0]?nm(G.party[0]):'-'})</h4><div class="nw"><input id="oMv" list="oMvL" placeholder="기술 이름"><button class="it" id="oMvGo">배우기</button><button class="it" id="oMvMax">기술 레벨 최대</button></div>
   <datalist id="oMvL">${GMOVES.map(m=>`<option value="${m[1]}">`).join('')}</datalist>
   <h4>내 포켓몬</h4><div><button class="it" id="oLv">모두 레벨 +10</button><button class="it" id="oLv100">모두 Lv.100</button><button class="it" id="oHeal">모두 회복</button><button class="it" id="oEvo">진화 확인</button></div>
-  <h4>가방 · 돈 · 진행</h4><div><button class="it" id="oItem">아이템 99개씩</button><button class="it" id="oMoney">💰 +100000</button><button class="it" id="oBadge">배지 8개</button><button class="it" id="oChamp">챔피언 클리어</button><button class="it" id="oDex">도감 전부 잡음</button><button class="it" id="oVisit">마을 전부 가 봄</button><button class="it" id="oTest">🛠 테스트 모드 켜기/끄기</button><button class="it" id="oFx">🎬 기술 이펙트 관리자</button></div>
+  <h4>가방 · 돈 · 진행</h4><div><button class="it" id="oItem">아이템 99개씩</button><button class="it" id="oMoney">💰 +100000</button><button class="it" id="oBadge">배지 8개</button><button class="it" id="oChamp">챔피언 클리어</button><button class="it" id="oDex">도감 전부 잡음</button><button class="it" id="oVisit">마을 전부 가 봄</button><button class="it" id="oTest">🛠 테스트 모드 켜기/끄기</button><button class="it" id="oFx">🎬 기술 이펙트 관리자</button><button class="it" id="oNc">🆕 신캐 (추가 캐릭터)</button></div>
   <label><input type="checkbox" id="oGod" ${OPER.god?'checked':''}> 무적 (내 포켓몬 체력이 안 닳음)</label><label><input type="checkbox" id="oOne" ${OPER.one?'checked':''}> 한 방에 쓰러뜨리기</label><label><input type="checkbox" id="oNoEnc" ${G.repel>9e8?'checked':''}> 야생 포켓몬 안 나오기</label>
   <h4>순간이동</h4><div class="nw"><select id="oArea">${ar.join('')}</select><button class="it" id="oGo">이동</button></div>
   <h4>🎁 선물 코드 만들기 (아이에게 직접 주기)</h4><div class="nw"><select id="oGk"><option value="P">포켓몬</option><option value="M">기술</option></select><input id="oGid" placeholder="이름/번호 또는 기술 이름"><input id="oGlv" inputmode="numeric" placeholder="레벨" value="10" style="max-width:64px"></div>
@@ -7111,7 +7112,7 @@ function ncOpen(){openPanel('🆕 신캐 (운영자 전용)',`<div id="ncb">
   q('#ncRs').onclick=()=>{if(!confirm('고른 등급을 모두 추천 기본값으로 되돌릴까요?'))return;NG={};try{LS.set(NCK,NG)}catch(e){}NC.forEach(apply);draw()};
   q('#ncBk').onclick=()=>operOpen();
   draw()})}
-{const _oo=operOpen;operOpen=function(){const r=_oo.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel .pb');const b=p&&p.querySelector('#oFx');if(!b||p.querySelector('#oNc'))return;b.insertAdjacentHTML('afterend','<button class="it" id="oNc">🆕 신캐 (추가 캐릭터)</button>');p.querySelector('#oNc').onclick=ncOpen}catch(e){}},60);return r}}
+window.ncOpen=ncOpen;{const _oo=operOpen;operOpen=function(){const r=_oo.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel .pb');const b=p&&p.querySelector('#oFx');if(!b||p.querySelector('#oNc'))return;b.insertAdjacentHTML('afterend','<button class="it" id="oNc">🆕 신캐 (추가 캐릭터)</button>');p.querySelector('#oNc').onclick=ncOpen}catch(e){}},60);return r}}
 }catch(e){console.warn('newchar',e)}})();
 
 
