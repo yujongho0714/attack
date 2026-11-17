@@ -8062,13 +8062,15 @@ function start(i,id,m,dir){const me=BS.me,f=BS.foe,atk=me.m,def=f.m,S=bsz();
   let crit=false,r={d:1,e:1};try{r=dmgCalc(atk,def,m,false)}catch(e){}
   let dmg=Math.max(1,Math.floor(r.d*.33*(.85+R()*.15)));if(r.e===0)dmg=0;try{if(OPER.on&&OPER.one)dmg=def.hp}catch(e){}
   let L=1;try{if(atk.moves.includes(m.id)){if(useMv(atk,m.id))toast('⬆ '+m.name+' 기술 레벨 Lv.'+mlv(atk,m.id)+'!');L=cl(mlv(atk,m.id)|0||1,1,5)}}catch(e){}
-  const T=m.type||'NORMAL',comps=recipe(m,L).map(sp=>({sp,acc:R()*.5,t:0}));
+  const T=m.type||'NORMAL';let eo=null;try{if(typeof GMFX!=='undefined')eo=GMFX.ov(m.id,GMFX.tierOf({A:me},true),{L:L|0,aw:((atk&&atk.aw)|0)})}catch(e){eo=null}
+  const comps=eo?[]:recipe(m,L).map(sp=>({sp,acc:R()*.5,t:0}));
   const cnt=CF.count*(1+.12*(L-1)),sz=1+.07*(L-1);
   let exp=0;for(const c of comps){const sp=c.sp;exp+=sp.k==='B'?sp.exp:(sp.rate*(DUR-.4)*sp.exp)}
   exp+=4;const budget=dmg*CHD*(1+.06*(L-1));
   const s=CN.s={i,id,m,T,L,dmg,crit,e:r.e,t:0,comps,pals:palsFor(T),sz,cnt,perHit:budget/exp,cap:Math.ceil(exp*Math.max(1,CF.count)*1.5)+12,hitN:0,lastHurt:0,lastNum:0,lastSnd:0,ended:0,fin:0,pose:0,beams:[]};
   // 광선은 양(count)이 많으면 줄기가 늘어요
   for(const c of comps)if(c.sp.k==='B'){const n=cl(Math.round(CF.count),1,4);for(let q=0;q<n;q++){const off=n===1?0:(q-(n-1)/2)*.2;s.beams.push({sp:c.sp,off,w:S*c.sp.w*CF.size*sz*(n>1?.75:1),len:VW*c.sp.len*(1+.04*L),p:pk(s),ph:R()*6,tickT:0,st:c.sp.st})}}
+  if(eo){s.emp={o:eo,busy:0,n:0};s.cap=9999}
   CN.E=[];CN.Z=[];ACT.cd[id]=cdOf(m);
   try{snd(TSND[T]||'mf4_whoosh',.5)}catch(e){}try{A2.castSnd(T,L,1)}catch(e){}
   try{FX2.num(org().x,org().y-S*1.4,L>=5?'★ 궁극기!':L>=4?'극 기술!':L>=3?'강화 기술!':m.name,SKFX.col(T),L>=3,null)}catch(e){}
@@ -8084,6 +8086,17 @@ function emit(s,fr){const S=bsz(),tp=tpoint(),o=org();
       else if(sp.k==='W'){spawnW(s,sp,sp.sh==='quake'&&R()<.5?{x:tp.x,y:tp.y}:{x:BS.me.ax,y:BS.me.ay})}}}
   // 마무리: 마지막에 큰 것들이 우수수
   if(!s.fin&&s.t>=DUR-.85){s.fin=1;const fc=comps0(s);if(fc){const n=Math.round(5*Math.max(1,CF.count)*.8)+1;for(let q=0;q<n&&lim();q++){const a=R()*6.283,rr=Math.sqrt(R())*S*2.4*CF.size;setTimeout(()=>{try{if(CN.s===s&&!s.ended)spawnF(s,fc,{x:tp.x+Math.cos(a)*rr,y:tp.y+Math.sin(a)*rr*SQ},1)}catch(e){}},q*110)}try{FX2.flash(SKFX.col(s.T),.2)}catch(e){}}}}
+// 이펙트 관리자 연출(미리보기와 같은 것)을 실시간 배틀에서 5초 동안 이어서 쏴요 · 방향은 누른 손가락/자동 조준을 따라요
+function empCast(s){const E=s.emp;if(!E||E.busy||s.ended||s.t<.18||s.t>DUR-.35||E.n>=5)return;
+  E.busy=1;E.n++;const me=BS.me,f=BS.foe,S=bsz(),o=org(),u={x:CN.u.x,y:CN.u.y},fc0=fcen();
+  const D=cl(Math.hypot(fc0.x-o.x,fc0.y-o.y),S*2.2,VW*.62),b={x:o.x+u.x*D,y:o.y+u.y*D};
+  const x={A:me,B:f,S,d:u.x>=0?1:-1,a:{x:o.x,y:o.y},b,fa:{x:o.x,y:o.y},fb:{x:b.x,y:b.y},
+    pose:(ob,st)=>{try{const sp=ob.S&&ob.S.meta.anims;ob.st=sp&&sp[st]?st:(st==='shoot'&&sp&&sp.attack?'attack':'idle');ob.t=0}catch(e){}},
+    hit:k=>{if(CN.s!==s||s.ended)return;const c=fcen(),oo=org();
+      if(segd(c.x,c.y,oo.x,oo.y,b.x,b.y)<=Math.max(c.r*1.35,S*1.2))dealHit(c.x,c.y,k>0&&k<=1?k:1,k>=.5?1.2:1)}};
+  let fin=0;const done=()=>{if(!fin){fin=1;E.busy=0}};
+  try{Promise.resolve(GMFX.run(x,E.o)).then(done,done)}catch(e){done()}
+  setTimeout(done,4800)}
 function comps0(s){const T=s.T;const sh=T==='ROCK'||T==='GROUND'?'boulder':T==='ICE'?'icicle':T==='ELECTRIC'?'bolt':T==='WATER'?'drop':T==='GRASS'?'leaf':T==='FAIRY'?'star':T==='STEEL'?'shard':T==='POISON'?'sludge':'meteor';return F(sh,0,{r:.9,aoe:1.5,fall:.6,dx:.45})}
 function boom(e,P,pow,sh){const s=CN.s,S=bsz(),T=s.T;
   CN.Z.push({k:'blast',x:P.x,y:P.y,R:e.aoe||S*1.1,t:0,life:.42,p:e.p,sh:sh||e.sh});
@@ -8105,7 +8118,7 @@ function step(dt){const s=CN.s;if(!s)return;if(!ACT.on||ACT.pause){return}const 
     if(s.t>=.18)for(const b of s.beams){b.tickT-=fr;const o=org(),a=Math.atan2(CN.u.y,CN.u.x)+b.off,ex=o.x+Math.cos(a)*b.len,ey=o.y+Math.sin(a)*b.len;
       for(let i=0;i<2&&lim();i++){const q=R()*b.len*Math.min(1,s.t/.25);pAdd({x:o.x+Math.cos(a)*q+(R()-.5)*b.w,y:o.y+Math.sin(a)*q+(R()-.5)*b.w,vx:(R()-.5)*S*2,vy:(R()-.5)*S*2-S*.5,drag:.08,s:S*(.08+R()*.1),s1:0,life:.25+R()*.3,st:b.p,k:b.st==='flame'?'puff':R()<.5?'px':'star',glow:1})}
       if(b.tickT<=0){b.tickT=b.sp.tick;const fc=fcen();if(segd(fc.x,fc.y,o.x,o.y,ex,ey)<=b.w*.55+fc.r*.8){dealHit(fc.x,fc.y,1,1);try{pAdd({x:fc.x,y:fc.y,s:S*.5,s1:S*1.4,life:.25,st:b.p,k:'ring',glow:1})}catch(e){}}}}
-    emit(s,fr)}
+    if(s.emp)empCast(s);else emit(s,fr)}
   // 투사체
   const fc=fcen(),keep=[];
   for(const e of CN.E){e.t+=fr;
@@ -8128,7 +8141,7 @@ function step(dt){const s=CN.s;if(!s)return;if(!ACT.on||ACT.pause){return}const 
   CN.Z=kz;
   // 끝
   if(s.ended&&!CN.E.length&&!CN.Z.length){CN.s=null;try{me.glow=0}catch(e){}}
-  else if(!s.ended&&s.t>=DUR){finish(false);try{me.glow=0}catch(e){}}}
+  else if(!s.ended&&s.t>=DUR&&!(s.emp&&s.emp.busy&&s.t<DUR+2.5)){finish(false);try{me.glow=0}catch(e){}}}
 // 그리기
 function drawUnder(){const s=CN.s;if(!s||!ACT.on||!BS.me)return;const c=cx,S=bsz();
   for(const z of CN.Z){if(z.k==='mark'){const u=Math.min(1,z.t/z.life);c.save();ell(c,z.x,z.y,z.R,z.p[1],null,0,.12+.14*u);ell(c,z.x,z.y,z.R*(1-u*.35),null,z.p[3],Math.max(2,S*.06),.35+.4*u);ell(c,z.x,z.y,z.R*u,z.p[2],null,0,.18);c.restore()}}
