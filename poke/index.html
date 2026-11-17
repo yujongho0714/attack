@@ -1959,7 +1959,7 @@ function navArea(a){if(canFly()){const T=[];for(const k in G.visit)T.push(+k);co
 async function flyTo(a){P.busy=1;P.mode='fly';await refreshSpr();toast('🕊 '+nm(flyMon())+'(을)를 타고 '+areaName(a)+'(으)로!');sfx('get');await fade(1);const A=genArea(a);const b=A.bld.find(b=>b.kind==='center'||b.kind==='home'||b.kind==='league');place(a,b?(b.out?b.out.x:b.door.x):A.res?A.spawn.x:A.GX,b?(b.out?b.out.y:b.door.y+1):A.res?A.spawn.y:A.H-2,0);P.mode='walk';await refreshSpr();await fade(0);P.busy=0}
 // ---------- 화면 윗부분 ----------
 function hud(){if(!G)return;const o=objective();bt('hTop').innerHTML=`<b>${areaName(G.a)}</b><span><img class="hic" src="ui/ic_badge.webp">${G.badges}<img class="hic" src="ui/ic_coin.webp">${G.money}</span>`;bt('hObj').innerHTML=`<span>🎯 ${o.t}</span>`;
-  bt('bAuto').classList.toggle('on',!!AUTO.on&&!AUTO.huntOnly);bt('bAuto').textContent=AUTO.on&&AUTO.guide?'⏸ 길 안내 멈추기':AUTO.on&&!AUTO.huntOnly?'⏸ 자동 끄기':'▶ 자동';autoBtnB();bt('bHunt').classList.toggle('on',!!AUTO.huntOnly);bt('bFly').style.display=canFly()?'':'none';bt('bFly').classList.toggle('on',P.mode==='fly');bt('bFast').classList.toggle('on',!!G.fast);bt('bOp').style.display=OPER.on?'':'none';
+  bt('bAuto').classList.toggle('on',!!AUTO.on&&!AUTO.huntOnly);bt('bAuto').textContent=AUTO.on&&AUTO.guide?'⏸ 길 안내 멈추기':AUTO.on&&!AUTO.huntOnly?'⏸ 자동 끄기':'▶ 자동';autoBtnB();bt('bHunt').classList.toggle('on',!!AUTO.huntOnly);bt('bFly').style.display=canFly()?'':'none';bt('bFly').classList.toggle('on',P.mode==='fly');bt('bFast').classList.toggle('on',!!G.fast);bt('bOp').style.display=(OPER.on||(typeof isGM==='function'&&isGM()))?'':'none';
   bt('hHunt').textContent=AUTO.hunt&&AUTO.hunt.n?'🧭 '+META[AUTO.hunt.n].name+' 찾는 중 · '+areaName(AUTO.hunt.a):AUTO.huntOnly?'🌿 자동 사냥 중 · '+areaName(AUTO.hunt?AUTO.hunt.a:G.a):'';}
 bt('bAuto').onclick=()=>{sfx('tap');if(AUTO.on&&!AUTO.huntOnly){autoStop()}else{AUTO.on=1;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1}hud()};
 bt('bHunt').onclick=()=>{sfx('tap');if(AUTO.huntOnly){AUTO.on=0;AUTO.huntOnly=0;AUTO.hunt=null;P.queue=null}else{if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}let a=G.a;if(isTown(a)||a===18)a=Math.max(1,Math.min(17,G.a<=2*G.badges?a+1:a-1));AUTO.on=1;AUTO.huntOnly=1;AUTO.hunt={a};toast('🌿 '+areaName(a)+'에서 자동 사냥! (체력이 낮으면 알아서 회복하러 가요)')}hud()};
@@ -2083,7 +2083,7 @@ function packFor(g){try{if(g.kind==='P'){const n=g.f&&META[g.f]?g.f:BYDEX[g.id],
 const OPER={on:LS.get('pka-op',0)===1};
 async function operLogin(){return new Promise(r=>{openPanel('🔑 운영자 모드',`<p>운영자 비밀번호를 넣어 주세요.</p><div class="nw"><input id="opPw" type="password" autocomplete="off"><button id="opOk" class="it">확인</button></div><p id="opM"></p>`,r,p=>{p.querySelector('#opOk').onclick=()=>{if(p.querySelector('#opPw').value==='jungdo2'){OPER.on=1;LS.set('pka-op',1);toast('🛠 운영자 모드 켜짐');closePanel(1);hud();r(true)}else p.querySelector('#opM').textContent='❌ 비밀번호가 달라요'}})})}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('#oNc');if(!b)return;try{if(window.ncOpen)window.ncOpen();else toast('신캐 기능을 못 불러왔어요 · 화면을 새로고침해 주세요')}catch(er){toast('신캐 패널 오류: '+er.message)}});
-function operOpen(){if(!OPER.on){operLogin();return}if(SCENE!=='over')return;
+function operOpen(){if(!OPER.on&&!(typeof isGM==='function'&&isGM())){operLogin();return}if(SCENE!=='over')return;
   const ar=[];for(let a=0;a<NA;a++)ar.push(`<option value="${a}">${areaName(a)}</option>`);
   openPanel('🛠 운영자',`
   <h4>포켓몬 주기</h4><div class="nw"><input id="oPk" list="oPkL" placeholder="이름 또는 번호 (예: 리자몽, 6)"><input id="oPkLv" inputmode="numeric" placeholder="레벨" value="50" style="max-width:70px"><button class="it" id="oPkGo">주기</button></div>
@@ -6712,6 +6712,8 @@ setInterval(()=>{try{if(G&&SCENE==='over'&&chBase())chFetch(6)}catch(e){}},60000
 
 // ===== 전투력 화면 · 덱 프리셋 =====
 function facesOf(d){return d.map(m=>`<img src="${faceUrl(m.n,'Normal')}" alt="">`).join('')||'<small>편성 없음</small>'}
+// 전투력 랭킹 자동 갱신: 예전에는 「⚡ 전투력」 창이나 랭킹을 직접 열어야만 올라가서, 채팅에 찍히는 전투력과 랭킹이 달랐어요
+setInterval(()=>{try{if(G&&SCENE==='over'&&!PANEL&&!document.body.classList.contains('inb'))cpSync()}catch(e){}},90000);
 function powerOpen(){if(!G||SCENE!=='over')return;cpSync();
   const n=G.party.length+G.box.length,rk=G.cpRk||{};
   openPanel('⚡ 전투력',`<div class="pwT"><small>총합 전투력 · 포켓몬 ${n}마리</small><b>⚡ ${fmtN(CP.all())}</b>${rk.cp?`<span>🏆 ${rk.cp}위</span>`:''}</div>
@@ -8072,6 +8074,7 @@ function fxPanel(){const rows=[['size','투사체 크기',.3,4,.05],['speed','�
     p.querySelector('#fxRst').onclick=()=>{sfx('tap');CF.size=CF.speed=CF.count=1;keep();p.querySelectorAll('input[type=range]').forEach(r=>{r.value=1;p.querySelector('[data-o="'+r.dataset.k+'"]').textContent='1.00'})};
     p.querySelector('#fxPush').onclick=async()=>{sfx('tap');norm();keep();const ok=await push();toast(ok?'✅ 모두에게 적용했어요 (게임을 켜거나 전투에 들어갈 때 받아가요)':'올리지 못했어요')}})}
 {const _gd=gmDraw;gmDraw=function(){const r=_gd.apply(this,arguments);try{if(isGM()){const p=document.querySelector('.panel');if(p&&!p.querySelector('#fxGm')){const t=p.querySelector('.pb');const b=document.createElement('button');b.id='fxGm';b.textContent='✨ 투사체 설정 (크기 · 속도 · 양)';b.onclick=()=>{sfx('tap');fxPanel()};t&&t.prepend(b)}}}catch(e){}return r}}
+{const _gd2=gmDraw;gmDraw=function(){const r=_gd2.apply(this,arguments);try{if(isGM()){const p=document.querySelector('.panel');if(p&&!p.querySelector('#oNcGm')){const t=p.querySelector('.pb');const mk=(id,txt,fn)=>{const b=document.createElement('button');b.id=id;b.textContent=txt;b.style.cssText="width:100%;margin:0 0 8px;padding:9px;border:0;font:700 15px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#4a8cff 0 50%,#2a5ed0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer";b.onclick=()=>{sfx('tap');fn()};return b};if(t){t.prepend(mk('oOpGm','🛠 운영자 패널 (기술 이펙트 · 주기 · 도구)',()=>{closePanel(1);operOpen()}));t.prepend(mk('oNcGm','🆕 신캐 (추가 캐릭터)',()=>{if(window.ncOpen){closePanel(1);window.ncOpen()}else toast('신캐 기능을 못 불러왔어요 · 화면을 새로고침해 주세요')}))}}}}catch(e){}return r}}
 {const c=document.createElement('style');c.textContent=`#fxGm{width:100%;margin:0 0 10px;padding:9px;border:0;border-radius:0;font:700 15px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#c070ff 0 50%,#8a3ad0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer}
 .fxr{display:grid;grid-template-columns:96px 1fr 48px;align-items:center;gap:8px;margin:8px 4px;font-size:14px}.fxr input[type=range]{width:100%}.fxr small{grid-column:2/-1;color:#5a6080;font-size:12px}.fxr output{text-align:right;font-weight:700}
 .fxb{display:flex;gap:8px;margin:12px 4px}.fxb button{flex:1;padding:10px;border:0;font:700 14px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#5a8aff 0 50%,#2a5ad0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer}`;document.head.appendChild(c)}
