@@ -130,6 +130,15 @@ const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;return 
 
 // ---------- 데미지 ----------
 function floatTxt(x,y,t,col,big){W.fx.push({k:'txt',x,y,t:0,life:.9,s:t,c:col||'#fff',big:!!big})}
+// 6E-3: 데미지 숫자(통통 튀며 떠오름) · 충격파 · 불꽃 · 화면 번쩍 · 반전 (sjdhdhbd.html 방식)
+function dmgPop(x,y,txt,col,fin){W.fx.push({k:'dmg',x:x+(rnd()-.5)*56,y:y+(rnd()-.5)*24,t:0,life:fin?.95:.75,s:txt,c:col||'#fff',sc:fin?1.35:1})}
+function hitFx(def,col,fin){
+  W.fx.push({k:'shock',sys:1,x:def.x,y:def.y-20,t:0,life:fin?.34:.22,r:fin?120:70,c:fin?'#ffffff':col,w:fin?9:5});
+  const n=fin?22:10,P=[];for(let i=0;i<n;i++){const a=rnd()*Math.PI*2,v=(fin?170:110)*(.5+rnd()*.7);P.push({vx:Math.cos(a)*v,vy:Math.sin(a)*v-30,z:(fin?5:3.5)*(.6+rnd()*.7)})}
+  W.fx.push({k:'spk',sys:1,x:def.x,y:def.y-24,t:0,life:fin?.55:.4,c:col,P});
+  W.shk=Math.max(W.shk||0,fin?20:9);W.flashA=Math.max(W.flashA||0,fin?.35:.14);W.flashC=col;
+  if(fin)W.inv=3;
+}
 function dealDamage(att,def,mi,opt){
   opt=opt||{};
   if(def.hp<=0)return 0;
@@ -167,7 +176,7 @@ function dealDamage(att,def,mi,opt){
   def.hp=Math.max(0,def.hp-dmg);
   def.flash=.15;
   if(dmg>0){
-    floatTxt(def.x+(rnd()-.5)*40,def.y-70,String(dmg),e>1?'#ffb030':crit?'#ffe14a':'#fff',e>1||crit);
+    W._dp={dmg,e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
     if(e>1)floatTxt(def.x,def.y-95,'효과 굉장!','#ffb030');
     if(e<1&&e>0)floatTxt(def.x,def.y-95,'별로…','#9bb');
   } else floatTxt(def.x,def.y-70,'효과 없음','#9bb');
@@ -175,10 +184,16 @@ function dealDamage(att,def,mi,opt){
   // 다단 기술: 첫 타가 맞으면 나머지 타를 간격(근접 8틱·원거리 6틱)으로 이어서 침
   if(dmg>0&&m.hits>1&&!opt.chain&&!opt.mult&&m.mh){const mh=m.mh;let n=m.hits;
     if(mh.n==null&&mh.min!=null){const dist=mh.dist||[.35,.35,.15,.15];let r=rnd(),i=0;for(;i<dist.length-1&&r>dist[i];i++)r-=dist[i];n=mh.min+i}
-    if(n>1)W.chain.push({o:att,mi:att.moves.indexOf(m)>=0?mi:mi,n:n-1,t:m.melee?8:6,iv:m.melee?8:6,melee:m.melee})}
+    if(n>1){W.chain.push({o:att,mi:att.moves.indexOf(m)>=0?mi:mi,n:n-1,t:m.melee?8:6,iv:m.melee?8:6,melee:m.melee});W._more=1}}
   // 자폭기: 쓰면 기절
   if(m.selfko&&att.hp>0&&!att._ko){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
-  W.hitstop=Math.max(W.hitstop,HSTOP[m.g]);
+  // 6E-3: 마지막 타(또는 치명타·효과 굉장)는 크게, 중간 타는 작게
+  const fin=(opt.chain?!!opt.last:!W._more)||crit||e>1;W._more=0;
+  if(dmg>0&&W._dp){const q=W._dp;W._dp=null;
+    dmgPop(def.x,def.y-62,(crit&&fin?'CRIT ':'')+q.dmg+(fin&&(crit||q.e>1)?'!':''),q.col,fin);
+    hitFx(def,C.TCOL[m.type]||'#fff',fin);
+    W.hitstop=Math.max(W.hitstop,fin?Math.max(HSTOP[m.g],.1):HSTOP[m.g]*.6)}
+  else W.hitstop=Math.max(W.hitstop,HSTOP[m.g]);
   if(dmg>0){fxShake(m.g);if(!opt.chain&&(m.k==='melee'||m.k==='roll'||m.k==='target'||m.k==='vanish'))skillFx(att,m,{x:att.x,y:att.y},{x:def.x,y:def.y})}
   // 경직·넉백·끊기
   const dirv=norm(def.x-att.x,def.y-att.y);
@@ -474,7 +489,7 @@ function update(){
     if(h.o.hp<=0||t.hp<=0||h.o.stun>0||h.o.hidden){h.dead=1;continue}
     h.t--;if(h.t>0)continue;
     const m=h.o.moves[h.mi];
-    if(!h.melee||len(t.x-h.o.x,t.y-h.o.y)<=h.o.r+t.r+110){dealDamage(h.o,t,h.mi,{chain:1});if(m&&!h.melee)W.fx.push({k:'burst',x:t.x,y:t.y-20,t:0,life:.2,r:24,c:C.TCOL[m.type]||'#fff'})}
+    if(!h.melee||len(t.x-h.o.x,t.y-h.o.y)<=h.o.r+t.r+110){dealDamage(h.o,t,h.mi,{chain:1,last:h.n<=1});if(m&&!h.melee)W.fx.push({k:'burst',x:t.x,y:t.y-20,t:0,life:.2,r:24,c:C.TCOL[m.type]||'#fff'})}
     h.n--;h.t=h.iv;if(h.n<=0)h.dead=1}
   W.chain=W.chain.filter(h=>!h.dead);
   // 효과 시간
@@ -607,6 +622,8 @@ function render(){
   cx.setTransform(1,0,0,1,0,0);
   cx.fillStyle='#0b1220';cx.fillRect(0,0,Wd,Hd);
   let shx=0,shy=0;if(fxOn()){try{const q=C.fxe.FX2.shakeXY();shx=q[0]*.5;shy=q[1]*.5}catch(er){}}
+  if(W.shk>.3){shx+=(Math.random()-.5)*W.shk*sc*.6;shy+=(Math.random()-.5)*W.shk*sc*.6;W.shk*=.82}else W.shk=0;
+  if(W.inv>0){cv.style.filter='invert(1) contrast(1.6)';W.inv--}else if(cv.style.filter)cv.style.filter='';
   cx.setTransform(sc,0,0,sc,Wd/2-W.cam.x*sc+shx,Hd/2-W.cam.y*sc+shy);
   // 바닥
   const g=cx.createLinearGradient(0,0,0,AH);g.addColorStop(0,'#5e8f55');g.addColorStop(1,'#487244');
@@ -646,7 +663,12 @@ function render(){
   for(const p of W.proj){cx.globalAlpha=p.fxa?.3:.9;cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y-24,p.r,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y-24,p.r*.5,0,7);cx.fill();cx.globalAlpha=1}
   // 효과
   for(const f of W.fx){if(fxOn()&&(f.k==='burst'||f.k==='cone'||f.k==='slash'||f.k==='beamline'||(f.k==='ring'&&!f.sys)))continue;const u=f.t/f.life;cx.save();cx.globalAlpha=Math.max(0,1-u);
-    if(f.k==='txt'){cx.font=(f.big?'bold 34px':'bold 24px')+' sans-serif';cx.textAlign='center';cx.lineWidth=5;cx.strokeStyle='#000';cx.fillStyle=f.c;const y=f.y-u*40;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
+    if(f.k==='dmg'){const e0=1-Math.pow(1-Math.min(1,u*1.6),3),pop=1+.55*Math.max(0,1-u*7);cx.globalAlpha=Math.min(1,(1-u)*4);
+      cx.font='italic 900 '+Math.round(30*f.sc*pop)+'px sans-serif';cx.textAlign='center';cx.lineJoin='round';cx.lineWidth=6;cx.strokeStyle='#000';cx.fillStyle='#fff';cx.shadowColor=f.c;cx.shadowBlur=14;
+      const y=f.y-e0*46;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
+    else if(f.k==='shock'){cx.globalAlpha=Math.max(0,1-u);cx.strokeStyle=f.c;cx.lineWidth=Math.max(1,f.w*(1-u));const R=f.r*(.2+.8*Math.sqrt(u));cx.beginPath();cx.ellipse(f.x,f.y,R,R*.7,0,0,7);cx.stroke()}
+    else if(f.k==='spk'){cx.globalAlpha=Math.max(0,1-u);cx.fillStyle=f.c;cx.shadowColor=f.c;cx.shadowBlur=8;for(const q of f.P){const px=f.x+q.vx*f.t,py=f.y+q.vy*f.t+260*f.t*f.t;cx.beginPath();cx.arc(px,py,q.z*(1-u*.6),0,7);cx.fill()}}
+    else if(f.k==='txt'){cx.font=(f.big?'bold 34px':'bold 24px')+' sans-serif';cx.textAlign='center';cx.lineWidth=5;cx.strokeStyle='#000';cx.fillStyle=f.c;const y=f.y-u*40;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
     else if(f.k==='callout'){cx.font='bold 22px sans-serif';cx.textAlign='center';cx.lineWidth=4;cx.strokeStyle='#000';cx.fillStyle=f.c;const y=f.y-u*14;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
     else if(f.k==='burst'){cx.fillStyle=f.c;cx.beginPath();cx.arc(f.x,f.y,f.r*(.4+u*.8),0,7);cx.fill()}
     else if(f.k==='ring'){cx.strokeStyle=f.c;cx.lineWidth=8;cx.beginPath();cx.ellipse(f.x,f.y,f.r*(.3+u*.7),f.r*(.3+u*.7)*.7,0,0,7);cx.stroke()}
@@ -656,6 +678,7 @@ function render(){
     cx.restore()}
   // ---- 화면 고정 HUD ----
   cx.setTransform(1,0,0,1,0,0);
+  if(W.flashA>.01){cx.save();cx.globalAlpha=W.flashA*.3;cx.fillStyle=W.flashC||'#fff';cx.fillRect(0,0,Wd,Hd);cx.restore();W.flashA*=.82}
   hud(cx,Wd,Hd);
 }
 function hud(cx,Wd,Hd){
