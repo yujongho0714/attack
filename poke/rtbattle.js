@@ -60,7 +60,8 @@ function moveInfo(id){
   let d=C.RZM&&C.RZM[id];
   if(!d){const g=C.mv(id)||{};d={n:g.name||id,t:g.type||'NORMAL',c:g.ph?0:1,p:g.pw||0,a:g.acc||100,pr:g.pri||0,k:g.ph?'melee':'projectile',kd:'',sb:'',aim:'direction',ef:[],f:''};}
   const st=d.c===2||!(d.p>0);
-  const k=d.k, p=st?0:d.p, g=gradeOf(p);
+  const k=d.k, exec=isExecute(d), fx=(d.ef||[]).find(x=>x.op==='fixed'&&x.mode!=='execute')||null;
+  const p=st?0:exec?200:d.p<=1?60:d.p, g=gradeOf(p); // 즉사기=위력200, 위력1짜리(고정피해 등)=기본 60
   const melee=!!MELEE_K[k];
   let su=(melee?ST_MELEE:ST_RANGE)[g];
   if(k==='self'){const e=(d.ef||[]).map(x=>x.op).join(',');su=/guard/.test(e)?4:/heal/.test(e)?36:48;}
@@ -69,7 +70,7 @@ function moveInfo(id){
   if(d.pr>0)su=4;
   const cdi=cooldownOf(d,k,p,st);
   const cd=cdi.sec;
-  return {id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,hasted:cdi.hasted,phys:d.c===0};
+  return {id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,hasted:cdi.hasted,phys:d.c===0,exec,fx,selfko:opsOf(d).includes('selfKO'),rech:opsOf(d).includes('recharge'),hits:hitsOf(d),mh:(d.ef||[]).find(x=>x.op==='multiHit')||null};
 }
 
 // ---------- 개체 ----------
@@ -117,8 +118,16 @@ function dealDamage(att,def,mi,opt){
   let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5:1)*(m.melee&&m.phys?1.15:1);
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
+  if(m.exec&&def.lv>att.lv)dmg*=.5;               // 즉사기: 상대 레벨이 높으면 절반
+  let fixedDmg=null;
+  if(m.fx){const f=m.fx;
+    fixedDmg=f.mode==='flat'?(f.value||0):f.mode==='level'?att.lv:f.mode==='levelRandom'?Math.floor(att.lv*(.5+rnd())):
+      f.mode==='fracTargetHp'?def.hp*(f.value||.5):f.mode==='userCurrentHp'?att.hp:f.mode==='targetHpMinusUserHp'?Math.max(0,def.hp-att.hp):
+      f.mode==='leaveAtLeast1Hp'?Math.min(dmg,def.hp-1):null}
+  if(fixedDmg!=null)dmg=fixedDmg;
   if(opt.fixed)dmg=opt.fixed;
-  dmg=Math.max(e===0?0:1,Math.round(Math.min(dmg,def.max*.6)));
+  const capped=fixedDmg!=null||opt.fixed?dmg:Math.min(dmg,def.max*.6);
+  dmg=Math.max(e===0?0:1,Math.round(capped));
   if(e===0)dmg=0;
   def.hp=Math.max(0,def.hp-dmg);
   def.flash=.15;
@@ -128,6 +137,12 @@ function dealDamage(att,def,mi,opt){
     if(e<1&&e>0)floatTxt(def.x,def.y-95,'별로…','#9bb');
   } else floatTxt(def.x,def.y-70,'효과 없음','#9bb');
   if(att.critWin>0&&crit)att.critWin=0;
+  // 다단 기술: 첫 타가 맞으면 나머지 타를 간격(근접 8틱·원거리 6틱)으로 이어서 침
+  if(dmg>0&&m.hits>1&&!opt.chain&&!opt.mult&&m.mh){const mh=m.mh;let n=m.hits;
+    if(mh.n==null&&mh.min!=null){const dist=mh.dist||[.35,.35,.15,.15];let r=rnd(),i=0;for(;i<dist.length-1&&r>dist[i];i++)r-=dist[i];n=mh.min+i}
+    if(n>1)W.chain.push({o:att,mi:att.moves.indexOf(m)>=0?mi:mi,n:n-1,t:m.melee?8:6,iv:m.melee?8:6,melee:m.melee})}
+  // 자폭기: 쓰면 기절
+  if(m.selfko&&att.hp>0&&!att._ko){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
   W.hitstop=Math.max(W.hitstop,HSTOP[m.g]);
   // 경직·넉백·끊기
   const dirv=norm(def.x-att.x,def.y-att.y);
@@ -204,7 +219,7 @@ function castMoveMul(e){
   if(!e.cast)return 1;
   const c=e.cast,g=c.mv.g;
   if(c.phase==='startup')return WALK_ST[g];
-  if(c.phase==='recovery')return REC_MV[g];
+  if(c.phase==='recovery')return c.rooted?0:REC_MV[g];
   if(c.mv.k==='beam')return .6;
   if(c.mv.k==='vanish')return 0;
   return 0;
@@ -224,7 +239,7 @@ function updateCast(e){
     if(c.t>=c.len){e.cast=null;e.anim='idle'}
   }
 }
-function toRecovery(e,c){phaseTo(e,'recovery',REC[c.mv.g]);e.anim='idle'}
+function toRecovery(e,c){phaseTo(e,'recovery',c.mv.rech?150:REC[c.mv.g]);c.rooted=!!c.mv.rech;e.anim='idle'}
 function aimVec(c){return{x:Math.cos(c.aim),y:Math.sin(c.aim)}}
 function circleHit(e,c,cx,cy,rad,tgt,opt){
   if(tgt.hp<=0)return false;
@@ -411,11 +426,18 @@ function update(){
     if(d.t>.5&&d.tgt.hp>0){d.x=d.tgt.x;d.y=d.tgt.y}
     if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=d.r+t.r*.5)dealDamage(d.o,t,d.mi)}}
   W.delays=W.delays.filter(d=>!d.dead);
+  for(const h of W.chain){const t=foeOf(h.o);
+    if(h.o.hp<=0||t.hp<=0||h.o.stun>0||h.o.hidden){h.dead=1;continue}
+    h.t--;if(h.t>0)continue;
+    const m=h.o.moves[h.mi];
+    if(!h.melee||len(t.x-h.o.x,t.y-h.o.y)<=h.o.r+t.r+110){dealDamage(h.o,t,h.mi,{chain:1});if(m&&!h.melee)W.fx.push({k:'burst',x:t.x,y:t.y-20,t:0,life:.2,r:24,c:C.TCOL[m.type]||'#fff'})}
+    h.n--;h.t=h.iv;if(h.n<=0)h.dead=1}
+  W.chain=W.chain.filter(h=>!h.dead);
   // 효과 시간
   for(const f of W.fx)f.t+=TICK;W.fx=W.fx.filter(f=>f.t<f.life);
   // 승패
   if(!W.over){
-    if(foe.hp<=0)finish('win');else if(me.hp<=0)finish('lose');
+    if(foe.hp<=0&&me.hp<=0)finish('draw');else if(foe.hp<=0)finish('win');else if(me.hp<=0)finish('lose');
     else if(W.time>=180){finish(me.hp/me.max>=foe.hp/foe.max?(me.hp/me.max===foe.hp/foe.max?'draw':'win'):'lose')}
   }
 }
@@ -661,7 +683,7 @@ async function start(ctx){
   if(W)return 'quit';
   C=ctx;
   const [S1,S2]=await Promise.all([C.getSpr(C.sprKey(C.me)),C.getSpr(C.sprKey(C.foe))]);
-  W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],fx:[],over:null,overT:0};
+  W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],over:null,overT:0};
   W.me=mkEnt(C.me,S1,0);W.foe=mkEnt(C.foe,S2,1);
   W.ai={react:0,sawT:0,t:0,mode:'press',s:1,cd:1.2,range:240};
   // AI 기본 사거리: 가진 기술 중 위력 높은 기술 기준
