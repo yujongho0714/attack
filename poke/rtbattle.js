@@ -25,6 +25,36 @@ const stageMul=s=>s>=0?(2+s)/2:2/(2-s);
 
 let C=null, W=null; // 게임 도구 / 현재 전투 상태
 
+// ---------- 쿨타임 (6C-1: 레조넌스 원본 공식 그대로) ----------
+// 원본: sessionEnv 의 기술 쿨타임 함수 + data 설정값. 시험 모드에서 맞춘 값.
+const CD={base:.7,perPower:.07,min:3.5,max:16,
+  kind:{melee:.85,projectile:1,beam:1.15,pulse:1.15,self:1,vanish:1.25,leap:1,roll:1,zone:1,delayed:1,target:1},
+  quick:.75,status:8,boost:12,protect:13,heal:20,recharge:16,rechargeNonBeam:6,rollPowerMul:4,
+  cadence:1.2,paraRate:.8,hasteBase:1.05,hastePerStat:.0013,hasteMin:.88,hasteMax:1.05};
+const opsOf=d=>(d.ef||[]).map(x=>x.op);
+const hitsOf=d=>{const m=(d.ef||[]).find(x=>x.op==='multiHit');if(!m)return 1;if(m.n!=null)return clamp(Math.round(m.n),1,5);return 3};
+const isExecute=d=>(d.ef||[]).some(x=>x.op==='fixed'&&x.mode==='execute');
+// 기술 하나의 쿨타임(초, 속도 보정 전) + 속도 보정을 받는지
+function cooldownOf(d,k,p,st){
+  const ops=opsOf(d);
+  if(st){ // 변화 기술
+    const guard=ops.includes('guard');
+    const heal=(d.ef||[]).some(x=>x.op==='heal'&&x.who!=='replacement'&&!x.revive&&x.frac!=null);
+    const boost=(d.ef||[]).some(x=>(x.op==='stat'&&x.who!=='target')||(x.op==='crit'&&x.who!=null))&&d.tg==='User';
+    return{sec:guard?CD.protect:heal?CD.heal:boost?CD.boost:CD.status,hasted:true};
+  }
+  const recharge=ops.includes('recharge'),exec=isExecute(d),explosive=ops.includes('selfKO')&&(d.ef||[]).some(x=>x.op==='note'&&x.t==='explosive');
+  if(recharge&&d.k!=='beam')return{sec:CD.rechargeNonBeam,hasted:false};
+  if(recharge||exec||explosive)return{sec:CD.recharge,hasted:false};
+  const hits=hitsOf(d);
+  let ep=d.p>1?(hits>1?d.p*hits:d.p):(hits>1?60*hits:60);
+  if(k==='roll')ep*=CD.rollPowerMul;
+  const sec=clamp(CD.base+CD.perPower*ep,CD.min,CD.max)*(CD.kind[k]||1)*(d.pr>0?CD.quick:1);
+  return{sec,hasted:true};
+}
+// 속도 능력치 -> 쿨타임 배율 (빠를수록 짧음, 0.88~1.05)
+const hasteOf=spe=>clamp(CD.hasteBase-CD.hastePerStat*spe,CD.hasteMin,CD.hasteMax);
+
 // ---------- 기술 정보 ----------
 function moveInfo(id){
   let d=C.RZM&&C.RZM[id];
@@ -37,10 +67,9 @@ function moveInfo(id){
   if(st&&k!=='self')su=Math.min(su,14);
   if(d.a>0&&d.a<100)su+=Math.min(24,(100-d.a)*.4);
   if(d.pr>0)su=4;
-  let cd;
-  if(st){const e=(d.ef||[]).map(x=>x.op).join(',');cd=/heal/.test(e)?20:/guard/.test(e)?13:k==='self'?12:k==='zone'?18:/weather|terrain/.test(e)?20:8}
-  else{cd=clamp(.7+.07*p,3.5,16)*(k==='melee'?.85:(k==='beam'||(k==='pulse'&&d.kd==='cone'))?1.15:k==='vanish'?1.25:1);if(d.pr>0)cd*=.75}
-  return {id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,phys:d.c===0};
+  const cdi=cooldownOf(d,k,p,st);
+  const cd=cdi.sec;
+  return {id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,hasted:cdi.hasted,phys:d.c===0};
 }
 
 // ---------- 개체 ----------
@@ -56,7 +85,8 @@ function mkEnt(mon,S,side){
     rc:2,rollT:0,rdx:0,rdy:0,inv:0,stun:0,cast:null,buf:null,
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
-  e.moves.forEach((m,i)=>{e.cdMax[i]=m.cd});
+  e.haste=hasteOf(s[5]);
+  e.moves.forEach((m,i)=>{e.cdMax[i]=m.cd*(m.hasted?e.haste:1)});
   return e;
 }
 const foeOf=e=>e===W.me?W.foe:W.me;
@@ -313,7 +343,9 @@ function update(){
     e.at+=TICK;
     e.flash=Math.max(0,e.flash-TICK);e.critWin=Math.max(0,e.critWin-TICK);e.protect=Math.max(0,e.protect-TICK);e.counterT=Math.max(0,(e.counterT||0)-TICK);
     e.healRep=Math.max(0,(e.healRep||0)-TICK);
-    for(let i=0;i<4;i++)e.cd[i]=Math.max(0,e.cd[i]-TICK*(e.ail.paralysis?.8:1)*1);
+    {const dm=e.moves.map((m,j)=>m&&!m.st?j:-1).filter(j=>j>=0);
+     const allCool=dm.length>0&&dm.every(j=>e.cd[j]>0); // 공격기가 전부 쿨타임 중이면 빨리 돈다
+     for(let i=0;i<4;i++){const m=e.moves[i];const r=(e.ail.paralysis?CD.paraRate:1)*(allCool&&m&&!m.st?CD.cadence:1);e.cd[i]=Math.max(0,e.cd[i]-TICK*r)}}
     // 구르기 충전
     if(e.rc<2)e.rc=Math.min(2,e.rc+TICK/3.2);
     // 상태이상
