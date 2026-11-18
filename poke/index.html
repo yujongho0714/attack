@@ -1534,7 +1534,8 @@ function wantCatch(f){if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;try{BR()}catch
 function choose(sub){return new Promise(r=>{if((AUTO.on&&!AUTO.guide)||G.autoBattle){setTimeout(()=>r(aiAct()),FAST()?250:600);return}CHOOSE=r;menuMain();if(sub){const b=bt('bMenu').querySelector('[data-a='+sub+']');if(b)b.click()}})}
 async function sendMe(m,first){const S=await getSpr(sprKey(m));BS.me={m,S,st:'idle',t:0,in:0};bbox();await msg((first?'가랏! ':'돌아와! … 가랏! ')+'<b>'+nm(m)+'</b>!',FAST()?400:800,[m.n,'Determined'])}
 async function sendFoe(m){const S=await getSpr(sprKey(m));BS.foe={m,S,st:'idle',t:0,in:0};G.dex.s[META[m.n].dex]=1;bbox()}
-async function battle(o){BS.asked=0;BS.noQuit=0;BS.catchK=1;BS.capMsg=0;if(o.trainer&&!o.scaled&&DIFF()>0)for(const f of o.foes){f.lv=Math.min(100,Math.round(f.lv*(1+DLV[DIFF()]*.75)));f.exp=expAt(f.lv);f.hp=stOf(f)[0]}if(G&&G.rebirth&&!o.pvp&&!o.wb)for(const f of o.foes){f.rbf=1;try{f.hp=stOf(f)[0]}catch(e){}}SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
+async function battle(o){if(o&&o.rtOk&&typeof window.rtWild==='function'){let r0;try{r0=await window.rtWild(o)}catch(e){console.warn('rtWild',e);r0=undefined}if(r0!==undefined)return r0}
+  BS.asked=0;BS.noQuit=0;BS.catchK=1;BS.capMsg=0;if(o.trainer&&!o.scaled&&DIFF()>0)for(const f of o.foes){f.lv=Math.min(100,Math.round(f.lv*(1+DLV[DIFF()]*.75)));f.exp=expAt(f.lv);f.hp=stOf(f)[0]}if(G&&G.rebirth&&!o.pvp&&!o.wb)for(const f of o.foes){f.rbf=1;try{f.hp=stOf(f)[0]}catch(e){}}SCENE='battle';BS.on=1;BS.trainer=o.trainer||null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;FX2.clear();showBattleUI(1);sfx('enc');try{BGM.battle(o)}catch(e){}
   BS.tt=0;BS.foes=o.foes;BS.marks=[];await flashIn();const foes=o.foes;let fi=0;await sendFoe(foes[0]);bt('bM').innerHTML='';
   await msg(o.trainer?'<b>'+o.trainer+'</b>(이)가 승부를 걸어왔다!':'앗! 야생 <b>'+nm(foes[0])+'</b>(이)가 나타났다!',FAST()?500:1000);
   if(o.trainer)await msg(o.trainer+'(은)는 <b>'+nm(foes[0])+'</b>(을)를 내보냈다!',FAST()?400:800);
@@ -1913,7 +1914,7 @@ function chooseStarter(){return new Promise(async r=>{await say(['포켓몬 박�
 // ---------- 야생 · 트레이너 ----------
 function wpick(T){const W=T.map(e=>{const r=rarOf(e.n);return e.w*ENCW[r]*(r?DRARE[DIFF()]:1)});const tot=W.reduce((a,b)=>a+b,0);let u=R()*tot;for(let i=0;i<T.length;i++){u-=W[i];if(u<=0)return T[i].n}return T[0].n}
 async function wild(A,kind){const T=kind==='w'?A.enc.w:A.enc.g;if(!T||!T.length)return;let n=wpick(T);try{if(typeof wxSpecial==='function'){const sp=wxSpecial(A,kind,T);if(sp)n=sp}}catch(e){}try{if(typeof rarCapOk==='function'&&!rarCapOk(n)){const L=T.filter(e=>rarCapOk(e.n));if(L.length)n=wpick(L)}}catch(e){}if(AUTO.hunt&&AUTO.hunt.a===G.a&&T.some(e=>e.n===AUTO.hunt.n)&&R()<.35*[1,.6,.35,.15,.1,.1,.1][rarOf(AUTO.hunt.n)])n=AUTO.hunt.n;const [lo,hi]=areaLv(G.a);
-  const wm=mkMon(n,ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc();toast('✨ 반짝! '+SHC[wm.shc].n+' 포켓몬이 나타났다!')}const r=await battle({foes:[wm],bg:A.th===THEME.town?'meadow':RTH[(G.a-1)/2]});P.grace=ri(4,7);if(r==='lose')await blackout()}
+  const wm=mkMon(n,ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc();toast('✨ 반짝! '+SHC[wm.shc].n+' 포켓몬이 나타났다!')}const r=await battle({foes:[wm],rtOk:1,bg:A.th===THEME.town?'meadow':RTH[(G.a-1)/2]});P.grace=ri(4,7);if(r==='lose')await blackout()}
 async function trainerSpot(n){P.busy=1;sfx('enc');toast('❗');await sleep(400);P.busy=0;await say([n.name+': '+n.lines[0]]);
   const r=await battle({trainer:n.name,foes:n.team.map(t=>mkMon(t.n,t.lv)),money:Math.max(...n.team.map(t=>t.lv))*30,lose:pick(['으악, 졌다!','강하구나…!','다음엔 안 질 거야!']),bg:RTH[(G.a-1)/2]});
   if(r==='win'){G.beat[n.id]=1;save()}else if(r==='lose')await blackout()}
@@ -8325,6 +8326,65 @@ async function rtGo(){
   finally{window.__rtRun=0}
 }
 window.rtGo=rtGo;
+// ===== 6F-2: 진짜 야생 조우를 새 전투로 (GM/운영자가 켰을 때만 · 자동 중에는 예전 전투) =====
+const rtWildOn=()=>{try{return !!(G&&G.opt&&G.opt.rtWild&&(isGM()||OPER.on)&&!autoActive()&&!BS.on)}catch(e){return false}};
+async function rtWild(o){
+  if(!rtWildOn()||!o||o.trainer||o.wb||o.pvp||o.gym||o.league||!o.foes||o.foes.length!==1)return undefined;
+  try{await loadRtb();await rzMovesLoad()}catch(e){console.warn('rtWild load',e);return undefined}
+  const f=o.foes[0];if(!f||!META[f.n]||!alive().length)return undefined;
+  BS.asked=0;BS.noQuit=0;BS.catchK=1;BS.capMsg=0;
+  if(G&&G.rebirth)for(const x of o.foes){x.rbf=1;try{x.hp=stOf(x)[0]}catch(e){}}   // 예전 battle()과 같은 환생 보정
+  SCENE='battle';BS.on=1;BS.trainer=null;BS.bg=o.bg||'meadow';BS.turn=0;BS.healUsed=0;BS.fx=[];BS.me=BS.foe=null;BS.tt=0;BS.foes=o.foes;BS.marks=[];
+  try{FX2.clear()}catch(e){}
+  try{G.dex.s[META[f.n].dex]=1}catch(e){}
+  try{BGM.battle(o)}catch(e){}try{sfx('enc')}catch(e){}
+  // 볼: 가방에서 진짜로 1개 차감 · 라즈열매가 있으면 먼저 줌(예전과 같음) · 같은 포켓몬 5마리면 못 던짐
+  const balls=()=>BALLS().map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0}));
+  const takeBall=k=>{const it=ITEMS[k];if(!it||(G.bag[k]||0)<=0)return null;G.bag[k]--;let r=it;
+    if(it.ball&&it.ball<255&&(G.bag.razz||0)>0&&G.opt.razz!==false){G.bag.razz--;r=Object.assign({},it,{ball:it.ball*1.5});try{toast('🍓 라즈열매를 먼저 줬다! 잡기 쉬워졌다')}catch(e){}}return r};
+  const catchP=(x,it,ratio)=>{const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38][DIFF()])};
+  const blockBall=()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null;
+  const part=new Set();let res=null,lastMon=null,timeUp=0;
+  while(true){
+    const m=alive()[0];if(!m){res='lose';break}
+    lastMon=m;part.add(m.uid);
+    const me=Object.assign({},m,{moves:m.moves.slice()});const reserve=alive().length>1;
+    const r=await RTB.start({me,foe:f,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
+      meHp:m.hp,foeHp:f.hp,aiTier:'W',noTimeLimit:1,
+      quitText:'도망칠까요?',loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',drawTxt:'시간이 다 됐다',endHint:'화면을 누르면 계속해요',
+      balls,takeBall,catchP,blockBall});
+    const L=window.RTB.last||{};
+    if(L.meHp!=null)m.hp=L.meHp>0?Math.max(1,Math.round(L.meHp)):0;
+    if(L.foeHp!=null)f.hp=L.foeHp>0?Math.max(1,Math.round(L.foeHp)):0;
+    if(r==='catch'){res='caught';break}
+    if(f.hp<=0&&r!=='quit'){res=(m.hp<=0&&!alive().length)?'lose':'win';break}   // 나란히 쓰러지면 남은 포켓몬이 있을 때만 승리
+    if(r==='lose'||(r==='draw'&&m.hp<=0)){if(alive().length)continue;res='lose';break}
+    if(r==='draw'){res='run';timeUp=1;break}
+    res='run';break}
+  // 결과 정리는 예전 배틀 화면에서(경험치·레벨업·돈·진화 메시지가 그대로 나오게)
+  showBattleUI(1);
+  const fm=f.hp<=0||res==='caught';
+  BS.foe={m:f,S:await getSpr(sprKey(f)),st:fm&&res==='win'?'faint':'idle',t:0,in:0,hide:fm?1:0};
+  const me2=(lastMon&&lastMon.hp>0)?lastMon:(alive()[0]||lastMon);
+  BS.me={m:me2,S:await getSpr(sprKey(me2)),st:me2.hp<=0?'faint':'idle',t:0,in:0,hide:me2.hp<=0?1:0};bbox();
+  if(res==='caught'){sfx('get');await msg('신난다! <b>'+nm(f)+'</b>(을)를 잡았다!',1100,[f.n,'Happy']);await caught(f)}
+  else if(res==='win'){await msg('야생 <b>'+nm(f)+'</b>(은)는 쓰러졌다!');await giveExp(f,part)}
+  else if(res==='run'){await msg(timeUp?'시간이 다 됐다… 야생 <b>'+nm(f)+'</b>(은)는 가 버렸다.':'무사히 도망쳤다!',FAST()?500:900)}
+  if(res==='win'&&!o.noMoney){const fl=Math.max(...o.foes.map(x=>x.lv||1));const mo=Math.round(Math.max(220,fl*24)*DMONEY[DIFF()]);G.money+=mo;await msg('야생 포켓몬을 이겨서 '+mo+'원을 주웠다!',FAST()?500:900)}
+  if(res==='win'&&DIFF()&&R()<DPACK[DIFF()]){try{REWQ.push({kind:R()<.5?'P':'M',msg:'난이도 보너스! 카드팩 1장',why:'난이도 보너스'})}catch(e){}}
+  if(res==='lose'){await msg('눈앞이 캄캄해졌다…',1500)}
+  actEnd(null);ACT.cd={};if(AUTO.stopAfter)autoStop();try{if(res==='win'){BGM.win(o);await sleep(FAST()?600:1400)}}catch(e){}
+  await evolveCheck();showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();save();try{BGM.area()}catch(e){}
+  return res}
+window.rtWild=rtWild;window.rtWildOn=rtWildOn;
+css.textContent+='#rtWBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(384px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 13px "Galmuri11",sans-serif;color:#1c2550;background:#ffd9a0;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#rtWBtn.show{display:flex}#rtWBtn.on{background:#9bf0a8}';
+setInterval(()=>{try{
+  let w=document.getElementById('rtWBtn');
+  const on2=!!G&&(isGM()||OPER.on)&&SCENE==='over'&&!document.body.classList.contains('inb');
+  if(!on2){if(w)w.classList.remove('show')}else{
+    if(!w){w=document.createElement('button');w.id='rtWBtn';w.onclick=()=>{try{sfx('tap')}catch(e){}G.opt=G.opt||{};G.opt.rtWild=!G.opt.rtWild;try{save()}catch(e){}toast(G.opt.rtWild?'⚔ 진짜 야생이 새 전투로 바뀌어요 (자동 중에는 예전 전투)':'⚔ 야생 전투를 예전 방식으로 되돌렸어요')};document.body.appendChild(w)}
+    const st=!!(G.opt&&G.opt.rtWild);w.textContent=st?'⚔ 야생=새 전투 ON':'⚔ 야생=새 전투 OFF';w.classList.toggle('on',st);w.classList.add('show')}
+}catch(e){}},1000);
 setInterval(()=>{try{
   let b=document.getElementById('rtBtn');
   const on=!!G&&(isGM()||OPER.on)&&SCENE==='over'&&!document.body.classList.contains('inb');

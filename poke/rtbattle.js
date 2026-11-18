@@ -119,6 +119,7 @@ function mkEnt(mon,S,side){
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
   e.haste=hasteOf(s[5]);
+  {const h0=side?C.foeHp:C.meHp;if(h0!=null&&isFinite(h0))e.hp=clamp(h0,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
     m.su=Math.max(1,Math.round(m.su-.6*clamp((s[5]-50)/100,0,1)*(m.su-17)))});
@@ -498,7 +499,7 @@ function update(){
   // 승패
   if(!W.over&&(!W.ball||me.hp<=0)){
     if(foe.hp<=0&&me.hp<=0)finish('draw');else if(foe.hp<=0)finish('win');else if(me.hp<=0)finish('lose');
-    else if(W.time>=180){finish(me.hp/me.max>=foe.hp/foe.max?(me.hp/me.max===foe.hp/foe.max?'draw':'win'):'lose')}
+    else if(W.time>=(C.maxTime||180)){if(C.noTimeLimit)finish('draw');else finish(me.hp/me.max>=foe.hp/foe.max?(me.hp/me.max===foe.hp/foe.max?'draw':'win'):'lose')}
   }
 }
 function finish(r){W.over=r;W.overT=0;(r==='win'?[W.foe]:[W.me]).forEach(e=>{e.anim='hurt';e.at=0})}
@@ -509,6 +510,7 @@ const ballList=()=>{try{return C.balls?C.balls():[]}catch(e){return[]}};
 function tryThrow(){
   if(!W||W.over||W.ball||(W.ballCd||0)>0||!C.balls)return;
   const me=W.me,foe=W.foe;if(me.hp<=0||foe.hp<=0||me.stun>0||me.cast||me.rollT>0)return;
+  if(C.blockBall){let bm=null;try{bm=C.blockBall()}catch(e){}if(bm){floatTxt(me.x,me.y-90,bm,'#f88');W.ballCd=1;return}}   // 6F-2
   const L=ballList();if(!L.length){floatTxt(me.x,me.y-90,'볼이 없어요','#f88');W.ballCd=.6;return}
   const sel=L[Math.min(W.ballSel||0,L.length-1)];
   const it=C.takeBall(sel.k);if(!it){floatTxt(me.x,me.y-90,'볼이 없어요','#f88');W.ballCd=.6;return}
@@ -745,8 +747,8 @@ function hud(cx,Wd,Hd){
   if(W.over){
     cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(0,0,Wd,Hd);
     cx.fillStyle='#fff';cx.textAlign='center';cx.font='bold '+(44*u)+'px sans-serif';
-    cx.fillText(W.over==='win'?'승리!':W.over==='catch'?'포획 성공!':W.over==='lose'?'패배…':'무승부',Wd/2,Hd/2-10*u);
-    cx.font=(16*u)+'px sans-serif';cx.fillText('화면을 누르면 돌아가요 (시험 전투라 저장에는 영향 없음)',Wd/2,Hd/2+26*u);
+    cx.fillText(W.over==='win'?'승리!':W.over==='catch'?'포획 성공!':W.over==='lose'?(C.loseTxt||'패배…'):(C.drawTxt||'무승부'),Wd/2,Hd/2-10*u);
+    cx.font=(16*u)+'px sans-serif';cx.fillText(C.endHint||'화면을 누르면 돌아가요 (시험 전투라 저장에는 영향 없음)',Wd/2,Hd/2+26*u);
   }
 }
 
@@ -843,7 +845,7 @@ function buildUI(){
     b.addEventListener('pointercancel',ev=>{delete IN.hold[ev.pointerId]});
   };
   btns.forEach((b,i)=>bindBtn(b,i));bindBtn(rb,-1);
-  qb.addEventListener('pointerdown',ev=>{ev.stopPropagation();if(W.over)return;if(confirm('시험 전투를 그만둘까요?'))stop('quit')});
+  qb.addEventListener('pointerdown',ev=>{ev.stopPropagation();if(W.over)return;if(confirm(C.quitText||'시험 전투를 그만둘까요?'))stop('quit')});
   // 조이스틱 (화면 왼쪽 아무 데나)
   root.addEventListener('pointerdown',ev=>{
     if(W.over&&W.overT>.8){stop(W.over);return}
@@ -885,6 +887,7 @@ function stop(r){
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
   if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear()}catch(er){}}
   W.root.remove();IN.keys={};IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.press=[];IN.hold={};IN.roll=0;
+  try{window.RTB.last={r,meHp:W.me.hp,meMax:W.me.max,foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
   const res=W.res;W=null;res(r);
 }
 async function start(ctx){
