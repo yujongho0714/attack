@@ -845,6 +845,7 @@ function buildUI(){
     b.addEventListener('pointercancel',ev=>{delete IN.hold[ev.pointerId]});
   };
   btns.forEach((b,i)=>bindBtn(b,i));bindBtn(rb,-1);
+  if(C.noQuit)qb.style.display='none';   // 6F-3: 트레이너 전투는 도망 금지
   qb.addEventListener('pointerdown',ev=>{ev.stopPropagation();if(W.over)return;if(confirm(C.quitText||'시험 전투를 그만둘까요?'))stop('quit')});
   // 조이스틱 (화면 왼쪽 아무 데나)
   root.addEventListener('pointerdown',ev=>{
@@ -866,7 +867,7 @@ function buildUI(){
     if(k in mk&&!e.repeat)IN.press.push({i:mk[k],aim:null})
     if(k==='b'&&!e.repeat)tryThrow();
     if(k==='n'&&!e.repeat&&C.balls)W.ballSel=((W.ballSel||0)+1)%Math.max(1,ballList().length);
-    if(k==='Escape'&&!W.over)stop('quit')};
+    if(k==='Escape'&&!W.over&&!C.noQuit)stop('quit')};
   W.ku=e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;IN.keys[k]=0};
   addEventListener('keydown',W.kd);addEventListener('keyup',W.ku);
   W.rs=()=>{const dpr=Math.min(2,devicePixelRatio||1);cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr)};
