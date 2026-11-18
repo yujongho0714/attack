@@ -91,6 +91,18 @@ function skillFx(e,m,a,b,opt){
     Promise.resolve(F.SKFX.run(x,id,g,1,e===W.me,1)).catch(()=>{});
   }catch(err){}
 }
+// 6E-2: 발사체에 기존 이펙트 그림을 입혀 날아가게 함 (판정·속도는 그대로, 그림만 따라다님)
+const PSKIN={FIRE:['pa2d/ember',{row:2,sc:26,fps:12}],WATER:['pa2d/pulsoagua',{row:0,sc:22,fps:12}],GRASS:['grass/energy_ball_sheet',{sc:14,fps:12}],
+  ELECTRIC:['electric/thunder_wave_sheet',{sc:30,fps:14}],ICE:['pa2d/aurasphere',{row:2,sc:14,fps:12,blend:'lighter',filter:'hue-rotate(110deg)'}],
+  PSYCHIC:['psychic/hypnosis_wave_sheet',{sc:10,fps:10}],GHOST:['pa2d/shadowball',{row:1,sc:20,fps:12}],DARK:['pa2d/shadowball',{row:1,sc:20,fps:12,filter:'saturate(0) brightness(.45)'}],
+  FIGHTING:['pa2d/aurasphere',{row:2,sc:14,fps:12,blend:'lighter'}],FAIRY:['fairy/moonblast_sheet',{sc:12,fps:10,blend:'lighter'}],ROCK:['pa2d/roca',{row:1,sc:22,fps:8}],
+  GROUND:['pa2d/lodo',{row:0,sc:30,fps:12}],POISON:['pa2d/lodo',{row:0,sc:30,fps:12,filter:'hue-rotate(250deg)'}],FLYING:['pa2d/aeroanillo',{sc:30,fps:14}],
+  DRAGON:['polished-20/dracometeor',{sc:30,fps:10}],BUG:['pa2d/cuchilla',{row:0,sc:16,fps:20}],STEEL:['pa2d/cuchilla',{row:0,sc:16,fps:20,filter:'saturate(0)'}],NORMAL:['pa2d/cuchilla',{row:0,sc:16,fps:20,filter:'saturate(.2) brightness(1.3)'}]};
+function projSkin(p,m){
+  if(!fxOn())return null;
+  try{const d=PSKIN[m.type]||PSKIN.NORMAL,S=fxS(m)*(m.p>=110?1.25:1);
+    return C.fxe.VFX.anim(d[0],{loop:true,x:p.x,y:p.y-24,rot:Math.atan2(p.dy,p.dx),row:d[1].row||0,scale:S/d[1].sc,fps:d[1].fps,blend:d[1].blend,filter:d[1].filter})}catch(e){return null}
+}
 function fxShake(g){if(!fxOn())return;try{C.fxe.FX2.hit([3,5,8,11][g]||3,0)}catch(e){}}
 
 // ---------- 개체 ----------
@@ -303,6 +315,7 @@ function fire(e,c){
     const special=!m.phys;
     W.proj.push({o:e,mi:c.mi,x:e.x+u.x*e.r,y:e.y+u.y*e.r,dx:u.x,dy:u.y,sp:(special?480:430)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(m.d.sb==='bolt'?1.25:1),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
       hm:/^homing/.test(m.d.sb||'')?60:0});
+    {const P=W.proj[W.proj.length-1];P.fxa=projSkin(P,m)}
     toRecovery(e,c);
   } else if(k==='beam'){
     const T=clamp(m.p/150,1.1,1.8);phaseTo(e,'active',Math.round(T*60));c.L=0;c.maxL=clamp(360+m.p*1.5,360,690);
@@ -435,6 +448,7 @@ function update(){
     const tgt=foeOf(p.o);
     if(p.hm>0&&tgt.hp>0){p.hm--;const a=Math.atan2(p.dy,p.dx),w=angDiff(a,Math.atan2(tgt.y-p.y,tgt.x-p.x)),mx=200*Math.PI/180*TICK,na=a+clamp(w,-mx,mx);p.dx=Math.cos(na);p.dy=Math.sin(na)}  // 유도: 초당 200도, 1초
     const st=p.sp*TICK;p.x+=p.dx*st;p.y+=p.dy*st;p.tr+=st;
+    if(p.fxa){p.fxa.x=p.x;p.fxa.y=p.y-24;p.fxa.rot=Math.atan2(p.dy,p.dx)}
     if(tgt.hp>0&&len(tgt.x-p.x,tgt.y-p.y)<=p.r+tgt.r*.8){
       const d=dealDamage(p.o,tgt,p.mi);if(p.st)applyEf(p.o,tgt,p.o.moves[p.mi],true);
       p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});skillFx(p.o,p.o.moves[p.mi],{x:p.x,y:p.y},{x:p.x,y:p.y},{force:1});
@@ -446,7 +460,7 @@ function update(){
     if(len(a.x-b.x,a.y-b.y)<=a.r+b.r){const ra=a.r/b.r;if(ra>=1.5)b.dead=1;else if(ra<=1/1.5)a.dead=1;else{a.dead=b.dead=1}
       W.fx.push({k:'burst',x:(a.x+b.x)/2,y:(a.y+b.y)/2,t:0,life:.25,r:30,c:'#fff'})}
   }
-  W.proj=W.proj.filter(p=>!p.dead);
+  W.proj=W.proj.filter(p=>{if(p.dead&&p.fxa){try{C.fxe.VFX.stop(p.fxa)}catch(e){}}return !p.dead});
   // 장판
   for(const z of W.zones){z.life-=TICK;z.tick-=TICK;
     if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r+t.r*.5&&!t.hidden){const d=Math.max(1,Math.round(t.max*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,String(d),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
@@ -629,7 +643,7 @@ function render(){
     const rr=Math.max(0,e.hp/e.max);cx.fillStyle=rr>.5?'#3be06a':rr>.2?'#ffc83a':'#ff4a3a';cx.fillRect(bx,by,bw*rr,6);
   }
   // 발사체
-  for(const p of W.proj){cx.globalAlpha=.9;cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y-24,p.r,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y-24,p.r*.5,0,7);cx.fill();cx.globalAlpha=1}
+  for(const p of W.proj){cx.globalAlpha=p.fxa?.3:.9;cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y-24,p.r,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y-24,p.r*.5,0,7);cx.fill();cx.globalAlpha=1}
   // 효과
   for(const f of W.fx){if(fxOn()&&(f.k==='burst'||f.k==='cone'||f.k==='slash'||f.k==='beamline'||(f.k==='ring'&&!f.sys)))continue;const u=f.t/f.life;cx.save();cx.globalAlpha=Math.max(0,1-u);
     if(f.k==='txt'){cx.font=(f.big?'bold 34px':'bold 24px')+' sans-serif';cx.textAlign='center';cx.lineWidth=5;cx.strokeStyle='#000';cx.fillStyle=f.c;const y=f.y-u*40;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
