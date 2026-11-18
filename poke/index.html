@@ -8316,8 +8316,11 @@ async function rtGo(){
     const keys=Object.keys(META).filter(k=>META[k]&&!META[k].form&&!/^sc:/.test(k)||META[k]&&!META[k].form);
     let foe=null;for(let i=0;i<20&&!foe;i++){const n=keys[Math.floor(Math.random()*keys.length)];try{foe=mkMon(n,Math.max(1,Math.min(100,(m0.lv||5)+ri(-2,2))))}catch(e){}}
     if(!foe){toast('상대를 만들지 못했어요');return}
-    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX}});
-    toast(r==='win'?'⚔ 시험 전투 승리!':r==='lose'?'⚔ 시험 전투 패배':r==='draw'?'⚔ 무승부':'⚔ 시험 전투 종료');
+    // 6F-1: 실시간 포획(시험 전투는 볼이 공짜·무한, 잡아도 저장 안 됨). 확률은 기존 던지기 공식 그대로
+    const catchP=(f,it,ratio)=>{const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38][DIFF()])};
+    const balls=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞'}));
+    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP});
+    toast(r==='catch'?'⚔ 시험 전투: 잡았다! (시험이라 저장 안 됨)':r==='win'?'⚔ 시험 전투 승리!':r==='lose'?'⚔ 시험 전투 패배':r==='draw'?'⚔ 무승부':'⚔ 시험 전투 종료');
   }catch(e){console.warn('rtb',e);try{toast('시험 전투 오류: '+(e.message||e))}catch(_){}}
   finally{window.__rtRun=0}
 }
