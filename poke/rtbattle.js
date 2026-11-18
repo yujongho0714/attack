@@ -87,6 +87,9 @@ function mkEnt(mon,S,side){
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
   e.haste=hasteOf(s[5]);
+  // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
+  e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
+    m.su=Math.max(1,Math.round(m.su-.6*clamp((s[5]-50)/100,0,1)*(m.su-17)))});
   e.moves.forEach((m,i)=>{e.cdMax[i]=m.cd*(m.hasted?e.haste:1)});
   return e;
 }
@@ -277,7 +280,8 @@ function fire(e,c){
     const T=clamp(.35+m.p/120,.35,1.6);phaseTo(e,'active',Math.round(T*60));e.hidden=true;c.dir=u;
   } else if(k==='projectile'){
     const special=!m.phys;
-    W.proj.push({o:e,mi:c.mi,x:e.x+u.x*e.r,y:e.y+u.y*e.r,dx:u.x,dy:u.y,sp:special?480:430,r:heavy?20:13,range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st});
+    W.proj.push({o:e,mi:c.mi,x:e.x+u.x*e.r,y:e.y+u.y*e.r,dx:u.x,dy:u.y,sp:(special?480:430)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(m.d.sb==='bolt'?1.25:1),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
+      hm:/^homing/.test(m.d.sb||'')?60:0});
     toRecovery(e,c);
   } else if(k==='beam'){
     const T=clamp(m.p/150,1.1,1.8);phaseTo(e,'active',Math.round(T*60));c.L=0;c.maxL=clamp(360+m.p*1.5,360,690);
@@ -403,8 +407,9 @@ function update(){
   for(const e of [me,foe]){e.x=clamp(e.x,WALL+e.r*.5,AW-WALL-e.r*.5);e.y=clamp(e.y,WALL+e.r*.5,AH-WALL-e.r*.5)}
   // 발사체
   for(const p of W.proj){
-    const st=p.sp*TICK;p.x+=p.dx*st;p.y+=p.dy*st;p.tr+=st;
     const tgt=foeOf(p.o);
+    if(p.hm>0&&tgt.hp>0){p.hm--;const a=Math.atan2(p.dy,p.dx),w=angDiff(a,Math.atan2(tgt.y-p.y,tgt.x-p.x)),mx=200*Math.PI/180*TICK,na=a+clamp(w,-mx,mx);p.dx=Math.cos(na);p.dy=Math.sin(na)}  // 유도: 초당 200도, 1초
+    const st=p.sp*TICK;p.x+=p.dx*st;p.y+=p.dy*st;p.tr+=st;
     if(tgt.hp>0&&len(tgt.x-p.x,tgt.y-p.y)<=p.r+tgt.r*.8){
       const d=dealDamage(p.o,tgt,p.mi);if(p.st)applyEf(p.o,tgt,p.o.moves[p.mi],true);
       p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});
@@ -483,43 +488,68 @@ function tryBuffered(e){
 }
 
 // ---------- AI (야생 단계) ----------
+// ---------- AI (6D: 레조넌스 단계별 값) ----------
+// 단계: W 야생 / T1 쉬움 / T2 / G4 보통 / T4 어려움 / T5 최고 / REF 기준. 값은 원본 ai.tiers 그대로(rzsim.json)
+const AI_T={"W":{"rtMeanSec":0.48,"rtSdSec":0.11,"rtFloorT":18,"thinkSec":0.3,"aimSdDeg":9,"lead":0.15,"leadNoise":0.3,"dodgeShot":0.15,"dodgeMelee":0.05,"dodgeArea":0.25,"dodgeBeam":0.2,"dodgeSdSec":0.1,"sidestepP":0.2,"hesitationsPer10Sec":1.2,"hesitationSec":0.8,"tokenRegenPerSec":0.35,"tokenCap":2,"postPauseSec":0.9,"pressMinSec":3,"pressMaxSec":5,"resetMinSec":3,"resetMaxSec":4.5,"burstMax":1},"T1":{"rtMeanSec":0.42,"rtSdSec":0.09,"rtFloorT":17,"thinkSec":0.25,"aimSdDeg":7,"lead":0.35,"leadNoise":0.25,"dodgeShot":0.3,"dodgeMelee":0.15,"dodgeArea":0.4,"dodgeBeam":0.35,"dodgeSdSec":0.085,"sidestepP":0.3,"hesitationsPer10Sec":0.9,"hesitationSec":0.7,"tokenRegenPerSec":0.45,"tokenCap":3,"postPauseSec":0.7,"pressMinSec":4,"pressMaxSec":6,"resetMinSec":2.5,"resetMaxSec":3.5,"burstMax":1},"T2":{"rtMeanSec":0.36,"rtSdSec":0.07,"rtFloorT":15,"thinkSec":0.2,"aimSdDeg":5,"lead":0.6,"leadNoise":0.2,"dodgeShot":0.5,"dodgeMelee":0.3,"dodgeArea":0.6,"dodgeBeam":0.55,"dodgeSdSec":0.065,"sidestepP":0.4,"hesitationsPer10Sec":0.6,"hesitationSec":0.5,"tokenRegenPerSec":0.6,"tokenCap":3,"postPauseSec":0.5,"pressMinSec":5,"pressMaxSec":7,"resetMinSec":2,"resetMaxSec":3,"burstMax":2},"G4":{"rtMeanSec":0.3171,"rtSdSec":0.0557,"rtFloorT":14,"thinkSec":0.1524,"aimSdDeg":3.5714,"lead":0.7929,"leadNoise":0.15,"dodgeShot":0.6514,"dodgeMelee":0.4429,"dodgeArea":0.7429,"dodgeBeam":0.6929,"dodgeSdSec":0.0507,"sidestepP":0.5429,"hesitationsPer10Sec":0.3357,"hesitationSec":0.4,"tokenRegenPerSec":0.7643,"tokenCap":4,"postPauseSec":0.3571,"pressMinSec":5,"pressMaxSec":8,"resetMinSec":1.6286,"resetMaxSec":2.2857,"burstMax":2},"T4":{"rtMeanSec":0.28,"rtSdSec":0.045,"rtFloorT":13,"thinkSec":0.117,"aimSdDeg":2.5,"lead":0.9,"leadNoise":0.12,"dodgeShot":0.8,"dodgeMelee":0.6,"dodgeArea":0.85,"dodgeBeam":0.8,"dodgeSdSec":0.04,"sidestepP":0.65,"hesitationsPer10Sec":0.2,"hesitationSec":0.35,"tokenRegenPerSec":0.95,"tokenCap":5,"postPauseSec":0.25,"pressMinSec":6,"pressMaxSec":9,"resetMinSec":1.2,"resetMaxSec":1.8,"burstMax":3},"T5":{"rtMeanSec":0.26,"rtSdSec":0.04,"rtFloorT":12,"thinkSec":0.1,"aimSdDeg":2,"lead":0.95,"leadNoise":0.1,"dodgeShot":0.85,"dodgeMelee":0.65,"dodgeArea":0.9,"dodgeBeam":0.85,"dodgeSdSec":0.035,"sidestepP":0.7,"hesitationsPer10Sec":0.15,"hesitationSec":0.3,"tokenRegenPerSec":1.05,"tokenCap":5,"postPauseSec":0.2,"pressMinSec":6,"pressMaxSec":10,"resetMinSec":1,"resetMaxSec":1.6,"burstMax":3},"REF":{"rtMeanSec":0.25,"rtSdSec":0.03,"rtFloorT":12,"thinkSec":0.083,"aimSdDeg":1.5,"lead":1,"leadNoise":0.05,"dodgeShot":1,"dodgeMelee":1,"dodgeArea":1,"dodgeBeam":1,"dodgeSdSec":0.025,"sidestepP":1,"hesitationsPer10Sec":0,"hesitationSec":0,"tokenRegenPerSec":99999,"tokenCap":99999,"postPauseSec":0,"pressMinSec":99999,"pressMaxSec":99999,"resetMinSec":0,"resetMaxSec":0,"burstMax":4}};
+const AI_PLAIN={melee:'m',leap:'m',vanish:'m',roll:'m',projectile:'s',beam:'b',pulse:'a',delayed:'a',zone:'a',target:'a'};
+const gauss=()=>(rnd()+rnd()+rnd()+rnd()-2)*1.732;
+const tokCost=m=>m.st?.5:m.p<=60?.5:m.p<=90?.75:1;
+const rr=(a,b)=>a+rnd()*(b-a);
 function aiUpdate(a){
-  const ai=W.ai,p=W.me;
+  const ai=W.ai,T=ai.T,p=W.me;
   if(a.hp<=0){a.wish={x:0,y:0};return}
-  ai.react=Math.max(0,ai.react-TICK);
-  const d=len(p.x-a.x,p.y-a.y);
-  const to=norm(p.x-a.x,p.y-a.y);
-  // 회피: 상대가 준비/발동 중이면 반응 시간 뒤 구르기 확률
-  const threat=p.cast&&(p.cast.phase==='startup'||p.cast.phase==='active')&&p.cast.mv.p>0||W.proj.some(q=>q.o===p&&len(q.x-a.x,q.y-a.y)<220);
-  if(threat&&!ai.sawT){ai.sawT=ai.rt=.2+rnd()*.25}
+  const d=len(p.x-a.x,p.y-a.y),to=norm(p.x-a.x,p.y-a.y);
+  const low=a.hp<a.max*.3;
+  // 기력(토큰): 공격할 때 쓰고 천천히 차오름 (체력이 낮으면 1.3배)
+  ai.tok=Math.min(T.tokenCap,ai.tok+T.tokenRegenPerSec*TICK*(low?1.3:1));
+  // 망설임: 가끔 멈칫
+  if(ai.hes>0)ai.hes-=TICK;else if(rnd()<T.hesitationsPer10Sec/10*TICK)ai.hes=T.hesitationSec;
+  // 압박/후퇴 번갈아
+  ai.pt-=TICK;if(ai.pt<=0){ai.phase=ai.phase==='press'?'reset':'press';ai.pt=ai.phase==='press'?rr(T.pressMinSec,T.pressMaxSec):rr(T.resetMinSec,T.resetMaxSec);if(ai.pt<=0)ai.phase='press'}
+  // 회피: 위협을 본 뒤 반응시간(평균±표준편차, 최소 floor틱)이 지나면 단계별 확률로 구르기, 아니면 옆걸음
+  const tc=p.cast&&(p.cast.phase==='startup'||p.cast.phase==='active')&&p.cast.mv.p>0?p.cast.mv.k:null;
+  const shot=W.proj.some(q=>q.o===p&&len(q.x-a.x,q.y-a.y)<220);
+  const threat=tc||shot;
+  if(threat&&!ai.sawT){ai.sawT=Math.max(T.rtFloorT/60,T.rtMeanSec+gauss()*T.rtSdSec);ai.kind=tc?(AI_PLAIN[tc]||'s'):'s'}
   if(!threat)ai.sawT=0;
-  if(ai.sawT>0){ai.sawT-=TICK;if(ai.sawT<=0&&a.rc>=1&&!a.cast){
-    const k=p.cast?p.cast.mv.k:'projectile';const pr=k==='projectile'?.63:k==='melee'?.43:(k==='pulse'||k==='delayed'||k==='zone')?.73:.68;
-    if(rnd()<pr*.8){const s=rnd()<.5?1:-1;a.wish={x:-to.y*s,y:to.x*s};doRoll(a)}}}
-  // 이동: 가장 쓸 만한 기술의 사거리를 맞춤
-  ai.t-=TICK;
-  if(ai.t<=0){ai.t=.8+rnd()*.8;ai.mode=rnd()<.25?'strafe':'press';ai.s=rnd()<.5?1:-1}
+  if(ai.sawT>0){ai.sawT-=TICK;if(ai.sawT<=0&&!a.cast){
+    const pr={m:T.dodgeMelee,s:T.dodgeShot,b:T.dodgeBeam,a:T.dodgeArea}[ai.kind]+(low?.1:0);
+    if(a.rc>=1&&rnd()<pr){const s=rnd()<.5?1:-1;a.wish={x:-to.y*s,y:to.x*s};doRoll(a)}
+    else if(rnd()<T.sidestepP){ai.side=.5;ai.s=rnd()<.5?1:-1}}}
+  // 이동
+  ai.t-=TICK;if(ai.t<=0){ai.t=rr(1.2,3);ai.s=rnd()<.5?1:-1}
   const range=ai.range||250;
   if(!a.cast&&a.stun<=0&&a.rollT<=0){
     let wx=0,wy=0;
-    if(ai.mode==='strafe'){wx=-to.y*ai.s*.8+to.x*(d>range?.5:-.2);wy=to.x*ai.s*.8+to.y*(d>range?.5:-.2)}
-    else if(d>range){wx=to.x;wy=to.y}else if(d<range*.5){wx=-to.x*.6;wy=-to.y*.6}
-    a.wish={x:wx,y:wy};
+    if(ai.side>0){ai.side-=TICK;wx=-to.y*ai.s;wy=to.x*ai.s}
+    else if(ai.phase==='reset'){const far=Math.min(range*1.7,520);if(d<far){wx=-to.x*.9-to.y*ai.s*.4;wy=-to.y*.9+to.x*ai.s*.4}else{wx=-to.y*ai.s*.6;wy=to.x*ai.s*.6}}
+    else if(d>range){wx=to.x;wy=to.y}else if(d<range*.5){wx=-to.x*.6;wy=-to.y*.6}else{wx=-to.y*ai.s*.6;wy=to.x*ai.s*.6}
+    const hm=ai.hes>0?.3:1;a.wish={x:wx*hm,y:wy*hm};
   } else a.wish={x:0,y:0};
   // 공격
   ai.cd=Math.max(0,ai.cd-TICK);
-  if(ai.cd<=0&&!a.cast&&a.stun<=0&&a.rollT<=0){
+  if(ai.cd<=0&&ai.hes<=0&&!a.cast&&a.stun<=0&&a.rollT<=0){
     const opts=[];
     a.moves.forEach((m,i)=>{if(!canCast(a,i))return;
+      const cost=tokCost(m)*(ai.burst>0?.5:1);if(ai.tok<cost)return;
       const R=m.k==='melee'?180:m.k==='leap'?220:m.k==='pulse'?205:m.k==='beam'?400:m.k==='projectile'?500:m.k==='delayed'?500:m.k==='target'?500:m.k==='zone'?230:m.k==='vanish'?300:m.k==='roll'?350:9999;
-      if(m.k==='self'){if(m.d.ef&&m.d.ef.some(x=>x.op==='heal')&&a.hp<a.max*.5)opts.push([i,5]);else if(rnd()<.15)opts.push([i,1]);return}
+      if(m.k==='self'){if(m.d.ef&&m.d.ef.some(x=>x.op==='heal')&&a.hp<a.max*.5)opts.push([i,5,cost]);else if(rnd()<.15)opts.push([i,1,cost]);return}
       if(m.p<=0&&rnd()<.5)return;
-      if(d<=R)opts.push([i,2+m.p/50]);
+      if(d<=R)opts.push([i,2+m.p/50,cost]);
     });
-    if(opts.length){let tot=opts.reduce((s,o)=>s+o[1],0),r=rnd()*tot,pick=opts[0][0];for(const o of opts){r-=o[1];if(r<=0){pick=o[0];break}}
-      // 조준 오차 ±8도, 선두 조준은 생략
-      const base=Math.atan2(to.y,to.x)+(rnd()-.5)*16*Math.PI/180;
-      startCast(a,pick,{x:Math.cos(base),y:Math.sin(base)});ai.cd=.4+rnd()*.7}
+    if(opts.length&&(ai.phase==='press'||rnd()<.3)){
+      let tot=opts.reduce((s,o)=>s+o[1],0),r=rnd()*tot,pk=opts[0];for(const o of opts){r-=o[1];if(r<=0){pk=o;break}}
+      const m=a.moves[pk[0]];
+      // 조준: 상대가 움직이는 방향을 단계별 비율(lead)만큼 앞질러 겨냥 + 단계별 오차
+      const sp=m.k==='projectile'?(m.phys?430:480):0;
+      const tt=sp?d/sp:0,ld=T.lead*(1+gauss()*.25);
+      const px=p.x+(p.vx||0)*tt*ld,py=p.y+(p.vy||0)*tt*ld;
+      const base=Math.atan2(py-a.y,px-a.x)+gauss()*T.aimSdDeg*Math.PI/180;
+      startCast(a,pk[0],{x:Math.cos(base),y:Math.sin(base)});
+      ai.tok-=pk[2];ai.burst++;
+      if(ai.burst<T.burstMax&&ai.tok>=.5)ai.cd=.15;
+      else{ai.burst=0;ai.cd=(T.postPauseSec||.5)*rr(.7,1.3)}
+    }
   }
 }
 
@@ -685,7 +715,8 @@ async function start(ctx){
   const [S1,S2]=await Promise.all([C.getSpr(C.sprKey(C.me)),C.getSpr(C.sprKey(C.foe))]);
   W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],over:null,overT:0};
   W.me=mkEnt(C.me,S1,0);W.foe=mkEnt(C.foe,S2,1);
-  W.ai={react:0,sawT:0,t:0,mode:'press',s:1,cd:1.2,range:240};
+  const AT=AI_T[C.aiTier]||AI_T.W;
+  W.ai={T:AT,tier:AI_T[C.aiTier]?C.aiTier:'W',sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)};
   // AI 기본 사거리: 가진 기술 중 위력 높은 기술 기준
   const best=W.foe.moves.filter(m=>m.p>0).sort((a,b)=>b.p-a.p)[0];
   if(best)W.ai.range=best.k==='melee'?120:best.k==='pulse'?150:best.k==='leap'?170:300;
