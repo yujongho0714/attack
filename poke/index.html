@@ -8316,7 +8316,7 @@ async function rtGo(){
     const keys=Object.keys(META).filter(k=>META[k]&&!META[k].form&&!/^sc:/.test(k)||META[k]&&!META[k].form);
     let foe=null;for(let i=0;i<20&&!foe;i++){const n=keys[Math.floor(Math.random()*keys.length)];try{foe=mkMon(n,Math.max(1,Math.min(100,(m0.lv||5)+ri(-2,2))))}catch(e){}}
     if(!foe){toast('상대를 만들지 못했어요');return}
-    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm});
+    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX}});
     toast(r==='win'?'⚔ 시험 전투 승리!':r==='lose'?'⚔ 시험 전투 패배':r==='draw'?'⚔ 무승부':'⚔ 시험 전투 종료');
   }catch(e){console.warn('rtb',e);try{toast('시험 전투 오류: '+(e.message||e))}catch(_){}}
   finally{window.__rtRun=0}

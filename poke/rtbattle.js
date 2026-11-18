@@ -73,6 +73,26 @@ function moveInfo(id){
   return {id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,hasted:cdi.hasted,phys:d.c===0,exec,fx,selfko:opsOf(d).includes('selfKO'),rech:opsOf(d).includes('recharge'),hits:hitsOf(d),mh:(d.ef||[]).find(x=>x.op==='multiHit')||null};
 }
 
+// ---------- 6E: 기존 기술 이펙트(SKFX·FX2·VFX) 연결 ----------
+// 그림만 재생함. 데미지·판정은 전부 위 규칙 그대로(이펙트는 판정에 영향 없음). 이펙트는 상대 위·내 포켓몬 아래에 그려 내 몸을 가리지 않음
+const fxOn=()=>!!(C&&C.fxe&&C.fxe.FX2&&C.fxe.VFX&&C.fxe.SKFX&&C.fxe.MV);
+const fxS=m=>50+m.g*7;                      // 이펙트 크기 기준(너무 크지 않게)
+function fxActor(e){return{ox:0,oy:0,lift:0,sq:1,trail:0,st:'idle',t:0,blink:0,vx:0,vy:0,m:e.mon,S:null,get ax(){return e.x},get ay(){return e.y}}}
+function skillFx(e,m,a,b,opt){
+  if(!fxOn()||!m)return;opt=opt||{};
+  try{
+    const key=m.id,now=W.time;
+    if(!opt.force&&e._fxK===key&&now-(e._fxT||0)<.4)return;   // 같은 기술 연속 재생 방지(구르기·연타)
+    e._fxK=key;e._fxT=now;
+    const F=C.fxe,S=opt.S||fxS(m),g=C.mv(m.id)||{id:m.id,name:m.name,type:m.type,pw:m.p};
+    const tg=foeOf(e);
+    const x={A:fxActor(e),B:fxActor(tg),fa:{x:a.x,y:a.y},fb:{x:b.x,y:b.y},S,d:b.x>=a.x?1:-1,a:{x:a.x,y:a.y-S*.6},b:{x:b.x,y:b.y-S*.55},pose:()=>{},hit:()=>{}};
+    const id=F.MV.pick(g.id||m.id,g.type||m.type);
+    Promise.resolve(F.SKFX.run(x,id,g,1,e===W.me,1)).catch(()=>{});
+  }catch(err){}
+}
+function fxShake(g){if(!fxOn())return;try{C.fxe.FX2.hit([3,5,8,11][g]||3,0)}catch(e){}}
+
 // ---------- 개체 ----------
 function mkEnt(mon,S,side){
   const s=C.stOf(mon);
@@ -103,7 +123,7 @@ function dealDamage(att,def,mi,opt){
   if(def.hp<=0)return 0;
   const m=att.moves[mi]||opt.mi;
   if(def.hidden){return 0}
-  if(def.protect>0){floatTxt(def.x,def.y-60,'막았다!','#9be7ff');W.fx.push({k:'ring',x:def.x,y:def.y,t:0,life:.3,r:70,c:'#9be7ff'});return 0}
+  if(def.protect>0){floatTxt(def.x,def.y-60,'막았다!','#9be7ff');W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.3,r:70,c:'#9be7ff'});return 0}
   if(def.rollT>0){
     const t=14-def.rollT; // 지난 틱 (0~13)
     if(t>=1&&t<=10){
@@ -147,6 +167,7 @@ function dealDamage(att,def,mi,opt){
   // 자폭기: 쓰면 기절
   if(m.selfko&&att.hp>0&&!att._ko){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
   W.hitstop=Math.max(W.hitstop,HSTOP[m.g]);
+  if(dmg>0){fxShake(m.g);if(!opt.chain&&(m.k==='melee'||m.k==='roll'||m.k==='target'||m.k==='vanish'))skillFx(att,m,{x:att.x,y:att.y},{x:def.x,y:def.y})}
   // 경직·넉백·끊기
   const dirv=norm(def.x-att.x,def.y-att.y);
   const kb=KB[m.g]*Math.max(.4,1-(def.r-30)/160);
@@ -264,7 +285,7 @@ function fire(e,c){
         if(f.op==='stat'&&f.who==='target'&&m.d.tg!=='User'){for(const s in f.stages)addStage(tgt,s,f.stages[s])}
         if(f.op==='counter'){e.counterT=1.7}
       }
-      W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});
+      W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});skillFx(e,m,{x:e.x,y:e.y},{x:e.x,y:e.y},{force:1});
       c.phase='active';c.t=0;c.len=1;toRecovery(e,c);return;
     }
   }
@@ -286,9 +307,11 @@ function fire(e,c){
   } else if(k==='beam'){
     const T=clamp(m.p/150,1.1,1.8);phaseTo(e,'active',Math.round(T*60));c.L=0;c.maxL=clamp(360+m.p*1.5,360,690);
     c.dmgMul=Math.min(1,12/(T*60))*1.25;
+    {const bl=c.maxL*.85;skillFx(e,m,{x:e.x,y:e.y},{x:clamp(e.x+u.x*bl,WALL,AW-WALL),y:clamp(e.y+u.y*bl,WALL,AH-WALL)},{force:1})}
   } else if(k==='pulse'){
     const cone=m.kd==='cone';const R=205;
     W.fx.push({k:cone?'cone':'ring',x:e.x,y:e.y,a:c.aim,t:0,life:.35,r:R,c:C.TCOL[m.type]||'#fff'});
+    skillFx(e,m,{x:e.x,y:e.y},cone?{x:e.x+u.x*R*.6,y:e.y+u.y*R*.6}:{x:e.x,y:e.y},{force:1});
     let hit=false;
     if(tgt.hp>0){
       const dx=tgt.x-e.x,dy=tgt.y-e.y,d=len(dx,dy);
@@ -300,6 +323,7 @@ function fire(e,c){
     const d=c.dist!=null?clamp(c.dist,40,230):Math.min(230,tgt.hp>0?len(tgt.x-e.x,tgt.y-e.y):230);
     W.zones=W.zones.filter(z=>z.o!==e||false);
     W.zones.push({o:e,mi:c.mi,x:clamp(e.x+u.x*d,WALL,AW-WALL),y:clamp(e.y+u.y*d,WALL,AH-WALL),r:62,life:25,tick:1.5,col:C.TCOL[m.type]||'#fff',st:m.st});
+    {const z=W.zones[W.zones.length-1];skillFx(e,m,{x:e.x,y:e.y},{x:z.x,y:z.y},{force:1})}
     toRecovery(e,c);
   } else if(k==='delayed'){
     W.delays.push({o:e,mi:c.mi,x:tgt.x,y:tgt.y,t:2.2,r:58,col:C.TCOL[m.type]||'#fff',lock:false,tgt});
@@ -307,6 +331,7 @@ function fire(e,c){
   } else if(k==='target'){
     if(tgt.hp>0&&len(tgt.x-e.x,tgt.y-e.y)<=550+tgt.r){
       W.fx.push({k:'beamline',x:e.x,y:e.y,x2:tgt.x,y2:tgt.y,t:0,life:.25,c:C.TCOL[m.type]||'#fff'});
+      skillFx(e,m,{x:e.x,y:e.y},{x:tgt.x,y:tgt.y},{force:1});
       dealDamage(e,tgt,c.mi);if(m.st)applyEf(e,tgt,m,true)}
     toRecovery(e,c);
   } else {toRecovery(e,c)}
@@ -324,7 +349,7 @@ function activeTick(e,c,tgt){
     if(c.t>=c.len)toRecovery(e,c);
   } else if(k==='leap'){
     const p=c.t/20;e.x=c.sx+(c.tx-c.sx)*p;e.y=c.sy+(c.ty-c.sy)*p;e.lift=Math.sin(p*Math.PI)*48;
-    if(c.t>=20){e.lift=0;W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.3,r:34+e.r,c:C.TCOL[m.type]||'#fff'});circleHit(e,c,e.x,e.y,34+e.r*.3,tgt);toRecovery(e,c)}
+    if(c.t>=20){e.lift=0;W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.3,r:34+e.r,c:C.TCOL[m.type]||'#fff'});skillFx(e,m,{x:e.x,y:e.y},{x:e.x,y:e.y},{force:1});circleHit(e,c,e.x,e.y,34+e.r*.3,tgt);toRecovery(e,c)}
   } else if(k==='roll'){
     c.spd=Math.min(700,350*(1+Math.floor(c.t/22)*.14));
     if(tgt.hp>0){const dd=norm(tgt.x-e.x,tgt.y-e.y);const a=Math.atan2(c.dir.y,c.dir.x),b=Math.atan2(dd.y,dd.x);const na=a+clamp(angDiff(a,b),-3*TICK,3*TICK);c.dir={x:Math.cos(na),y:Math.sin(na)}}
@@ -412,7 +437,7 @@ function update(){
     const st=p.sp*TICK;p.x+=p.dx*st;p.y+=p.dy*st;p.tr+=st;
     if(tgt.hp>0&&len(tgt.x-p.x,tgt.y-p.y)<=p.r+tgt.r*.8){
       const d=dealDamage(p.o,tgt,p.mi);if(p.st)applyEf(p.o,tgt,p.o.moves[p.mi],true);
-      p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});
+      p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});skillFx(p.o,p.o.moves[p.mi],{x:p.x,y:p.y},{x:p.x,y:p.y},{force:1});
     } else if(p.tr>p.range||p.x<WALL||p.x>AW-WALL||p.y<WALL||p.y>AH-WALL){p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.2,r:p.r*1.5,c:p.col})}
   }
   // 발사체끼리 충돌 (반지름 비 1.5 이상이면 큰 쪽이 압도, 아니면 상쇄)
@@ -429,7 +454,7 @@ function update(){
   // 내려찍기
   for(const d of W.delays){d.t-=TICK;
     if(d.t>.5&&d.tgt.hp>0){d.x=d.tgt.x;d.y=d.tgt.y}
-    if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=d.r+t.r*.5)dealDamage(d.o,t,d.mi)}}
+    if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});skillFx(d.o,d.o.moves[d.mi],{x:d.x,y:d.y},{x:d.x,y:d.y},{force:1});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=d.r+t.r*.5)dealDamage(d.o,t,d.mi)}}
   W.delays=W.delays.filter(d=>!d.dead);
   for(const h of W.chain){const t=foeOf(h.o);
     if(h.o.hp<=0||t.hp<=0||h.o.stun>0||h.o.hidden){h.dead=1;continue}
@@ -468,7 +493,7 @@ function doRoll(e){
   let d=e.wish&&len(e.wish.x,e.wish.y)>.2?norm(e.wish.x,e.wish.y):(e.face||{x:1,y:0});
   e.cast=null;e.beam=null;e.hidden=false;
   e.rollT=14;e.rdx=d.x;e.rdy=d.y;e.rc-=1;e.perfect=0;e.row=dirRow(d.x,d.y);
-  W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.2,r:40,c:'#ffffff'});
+  W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.2,r:40,c:'#ffffff'});
 }
 function aimFor(e,manual){
   const f=foeOf(e);
@@ -567,7 +592,8 @@ function render(){
   W.cam=W.cam||{x:tx,y:ty};W.cam.x+=(tx-W.cam.x)*.12;W.cam.y+=(ty-W.cam.y)*.12;
   cx.setTransform(1,0,0,1,0,0);
   cx.fillStyle='#0b1220';cx.fillRect(0,0,Wd,Hd);
-  cx.setTransform(sc,0,0,sc,Wd/2-W.cam.x*sc,Hd/2-W.cam.y*sc);
+  let shx=0,shy=0;if(fxOn()){try{const q=C.fxe.FX2.shakeXY();shx=q[0]*.5;shy=q[1]*.5}catch(er){}}
+  cx.setTransform(sc,0,0,sc,Wd/2-W.cam.x*sc+shx,Hd/2-W.cam.y*sc+shy);
   // 바닥
   const g=cx.createLinearGradient(0,0,0,AH);g.addColorStop(0,'#5e8f55');g.addColorStop(1,'#487244');
   cx.fillStyle=g;cx.fillRect(0,0,AW,AH);
@@ -582,15 +608,17 @@ function render(){
   // 내가 누르고 있는 기술의 사용 범위 미리보기
   drawPreview(cx);
   // 개체
-  const ents=[me,foe].sort((a,b)=>a.y-b.y);
+  if(fxOn()){try{C.fxe.VFX.drawGround(cx)}catch(er){}}
+  const ents=fxOn()?[foe,me]:[me,foe].sort((a,b)=>a.y-b.y);   // 이펙트가 켜져 있으면 내 포켓몬을 맨 위에 그려 가리지 않게
   for(const e of ents){
+    if(fxOn()&&e===me){cx.globalAlpha=1;try{C.fxe.VFX.draw(cx);C.fxe.FX2.draw(cx)}catch(er){}}
     if(e.hp<=0&&W.over&&W.overT>.8&&e!==me&&e!==foe)continue;
     cx.globalAlpha=e.hidden?.25:(e.hp<=0?Math.max(.15,1-W.overT*.8):1);
     cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(e.x,e.y+6,e.r*.9,e.r*.4,0,0,7);cx.fill();
     // 조준 예고 (준비 중, 내 것만)
     if(e.cast&&e.cast.phase==='startup'&&e===me){const c=e.cast;cx.globalAlpha=.25;cx.strokeStyle='#fff';cx.lineWidth=3;cx.setLineDash([10,8]);cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+Math.cos(c.aim)*220,e.y+Math.sin(c.aim)*220);cx.stroke();cx.setLineDash([]);cx.globalAlpha=1}
     if(e.cast&&e.cast.phase==='startup'&&e!==me){const c=e.cast;cx.globalAlpha=.3;cx.strokeStyle='#ff6a5a';cx.lineWidth=4;cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+Math.cos(c.aim)*200,e.y+Math.sin(c.aim)*200);cx.stroke();cx.globalAlpha=1}
-    if(e.beam){const b=e.beam;cx.save();cx.translate(e.x,e.y-(e.lift||0)-20);cx.rotate(b.a);const gg=cx.createLinearGradient(0,0,b.L,0);gg.addColorStop(0,'#fff');gg.addColorStop(1,b.col);cx.globalAlpha=.85;cx.fillStyle=gg;cx.fillRect(0,-18,b.L,36);cx.globalAlpha=.9;cx.fillStyle='#fff';cx.fillRect(0,-6,b.L,12);cx.restore();cx.globalAlpha=1}
+    if(e.beam){const b=e.beam;cx.save();cx.translate(e.x,e.y-(e.lift||0)-20);cx.rotate(b.a);const gg=cx.createLinearGradient(0,0,b.L,0);gg.addColorStop(0,'#fff');gg.addColorStop(1,b.col);cx.globalAlpha=fxOn()?.14:.85;cx.fillStyle=gg;cx.fillRect(0,-18,b.L,36);cx.globalAlpha=fxOn()?.2:.9;cx.fillStyle='#fff';cx.fillRect(0,-6,b.L,12);cx.restore();cx.globalAlpha=1}
     const st=e.anim;
     try{C.drawPm(cx,e.S,st,e.row,e.at,e.x,e.y-(e.lift||0)-18,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
     cx.globalAlpha=1;
@@ -603,7 +631,7 @@ function render(){
   // 발사체
   for(const p of W.proj){cx.globalAlpha=.9;cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y-24,p.r,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y-24,p.r*.5,0,7);cx.fill();cx.globalAlpha=1}
   // 효과
-  for(const f of W.fx){const u=f.t/f.life;cx.save();cx.globalAlpha=Math.max(0,1-u);
+  for(const f of W.fx){if(fxOn()&&(f.k==='burst'||f.k==='cone'||f.k==='slash'||f.k==='beamline'||(f.k==='ring'&&!f.sys)))continue;const u=f.t/f.life;cx.save();cx.globalAlpha=Math.max(0,1-u);
     if(f.k==='txt'){cx.font=(f.big?'bold 34px':'bold 24px')+' sans-serif';cx.textAlign='center';cx.lineWidth=5;cx.strokeStyle='#000';cx.fillStyle=f.c;const y=f.y-u*40;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
     else if(f.k==='callout'){cx.font='bold 22px sans-serif';cx.textAlign='center';cx.lineWidth=4;cx.strokeStyle='#000';cx.fillStyle=f.c;const y=f.y-u*14;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
     else if(f.k==='burst'){cx.fillStyle=f.c;cx.beginPath();cx.arc(f.x,f.y,f.r*(.4+u*.8),0,7);cx.fill()}
@@ -765,6 +793,7 @@ function updBtns(){
 function stop(r){
   if(!W||W.stopped)return;W.stopped=1;cancelAnimationFrame(W.raf);
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
+  if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear()}catch(er){}}
   W.root.remove();IN.keys={};IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.press=[];IN.hold={};IN.roll=0;
   const res=W.res;W=null;res(r);
 }
@@ -787,6 +816,7 @@ async function start(ctx){
       let dt=Math.min(.1,(now-last)/1000);last=now;acc+=dt;let n=0;
       while(acc>=TICK&&n<5){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
       if(n>=5)acc=0;
+      if(fxOn()){try{C.fxe.FX2.update(dt);C.fxe.VFX.update(dt)}catch(er){}}
       render();
       W.raf=requestAnimationFrame(loop)};
     W.raf=requestAnimationFrame(loop);
