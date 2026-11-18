@@ -805,6 +805,33 @@ function drawPreview(cx){
   }
 }
 
+// ---------- 6F-4a: 파티 패널(일시정지) ----------
+function closeParty(){if(!W||!W.pp)return;W.pp.remove();W.pp=null;W.paused=0}
+function openParty(){
+  if(!W||W.over||W.pp||W.ball)return;
+  W.paused=1;IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.hold={};IN.press=[];IN.roll=0;
+  try{W.ui.jb.style.display='none'}catch(e){}
+  const pp=document.createElement('div');
+  pp.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;pointer-events:auto;z-index:5;font-family:sans-serif';
+  pp.addEventListener('pointerdown',ev=>ev.stopPropagation());
+  const box=document.createElement('div');box.style.cssText='width:min(92vw,360px);max-height:86vh;overflow:auto;background:#1c2230;border:2px solid #56627f;border-radius:14px;padding:12px;color:#fff';
+  const h=document.createElement('div');h.style.cssText='font-weight:bold;font-size:16px;margin-bottom:2px';h.textContent='포켓몬 교대';box.appendChild(h);
+  const sub=document.createElement('div');sub.style.cssText='font-size:12px;opacity:.75;margin-bottom:8px';sub.textContent='전투는 멈춰 있어요. (지금은 보기만 · 교체는 다음 단계)';box.appendChild(sub);
+  let L=[];try{L=C.party()||[]}catch(e){}
+  for(const q of L){
+    const row=document.createElement('div');const cur=q.uid===C.me.uid,dead=q.hp<=0;
+    row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 10px;margin:4px 0;border-radius:8px;background:'+(cur?'#2a4a2a':'#2b3347')+';opacity:'+(dead?.5:1);
+    const l=document.createElement('div');l.innerHTML='<b>'+q.name+'</b> Lv.'+q.lv;
+    const r=document.createElement('div');r.style.cssText='font-size:12px;text-align:right';
+    const hp=cur?Math.max(0,Math.round(W.me.hp)):q.hp,mx=cur?Math.round(W.me.max):q.max;
+    r.textContent=cur?'싸우는 중 '+hp+'/'+mx:(dead?'기절':hp+'/'+mx);
+    row.appendChild(l);row.appendChild(r);box.appendChild(row);
+  }
+  const cl=document.createElement('div');cl.textContent='닫기 (전투 계속)';cl.style.cssText='margin-top:8px;text-align:center;padding:10px;border-radius:8px;background:#3b6ea5;font-weight:bold';
+  cl.addEventListener('pointerdown',ev=>{ev.stopPropagation();closeParty()});box.appendChild(cl);
+  pp.appendChild(box);W.root.appendChild(pp);W.pp=pp;
+}
+
 // ---------- DOM(조작 UI) ----------
 function buildUI(){
   const root=document.createElement('div');root.id='rtbRoot';
@@ -830,6 +857,11 @@ function buildUI(){
     bsw.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();W.ballSel=((W.ballSel||0)+1)%Math.max(1,ballList().length)});
   }
   const qb=document.createElement('div');qb.textContent='✕';qb.style.cssText='position:absolute;left:8px;bottom:8px;width:34px;height:34px;border-radius:8px;background:rgba(0,0,0,.5);color:#fff;font:bold 18px sans-serif;display:flex;align-items:center;justify-content:center;pointer-events:auto';ui.appendChild(qb);
+  // 6F-4a: 교대 버튼 + 파티 보기 패널(전투 일시정지). 실제 교체는 6F-4b
+  if(C.party&&C.party().length>1){
+    const sw=document.createElement('div');sw.textContent='🔄 교대';sw.style.cssText='position:absolute;left:50px;bottom:8px;height:34px;padding:0 10px;border-radius:8px;background:rgba(0,0,0,.5);color:#fff;font:bold 13px sans-serif;display:flex;align-items:center;pointer-events:auto';
+    sw.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();openParty()});ui.appendChild(sw);W.swBtn=sw;
+  }
   document.body.appendChild(root);
   W.root=root;W.cv=cv;W.ctx=cv.getContext('2d');W.ui={jb,jk,btns,rb,rcnt,bb,bsw};
   // 포인터
@@ -861,12 +893,14 @@ function buildUI(){
   const up=ev=>{if(IN.stick.on&&ev.pointerId===IN.stick.id){IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};jb.style.display='none'}};
   root.addEventListener('pointerup',up);root.addEventListener('pointercancel',up);
   // 키보드
-  W.kd=e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;IN.keys[k]=1;
+  W.kd=e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;if(W.pp&&k!=='Escape'&&k!=='p')return;IN.keys[k]=1;
     if(k===' '){IN.roll=1;e.preventDefault()}
     const mk={q:0,w:1,e:2,r:3,'1':0,'2':1,'3':2,'4':3};
     if(k in mk&&!e.repeat)IN.press.push({i:mk[k],aim:null})
     if(k==='b'&&!e.repeat)tryThrow();
     if(k==='n'&&!e.repeat&&C.balls)W.ballSel=((W.ballSel||0)+1)%Math.max(1,ballList().length);
+    if(k==='Escape'&&W.pp){closeParty();return}
+    if(k==='p'&&!e.repeat&&C.party&&C.party().length>1){W.pp?closeParty():openParty();return}
     if(k==='Escape'&&!W.over&&!C.noQuit)stop('quit')};
   W.ku=e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;IN.keys[k]=0};
   addEventListener('keydown',W.kd);addEventListener('keyup',W.ku);
@@ -908,9 +942,9 @@ async function start(ctx){
     const loop=now=>{
       if(!W||W.stopped)return;
       let dt=Math.min(.1,(now-last)/1000);last=now;acc+=dt;let n=0;
-      while(acc>=TICK&&n<5){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
+      if(W.paused){acc=0}else while(acc>=TICK&&n<5){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
       if(n>=5)acc=0;
-      if(fxOn()){try{C.fxe.FX2.update(dt);C.fxe.VFX.update(dt)}catch(er){}}
+      if(fxOn()&&!W.paused){try{C.fxe.FX2.update(dt);C.fxe.VFX.update(dt)}catch(er){}}
       render();
       W.raf=requestAnimationFrame(loop)};
     W.raf=requestAnimationFrame(loop);

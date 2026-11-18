@@ -8362,7 +8362,7 @@ async function rtWild(o){
       lastMon=m;part.add(m.uid);
       const me=Object.assign({},m,{moves:m.moves.slice()});const reserve=alive().length>1;
       const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
-        meHp:m.hp,foeHp:f.hp,aiTier:tier,
+        meHp:m.hp,foeHp:f.hp,aiTier:tier,party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:q.lv,hp:q.hp,max:stOf(q)[0]})),
         loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:'화면을 누르면 계속해요'},
         tr?{noQuit:1,maxTime:300}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
       const L=window.RTB.last||{};
