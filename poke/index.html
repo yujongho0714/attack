@@ -2371,15 +2371,17 @@ const BGM=(()=>{const TOWN=['pallet','pewter','cerulean','vermilion','celadon','
   return{play,area,battle,win,toggle,setVol,get on(){return on},get vol(){return vol}}})();
 
 // ===== 메가진화 · 원시회귀 · 거다이맥스 (상시 변신) + 이로치 여러 색 =====
-const FKO={mega:'메가',primal:'원시',gmax:'거다이맥스 ',emax:'무한다이맥스 '};
+const FKO={mega:'메가',primal:'원시',gmax:'거다이맥스 ',emax:'무한다이맥스 ',rmega:'',rf:''};
 const FITEM={mega:'mstone',primal:'porb',gmax:'dmax',emax:'dmax'};
 Object.assign(ITEMS,{mstone:{n:'메가스톤',e:'<img class="ic" src="items/MEGARING.png">',form:'mega',p:30000,b:6},porb:{n:'원시의 구슬',e:'<img class="ic" src="items/LIFEORB.png">'},
   dmax:{n:'다이맥스 밴드',e:'<img class="ic" src="items/DYNAMAXBAND.png">',p:8000,b:7},sstone:{n:'빛나는돌',e:'<img class="ic" src="items/SHINYSTONE.png">',shinyItem:1}});
+// 레조넌스 폼(rzforms.json): [키,도감,종류,이름,타입,능력치] → FORMS에 합쳐서 '다른 포켓몬'으로 취급. 파일이 없으면 그냥 건너뜀
+const RZF={};let RZFP=null;function rzFormsLoad(){return RZFP||(RZFP=fetch('rzforms.json').then(r=>r.ok?r.json():null).then(D=>{if(!D||!D.f)return;for(const [k,d,kind,nm,ty,st] of D.f){if(RZF[k])continue;RZF[k]={n:nm,t:ty,s:st};const a=FORMS[d]||(FORMS[d]=[]);if(!a.some(x=>x[0]===k))a.push([k,kind,''])}}).catch(()=>{}))}
 function formsInit(){for(const d in FORMS){const n=BYDEX[d];if(!n||!META[n])continue;const M=META[n];
   for(const [p,k,suf] of FORMS[d]){const fk='sc:'+p;if(META[fk])continue;const bs=(M.stats||M.s||[50,50,50,50,50,50]);let s=bs.slice();
     if(k==='mega')for(let i=1;i<6;i++)s[i]=Math.round(s[i]+20);else if(k==='primal')for(let i=1;i<6;i++)s[i]=Math.round(s[i]*1.2);else{s[0]=Math.round(s[0]*1.5);for(let i=1;i<6;i++)s[i]=Math.round(s[i]*1.12)}
-    try{const R=typeof FSTAT!=='undefined'&&FSTAT[p];const sum=x=>x.reduce((q,w)=>q+w,0);if(R&&sum(R)>sum(bs))s=R.slice()}catch(e){}META[fk]=Object.assign({},M,{name:FKO[k]+M.name+(suf?' '+suf:''),s,stats:s,form:k,base:n});if(THUMB[n])THUMB[fk]=THUMB[n]}}}
-{const _lp=loadPool;loadPool=async function(...a){const r=await _lp.apply(this,a);try{formsInit()}catch(e){console.warn(e)}return r}}
+    try{const R=typeof FSTAT!=='undefined'&&FSTAT[p];const sum=x=>x.reduce((q,w)=>q+w,0);if(R&&sum(R)>sum(bs))s=R.slice()}catch(e){}META[fk]=Object.assign({},M,{name:FKO[k]+M.name+(suf?' '+suf:''),s,stats:s,form:k,base:n});{const Z=RZF[p];if(Z){const zs=Z.s.slice();Object.assign(META[fk],{name:Z.n,types:Z.t.slice(),s:zs,stats:zs});if(k==='rf')META[fk].rzr=RARP[M.dex]||0}}if(THUMB[n])THUMB[fk]=THUMB[n]}}}
+{const _lp=loadPool;loadPool=async function(...a){const r=await _lp.apply(this,a);try{await rzFormsLoad();formsInit()}catch(e){console.warn(e)}return r}}
 const formsOf=m=>{const M=META[m.n];if(!M||M.form)return[];return(FORMS[M.dex]||[]).map(([p,k,suf])=>({fk:'sc:'+p,k,suf}))};
 // 가방에서 쓰기 → 바꿀 포켓몬 고르기
 const MGMAX=5;const mgUsed=()=>{if(!G)return 0;let n=0;for(const m of [...G.party,...(G.box||[])]){try{if(META[m.n]&&META[m.n].form==='mega')n++}catch(e){}}return Math.max(n,G.mgN||0)};const mgLeft=()=>Math.max(0,MGMAX-mgUsed());
@@ -2497,11 +2499,11 @@ setInterval(()=>{try{if(AUTO.on&&AUTO.guide&&!AUTO.huntOnly&&G){const t=objectiv
 // 합성 확률 (등급별): 일반→희귀 8% · 희귀→영웅 5% · 영웅→전설 10% · 전설→신화 15% · 신화→환상 20% · 환상→유일 25%
 const FUSEN=5;// 합성 한 번에 드는 같은 등급 영혼(재료) 수
 const FUSER=[.08,.05,.10,.15,.20,.25];const fuseP=r=>FUSER[r]!=null?FUSER[r]:.005;const fusePct=r=>(fuseP(r)*100).toFixed(1).replace(/\.0$/,'')+'%';
-const RW=[68.5,22,7,1.8,.5,.15,.05],FTIER={mega:4,gmax:5,primal:6,emax:6};const PMAX=6,MMAX=3,PRMAX=8;
+const RW=[68.5,22,7,1.8,.5,.15,.05],FTIER={mega:4,gmax:5,primal:6,emax:6,rmega:4,rf:1};const PMAX=6,MMAX=3,PRMAX=8;
 function rollRar(kind){let u=R()*100;const n=kind==='M'?4:7;for(let i=0;i<n;i++){u-=RW[i];if(u<0)return i}return 0}
 const RPOOL={P:[[],[],[],[],[],[],[],[],[]],M:[[],[],[],[]]};
 function rpoolInit(){if(RPOOL.ok)return;for(const d in RARP){const n=BYDEX[+d];if(n&&META[n]&&(!META[n].adm||(window.NCPK&&window.NCPK(+d))))RPOOL.P[Math.min(PRMAX,RARP[d])].push(+d)}GMOVES.forEach(([id],i)=>{if(MOVES[id]&&RARM[id]!=null)RPOOL.M[RARM[id]].push(i)});
-  try{for(const d in FORMS)for(const [p,k] of FORMS[d]){const fk='sc:'+p;if(META[fk]&&FTIER[k])RPOOL.P[FTIER[k]].push(fk)}}catch(e){}RPOOL.ok=RPOOL.P[4].length>0||!Object.keys(META).some(k=>k.startsWith('sc:'))?1:0}
+  try{for(const d in FORMS)for(const [p,k] of FORMS[d]){const fk='sc:'+p;if(META[fk]&&FTIER[k])RPOOL.P[META[fk].rzr!=null?META[fk].rzr:FTIER[k]].push(fk)}}catch(e){}RPOOL.ok=RPOOL.P[4].length>0||!Object.keys(META).some(k=>k.startsWith('sc:'))?1:0}
 function rollItem(kind,rar){rpoolInit();if(rar==null)rar=rollRar(kind);let r=Math.min(rar,kind==='M'?MMAX:PRMAX);while(r>0&&!RPOOL[kind][r].length)r--;const L=RPOOL[kind][r];let id=L[R()*L.length|0],f=null;if(typeof id==='string'){f=id;id=META[f].dex}
   const lv=Math.max(3,Math.min(100,(G.party.length?topLv():5)-2+(R()*5|0)));const o={kind,id,rar:r,lv,sh:kind==='P'&&R()<1/100?1:0,serial:0,key:'pk'+Date.now().toString(36)+(R()*1e6|0)};if(f)o.f=f;return o}
 function isDup(g){if(g.kind==='P'&&g.f)return !!((G.forms||{})[g.f]||[...G.party,...G.box].some(m=>m.n===g.f)||(G.gifts||[]).some(x=>x.f===g.f));if(g.kind==='P')return !!(G.dex.c[g.id]||(G.gifts||[]).some(x=>x.kind==='P'&&x.id===g.id));G.mvown=G.mvown||{};return !!(G.mvown[g.id]||(G.gifts||[]).some(x=>x.kind==='M'&&x.id===g.id))}
@@ -2557,7 +2559,7 @@ function multiOpen(list,title){return new Promise(done=>{const d=document.create
 async function fuseDo(kind,r){const D=G.dupes||[];const idx=[];D.forEach((x,i)=>{if(x.kind===kind&&x.rar===r&&idx.length<FUSEN)idx.push(i)});if(idx.length<FUSEN||r>=(kind==='M'?MMAX:PMAX))return;
   const mats=idx.map(i=>D[i]);idx.reverse().forEach(i=>D.splice(i,1));const ok=R()<fuseP(r);const res=ok?rollItem(kind,r+1):null;save();closePanel(1);
   await fuseShow(kind,r,mats,ok,res);if(ok)await grant(res,'합성 성공!');else{addItem('ball',2);save();toast('💨 아쉽게 실패… 몬스터볼 2개를 받았어요');}fuseOpen()}
-function cardFace(kind,id,f){if(kind==='P'){const n=f&&META[f]?f:BYDEX[id];return n?`<img src="${faceUrl(n,'Normal')}">`+(f?`<b class="fk">${META[f].form==='mega'?'메가':META[f].form==='primal'?'원시':'다이맥스'}</b>`:''):'❔'}const m=GMOVES[id];const v=m&&mv(m[0]);return `<em style="background:${v?TCOL[v.type]:'#888'}">${v?v.name:'?'}</em>`}
+function cardFace(kind,id,f){if(kind==='P'){const n=f&&META[f]?f:BYDEX[id];return n?`<img src="${faceUrl(n,'Normal')}">`+(f?`<b class="fk">${META[f].form==='mega'||META[f].form==='rmega'?'메가':META[f].form==='primal'?'원시':META[f].form==='rf'?'폼':'다이맥스'}</b>`:''):'❔'}const m=GMOVES[id];const v=m&&mv(m[0]);return `<em style="background:${v?TCOL[v.type]:'#888'}">${v?v.name:'?'}</em>`}
 function fuseShow(kind,r,mats,ok,res){return new Promise(done=>{rpoolInit();const nx=Math.min(kind==='M'?MMAX:PMAX,r+1);const pool=RPOOL[kind][nx].length?RPOOL[kind][nx]:RPOOL[kind][r];
   const d=document.createElement('div');d.id='fuseOv';d.innerHTML=`<div class="fb"><h3>🧪 합성 중… <small>${RAR[r]} ${FUSEN}장 → <b style="color:${RARC[nx]}">${RAR[nx]}</b> ${fusePct(r)}</small></h3>
     <div class="mats">${mats.map(m=>`<div class="fc" style="border-color:${RARC[r]}">${cardFace(kind,m.id,m.f)}</div>`).join('<span>+</span>')}</div>
@@ -2571,7 +2573,7 @@ function fuseShow(kind,r,mats,ok,res){return new Promise(done=>{rpoolInit();cons
   sk.onclick=fin;requestAnimationFrame(step)})}
 
 // ===== 포획: 등급별 출현·포획 확률 · 볼 고르기(스와이프·진동) · 타이밍(팡야처럼) · 자동일 때 볼 규칙 =====
-const rarOf=n=>{const M=META[n];if(!M)return 0;if(M.form)return FTIER[M.form]||4;return RARP[M.dex]||0};
+const rarOf=n=>{const M=META[n];if(!M)return 0;if(M.form)return M.rzr!=null?M.rzr:(FTIER[M.form]||4);return RARP[M.dex]||0};
 // 포켓몬 한 마리의 등급: 돌(메가스톤 · 다이맥스 밴드 · 원시의 구슬)로 바꾼 폼은 원래 등급에서 한 단계만 올라가요 (m.fr)
 const rarM=m=>{try{if(!m)return 0;if(m.fr!=null&&META[m.n]&&META[m.n].form)return m.fr;return rarOf(m.n)}catch(e){return 0}};
 const ENCW=[1,.4,.14,.04,.02,.01,.005],CATW=[1,.55,.3,.12,.08,.05,.03];
@@ -2821,7 +2823,7 @@ function bindInfo(p){p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{c
   if(k==='walk'){navSet(a,n,null);if(AUTO.on)autoStop();return}
   navSet(a,n,'auto')})}
 const ownN=n=>[...G.party,...G.box].some(m=>m.n===n);
-const FHOW={mega:'메가스톤',gmax:'포켓몬 뽑기(환상)',emax:'포켓몬 뽑기(유일)',primal:'포켓몬 뽑기(유일)'};
+const FHOW={rmega:'포켓몬 뽑기(신화)',rf:'포켓몬 뽑기',mega:'메가스톤',gmax:'포켓몬 뽑기(환상)',emax:'포켓몬 뽑기(유일)',primal:'포켓몬 뽑기(유일)'};
 function worldSearch(){const q=WM.q.trim();const FK=Object.keys(META).filter(k=>META[k].form&&FTIER[META[k].form]);
   const pool=WM.r>=4||(q&&WM.r<0)?SPECIES.concat(FK):SPECIES;
   let L=pool.filter(n=>{const M=META[n];if(q&&!M.name.includes(q))return false;if(WM.r>=0&&rarOf(n)!==WM.r)return false;if(WM.miss&&(M.form?ownN(n):G.dex.c[M.dex]))return false;return true});
