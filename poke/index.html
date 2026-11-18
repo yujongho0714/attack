@@ -8298,4 +8298,37 @@ setInterval(()=>{try{
 }catch(e){}},1000);
 }catch(e){console.warn('gfbtn',e)}})();
 </script>
+<script id="rtbtn">
+// ===== ⚔ 레조넌스 시험 전투 (6B) — GM/운영자 전용 · 기존 전투는 그대로 · 저장에 영향 없음 =====
+(()=>{try{
+if(window.__rtbtn)return;window.__rtbtn=1;
+const css=document.createElement('style');
+css.textContent='#rtBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(344px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px "Galmuri11",sans-serif;color:#1c2550;background:#ffb3b3;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#rtBtn.show{display:flex}';
+document.head.appendChild(css);
+function loadRtb(){return window.RTB?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='rtbattle.js?v='+Date.now();s.onload=ok;s.onerror=()=>no(new Error('rtbattle.js'));document.head.appendChild(s)})}
+async function rtGo(){
+  if(window.__rtRun)return;window.__rtRun=1;
+  try{
+    try{sfx('tap')}catch(e){}
+    await loadRtb();await rzMovesLoad();
+    const m0=(G.party||[]).find(x=>x&&x.hp>0)||G.party[0];if(!m0){toast('파티에 포켓몬이 없어요');return}
+    const me=Object.assign({},m0,{moves:m0.moves.slice()});
+    const keys=Object.keys(META).filter(k=>META[k]&&!META[k].form&&!/^sc:/.test(k)||META[k]&&!META[k].form);
+    let foe=null;for(let i=0;i<20&&!foe;i++){const n=keys[Math.floor(Math.random()*keys.length)];try{foe=mkMon(n,Math.max(1,Math.min(100,(m0.lv||5)+ri(-2,2))))}catch(e){}}
+    if(!foe){toast('상대를 만들지 못했어요');return}
+    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm});
+    toast(r==='win'?'⚔ 시험 전투 승리!':r==='lose'?'⚔ 시험 전투 패배':r==='draw'?'⚔ 무승부':'⚔ 시험 전투 종료');
+  }catch(e){console.warn('rtb',e);try{toast('시험 전투 오류: '+(e.message||e))}catch(_){}}
+  finally{window.__rtRun=0}
+}
+window.rtGo=rtGo;
+setInterval(()=>{try{
+  let b=document.getElementById('rtBtn');
+  const on=!!G&&(isGM()||OPER.on)&&SCENE==='over'&&!document.body.classList.contains('inb');
+  if(!on){if(b)b.classList.remove('show');return}
+  if(!b){b=document.createElement('button');b.id='rtBtn';b.textContent='⚔ 레조넌스 시험 전투';b.onclick=rtGo;document.body.appendChild(b)}
+  b.classList.add('show');
+}catch(e){}},1000);
+}catch(e){console.warn('rtbtn',e)}})();
+</script>
 </body></html>
