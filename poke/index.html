@@ -1609,7 +1609,7 @@ function dirRow(dx,dy){const a=Math.atan2(dy,dx);const o=((Math.round(a/(Math.PI
 // 기술 모양: line(일자) · cone(부채꼴) · circle(내 주변) · melee(짧은 돌진)
 const CONE=/ember|flamethrower|razorleaf|icywind|heatwave|blizzard|leafstorm|petal|dazzling|bubble|swift|snarl|hypervoice|boomburst|sludgewave|powdersnow|gust|twister|airslash|hurricane|lavaplume|mudshot|shadowball_x/;
 const CIRC=/earthquake|surf|discharge|bulldoze|magnitude|explosion|selfdestruct|petaldance|outrage|thrash|lavaplume|sludgewave|eruption|waterspout|boomburst/;
-function shapeOf(m){const id=m.id||'';if(CIRC.test(id))return'circle';if(CONE.test(id))return'cone';if(MV.PHYSICAL&&(MV.PHYSICAL.has?MV.PHYSICAL.has(id):(MV.PHYSICAL.includes&&MV.PHYSICAL.includes(id)))||m.ph||/punch|kick|bite|tackle|slash|claw|fang|cut|scissor|strike|hammer|crash|slam|jab|chop|tail|horn|headbutt|uturn|quick|smash|wing|peck/.test(id))return'melee';return'line'}
+function shapeOf(m){const id=m.id||'';if(m.rk){const k=m.rk,d=m.rkd;if(k==='melee'||k==='leap'||k==='roll'||k==='vanish')return'melee';if(k==='pulse')return d==='cone'?'cone':'circle';if(k==='zone'||k==='delayed')return'circle';if(k==='beam'||k==='projectile')return'line'}if(CIRC.test(id))return'circle';if(CONE.test(id))return'cone';if(MV.PHYSICAL&&(MV.PHYSICAL.has?MV.PHYSICAL.has(id):(MV.PHYSICAL.includes&&MV.PHYSICAL.includes(id)))||m.ph||/punch|kick|bite|tackle|slash|claw|fang|cut|scissor|strike|hammer|crash|slam|jab|chop|tail|horn|headbutt|uturn|quick|smash|wing|peck/.test(id))return'melee';return'line'}
 function rangeOf(sh){return sh==='melee'?VW*.24:sh==='cone'?VW*.34:sh==='circle'?VW*.2:VW*.58}
 // 맞았나: 쏜 곳(o) · 방향(u) · 모양 안에 t가 있나
 function inShape(sh,o,u,t,S){const dx=t.x-o.x,dy=t.y-o.y,R=rangeOf(sh);
@@ -1624,7 +1624,7 @@ function drawShape(sh,o,u,col,al,prog){if(prog!=null){drawShape(sh,o,u,col,al*.5
   cx.fill();cx.globalAlpha=Math.min(1,al*2);cx.stroke();cx.restore()}
 function drawShapeR(sh,o,u,col,al,R){const S=bsz(),a=Math.atan2(u.y,u.x);cx.save();cx.globalAlpha=al;cx.fillStyle=col;cx.beginPath();
   if(sh==='circle')cx.ellipse(o.x,o.y,R,R*.62,0,0,7);else if(sh==='cone'){cx.moveTo(o.x,o.y);cx.arc(o.x,o.y,R,a-Math.PI/6,a+Math.PI/6);cx.closePath()}else{const w=S*.62;cx.translate(o.x,o.y);cx.rotate(a);cx.rect(0,-w,R,w*2)}cx.fill();cx.restore()}
-function cdOf(m){return Math.max(.9,Math.min(4.2,.6+(m.pw||40)/32))}
+function cdOf(m){if(m.st)return 5;return Math.max(.9,Math.min(4.2,.6+(m.pw||40)/32))}
 function actInit(){const r=AR();ACT.cx=null;const me=BS.me,f=BS.foe;
   if(me.ax==null){me.ax=r.x0+(r.x1-r.x0)*.22;me.ay=r.y0+(r.y1-r.y0)*.62;me.row=2}
   if(f.ax==null){f.ax=r.x0+(r.x1-r.x0)*.72;f.ay=r.y0+(r.y1-r.y0)*.45;f.row=6}
@@ -1681,10 +1681,10 @@ function actRoll(){if(!ACT.on||ACT.dcd>0||ACT.busy)return;const me=BS.me,f=BS.fo
   if(Math.hypot(dx,dy)<.2){dx=me.ax-f.ax;dy=me.ay-f.ay}const L=Math.hypot(dx,dy)||1;ACT.rdx=dx/L;ACT.rdy=dy/L;ACT.roll=.28;ACT.inv=.42;ACT.dcd=.85;me.trail=1;me.row=dirRow(dx,dy);sfx('tap')}
 // ---------- 기술 쓰기 (턴제와 같은 연출) ----------
 async function actCast(mine,m,dir){const AB=mine?BS.me:BS.foe,DB=mine?BS.foe:BS.me,atk=AB.m,def=DB.m;if(mine)ACT.busy=1;else ACT.fbusy=1;
-  try{callout(mine,m.name);AB.lastMv=m}catch(e){}const sh=shapeOf(m);let u=dir;if(!u){const dx=DB.ax-AB.ax,dy=DB.ay-AB.ay,L=Math.hypot(dx,dy)||1;u={x:dx/L,y:dy/L}}AB.row=dirRow(u.x,u.y);AB.vx=AB.vy=0;
+  try{callout(mine,m.name);AB.lastMv=m}catch(e){}if(m.st){try{rzStatus(mine,m,AB,DB)}catch(e){console.warn(e)}await sleep(450);if(mine)ACT.busy=0;else ACT.fbusy=0;return}const sh=shapeOf(m);let u=dir;if(!u){const dx=DB.ax-AB.ax,dy=DB.ay-AB.ay,L=Math.hypot(dx,dy)||1;u={x:dx/L,y:dy/L}}AB.row=dirRow(u.x,u.y);AB.vx=AB.vy=0;
   const crit=R()<(mine?1/9:1/14),r=dmgCalc(atk,def,m,crit);const EM=[[.65,.8],[.85,1],[1,1.15],[1.2,1.35],[1.45,1.6]][DIFF()];// 실시간 배틀은 기술을 계속 쓰니까 한 방 데미지를 낮춰서 오래 싸우게 (턴제는 그대로)
-  const AK=mine?.33:.45;let dmg=Math.max(1,Math.floor(r.d*AK*(0.85+R()*.15)*(mine?1:EM[BS.trainer?1:0])));if(r.e===0)dmg=0;if(OPER.on&&OPER.god&&!mine)dmg=0;if(OPER.on&&OPER.one&&mine)dmg=def.hp;
-  const S=bsz();const pa={x:AB.ax,y:AB.ay};const Rg=rangeOf(sh),dT=Math.hypot(DB.ax-AB.ax,DB.ay-AB.ay);const reach=sh==='circle'?0:Math.min(Rg,dir?Rg:Math.max(S,dT));const pb=sh==='circle'?{x:pa.x,y:pa.y}:{x:pa.x+u.x*reach,y:pa.y+u.y*reach};ACT.last={sh,o:pa,u,t:.35,mine};let decided=null,got=0;const from=def.hp,to=Math.max(0,def.hp-dmg);
+  const AK=mine?.33:.45;let dmg=Math.max(1,Math.floor(r.d*AK*(0.85+R()*.15)*(mine?1:EM[BS.trainer?1:0])*rzMul(AB,DB)));if(r.e===0)dmg=0;if(OPER.on&&OPER.god&&!mine)dmg=0;if(OPER.on&&OPER.one&&mine)dmg=def.hp;
+  const S=bsz();const pa=m.rk==='delayed'?{x:DB.ax,y:DB.ay}:{x:AB.ax,y:AB.ay};const Rg=rangeOf(sh),dT=Math.hypot(DB.ax-AB.ax,DB.ay-AB.ay);const reach=sh==='circle'?0:Math.min(Rg,dir?Rg:Math.max(S,dT));const pb=sh==='circle'?{x:pa.x,y:pa.y}:{x:pa.x+u.x*reach,y:pa.y+u.y*reach};ACT.last={sh,o:pa,u,t:.35,mine};let decided=null,got=0;const from=def.hp,to=Math.max(0,def.hp-dmg);
   if(!mine)ACT.cast++;
   const x={A:AB,B:DB,fa:{x:pa.x,y:pa.y},fb:{x:pb.x,y:pb.y},S,d:pb.x>pa.x?1:-1,a:{x:pa.x,y:pa.y-S*.6},b:{x:pb.x,y:pb.y-S*.55},
     pose:(o,st)=>{const sp=o.S&&o.S.meta.anims;o.st=sp&&sp[st]?st:(st==='shoot'&&sp&&sp.attack?'attack':'idle');o.t=0},
@@ -2382,6 +2382,19 @@ function formsInit(){for(const d in FORMS){const n=BYDEX[d];if(!n||!META[n])cont
     if(k==='mega')for(let i=1;i<6;i++)s[i]=Math.round(s[i]+20);else if(k==='primal')for(let i=1;i<6;i++)s[i]=Math.round(s[i]*1.2);else{s[0]=Math.round(s[0]*1.5);for(let i=1;i<6;i++)s[i]=Math.round(s[i]*1.12)}
     try{const R=typeof FSTAT!=='undefined'&&FSTAT[p];const sum=x=>x.reduce((q,w)=>q+w,0);if(R&&sum(R)>sum(bs))s=R.slice()}catch(e){}META[fk]=Object.assign({},M,{name:FKO[k]+M.name+(suf?' '+suf:''),s,stats:s,form:k,base:n});{const Z=RZF[p];if(Z){const zs=Z.s.slice();Object.assign(META[fk],{name:Z.n,types:Z.t.slice(),s:zs,stats:zs});if(k==='rf')META[fk].rzr=RARP[M.dex]||0}}if(THUMB[n])THUMB[fk]=THUMB[n]}}}
 {const _lp=loadPool;loadPool=async function(...a){const r=await _lp.apply(this,a);try{await rzFormsLoad();formsInit()}catch(e){console.warn(e)}return r}}
+// ===== 레조넌스 기술 데이터 (rzmoves.json): 위력·명중·분류·사용방식을 레조넌스 값으로 =====
+const RZM={};let RZMP=null;
+function rzMovesLoad(){return RZMP||(RZMP=fetch('rzmoves.json').then(r=>r.ok?r.json():null).then(D=>{if(!D)return;for(const id in D){const d=D[id];RZM[id]=d;const st=d.c===2||!(d.p>0);const o=MOVES[id]||(MOVES[id]={id,name:d.n,type:'NORMAL'});
+  o.id=id;o.name=d.n;if(typeof TCOL!=='undefined'&&TCOL[d.t])o.type=d.t;o.pw=st?0:d.p;o.acc=d.a>0?d.a:100;o.ph=d.c===0;o.pri=d.pr||0;o.pp=d.pp;o.rk=d.k;o.rkd=d.kd;o.rsub=d.sb;o.raim=d.aim;o.rfx=d.ef;o.st=st?1:0}}).catch(e=>{console.warn('rzmoves',e)}))}
+{const _lp2=loadPool;loadPool=async function(...a){const r=await _lp2.apply(this,a);try{await rzMovesLoad()}catch(e){console.warn(e)}return r}}
+// 변화기술(위력 없음) 사용: 회복 · 자기 강화 · 방어 · 상대 약화 (레조넌스 사용방식 self/target)
+function rzStatus(mine,m,AB,DB){const S=bsz(),now=performance.now(),kd=m.rkd,atk=AB.m,tx=(t,c)=>FX2.num(AB.ax,AB.ay-S*1.6,t,c||'#9be7ff',1);
+  if(m.rk==='self'){if(kd==='heal'){const mx=stOf(atk)[0];atk.hp=Math.min(mx,atk.hp+Math.ceil(mx*.25));bbox();tx('회복!','#7dff9b')}
+    else if(kd==='guard'||kd==='decoy'||kd==='counter'){AB.guardUntil=now+2500;if(mine)ACT.inv=Math.max(ACT.inv,.6);tx('방어!')}
+    else{AB.buffUntil=now+12000;tx('공격 UP!','#ffd060')}}
+  else if(m.rk==='target'){DB.debuffUntil=now+10000;tx('상대 약화!','#c79bff')}
+  else tx('…')}
+function rzMul(AB,DB){const now=performance.now();let k=1;if(AB.buffUntil>now)k*=1.3;if(AB.debuffUntil>now)k*=.75;if(DB.guardUntil>now)k*=.4;return k}
 const formsOf=m=>{const M=META[m.n];if(!M||M.form)return[];return(FORMS[M.dex]||[]).map(([p,k,suf])=>({fk:'sc:'+p,k,suf}))};
 // 가방에서 쓰기 → 바꿀 포켓몬 고르기
 const MGMAX=5;const mgUsed=()=>{if(!G)return 0;let n=0;for(const m of [...G.party,...(G.box||[])]){try{if(META[m.n]&&META[m.n].form==='mega')n++}catch(e){}}return Math.max(n,G.mgN||0)};const mgLeft=()=>Math.max(0,MGMAX-mgUsed());
@@ -7041,8 +7054,8 @@ const fxOf=m=>{if(!m)return null;if(m._fx!==undefined){if(m._fx&&m._fx.c==='t')m
   const id=String(m.id||'').toLowerCase();const f=MFX[N(id)]||MFX[N(id.split(':').pop())]||MFX[N(m.name)]||null;m._fx=f;if(f&&f.c==='t')m.pw=0;return f};
 try{for(const k in MOVES)fxOf(MOVES[k])}catch(e){}
 {const _mo=mvOf;mvOf=function(){const o=_mo.apply(this,arguments);try{fxOf(o)}catch(e){}return o}}
-{const _cd=cdOf;cdOf=function(m){const f=fxOf(m);return f&&f.cd?f.cd:_cd(m)}}
-{const _sh=shapeOf;shapeOf=function(m){const o=_sh(m),f=fxOf(m);if(!f||!f.r)return o;
+{const _cd=cdOf;cdOf=function(m){if(m.st)return _cd(m);const f=fxOf(m);return f&&f.cd?f.cd:_cd(m)}}
+{const _sh=shapeOf;shapeOf=function(m){const o=_sh(m),f=fxOf(m);if(m.rk||!f||!f.r)return o;
   if(f.r==='c')return o==='circle'||o==='cone'?o:'melee';if(f.r==='l')return o==='circle'?o:'line';return o==='melee'?'cone':o}}
 
 // ---------- 능력치 (성격 · 단계 · 상태 · 특성) ----------
