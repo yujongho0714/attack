@@ -2085,7 +2085,6 @@ const OPER={on:LS.get('pka-op',0)===1};
 function opAny(){try{return !!(OPER.on||(typeof isGM==='function'&&isGM()))}catch(e){return false}}
 function opTest(){try{return !!(G&&G.gmTest&&opAny())}catch(e){return false}}
 async function operLogin(){return new Promise(r=>{openPanel('🔑 운영자 모드',`<p>운영자 비밀번호를 넣어 주세요.</p><div class="nw"><input id="opPw" type="password" autocomplete="off"><button id="opOk" class="it">확인</button></div><p id="opM"></p>`,r,p=>{p.querySelector('#opOk').onclick=()=>{if(p.querySelector('#opPw').value==='jungdo2'){OPER.on=1;LS.set('pka-op',1);toast('🛠 운영자 모드 켜짐');closePanel(1);hud();r(true)}else p.querySelector('#opM').textContent='❌ 비밀번호가 달라요'}})})}
-document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('#oNc');if(!b)return;try{if(window.ncOpen)window.ncOpen();else toast('신캐 기능을 못 불러왔어요 · 화면을 새로고침해 주세요')}catch(er){toast('신캐 패널 오류: '+er.message)}});
 function operOpen(){if(!OPER.on&&!(typeof isGM==='function'&&isGM())){operLogin();return}if(SCENE!=='over')return;
   const ar=[];for(let a=0;a<NA;a++)ar.push(`<option value="${a}">${areaName(a)}</option>`);
   openPanel('🛠 운영자',`
@@ -4647,7 +4646,13 @@ function slots(ready){const L=LS.get('pka-slots',[]);bt('tSlots').innerHTML=L.ma
   bt('tSlots').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const k=decodeURIComponent(b.dataset.del);if(!confirm(k+'의 기록을 지울까요?'))return;try{localStorage.removeItem('pka-save:'+k)}catch(e){}LS.set('pka-slots',LS.get('pka-slots',[]).filter(x=>x!==k));slots(ready)})}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function other(){try{const L=await UP.index();const b=L.filter(x=>x.k==='bed'||x.k==='glb').length;return b?`<br><small>(3D 포켓몬 ${b}마리는 있지만, 이 게임은 레조넌스 팩의 움직이는 포켓몬만 써요)</small>`:''}catch(e){return''}}
-function start(sv,name){G=sv||null;if(!G){newGame();G.name=name}G.opt=G.opt||{catchNew:true};G.flags=G.flags||{};if(G.name)G.name=String(G.name).split('#')[0]||G.name;/* 포켓몬 자료가 아직 없는 포켓몬은 버리지 않고 맡겨 뒀다가 자료가 생기면 보관함으로 돌려줘요 */G.hold=(G.hold||[]).concat((G.party||[]).filter(m=>m&&!META[m.n]),(G.box||[]).filter(m=>m&&!META[m.n]));G.party=(G.party||[]).filter(m=>m&&META[m.n]);G.box=(G.box||[]).filter(m=>m&&META[m.n]);if(G.hold.length){const back=G.hold.filter(m=>META[m.n]);G.hold=G.hold.filter(m=>!META[m.n]);G.box.push(...back)}G.got=G.got||{};G.beat=G.beat||{};
+// 신캐 삭제: 예전에 받은 신캐는 없애고, 등급에 맞는 카드팩(소환권)으로 바꿔 줘요 (한 번 처리하면 끝)
+const NCOLD={"sc:2285":"P8","sc:2064":"P7","sc:2065":"P7","sc:2109":"P7","sc:2107":"P7","sc:2108":"P7","sc:2266":"P7","sc:2138":"P6","sc:2139":"P6","sc:2140":"P6","sc:2141":"P6","sc:2142":"P6","sc:2143":"P6","sc:2144":"P6","sc:2145":"P6","sc:2146":"P6","sc:2147":"P6","sc:2148":"P6","sc:2149":"P6","sc:2150":"P6","sc:2151":"P6","sc:2152":"P6","sc:2153":"P6","sc:2154":"P6","sc:2221":"P6","sc:2104":"P6","sc:2135":"P6","sc:2063":"P6","sc:2081":"P6","sc:2103":"P6","sc:2122":"P6","sc:2175":"P6","sc:2222":"P6","sc:2223":"P6","sc:2283":"P6","sc:2284":"P6","sc:2105":"P4","sc:2106":"P4","sc:2176":"P4","sc:2133":"P4","sc:2134":"P4","sc:2136":"P4","sc:2224":"P4","sc:2264":"P4","sc:2265":"P4","sc:1008":"P3","sc:2058":"P3","sc:2084":"P3","sc:2002":"P3","sc:2003":"P3","sc:2004":"P3","sc:2184":"P3","sc:2005":"P3","sc:2068":"P3","sc:2082":"P3","sc:2083":"P3","sc:2183":"P3","sc:2187":"P3","sc:2090":"P3","sc:2155":"P3","sc:2001":"P3","sc:2066":"P3","sc:2123":"P3","sc:2124":"P3","sc:2293":"P3","sc:2172":"P3","sc:2233":"P3","sc:2052":"P3","sc:2087":"P3","sc:2126":"P3","sc:2059":"P3","sc:2171":"P3","sc:2070":"P3","sc:2073":"P3","sc:2212":"P3","sc:2032":"P3","sc:2045":"P3","sc:2054":"P3","sc:2075":"P3","sc:2076":"P3","sc:2080":"P3","sc:2110":"P3","sc:2111":"P3","sc:2112":"P3","sc:2137":"P3","sc:2174":"P3","sc:2178":"P3","sc:2179":"P3","sc:2180":"P3","sc:2181":"P3","sc:2182":"P3","sc:2214":"P3","sc:2267":"P3","sc:2303":"P3","sc:2125":"P2","sc:2211":"P2","sc:2272":"P2","sc:1020":"P2","sc:1021":"P2","sc:2033":"P2","sc:2041":"P2","sc:2051":"P2","sc:2095":"P2","sc:2164":"P2","sc:2018":"P2","sc:2019":"P2","sc:2113":"P2","sc:2263":"P2","sc:2157":"P2","sc:2291":"P2","sc:2022":"P2","sc:2102":"P2","sc:2127":"P2","sc:2210":"P2","sc:2121":"P2","sc:2007":"P2","sc:2060":"P2","sc:2061":"P2","sc:2062":"P2","sc:2177":"P2","sc:2289":"P2","sc:2092":"P2","sc:2296":"P2","sc:0990":"P2","sc:1002":"P2","sc:1003":"P2","sc:2236":"P2","sc:2237":"P2","sc:2238":"P2","sc:2239":"P2","sc:2240":"P2","sc:2241":"P2","sc:2242":"P2","sc:2243":"P2","sc:2244":"P2","sc:2245":"P2","sc:2246":"P2","sc:2247":"P2","sc:2248":"P2","sc:2249":"P2","sc:2250":"P2","sc:2251":"P2","sc:2252":"P2","sc:2279":"P2","sc:2079":"P2","sc:2101":"P2","sc:2093":"P2","sc:2094":"P2","sc:2031":"P2","sc:2100":"P2","sc:2287":"P2","sc:2099":"P2","sc:2286":"P2","sc:2300":"P2","sc:2301":"P2","sc:2302":"P2","sc:2163":"P2","sc:2067":"P2","sc:2048":"P2","sc:2185":"P2","sc:2186":"P2","sc:2225":"P2","sc:2288":"P2","sc:2156":"P2","sc:2128":"P2","sc:2129":"P2","sc:2130":"P2","sc:2131":"P2","sc:2132":"P2","sc:2219":"P2","sc:2091":"P2","sc:2167":"P2","sc:2173":"P2","sc:2270":"P2","sc:0668":"P2","sc:2024":"P2","sc:2268":"P2","sc:2038":"P2","sc:2044":"P2","sc:2209":"P2","sc:2227":"P2","sc:2253":"P2","sc:2254":"P2","sc:2255":"P2","sc:2256":"P2","sc:2257":"P2","sc:2258":"P2","sc:2259":"P2","sc:0514":"P","sc:0516":"P","sc:0523":"P","sc:2036":"P","sc:2271":"P","sc:2273":"P","sc:2274":"P","sc:2275":"P","sc:2276":"P","sc:2277":"P","sc:2278":"P","sc:2006":"P","sc:2218":"P","sc:0765":"P","sc:2040":"P","sc:2047":"P","sc:2050":"P","sc:2055":"P","sc:2056":"P","sc:2057":"P","sc:2072":"P","sc:2231":"P","sc:2232":"P","sc:2220":"P","sc:0558":"P","sc:0733":"P","sc:0945":"P","sc:2017":"P","sc:2088":"P","sc:2158":"P","sc:2162":"P","sc:2235":"P","sc:2089":"P","sc:2228":"P","sc:2229":"P","sc:2230":"P","sc:2261":"P","sc:2262":"P","sc:2120":"P","sc:2281":"P","sc:2294":"P","sc:2295":"P","sc:2297":"P","sc:2298":"P","sc:0618":"P","sc:2280":"P","sc:2290":"P","sc:2208":"P","sc:0538":"P","sc:0591":"P","sc:0683":"P","sc:2053":"P","sc:2159":"P","sc:2160":"P","sc:2292":"P","sc:2234":"P","sc:2213":"P","sc:2021":"P","sc:2118":"P","sc:2029":"P","sc:2074":"P","sc:2282":"P","sc:2260":"P","sc:2077":"P","sc:2026":"P","sc:2049":"P","sc:2116":"P","sc:2117":"P","sc:2086":"P","sc:2096":"P","sc:2097":"P","sc:2098":"P","sc:0735":"P","sc:2226":"P","sc:2009":"P","sc:2188":"P","sc:2189":"P","sc:2190":"P","sc:2191":"P","sc:2192":"P","sc:2193":"P","sc:2194":"P","sc:2195":"P","sc:2196":"P","sc:2197":"P","sc:2198":"P","sc:2199":"P","sc:2200":"P","sc:2201":"P","sc:2202":"P","sc:2203":"P","sc:2204":"P","sc:2205":"P","sc:2206":"P","sc:2037":"P","sc:2078":"P","sc:0756":"P","sc:2035":"P","sc:0732":"P","sc:2042":"P","sc:2207":"P","sc:0929":"P","sc:2030":"P","sc:0592":"P","sc:2168":"P","sc:2169":"P","sc:2170":"P","sc:2215":"P","sc:2216":"P","sc:2217":"P","sc:2046":"P","sc:2166":"P","sc:2043":"P","sc:2119":"P","sc:2010":"P","sc:2011":"P","sc:2012":"P","sc:2013":"P","sc:2014":"P","sc:2015":"P","sc:2016":"P","sc:2039":"P","sc:2161":"P","sc:2269":"P","sc:2165":"P","sc:2020":"P","sc:2034":"P","sc:2299":"P","sc:2023":"P","sc:0522":"P","sc:2027":"P","sc:2028":"P","sc:2025":"P","sc:2008":"P","sc:2085":"P","sc:2114":"P","sc:2115":"P","sc:2071":"P","sc:2069":"P"};
+function ncRefund(g){if(!g)return;const keys=[];const cut=a=>(a||[]).filter(m=>{const k=m&&NCOLD[m.n];if(k){keys.push(k);return false}return true});
+  g.party=cut(g.party);g.box=cut(g.box);g.hold=cut(g.hold);if(!keys.length)return;
+  g.packs=g.packs||{};const c={};for(const k of keys){g.packs[k]=(g.packs[k]||0)+1;c[k]=(c[k]||0)+1}
+  setTimeout(()=>{try{toast('신캐가 삭제되어 카드팩 '+keys.length+'장으로 바꿔 드렸어요: '+Object.keys(c).map(k=>(PKT[k]||{n:k}).n+' '+c[k]+'장').join(', '));packBadge();save()}catch(e){}},2500)}
+function start(sv,name){G=sv||null;if(!G){newGame();G.name=name}try{ncRefund(G)}catch(e){console.warn('신캐 보상',e)}G.opt=G.opt||{catchNew:true};G.flags=G.flags||{};if(G.name)G.name=String(G.name).split('#')[0]||G.name;/* 포켓몬 자료가 아직 없는 포켓몬은 버리지 않고 맡겨 뒀다가 자료가 생기면 보관함으로 돌려줘요 */G.hold=(G.hold||[]).concat((G.party||[]).filter(m=>m&&!META[m.n]),(G.box||[]).filter(m=>m&&!META[m.n]));G.party=(G.party||[]).filter(m=>m&&META[m.n]);G.box=(G.box||[]).filter(m=>m&&META[m.n]);if(G.hold.length){const back=G.hold.filter(m=>META[m.n]);G.hold=G.hold.filter(m=>!META[m.n]);G.box.push(...back)}G.got=G.got||{};G.beat=G.beat||{};
   if(G.party.length===0&&G.box.length)G.party.push(G.box.shift());if(G.rival&&!META[G.rival.n])G.rival={n:pick(SPECIES)};
   for(const k in AREAS)delete AREAS[k];buildLoc();if(!sv&&RESOK){G.mapv=2;const A0=genArea(0);G.x=A0.spawn.x;G.y=A0.spawn.y;G.dir=0;G.heal={a:0,x:A0.spawn.x,y:A0.spawn.y}}else resFixSave();for(const m of G.party)askEvo(META[m.n].dex);
   bt('title').classList.remove('on');SCENE='over';place(G.a,G.x,G.y,G.dir);refreshSpr();hud();
@@ -7269,83 +7274,11 @@ function gpOper(){try{const p=document.querySelector('.panel');if(!p||!p.querySe
 }catch(e){console.warn('gradeplus oper',e)}}
 {const _oo=operOpen;operOpen=function(){const r=_oo.apply(this,arguments);setTimeout(gpOper,40);return r}}
 
-// ===== 신캐 v1 · 추가 캐릭터(newchars.json) 운영자 모드 전용 · 불멸 · 태초 등급 =====
-// 처음엔 운영자 패널 「🆕 신캐」에서만 줄 수 있고, 캐릭터마다 「도감·야생」 「카드팩」 스위치로 한 마리씩 출시해요 (ncrelease.json). 오류가 나도 게임은 원래대로 돌아가요.
-(()=>{try{
-if(window.__newchar)return;window.__newchar=1;
-const H=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const NCK='pka-ncg';let NC=[],NG={};try{NG=LS.get(NCK,{})||{}}catch(e){}
-// 출시 스위치: ncrelease.json = {"번호":{"d":1(도감·야생),"p":1(카드팩)}} · 이 기기에서 바꾼 건 pka-ncrel 에 저장돼요 (GM이 먼저 시험)
-const RK='pka-ncrel';let REL={},RL={};try{RL=LS.get(RK,null)||{}}catch(e){}
-const relOf=id=>{id=String(id);const v=RL[id]!==undefined?RL[id]:REL[id];return v||{}};
-const isD=id=>!!relOf(id).d,isP=id=>!!relOf(id).p;
-window.NCPK=d=>isP(d);
-function relApply(){try{const ks=new Set(NC.map(x=>'sc:'+x.id));const keep=SPECIES.filter(k=>!ks.has(k));
-  for(const x of NC){const k='sc:'+x.id;if(META[k]&&isD(x.id))keep.push(k)}keep.sort((a,b)=>META[a].dex-META[b].dex);SPECIES.length=0;for(const k of keep)SPECIES.push(k);
-  RPOOL.ok=0;RPOOL.P.forEach(a=>a.length=0);RPOOL.M.forEach(a=>a.length=0)}catch(e){console.warn('출시',e)}}
-const gOf=x=>{const v=NG[x.id];return v!=null?+v:x.g};
-const apply=x=>{RARP[+x.id]=gOf(x)};
-const css=document.createElement('style');css.textContent=`
+// 등급 7(불멸) · 8(태초) 카드 모양 (신캐 기능은 삭제했어요)
+(()=>{try{const css=document.createElement('style');css.textContent=`
 .tm.rr7{background:linear-gradient(135deg,#eef0ff 15%,#8a96ff);box-shadow:0 0 0 1px #1c2550,0 0 14px 3px var(--rc)}
 .tm.rr8{background:linear-gradient(110deg,#fff7d6 10%,#ffd75a 40%,#fff3b8 70%,#ffd75a 100%);background-size:220% 100%;box-shadow:0 0 0 1px #1c2550,0 0 16px 4px var(--rc);animation:gpShine 3.2s linear infinite}
-#ncb .ncr{display:flex;gap:6px;align-items:flex-start;border:2px solid #1c2550;border-radius:10px;background:#fffdf2;padding:5px;margin:5px 0}
-#ncb .ncr.na{opacity:.55}#ncb .ncr img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated;flex:none}
-#ncb .nci{flex:1;min-width:0;font-size:12px}#ncb .ncg{display:flex;flex-direction:column;gap:4px;flex:none}
-#ncb .ncg select{font:inherit;font-size:12px;padding:3px}#ncb .ncref{font-style:normal;font-weight:900;font-size:11px;color:#fff;background:#7a7a88;border-radius:6px;padding:0 6px}
-#ncb .ncref.EX,#ncb .ncref.S{background:#d9382f}#ncb .ncref.A{background:#e08a1a}#ncb .ncref.B{background:#3a9b5c}#ncb .ncref.C{background:#4a63e7}
-#ncb details{font-size:11px}#ncb .ncr button.it{padding:4px 8px!important;font-size:12px!important;min-height:0!important}
-#ncb .bxrow button{padding:4px 8px!important;font-size:12px!important;min-height:0!important}
-#ncb .bxrow button.on{background:linear-gradient(#ffe680 0 50%,#ffc21f 50%)!important;box-shadow:0 0 0 3px #1c2550!important}
-`;document.head.appendChild(css);
-
-// 신캐를 게임 목록(META)에 넣기 — SPECIES(야생 · 도감)에는 넣지 않아요
-async function ncInject(){let L=null;try{L=await (await fetch('newchars.json',{cache:'no-cache'})).json();try{LS.set('pka-nc',L)}catch(e){}}catch(e){L=LS.get('pka-nc',null)}
-  if(!Array.isArray(L))return;NC=L;
-  try{const r=await fetch('ncrelease.json',{cache:'no-cache'});if(r.ok){REL=await r.json()||{};try{LS.set('pka-ncrel0',REL)}catch(e){}}}catch(e){REL=LS.get('pka-ncrel0',null)||{}}
-  for(const x of L){apply(x);const key='sc:'+x.id,dex=+x.id;if(!x.art){if(!x.base||!META['sc:'+x.base])continue;NCAL[key]='sc:'+x.base}
-    if(x.por)NCPOR[key]=1;if(META[key])continue;
-    META[key]={dex,name:x.n,types:x.t,stats:x.s,moves:x.m,anim:true,online:1,adm:1,rec:(x.rec||[]).map(r=>[r[0],r[3]||0])};if(NCAL[key])META[key].alias=NCAL[key];THUMB[key]=faceUrl(key);BYDEX[dex]=key;
-    for(const q of x.m||[])if(q.id)try{mvOf(q)}catch(e){}
-    for(const r of x.rec||[])try{mvOf({id:r[0]})}catch(e){}}
-  relApply()}
-{const _lp=loadPool;loadPool=async function(){const r=await _lp.apply(this,arguments);try{await ncInject()}catch(e){console.warn('신캐',e)}return r}}
-// 신캐 일반 획득(야생·카드팩·진화 등): 전용기술이 없으면 추천 기술 4개를 위력 낮은 순으로 Lv1·14·28·42에 배움
-{const _l=learnset;learnset=function(M){try{if(M&&M.rec&&M.rec.length&&!(M.moves&&M.moves.length)){const R=M.rec.slice(0,4).sort((a,b)=>a[1]-b[1]),LV=[1,14,28,42];return R.map((r,i)=>[LV[i],r[0]]).filter((x,i,A)=>A.findIndex(y=>y[1]===x[1])===i)}}catch(e){}return _l.apply(this,arguments)}}
-
-// ---------- 운영자 패널: 🆕 신캐 ----------
-let T='전체',Q='',LIM=60;const TABS=['전체','EX','S','A','B','C','D','출시됨','아트없음'];
-const give=(x,lv,sh,sk)=>{const key='sc:'+x.id;if(!META[key]){toast('이 캐릭터는 아직 그림이 없어요');return}
-  const m=mkMon(key,lv);if(sh)m.sh=1;if(sk&&x.rec&&x.rec.length)m.moves=x.rec.map(r=>r[0]).slice(0,4);m.hp=stOf(m)[0];
-  G.dex.s[+x.id]=1;G.dex.c[+x.id]=1;(G.party.length<6?G.party:G.box).push(m);save();try{refreshSpr()}catch(e){}
-  toast('✅ ['+RAR[rarM(m)]+'] '+nm(m)+' Lv.'+dLv(m)+' 줬어요')};
-function ncOpen(){openPanel('🆕 신캐 (운영자 전용)',`<div id="ncb">
-  <div class="nw"><input id="ncQ" placeholder="이름 · 번호 검색"><input id="ncLv" inputmode="numeric" value="50" style="max-width:64px" aria-label="레벨"></div>
-  <label><input type="checkbox" id="ncSh"> ✨이로치</label> <label><input type="checkbox" id="ncSk" checked> 추천 스킬로 주기</label>
-  <div class="bxrow" id="ncT"></div><small id="ncCnt"></small><div id="ncL"></div>
-  <div style="margin-top:8px"><button class="it" id="ncEx">등급 저장본 복사</button><button class="it" id="ncRl">📤 출시 설정 내보내기</button><button class="it" id="ncRr">↺ 출시 설정 처음으로</button><button class="it" id="ncRs">추천 기본값으로</button><button class="it" id="ncBk">← 운영자</button></div></div>`,null,p=>{
-  const q=s=>p.querySelector(s);
-  const draw=()=>{const k=Q.trim().toLowerCase();
-    const L=NC.filter(x=>(T==='전체'||(T==='아트없음'?!x.art:T==='출시됨'?(isD(x.id)||isP(x.id)):x.ref===T))&&(!k||x.n.toLowerCase().includes(k)||x.id.includes(k))).sort((a,b)=>b.bst-a.bst);
-    const cnt=Array(9).fill(0);for(const x of NC)cnt[gOf(x)]++;
-    q('#ncT').innerHTML=TABS.map(t=>{const n=t==='전체'?NC.length:t==='아트없음'?NC.filter(x=>!x.art).length:t==='출시됨'?NC.filter(x=>isD(x.id)||isP(x.id)).length:NC.filter(x=>x.ref===t).length;return `<button data-t="${t}" class="${t===T?'on':''}">${t} ${n}</button>`}).join('');
-    q('#ncCnt').innerHTML=L.length+'종 · 지금 정한 등급: '+RAR.map((n,i)=>cnt[i]?'<b style="color:'+RARC[i]+'">'+n+' '+cnt[i]+'</b>':'').filter(Boolean).join(' · ');
-    q('#ncL').innerHTML=L.slice(0,LIM).map(x=>{const g=gOf(x);return `<div class="ncr${META['sc:'+x.id]?'':' na'}"><img src="${META['sc:'+x.id]?(THUMB['sc:'+x.id]||''):''}" alt="" loading="lazy"><div class="nci"><b>${H(x.n)}</b> <small>#${x.id} · ${x.t.map(t=>TN[t]||t).join('·')} · 종족값 ${x.bst}</small><br><i class="ncref ${x.ref}">${x.ref}</i> <small>${H(x.hint)}</small>
-      <details><summary>추천 스킬</summary>${x.rec.map(r=>H(r[1])+' <small>('+(TN[r[2]]||'')+' '+r[3]+')</small>').join(' · ')}</details></div>
-      <div class="ncg"><select data-id="${x.id}" style="color:${RARC[g]}">${RAR.map((n,i)=>`<option value="${i}"${i===g?' selected':''}>${n}</option>`).join('')}</select>${META['sc:'+x.id]?`<button class="it" data-give="${x.id}">주기</button><label style="font-size:11px"><input type="checkbox" data-rel="d" data-rid="${x.id}" ${isD(x.id)?'checked':''}> 도감·야생</label><label style="font-size:11px"><input type="checkbox" data-rel="p" data-rid="${x.id}" ${isP(x.id)?'checked':''}> 카드팩</label>${x.art?'':'<small>임시 그림(원래 폼)</small>'}`:'<small>그림 없음</small>'}</div></div>`}).join('')+(L.length>LIM?'<button class="it" id="ncMore" style="width:100%">더 보기 ('+(L.length-LIM)+')</button>':'')};
-  q('#ncQ').oninput=e=>{Q=e.target.value;LIM=60;draw()};
-  q('#ncT').onclick=e=>{const t=e.target.dataset&&e.target.dataset.t;if(t){T=t;LIM=60;draw()}};
-  q('#ncL').onchange=e=>{const rk=e.target.dataset&&e.target.dataset.rel;if(rk){const id=e.target.dataset.rid,o=Object.assign({},relOf(id));if(e.target.checked)o[rk]=1;else delete o[rk];RL[id]=o;try{LS.set(RK,RL)}catch(er){}relApply();try{for(const k in AREAS)delete AREAS[k];buildLoc()}catch(er){}draw();return}
-    const id=e.target.dataset&&e.target.dataset.id;if(!id)return;const x=NC.find(o=>o.id===id);if(!x)return;NG[id]=+e.target.value;try{LS.set(NCK,NG)}catch(er){}apply(x);draw()};
-  q('#ncL').onclick=e=>{if(e.target.id==='ncMore'){LIM+=60;draw();return}const id=e.target.dataset&&e.target.dataset.give;if(!id)return;const x=NC.find(o=>o.id===id);if(x)give(x,Math.max(1,Math.min(100,+q('#ncLv').value||50)),q('#ncSh').checked,q('#ncSk').checked)};
-  q('#ncEx').onclick=async()=>{const j=JSON.stringify(NG);try{await navigator.clipboard.writeText(j);toast('📋 복사했어요')}catch(e){prompt('복사하세요',j)}};
-  q('#ncRl').onclick=()=>{const o={};for(const x of NC){const v=relOf(x.id);if(v.d||v.p)o[x.id]={d:v.d?1:0,p:v.p?1:0}}const j=JSON.stringify(o);
-    try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([j],{type:'application/json'}));a.download='ncrelease.json';document.body.appendChild(a);a.click();a.remove();toast('📤 ncrelease.json 받았어요 · '+Object.keys(o).length+'종 출시')}catch(er){prompt('복사하세요',j)}};
-  q('#ncRr').onclick=()=>{if(!confirm('이 기기에서 바꾼 출시 설정을 지우고 올려 둔 ncrelease.json 대로 되돌릴까요?'))return;RL={};try{LS.set(RK,RL)}catch(er){}relApply();try{for(const k in AREAS)delete AREAS[k];buildLoc()}catch(er){}draw()};
-  q('#ncRs').onclick=()=>{if(!confirm('고른 등급을 모두 추천 기본값으로 되돌릴까요?'))return;NG={};try{LS.set(NCK,NG)}catch(e){}NC.forEach(apply);draw()};
-  q('#ncBk').onclick=()=>operOpen();
-  draw()})}
-window.ncOpen=ncOpen;{const _oo=operOpen;operOpen=function(){const r=_oo.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel .pb');const b=p&&p.querySelector('#oFx');if(!b||p.querySelector('#oNc'))return;b.insertAdjacentHTML('afterend','<button class="it" id="oNc">🆕 신캐 (추가 캐릭터)</button>');p.querySelector('#oNc').onclick=ncOpen}catch(e){}},60);return r}}
-}catch(e){console.warn('newchar',e)}})();
+`;document.head.appendChild(css)}catch(e){}})();
 
 
 // ---------- GM(운영자): 모든 기술을 풀강(Lv.8)으로 써 보기 ----------
@@ -8318,7 +8251,7 @@ function fxPanel(){const rows=[['size','투사체 크기',.3,4,.05],['speed','�
     p.querySelector('#fxRst').onclick=()=>{sfx('tap');CF.size=CF.speed=CF.count=1;keep();p.querySelectorAll('input[type=range]').forEach(r=>{r.value=1;p.querySelector('[data-o="'+r.dataset.k+'"]').textContent='1.00'})};
     p.querySelector('#fxPush').onclick=async()=>{sfx('tap');norm();keep();const ok=await push();toast(ok?'✅ 모두에게 적용했어요 (게임을 켜거나 전투에 들어갈 때 받아가요)':'올리지 못했어요')}})}
 {const _gd=gmDraw;gmDraw=function(){const r=_gd.apply(this,arguments);try{if(isGM()){const p=document.querySelector('.panel');if(p&&!p.querySelector('#fxGm')){const t=p.querySelector('.pb');const b=document.createElement('button');b.id='fxGm';b.textContent='✨ 투사체 설정 (크기 · 속도 · 양)';b.onclick=()=>{sfx('tap');fxPanel()};t&&t.prepend(b)}}}catch(e){}return r}}
-{const _gd2=gmDraw;gmDraw=function(){const r=_gd2.apply(this,arguments);try{if(isGM()){const p=document.querySelector('.panel');if(p&&!p.querySelector('#oNcGm')){const t=p.querySelector('.pb');const mk=(id,txt,fn)=>{const b=document.createElement('button');b.id=id;b.textContent=txt;b.style.cssText="width:100%;margin:0 0 8px;padding:9px;border:0;font:700 15px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#4a8cff 0 50%,#2a5ed0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer";b.onclick=()=>{sfx('tap');fn()};return b};if(t){t.prepend(mk('oOpGm','🛠 운영자 패널 (기술 이펙트 · 주기 · 도구)',()=>{closePanel(1);operOpen()}));t.prepend(mk('oNcGm','🆕 신캐 (추가 캐릭터)',()=>{if(window.ncOpen){closePanel(1);window.ncOpen()}else toast('신캐 기능을 못 불러왔어요 · 화면을 새로고침해 주세요')}))}}}}catch(e){}return r}}
+{const _gd2=gmDraw;gmDraw=function(){const r=_gd2.apply(this,arguments);try{if(isGM()){const p=document.querySelector('.panel');if(p&&!p.querySelector('#oNcGm')){const t=p.querySelector('.pb');const mk=(id,txt,fn)=>{const b=document.createElement('button');b.id=id;b.textContent=txt;b.style.cssText="width:100%;margin:0 0 8px;padding:9px;border:0;font:700 15px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#4a8cff 0 50%,#2a5ed0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer";b.onclick=()=>{sfx('tap');fn()};return b};if(t){t.prepend(mk('oOpGm','🛠 운영자 패널 (기술 이펙트 · 주기 · 도구)',()=>{closePanel(1);operOpen()}));}}}}catch(e){}return r}}
 {const c=document.createElement('style');c.textContent=`#fxGm{width:100%;margin:0 0 10px;padding:9px;border:0;border-radius:0;font:700 15px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#c070ff 0 50%,#8a3ad0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer}
 .fxr{display:grid;grid-template-columns:96px 1fr 48px;align-items:center;gap:8px;margin:8px 4px;font-size:14px}.fxr input[type=range]{width:100%}.fxr small{grid-column:2/-1;color:#5a6080;font-size:12px}.fxr output{text-align:right;font-weight:700}
 .fxb{display:flex;gap:8px;margin:12px 4px}.fxb button{flex:1;padding:10px;border:0;font:700 14px 'Galmuri11',sans-serif;color:#fff;background:linear-gradient(#5a8aff 0 50%,#2a5ad0 50%);box-shadow:0 0 0 3px #1c2550;cursor:pointer}`;document.head.appendChild(c)}
