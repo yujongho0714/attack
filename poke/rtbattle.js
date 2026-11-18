@@ -88,7 +88,7 @@ function skillFx(e,m,a,b,opt){
     const tg=foeOf(e);
     const x={A:fxActor(e),B:fxActor(tg),fa:{x:a.x,y:a.y},fb:{x:b.x,y:b.y},S,d:b.x>=a.x?1:-1,a:{x:a.x,y:a.y-S*.6},b:{x:b.x,y:b.y-S*.55},pose:()=>{},hit:()=>{}};
     const id=F.MV.pick(g.id||m.id,g.type||m.type);
-    Promise.resolve(F.SKFX.run(x,id,g,1,e===W.me,1)).catch(()=>{});
+    Promise.resolve(F.SKFX.run(x,id,g,1,e.side===0,1)).catch(()=>{});
   }catch(err){}
 }
 // 6E-2: 발사체에 기존 이펙트 그림을 입혀 날아가게 함 (판정·속도는 그대로, 그림만 따라다님)
@@ -106,7 +106,7 @@ function projSkin(p,m){
 function fxShake(g){if(!fxOn())return;try{C.fxe.FX2.hit([3,5,8,11][g]||3,0)}catch(e){}}
 
 // ---------- 개체 ----------
-function mkEnt(mon,S,side){
+function mkEnt(mon,S,side,hp0){
   const s=C.stOf(mon);
   let sc=2;
   try{const A=S&&S.meta&&S.meta.anims&&(S.meta.anims.idle);if(A)sc=clamp(130/Math.max(A.w,A.h),1,4)}catch(e){}
@@ -119,14 +119,14 @@ function mkEnt(mon,S,side){
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
   e.haste=hasteOf(s[5]);
-  {const h0=side?C.foeHp:C.meHp;if(h0!=null&&isFinite(h0))e.hp=clamp(h0,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득)
+  {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
     m.su=Math.max(1,Math.round(m.su-.6*clamp((s[5]-50)/100,0,1)*(m.su-17)))});
   e.moves.forEach((m,i)=>{e.cdMax[i]=m.cd*(m.hasted?e.haste:1)});
   return e;
 }
-const foeOf=e=>e===W.me?W.foe:W.me;
+const foeOf=e=>e.side?W.me:W.foe;   // 6F-4b: 교대로 W.me가 바뀌어도 이미 나간 공격이 제 상대를 찾도록 side 기준
 const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;return clamp(v,60,320)};
 
 // ---------- 데미지 ----------
@@ -256,7 +256,7 @@ function applyEf(att,def,m,hit){
 // ---------- 기술 사용 ----------
 function canCast(e,i){
   const m=e.moves[i];
-  return m&&e.cd[i]<=0&&!e.cast&&e.stun<=0&&e.rollT<=0&&e.hp>0&&!e.ail.sleep&&!e.ail.freeze&&!W.over;
+  return m&&e.cd[i]<=0&&!e.cast&&e.stun<=0&&e.rollT<=0&&!(e.swapT>0)&&e.hp>0&&!e.ail.sleep&&!e.ail.freeze&&!W.over;
 }
 function startCast(e,i,aimDir,dist){
   const m=e.moves[i];
@@ -409,6 +409,7 @@ function update(){
   W.tick++;
   if(W.hitstop>0){W.hitstop-=TICK;return}
   W.time+=TICK;
+  if(W.swCd>0)W.swCd=Math.max(0,W.swCd-TICK);   // 6F-4b: 교체 쿨타임
   playerInput(me);
   updBall();
   aiUpdate(foe);
@@ -417,6 +418,7 @@ function update(){
     e.at+=TICK;
     e.flash=Math.max(0,e.flash-TICK);e.critWin=Math.max(0,e.critWin-TICK);e.protect=Math.max(0,e.protect-TICK);e.counterT=Math.max(0,(e.counterT||0)-TICK);
     e.healRep=Math.max(0,(e.healRep||0)-TICK);
+    if(e.swapT>0)e.swapT--;   // 6F-4b: 교체 직후 잠깐 무방비(행동 불가, 무적 아님)
     {const dm=e.moves.map((m,j)=>m&&!m.st?j:-1).filter(j=>j>=0);
      const allCool=dm.length>0&&dm.every(j=>e.cd[j]>0); // 공격기가 전부 쿨타임 중이면 빨리 돈다
      for(let i=0;i<4;i++){const m=e.moves[i];const r=(e.ail.paralysis?CD.paraRate:1)*(allCool&&m&&!m.st?CD.cadence:1);e.cd[i]=Math.max(0,e.cd[i]-TICK*r)}}
@@ -439,7 +441,7 @@ function update(){
       }
     }
     // 이동 (입력 속도)
-    if(e.rollT<=0&&e.stun<=0&&!(e.cast&&e.cast.phase==='active'&&e.cast.mv.k!=='beam')){
+    if(e.rollT<=0&&e.stun<=0&&!(e.swapT>0)&&!(e.cast&&e.cast.phase==='active'&&e.cast.mv.k!=='beam')){
       const mul=castMoveMul(e);
       const target=e.wish||{x:0,y:0};
       const sp=spdOf(e)*mul;
@@ -509,7 +511,7 @@ function finish(r){W.over=r;W.overT=0;(r==='win'?[W.foe]:[W.me]).forEach(e=>{e.a
 const ballList=()=>{try{return C.balls?C.balls():[]}catch(e){return[]}};
 function tryThrow(){
   if(!W||W.over||W.ball||(W.ballCd||0)>0||!C.balls)return;
-  const me=W.me,foe=W.foe;if(me.hp<=0||foe.hp<=0||me.stun>0||me.cast||me.rollT>0)return;
+  const me=W.me,foe=W.foe;if(me.hp<=0||foe.hp<=0||me.stun>0||me.swapT>0||me.cast||me.rollT>0)return;
   if(C.blockBall){let bm=null;try{bm=C.blockBall()}catch(e){}if(bm){floatTxt(me.x,me.y-90,bm,'#f88');W.ballCd=1;return}}   // 6F-2
   const L=ballList();if(!L.length){floatTxt(me.x,me.y-90,'볼이 없어요','#f88');W.ballCd=.6;return}
   const sel=L[Math.min(W.ballSel||0,L.length-1)];
@@ -554,7 +556,7 @@ function playerInput(me){
   while(IN.press.length){const p=IN.press.shift();me.buf={i:p.i,aim:p.aim,dist:p.dist,t:9}}
 }
 function doRoll(e){
-  if(e.rollT>0||e.rc<1||e.stun>0||e.hp<=0)return;
+  if(e.rollT>0||e.rc<1||e.stun>0||e.swapT>0||e.hp<=0)return;
   if(e.cast&&e.cast.phase!=='recovery')return;
   let d=e.wish&&len(e.wish.x,e.wish.y)>.2?norm(e.wish.x,e.wish.y):(e.face||{x:1,y:0});
   e.cast=null;e.beam=null;e.hidden=false;
@@ -805,8 +807,38 @@ function drawPreview(cx){
   }
 }
 
-// ---------- 6F-4a: 파티 패널(일시정지) ----------
+// ---------- 6F-4a/4b: 파티 패널(일시정지) + 실제 교체 ----------
+const SW_CD=5,SW_VULN=36;   // 교체 쿨타임 5초 · 교체 직후 무방비 36틱(0.6초)
 function closeParty(){if(!W||!W.pp)return;W.pp.remove();W.pp=null;W.paused=0}
+const partyHp=q=>{const h=W.hpBy&&W.hpBy[q.uid];return h!=null?h:q.hp};
+function setMoveBtns(){
+  const U=W.ui;if(!U)return;
+  for(let i=0;i<4;i++){const m=W.me.moves[i],b=U.btns[i];b._t.textContent=m?m.name:'-';b.style.background=m?(C.TCOL[m.type]||'#456'):'#333';b.style.opacity=1;b._cd.style.height='0'}
+}
+async function doSwitch(uid){
+  const w=W;
+  if(!w||w.over||w.swapping||(w.swCd||0)>0||!C.pickMon)return;
+  const old=w.me;if(!old||old.hp<=0||uid===old.mon.uid)return;
+  let pk=null;try{pk=C.pickMon(uid)}catch(e){}
+  if(!pk||!pk.mon)return;
+  const h=w.hpBy[uid]!=null?w.hpBy[uid]:pk.hp;if(!(h>0))return;
+  w.swapping=1;
+  let S=null;try{S=await C.getSpr(C.sprKey(pk.mon))}catch(e){}
+  if(W!==w||w.stopped||w.over){w.swapping=0;return}
+  w.hpBy[old.mon.uid]=old.hp;                       // 나가는 포켓몬의 지금 체력 기억
+  const ne=mkEnt(pk.mon,S,0,h);
+  ne.x=old.x;ne.y=old.y;ne.face=old.face;ne.row=old.row;ne.rc=old.rc;ne.vx=ne.vy=0;
+  ne.swapT=SW_VULN;ne.flash=SW_VULN/60;             // 잠깐 무방비(깜박임)
+  for(let i=0;i<4;i++)ne.cd[i]=Math.min(ne.cdMax[i],1.5);   // 쿨타임 초기화 꼼수 방지
+  w.chain=w.chain.filter(c=>c.o!==old);             // 나간 포켓몬의 연타는 끊김
+  w.delays.forEach(d=>{if(d.tgt===old)d.tgt=ne});   // 상대의 내려찍기 조준은 새 포켓몬을 따라감
+  w.me=ne;
+  if(!w.used.includes(uid))w.used.push(uid);
+  w.swCd=SW_CD;w.swapping=0;
+  w.fx.push({k:'ring',sys:1,x:ne.x,y:ne.y,t:0,life:.35,r:60,c:'#ffffff'});
+  floatTxt(ne.x,ne.y-80,'교대!','#9be7ff',true);
+  setMoveBtns();closeParty();
+}
 function openParty(){
   if(!W||W.over||W.pp||W.ball)return;
   W.paused=1;IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.hold={};IN.press=[];IN.roll=0;
@@ -816,16 +848,20 @@ function openParty(){
   pp.addEventListener('pointerdown',ev=>ev.stopPropagation());
   const box=document.createElement('div');box.style.cssText='width:min(92vw,360px);max-height:86vh;overflow:auto;background:#1c2230;border:2px solid #56627f;border-radius:14px;padding:12px;color:#fff';
   const h=document.createElement('div');h.style.cssText='font-weight:bold;font-size:16px;margin-bottom:2px';h.textContent='포켓몬 교대';box.appendChild(h);
-  const sub=document.createElement('div');sub.style.cssText='font-size:12px;opacity:.75;margin-bottom:8px';sub.textContent='전투는 멈춰 있어요. (지금은 보기만 · 교체는 다음 단계)';box.appendChild(sub);
+  const sub=document.createElement('div');sub.style.cssText='font-size:12px;opacity:.75;margin-bottom:8px';
+  sub.textContent=C.pickMon?(W.swCd>0?'교체 쿨타임 '+Math.ceil(W.swCd)+'초 남았어요.':'바꿀 포켓몬을 누르세요. 바꾸는 동안 잠깐 무방비예요.'):'전투는 멈춰 있어요. (보기만)';box.appendChild(sub);
   let L=[];try{L=C.party()||[]}catch(e){}
+  const curUid=W.me.mon.uid;
   for(const q of L){
-    const row=document.createElement('div');const cur=q.uid===C.me.uid,dead=q.hp<=0;
-    row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 10px;margin:4px 0;border-radius:8px;background:'+(cur?'#2a4a2a':'#2b3347')+';opacity:'+(dead?.5:1);
+    const row=document.createElement('div');const cur=q.uid===curUid;
+    const hp=cur?Math.max(0,Math.round(W.me.hp)):Math.round(partyHp(q)),mx=cur?Math.round(W.me.max):q.max,dead=hp<=0;
+    const can=!!C.pickMon&&!cur&&!dead&&!(W.swCd>0);
+    row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 10px;margin:4px 0;border-radius:8px;background:'+(cur?'#2a4a2a':can?'#34476b':'#2b3347')+';opacity:'+(dead?.5:1)+';'+(can?'cursor:pointer;border:1px solid #7fa6e8':'border:1px solid transparent');
     const l=document.createElement('div');l.innerHTML='<b>'+q.name+'</b> Lv.'+q.lv;
     const r=document.createElement('div');r.style.cssText='font-size:12px;text-align:right';
-    const hp=cur?Math.max(0,Math.round(W.me.hp)):q.hp,mx=cur?Math.round(W.me.max):q.max;
-    r.textContent=cur?'싸우는 중 '+hp+'/'+mx:(dead?'기절':hp+'/'+mx);
+    r.textContent=cur?'싸우는 중 '+hp+'/'+mx:(dead?'기절':hp+'/'+mx+(can?' · 교체':''));
     row.appendChild(l);row.appendChild(r);box.appendChild(row);
+    if(can)row.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();doSwitch(q.uid)});
   }
   const cl=document.createElement('div');cl.textContent='닫기 (전투 계속)';cl.style.cssText='margin-top:8px;text-align:center;padding:10px;border-radius:8px;background:#3b6ea5;font-weight:bold';
   cl.addEventListener('pointerdown',ev=>{ev.stopPropagation();closeParty()});box.appendChild(cl);
@@ -922,14 +958,14 @@ function stop(r){
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
   if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear()}catch(er){}}
   W.root.remove();IN.keys={};IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.press=[];IN.hold={};IN.roll=0;
-  try{window.RTB.last={r,meHp:W.me.hp,meMax:W.me.max,foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
+  try{const hpBy=Object.assign({},W.hpBy);hpBy[W.me.mon.uid]=W.me.hp;window.RTB.last={r,meHp:W.me.hp,meMax:W.me.max,foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time,meUid:W.me.mon.uid,hpBy,used:W.used.slice()}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
   const res=W.res;W=null;res(r);
 }
 async function start(ctx){
   if(W)return 'quit';
   C=ctx;
   const [S1,S2]=await Promise.all([C.getSpr(C.sprKey(C.me)),C.getSpr(C.sprKey(C.foe))]);
-  W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],over:null,overT:0};
+  W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0};
   W.me=mkEnt(C.me,S1,0);W.foe=mkEnt(C.foe,S2,1);
   const AT=AI_T[C.aiTier]||AI_T.W;
   W.ai={T:AT,tier:AI_T[C.aiTier]?C.aiTier:'W',sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)};
