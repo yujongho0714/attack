@@ -209,9 +209,9 @@ function canCast(e,i){
   const m=e.moves[i];
   return m&&e.cd[i]<=0&&!e.cast&&e.stun<=0&&e.rollT<=0&&e.hp>0&&!e.ail.sleep&&!e.ail.freeze&&!W.over;
 }
-function startCast(e,i,aimDir){
+function startCast(e,i,aimDir,dist){
   const m=e.moves[i];
-  const cast={mi:i,mv:m,phase:'startup',t:0,su:m.su,aim:Math.atan2(aimDir.y,aimDir.x),want:Math.atan2(aimDir.y,aimDir.x)};
+  const cast={mi:i,mv:m,phase:'startup',t:0,su:m.su,aim:Math.atan2(aimDir.y,aimDir.x),want:Math.atan2(aimDir.y,aimDir.x),dist:dist};
   e.cast=cast;
   e.cd[i]=e.cdMax[i]; // 쏘는 순간부터 쿨타임
   e.anim=m.melee?'attack':'shoot';e.at=0;
@@ -272,7 +272,7 @@ function fire(e,c){
     c.dash=120*(heavy?1.5:1);c.moved=0;c.len=Math.max(ACTIVE_MELEE[g],8);phaseTo(e,'active',c.len);c.dir=u;c.reach=70+(heavy?20:0)+10;c.half=(heavy?65:50)*Math.PI/180;
     W.fx.push({k:'slash',x:e.x,y:e.y,t:0,life:.25,a:c.aim,c:C.TCOL[m.type]||'#fff',r:c.reach+e.r});
   } else if(k==='leap'){
-    let d=tgt.hp>0?clamp(len(tgt.x-e.x,tgt.y-e.y),30,175):105;
+    let d=c.dist!=null?clamp(c.dist,30,175):tgt.hp>0?clamp(len(tgt.x-e.x,tgt.y-e.y),30,175):105;
     c.tx=e.x+u.x*d;c.ty=e.y+u.y*d;c.sx=e.x;c.sy=e.y;phaseTo(e,'active',20);
   } else if(k==='roll'){
     phaseTo(e,'active',180);c.spd=350;c.hitCd=0;c.dir=u;
@@ -297,7 +297,7 @@ function fire(e,c){
     if(hit&&m.st)applyEf(e,tgt,m,true);
     toRecovery(e,c);
   } else if(k==='zone'){
-    const d=Math.min(230,tgt.hp>0?len(tgt.x-e.x,tgt.y-e.y):230);
+    const d=c.dist!=null?clamp(c.dist,40,230):Math.min(230,tgt.hp>0?len(tgt.x-e.x,tgt.y-e.y):230);
     W.zones=W.zones.filter(z=>z.o!==e||false);
     W.zones.push({o:e,mi:c.mi,x:clamp(e.x+u.x*d,WALL,AW-WALL),y:clamp(e.y+u.y*d,WALL,AH-WALL),r:62,life:25,tick:1.5,col:C.TCOL[m.type]||'#fff',st:m.st});
     toRecovery(e,c);
@@ -449,7 +449,7 @@ function update(){
 function finish(r){W.over=r;W.overT=0;(r==='win'?[W.foe]:[W.me]).forEach(e=>{e.anim='hurt';e.at=0})}
 
 // ---------- 입력 ----------
-const IN={keys:{},stick:{on:0,id:null,sx:0,sy:0,x:0,y:0},press:[],roll:0,btn:[null,null,null,null]};
+const IN={keys:{},stick:{on:0,id:null,sx:0,sy:0,x:0,y:0},press:[],roll:0,btn:[null,null,null,null],hold:{}};
 function playerInput(me){
   if(me.hp<=0)return;
   let mx=0,my=0;
@@ -460,7 +460,7 @@ function playerInput(me){
   me.wish=L>.15?{x:mx/Math.min(1,L)*Math.min(1,L),y:my/Math.min(1,L)*Math.min(1,L)}:{x:0,y:0};
   if(L>1){me.wish={x:mx/L,y:my/L}}
   if(IN.roll){IN.roll=0;doRoll(me)}
-  while(IN.press.length){const p=IN.press.shift();me.buf={i:p.i,aim:p.aim,t:9}}
+  while(IN.press.length){const p=IN.press.shift();me.buf={i:p.i,aim:p.aim,dist:p.dist,t:9}}
 }
 function doRoll(e){
   if(e.rollT>0||e.rc<1||e.stun>0||e.hp<=0)return;
@@ -484,7 +484,7 @@ function tryBuffered(e){
   if(!e.buf)return;
   e.buf.t--;
   if(e.buf.t<=0){e.buf=null;return}
-  if(canCast(e,e.buf.i)){const b=e.buf;e.buf=null;startCast(e,b.i,aimFor(e,b.aim))}
+  if(canCast(e,e.buf.i)){const b=e.buf;e.buf=null;startCast(e,b.i,aimFor(e,b.aim),b.dist)}
 }
 
 // ---------- AI (야생 단계) ----------
@@ -576,8 +576,11 @@ function render(){
   for(let y=0;y<=AH;y+=100){cx.beginPath();cx.moveTo(0,y);cx.lineTo(AW,y);cx.stroke()}
   cx.strokeStyle='#e8f0d8';cx.lineWidth=6;cx.strokeRect(WALL-3,WALL-3,AW-WALL*2+6,AH-WALL*2+6);
   // 장판/예고
-  for(const z of W.zones){cx.globalAlpha=.35;cx.fillStyle=z.col;cx.beginPath();cx.ellipse(z.x,z.y,z.r,z.r*.7,0,0,7);cx.fill();cx.globalAlpha=1;cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke()}
-  for(const d of W.delays){const al=d.t>.5?.25:.35+.3*Math.sin(W.time*30);cx.globalAlpha=al;cx.fillStyle='#ff4a3a';cx.beginPath();cx.ellipse(d.x,d.y,d.r,d.r*.7,0,0,7);cx.fill();cx.globalAlpha=1;cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke()}
+  for(const z of W.zones){const pul=.3+.08*Math.sin(W.time*4);cx.globalAlpha=pul;cx.fillStyle=z.col;cx.beginPath();cx.arc(z.x,z.y,z.r,0,7);cx.fill();cx.globalAlpha=.9;cx.strokeStyle='#fff';cx.lineWidth=3;cx.setLineDash([14,8]);cx.stroke();cx.setLineDash([]);
+    cx.font='bold 14px sans-serif';cx.textAlign='center';cx.lineWidth=3;cx.strokeStyle='#000';cx.fillStyle='#fff';const tl=Math.ceil(z.life)+'초';cx.strokeText(tl,z.x,z.y+5);cx.fillText(tl,z.x,z.y+5);cx.globalAlpha=1}
+  for(const d of W.delays){const al=d.t>.5?.25:.35+.3*Math.sin(W.time*30);cx.globalAlpha=al;cx.fillStyle='#ff4a3a';cx.beginPath();cx.arc(d.x,d.y,d.r,0,7);cx.fill();cx.globalAlpha=1;cx.strokeStyle='#fff';cx.lineWidth=3;cx.stroke()}
+  // 내가 누르고 있는 기술의 사용 범위 미리보기
+  drawPreview(cx);
   // 개체
   const ents=[me,foe].sort((a,b)=>a.y-b.y);
   for(const e of ents){
@@ -641,6 +644,59 @@ function hud(cx,Wd,Hd){
   }
 }
 
+// ---------- 조준 미리보기 (버튼을 누른 채 끌면 방향·범위가 바닥에 보임) ----------
+const DRAG_MIN=12, DRAG_FULL=110;
+// 누르고 있는 버튼의 조준: 끌었으면 그 방향(manual), 안 끌었으면 자동 조준(상대 쪽)
+function holdAim(h){
+  const dx=h.x-h.sx,dy=h.y-h.sy,L=Math.hypot(dx,dy),m=W.me.moves[h.i];
+  if(L>DRAG_MIN){
+    const f=clamp((L-DRAG_MIN)/(DRAG_FULL-DRAG_MIN),0,1);
+    let dist=null;
+    if(m&&m.k==='zone')dist=40+f*190;else if(m&&m.k==='leap')dist=30+f*145;
+    return{dir:norm(dx,dy),manual:true,dist,f};
+  }
+  return{dir:aimFor(W.me,null),manual:false,dist:null,f:0};
+}
+function drawPreview(cx){
+  const me=W.me,foe=W.foe;if(!me||me.hp<=0)return;
+  for(const id in IN.hold){
+    const h=IN.hold[id],m=me.moves[h.i];if(!m)continue;
+    const a=holdAim(h),u=a.dir,ang=Math.atan2(u.y,u.x),col=C.TCOL[m.type]||'#fff',heavy=m.p>=110;
+    const ox=me.x,oy=me.y;
+    cx.save();
+    cx.lineWidth=3;cx.strokeStyle=col;cx.fillStyle='rgba(255,255,255,.2)';
+    cx.setLineDash(a.manual?[]:[12,8]);
+    const rectP=(L,w)=>{cx.save();cx.translate(ox,oy);cx.rotate(ang);cx.beginPath();cx.rect(0,-w,L,w*2);cx.fill();cx.stroke();cx.restore()};
+    const circ=(x,y,r)=>{cx.beginPath();cx.arc(x,y,r,0,7);cx.fill();cx.stroke()};
+    const sector=(r,half)=>{cx.beginPath();cx.moveTo(ox,oy);cx.arc(ox,oy,r,ang-half,ang+half);cx.closePath();cx.fill();cx.stroke()};
+    const k=m.k;
+    if(m.st&&k==='self'||k==='self'){circ(ox,oy,70)}
+    else if(k==='melee'){const reach=70+(heavy?20:0)+10+me.r,half=(heavy?65:50)*Math.PI/180;sector(reach+(heavy?180:120)*.5,half);
+      cx.setLineDash([]);cx.beginPath();cx.moveTo(ox,oy);cx.lineTo(ox+u.x*120*(heavy?1.5:1),oy+u.y*120*(heavy?1.5:1));cx.stroke()}
+    else if(k==='leap'){const d=a.dist!=null?a.dist:(foe.hp>0?clamp(len(foe.x-me.x,foe.y-me.y),30,175):105);
+      rectP(d,6);circ(clamp(ox+u.x*d,WALL,AW-WALL),clamp(oy+u.y*d,WALL,AH-WALL),34+me.r*.3)}
+    else if(k==='roll'){rectP(330,me.r*.9)}
+    else if(k==='vanish'){circ(ox,oy,56)}
+    else if(k==='projectile'){const r=(m.st?16:heavy?20:13)*(m.d.sb==='bolt'?1.25:1);rectP(690,r)}
+    else if(k==='beam'){rectP(clamp(360+m.p*1.5,360,690),18)}
+    else if(k==='pulse'){if(m.kd==='cone')sector(205,60*Math.PI/180);else circ(ox,oy,205)}
+    else if(k==='zone'){const d=a.dist!=null?a.dist:Math.min(230,foe.hp>0?len(foe.x-me.x,foe.y-me.y):230);
+      cx.setLineDash([]);cx.beginPath();cx.moveTo(ox,oy);cx.lineTo(clamp(ox+u.x*d,WALL,AW-WALL),clamp(oy+u.y*d,WALL,AH-WALL));cx.stroke();
+      cx.setLineDash(a.manual?[]:[12,8]);circ(clamp(ox+u.x*d,WALL,AW-WALL),clamp(oy+u.y*d,WALL,AH-WALL),62)}
+    else if(k==='delayed'){circ(foe.x,foe.y,58)}
+    else if(k==='target'){cx.globalAlpha=.6;cx.beginPath();cx.arc(ox,oy,550,0,7);cx.stroke();cx.globalAlpha=1;
+      if(foe.hp>0){cx.setLineDash([]);cx.beginPath();cx.moveTo(ox,oy);cx.lineTo(foe.x,foe.y);cx.stroke()}}
+    else{rectP(300,14)}
+    // 방향 화살표 + 안내
+    cx.setLineDash([]);cx.fillStyle=col;cx.beginPath();const ax=ox+u.x*90,ay=oy+u.y*90;
+    cx.moveTo(ax+u.x*16,ay+u.y*16);cx.lineTo(ax-u.y*10,ay+u.x*10);cx.lineTo(ax+u.y*10,ay-u.x*10);cx.closePath();cx.fill();
+    cx.font='bold 20px sans-serif';cx.textAlign='center';cx.lineWidth=4;cx.strokeStyle='#000';cx.fillStyle='#fff';
+    const tx=a.manual?'손 떼면 이 방향으로 발사':'끌어서 조준 · 그냥 떼면 자동 조준';
+    cx.strokeText(tx,me.x,me.y-me.r*2.2-44);cx.fillText(tx,me.x,me.y-me.r*2.2-44);
+    cx.restore();
+  }
+}
+
 // ---------- DOM(조작 UI) ----------
 function buildUI(){
   const root=document.createElement('div');root.id='rtbRoot';
@@ -662,13 +718,16 @@ function buildUI(){
   document.body.appendChild(root);
   W.root=root;W.cv=cv;W.ctx=cv.getContext('2d');W.ui={jb,jk,btns,rb,rcnt};
   // 포인터
-  const dragStart={};
   const bindBtn=(b,i)=>{
-    b.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();b.setPointerCapture(ev.pointerId);dragStart[ev.pointerId]={x:ev.clientX,y:ev.clientY,i}});
-    b.addEventListener('pointerup',ev=>{ev.preventDefault();const s=dragStart[ev.pointerId];delete dragStart[ev.pointerId];if(!s)return;
-      const dx=ev.clientX-s.x,dy=ev.clientY-s.y;let aim=null;if(Math.hypot(dx,dy)>26)aim=norm(dx,dy);
-      if(i===-1)IN.roll=1;else IN.press.push({i,aim})});
-    b.addEventListener('pointercancel',ev=>{delete dragStart[ev.pointerId]});
+    b.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();try{b.setPointerCapture(ev.pointerId)}catch(e){}
+      if(i>=0)IN.hold[ev.pointerId]={i,sx:ev.clientX,sy:ev.clientY,x:ev.clientX,y:ev.clientY}});
+    b.addEventListener('pointermove',ev=>{const h=IN.hold[ev.pointerId];if(h){h.x=ev.clientX;h.y=ev.clientY}});
+    b.addEventListener('pointerup',ev=>{ev.preventDefault();
+      if(i===-1){IN.roll=1;return}
+      const h=IN.hold[ev.pointerId];delete IN.hold[ev.pointerId];if(!h)return;
+      h.x=ev.clientX;h.y=ev.clientY;const a=holdAim(h);
+      IN.press.push({i,aim:a.manual?a.dir:null,dist:a.manual?a.dist:null})});
+    b.addEventListener('pointercancel',ev=>{delete IN.hold[ev.pointerId]});
   };
   btns.forEach((b,i)=>bindBtn(b,i));bindBtn(rb,-1);
   qb.addEventListener('pointerdown',ev=>{ev.stopPropagation();if(W.over)return;if(confirm('시험 전투를 그만둘까요?'))stop('quit')});
@@ -706,7 +765,7 @@ function updBtns(){
 function stop(r){
   if(!W||W.stopped)return;W.stopped=1;cancelAnimationFrame(W.raf);
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
-  W.root.remove();IN.keys={};IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.press=[];IN.roll=0;
+  W.root.remove();IN.keys={};IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.press=[];IN.hold={};IN.roll=0;
   const res=W.res;W=null;res(r);
 }
 async function start(ctx){
