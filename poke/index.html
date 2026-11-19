@@ -485,7 +485,7 @@ body #bM{left:calc(10px + env(safe-area-inset-left))!important;right:auto!import
  #title h1{font-size:clamp(26px,9vh,48px)!important;margin-top:3vh!important;-webkit-text-stroke:3px #1c2550!important}
  #title h1::before{width:9vh!important;height:9vh!important}
 }
-</style><script src="lib/pixelfx.js" defer></script><script src="tierfx.js" defer></script><script src="lib/qrcode.js" defer></script><style id="dskcss">.dsk{margin:8px 0 4px}.dsk small{color:#6a7090}.dskg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.dskg button{position:relative;padding:8px 4px 7px;border:0;border-radius:0;font:900 11px 'Galmuri11',monospace;color:#fff;background:linear-gradient(#22283f 0 50%,#171b2d 50%);box-shadow:0 0 0 2px #0a0d18,inset 0 0 0 2px #3a4160;cursor:pointer;image-rendering:pixelated;text-shadow:1px 1px 0 #000}.dskg button i{display:block;font-style:normal;font-size:15px;color:var(--c);text-shadow:2px 2px 0 #000}.dskg button.on{background:linear-gradient(#3a2f10 0 50%,#2a2108 50%);box-shadow:0 0 0 2px #0a0d18,inset 0 0 0 2px var(--c),0 0 10px var(--c)}</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
+</style><script src="lib/pixelfx.js" defer></script><script src="tierfx.js" defer></script><script src="lib/qrcode.js" defer></script><style id="dskcss">.dsk{margin:8px 0 4px}.dsk small{color:#6a7090}.dskg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.dskg button{position:relative;padding:8px 4px 7px;border:0;border-radius:0;font:900 11px 'Galmuri11',monospace;color:#fff;background:linear-gradient(#22283f 0 50%,#171b2d 50%);box-shadow:0 0 0 2px #0a0d18,inset 0 0 0 2px #3a4160;cursor:pointer;image-rendering:pixelated;text-shadow:1px 1px 0 #000}.dskg button i{display:block;font-style:normal;font-size:15px;color:var(--c);text-shadow:2px 2px 0 #000}.dskg button.on{background:linear-gradient(#3a2f10 0 50%,#2a2108 50%);box-shadow:0 0 0 2px #0a0d18,inset 0 0 0 2px var(--c),0 0 10px var(--c)}</style><style>.chadv{display:inline-block;margin:0 4px;padding:0 5px;font:800 10px/16px "Galmuri11",sans-serif;color:#fff;background:#1c2550;border:2px solid var(--dc);border-radius:0;white-space:nowrap;vertical-align:middle}</style></head><body><div id="rot"><div class="ph">📱</div><div>폰을 가로로 돌려 주세요</div><small style="font-weight:600;opacity:.8">포켓몬 어드벤처는 가로 화면으로 해요</small></div><script>(function(){function lk(){try{var d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen&&!matchMedia('(display-mode: fullscreen)').matches)d.requestFullscreen({navigationUI:'hide'}).then(function(){screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}).catch(function(){});else if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){})}catch(e){}}addEventListener('pointerdown',lk,{once:true})})();</script>
 <canvas id="cv"></canvas>
 <div class="hud" id="hTop"></div>
 <div id="hObjW"><div id="hObj"></div><button id="bAuto">▶ 자동</button></div><div id="hHunt"></div><div id="hOff" style="position:fixed;left:10px;bottom:calc(196px + env(safe-area-inset-bottom));z-index:5;color:#fff;font:800 12px system-ui;text-shadow:0 1px 3px #000;pointer-events:none"></div>
@@ -2182,7 +2182,7 @@ const CardPack=(()=>{
 
   async function open(o){
     o=Object.assign({rar:0,sh:0,kind:'P',name:'?',sub:'',img:'',col:'',base:'cardpack/'},o||{});const RF=Math.max(0,Math.min(8,o.rar|0)),PR=RF;let R=0;let CS=RF;
-    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=(await loadImg(o.base+'pk'+t+'.webp',800))||(t>6?await loadImg(o.base+'pk6.webp',800):null)||(t>3?await loadImg(o.base+'pk3.webp',800):null);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>v||(t>6?loadImg(o.base+'frame6.webp',4000):null)).then(v=>frmI[t]=v);
+    let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>{if(v)return v;const m=/pk\/portrait\/(\d{4})\//.exec(o.img);return m&&typeof rzFace==='function'?rzFace(m[1]).then(u=>u?loadImg(u,4000):null):null}).then(v=>art=v):null;   /* 9H: 초상화 폴더가 없어져서 카드팩에 ?가 뜸 → 레조넌스 그림에서 잘라 쓰기 */const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=(await loadImg(o.base+'pk'+t+'.webp',800))||(t>6?await loadImg(o.base+'pk6.webp',800):null)||(t>3?await loadImg(o.base+'pk3.webp',800):null);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>v||(t>6?loadImg(o.base+'frame6.webp',4000):null)).then(v=>frmI[t]=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
       const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
@@ -7871,7 +7871,7 @@ function chNameAva(){let n=rkName();try{const a=(G.chat||{}).ava;if(!a||!META[a]
 chParse=async function(d){try{const id=decodeURIComponent(d.name.split('/').pop()),f=d.fields||{};const name=(f.name||{}).stringValue||'',v=+((f.v||{}).integerValue||0),t=+((f.t||{}).integerValue||0);
   const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1),seg=p[1].split('.'),tr=seg[1]||'',rkm=/^(\d{1,3})([da]?)$/.exec(tr),rk=rkm?+rkm[1]:0,rb=rkm?rkm[2]:'';
   if(BANS.has(pid))return null;const o={id,pid,name,v,tier:rk?(rkTier(rk-1)||''):CHTIERS.includes(tr)?tr:'',rk,rb,ms:parseInt(seg[0],36)||v*60000,ty};
-  const tk=seg[2]&&seg[2]!=='-'?seg[2]:'',pm=seg[3]&&seg[3]!=='-'?seg[3]:'';if(tk&&/^[a-z0-9]{1,12}$/.test(tk))o.tk=tk;if(pm&&/^[a-z]{1,8}$/.test(pm)){o.pm=pm;o.pv=parseInt(seg[4]||'0',36)||0}
+  const tk=seg[2]&&seg[2]!=='-'?seg[2]:'',pm=seg[3]&&seg[3]!=='-'?seg[3]:'';if(tk&&/^[a-z0-9]{1,12}$/.test(tk))o.tk=tk;if(seg[5]&&/^[0-9a-z]{1,8}$/.test(seg[5]))o.adv=parseInt(seg[5],36)||0;if(pm&&/^[a-z]{1,8}$/.test(pm)){o.pm=pm;o.pv=parseInt(seg[4]||'0',36)||0}
   if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}
   else if(ty==='p'){o.m=chDecMon(body);if(!o.m)return null;o.x=p[4]?chClean(new TextDecoder().decode(acUb64(p[4]))):''}
   else if(ty==='c'||ty==='d'){const b=body.split('.'),m=b[0],val=parseInt(b[1]||'0',36)||0;if(!/^[a-z]{1,8}$/.test(m)||!(m==='all'||CP.C.some(x=>x[0]===m)))return null;o.bm=m;o.bv=val;
@@ -7881,7 +7881,7 @@ chParse=async function(d){try{const id=decodeURIComponent(d.name.split('/').pop(
 chSend=async function(ty,text,mon,ex){if(!G||!G.pid){toast('먼저 게임을 시작해요');return false}if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되면 채팅할 수 있어요');return false}if(BANS.has(G.pid)){toast('채팅을 쓸 수 없는 계정이에요');return false}
   if(Date.now()-CHLAST<(ty==='t'?3500:20000)){toast(ty==='t'?'조금 천천히 보내요':'자랑은 20초에 한 번씩 할 수 있어요');return false}
   const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Date.now(),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
-  await chRkRefresh();const tier=chMyTier(),me=cpMe();let seg=ms.toString(36)+(tier?'.'+tier:'');if(me.tk||me.pm)seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv).toString(36);
+  await chRkRefresh();const tier=chMyTier(),me=cpMe();let seg=ms.toString(36)+(tier?'.'+tier:'');if(me.tk||me.pm)seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv).toString(36);try{seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv||0).toString(36)+'.'+Math.floor(advV()).toString(36)}catch(e){}   /* 9H: 지금 진행도도 같이 보냄(옛 버전은 무시) */
   let body;if(ty==='p')body='p'+chKeyMon(mon)+'~'+b;else if(ty==='c')body='c'+ex.m+'.'+Math.floor(ex.v).toString(36);else if(ty==='d')body='d'+ex.m+'.'+Math.floor(ex.v).toString(36)+'~'+ex.l.map(k36).join(',');else body='t'+b;
   const id='m~'+seg+'~'+G.pid+'~'+body,name=chNameAva().slice(0,12),CMo=chMon(ms),vm=CMo.v,t=sec*1048576+await gmMac(id,name,vm,sec);
   CHLAST=ms;const er=await chPut(CMo.bd,id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
@@ -7889,7 +7889,8 @@ chSend=async function(ty,text,mon,ex){if(!G||!G.pid){toast('먼저 게임을 시
 // 보이는 모양: 칭호 · 전투력 · 덱 얼굴
 const ttl=o=>o.tk?`<u class="cptk">${esc(CP.title(o.tk))}</u>`:'',cpe=o=>o.pm?`<em class="cpv">⚡${o.pv>=1e4?(o.pv/1e4).toFixed(1)+'만':fmtN(o.pv)}</em>`:'';
 {const _n=chName;chName=function(o){let h=_n.apply(this,arguments);try{h=h.replace('<span class="chhd">','<span class="chhd">'+ttl(o));h=h.replace(/<\/b><\/span>$/,'</b>'+cpe(o)+'</span>')}catch(e){}return h}}
-{const _r=chRow;chRow=function(o){let h=_r.apply(this,arguments);if(!h)return h;try{h=h.replace('<small class="cht">',ttl(o)+cpe(o)+'<small class="cht">');
+const advS=o=>{if(!o.adv)return'';const v=o.adv,rb=Math.floor(v/1e6),d=Math.floor(v/1e5)%10,S=Math.floor(v/1e3)%100;const st=S===0?'시작':S<8?'배지 '+S:S===8?'리그':S===9?'챔피언':'상위 '+(S-9);return `<em class="chadv" style="--dc:${DCOL[d]||'#888'}">${rb?rb+'환생 · ':''}${DNAME[d]||''} ${st}</em>`};   /* 9H 진행도 꼬리표 */
+{const _r=chRow;chRow=function(o){let h=_r.apply(this,arguments);if(!h)return h;try{h=h.replace('<small class="cht">',advS(o)+ttl(o)+cpe(o)+'<small class="cht">');
   if(o.ty==='d')h=h.replace(/<\/div><\/div>$/,'<div class="cpdk">'+o.dl.map(n=>`<img src="${THUMB[n]||''}" alt="">`).join('')+'</div></div></div>');
   else if(o.ty==='c')h=h.replace(/<\/div><\/div>$/,'<div class="cpbig">⚡ '+fmtN(o.bv)+'</div></div></div>')}catch(e){}return h}}
 // 자랑하기 · 전투력 / 덱 / 설정
@@ -8668,5 +8669,33 @@ setInterval(()=>{try{
   b.classList.add('show');
 }catch(e){}},1000);
 }catch(e){console.warn('rtbtn',e)}})();
+</script>
+<script id="b9i">
+// ===== 9I 난이도 최초 격파자 특별 접두사 =====
+// 챔피언이 되면 서버(pokeBoss/first-dN/players/{기기id} = {name, dmg:난이도, t})에 기록 → 가장 먼저 기록한 친구가 그 난이도 「최초 정복」 접두사(내 캐릭터 접두사 칸)
+// 이번 업데이트부터 기록돼요(예전 기록은 서버에 없어서)
+(function(){try{
+const FN=['새싹 개척자의','모험 개척자의','용맹한 정복자의','지옥 정복자의','악몽 정복자의','종말 정복자의','천계 정복자의','천상계 정복자의'];
+PXG[7]='최초 정복';PXC[7]='#ffd700';PXM[7]=9;
+const B0=PX.length;FN.forEach((n,d)=>{const k=1+d*.15;PX.push({i:B0+d,g:7,n,lim:1,fd:d,e:{atk:+(27*k).toFixed(1),spa:+(27*k).toFixed(1),hp:+(27*k).toFixed(1),spe:+(13.5*k).toFixed(1),crt:+(9*k).toFixed(1),cdm:+(18*k).toFixed(1)}})});
+window.FPX0=B0;
+const col=d=>'pokeBoss/first-d'+d+'/players';
+async function fpList(d){const c=wbCfg();if(!c)return null;try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/${col(d)}?pageSize=300&key=${c.apiKey}`);if(!r.ok)return null;const j=await r.json();
+  return (j.documents||[]).map(x=>({id:x.name.split('/').pop(),name:(x.fields.name||{}).stringValue||'?',t:+((x.fields.t||{}).integerValue||0)})).filter(x=>x.t>0).sort((a,b)=>a.t-b.t)}catch(e){return null}}
+window.fpList=fpList;
+async function fpReg(d){const c=wbCfg();if(!c||!navigator.onLine||!G||!G.pid)return;G.fpReg=G.fpReg||{};
+  if(!G.fpReg[d]){try{const t=Date.now();const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/${col(d)}/${G.pid}?key=${c.apiKey}&currentDocument.exists=false`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:(G.name||'트레이너').slice(0,12)},dmg:{integerValue:String(d)},t:{integerValue:String(t)}}})});
+    if(r.ok||r.status===400||r.status===409||r.status===412){G.fpReg[d]=t;save()}else return}catch(e){return}}
+  await fpCheck(d)}
+async function fpCheck(d){G.fpGot=G.fpGot||{};if(G.fpGot[d])return;const L=await fpList(d);if(!L||!L.length)return;
+  if(L[0].id===G.pid){G.fpGot[d]=1;const cur=G.mepx!=null&&PX[G.mepx]&&PX[G.mepx].fd!=null?PX[G.mepx].fd:-1;if(d>cur)G.mepx=B0+d;save();try{sfx('badge')}catch(e){}
+    try{await say(['🏆 축하해요! <b>'+DNAME[d]+'</b> 난이도를 <b>가장 먼저</b> 깬 친구예요!','특별 접두사 「<b style="color:#d9a400">'+FN[d]+'</b>」를 받았어요! (최초 정복 등급 · 머리 위 이름 앞에 붙고, 내 모든 포켓몬에게 효과)'])}catch(e){}}}
+setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over')return;const d=DIFF();G.fpReg=G.fpReg||{};G.fpGot=G.fpGot||{};if(!G.fpReg[d])fpReg(d);else if(!G.fpGot[d]&&!G._fpT||Date.now()-(G._fpT||0)>120000){G._fpT=Date.now();fpCheck(d)}}catch(e){}},20000);
+// 허브: 난이도별 최초 정복자 보기
+window.fpOpen=async function(){openPanel('🏆 난이도 최초 정복자','<p class="hhint">각 난이도에서 <b>가장 먼저 챔피언</b>이 된 친구에게 특별 접두사를 줘요. (이번 업데이트부터 기록)</p><div id="fpL"><small>불러오는 중…</small></div>');
+  const rows=[];for(let d=0;d<8;d++){const L=await fpList(d);const f=L&&L[0];rows.push(`<div class="hrow"><span><b style="color:${DCOL[d]}">${DNAME[d]}</b> <small>「${FN[d]}」</small><small>${f?'👑 '+esc(rkSplit(f.name).name)+' · '+new Date(f.t).toLocaleDateString()+(L.length>1?' · 깬 친구 '+L.length+'명':''):'아직 아무도 못 깼어요 — 첫 번째가 되어 봐요!'}</small></span></div>`)}
+  const el=document.getElementById('fpL');if(el)el.innerHTML=rows.join('')};
+try{HUB.push({k:'first',n:'난이도 최초 정복자',d:'각 난이도(쉬움~천상계)에서 가장 먼저 챔피언이 된 친구에게 특별 접두사! 「천계 정복자의」 같은 최초 정복 등급(유일보다 높음).',st:()=>{const n=Object.keys((G&&G.fpGot)||{}).length;return n?'내 최초 정복 '+n+'개':'도전!'},go:[['최초 정복자 보기',()=>fpOpen()]]})}catch(e){}
+}catch(e){console.warn('9I 최초 정복',e)}})();
 </script>
 </body></html>
