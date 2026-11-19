@@ -288,8 +288,9 @@ function dealDamage(att,def,mi,opt){
   else if(rampArmor){def.kx+=dirv.x*kb;def.ky+=dirv.y*kb}
   else{
     if(dc)cancelCast(def,!!(interrupt||buffBreak||beamBreak));
-    def.stun=Math.max(def.stun,STUN[m.g]);
-    def.kx+=dirv.x*kb*8;def.ky+=dirv.y*kb*8;
+    const mine=def.side===0;   // 9J: 내 포켓몬은 맞아도 덜 굳고 덜 밀려요(조작이 안 막히게)
+    def.stun=Math.max(def.stun,mine?Math.round(STUN[m.g]*.3):STUN[m.g]);
+    def.kx+=dirv.x*kb*(mine?4:8);def.ky+=dirv.y*kb*(mine?4:8);
   }
   def.sleepWake=1; if(def.ail.sleep){delete def.ail.sleep}
   if(att.counterT>0)att.counterT=0;
@@ -317,7 +318,7 @@ function setAil(def,s,chance){
   const IMM={burn:'FIRE',poison:'POISON',toxic:'POISON',paralysis:'ELECTRIC',freeze:'ICE'};
   if(IMM[s]&&def.types.includes(IMM[s]))return;
   if(s==='toxic')s='poison';
-  if(s==='flinch'){def.stun=Math.max(def.stun,10);return}
+  if(s==='flinch'){def.stun=Math.max(def.stun,def.side===0?4:10);return}
   if(def.ail[s]!=null||def.ailImm&&def.ailImm[s]>0)return;
   def.ail[s]=T[s]==null?3:T[s];
   floatTxt(def.x,def.y-110,({burn:'화상',poison:'독',paralysis:'마비',sleep:'잠듦',freeze:'얼음',confusion:'혼란'})[s]||s,'#f9a');

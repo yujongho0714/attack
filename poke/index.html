@@ -8715,4 +8715,44 @@ const c=document.createElement('style');c.textContent=`.btsel{display:flex;flex-
 .btsel button small{font:12px 'Galmuri11',monospace;color:#4a5070}.btsel button.on{background:#ffd23f;outline:3px solid #fff;outline-offset:-6px}`;document.head.appendChild(c);
 }catch(e){console.warn('9J 전투 방식',e)}})();
 </script>
+<script id="b9k">
+// ===== 9K 데미지 스킨 한곳에 + 기본 적용 · 📢 업데이트 소식(사진 + 하는 방법) =====
+(function(){try{
+const PXN=['메이플 오리지널','불사베기 칠흑혈참','제논 플라즈마 블루','황제 르네상스 골드','청룡 비취 에메랄드','패왕색 흑섬 보라'],PXCO=['#ff9f1a','#ff1e42','#00f0ff','#ffd700','#00ff9d','#d500f9'];
+// 기본 적용: 한 번도 안 고른 친구는 실시간 = 황제 골드 · 턴제 = 황금
+setInterval(()=>{try{if(!G)return;G.opt=G.opt||{};if(G.opt.dskin==null){G.opt.dskin=3}if(!G.dskin||G.dskin==='basic'&&!G.dskinPick){G.dskin='gold'}}catch(e){}},2000);
+dskinOpen=function(){if(!G)return;G.opt=G.opt||{};const cur=G.opt.dskin==null?3:(G.opt.dskin|0);
+  openPanel('💥 데미지 스킨',`<p class="hhint">내가 때릴 때 나오는 <b>숫자 모양</b>이에요. 전설 기술(불사베기·제논 등)은 그 기술 전용 스킨이 따로 나와요.</p>
+   <h4>⚔ 실시간 전투</h4><div class="dskg">${PXN.map((n,i)=>`<button data-px="${i}" class="${cur===i?'on':''}" style="--c:${PXCO[i]}"><i>${i+1}</i>${n}</button>`).join('')}</div>
+   <h4>🎴 턴제 전투</h4><canvas id="dsk" width="320" height="90" style="width:100%;max-width:420px;background:#2c3050"></canvas>
+   <div class="dskg">${Object.keys(DSKIN).map(k=>`<button data-k="${k}" class="${(G.dskin||'basic')===k?'on':''}" style="--c:#ffd060"><i>${DSKIN[k].n.split(' ')[0]}</i>${DSKIN[k].n.replace(/^\S+\s/,'')}</button>`).join('')}</div>`,null,p=>{
+   p.querySelectorAll('[data-px]').forEach(b=>b.onclick=()=>{G.opt.dskin=+b.dataset.px;save();sfx('tap');dskinOpen()});
+   p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{G.dskin=b.dataset.k;G.dskinPick=1;save();sfx('tap');dskinOpen()});
+   const cv=p.querySelector('#dsk'),c=cv.getContext('2d');(function f(){if(!document.body.contains(cv))return;requestAnimationFrame(f);c.clearRect(0,0,320,90);const k=G.dskin||'basic',q={x:160,y:66,txt:'1234',c:'#fff'};if(DSKIN[k]&&DSKIN[k].draw)DSKIN[k].draw(c,q,48,'#fff');else{c.font='900 48px system-ui';c.textAlign='center';c.lineWidth=6;c.strokeStyle='#1a1424';c.strokeText('1234',160,66);c.fillStyle='#fff';c.fillText('1234',160,66)}})()})};
+try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫자 모양을 골라요 (실시간 6가지 · 턴제 9가지).',st:()=>'실시간: '+PXN[G&&G.opt&&G.opt.dskin!=null?G.opt.dskin|0:3],go:[['데미지 스킨 고르기',()=>dskinOpen()]]})}catch(e){}
+
+// ---------- 📢 업데이트 소식 ----------
+// 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
+const NEWS=[
+ {v:20261119,date:'11월 19일',t:'실시간 전투 쉬워짐 · 턴제 고르기 · 데미지 스킨 · 초월 · 천계 새 이야기',items:[
+  {img:'ui/news/n01_hub.webp',h:'모든 새 기능은 「컨텐츠」에 있어요',p:['화면 오른쪽 버튼 모음에서 <b>「컨텐츠」</b>(사진의 빨간 동그라미)를 눌러요.','맨 위부터 <b>전투 방식 · 데미지 스킨 · 업데이트 소식</b>이 있어요.']},
+  {img:'ui/news/n02_mode.webp',h:'⚔ 실시간 / 🎴 턴제 고르기',p:['컨텐츠 → <b>「전투 방식 (실시간 / 턴제)」</b> → 「전투 방식 바꾸기」','<b>실시간</b>: 조이스틱으로 움직이며 피하고 버튼으로 공격해요.','<b>턴제</b>: 예전처럼 기술을 골라 차례대로 싸워요. 언제든 다시 바꿀 수 있어요.']},
+  {img:'ui/news/n03_skin.webp',h:'💥 데미지 스킨',p:['컨텐츠 → <b>「💥 데미지 스킨」</b> → 「데미지 스킨 고르기」','실시간 전투 6가지, 턴제 전투 9가지 중에 골라요.','안 고른 친구는 <b>황제 골드(실시간) · 황금(턴제)</b>이 자동으로 나와요.']},
+  {img:'ui/news/n04_battle.webp',h:'실시간 전투가 쉬워졌어요',p:['컴퓨터가 늦게 반응하고 거의 안 피해요. 상대 기술은 준비 동작이 길어서 보고 피할 수 있어요.','내 장판 · 내려찍기 · 발사체가 <b>훨씬 크고</b> 잘 맞아요.','맞아도 몸이 덜 굳어서 바로 다시 움직일 수 있어요.']},
+  {img:'ui/news/n05_trans.webp',h:'✨ 초월 승급 (불멸 · 태초 · 만제)',p:['컨텐츠 → <b>「초월 승급」</b> → 유일 포켓몬 옆 「초월하기」','재료: 💠 불멸의 핵 · 🌟 태초의 숨결 · 🔱 만제의 인장 (천계·천상계 챔피언, 카오스·이터널 월드보스에서 얻어요)','불멸 = 1번 부활 · 태초 = 분신 소환 · 만제 = 파티 공격 +30% + 데미지 버프']},
+  {img:'ui/news/n06_hoenn.webp',h:'🌏 천계부터 새 이야기: 호연 지방',p:['난이도 <b>천계 · 천상계</b>로 환생하면 이야기 무대가 호연으로 바뀌어요.','미로마을 → 체육관 8개 → 그랜드시티 포켓몬리그 · 챔피언 윤진']},
+  {img:'ui/news/n07_first.webp',h:'🏆 난이도 최초 정복자',p:['각 난이도에서 <b>가장 먼저 챔피언</b>이 된 친구는 특별 접두사(최초 정복 등급)를 받아요.','컨텐츠 → 「난이도 최초 정복자」에서 누가 처음 깼는지 볼 수 있어요.']},
+  {img:'',h:'그 밖에',p:['채팅에서 이름 옆에 <b>진행도</b>(난이도 · 배지)가 보여요.','카드팩에서 포켓몬 그림 대신 ?가 나오던 문제를 고쳤어요.','종말 · 천계 · 천상계는 전투 1번에 물약 10개까지 쓸 수 있어요.']}]}];
+window.NEWS=NEWS;
+window.newsOpen=function(i){if(!G)return;i=i||0;const N=NEWS[i];if(!N)return;
+  const body=N.items.map((it,k)=>`<div class="nwi"><b class="nwh"><i>${k+1}</i>${it.h}</b>${it.img?`<img src="${it.img}" alt="" loading="lazy">`:''}<ol>${it.p.map(x=>`<li>${x}</li>`).join('')}</ol></div>`).join('');
+  openPanel('📢 업데이트 소식',`<div class="nwt"><small>${N.date}</small><b>${N.t}</b></div>${body}${NEWS.length>1?`<div class="nwold">${NEWS.map((n,j)=>`<button data-nw="${j}" class="${j===i?'on':''}">${n.date}</button>`).join('')}</div>`:''}`,null,p=>{p.querySelectorAll('[data-nw]').forEach(b=>b.onclick=()=>newsOpen(+b.dataset.nw))});
+  G.opt=G.opt||{};G.opt.newsV=NEWS[0].v;save()};
+try{HUB.unshift({k:'news',n:'📢 업데이트 소식',d:'새로 바뀐 것과 하는 방법을 사진으로 보여 줘요.',st:()=>NEWS[0].date,go:[['업데이트 소식 보기',()=>newsOpen(0)]]})}catch(e){}
+setInterval(()=>{try{if(!G||SCENE!=='over'||PANEL||!G.party||!G.party.length)return;G.opt=G.opt||{};if((G.opt.newsV||0)<NEWS[0].v){if(!G.opt.btAsk)return;newsOpen(0)}}catch(e){}},5000);
+const c=document.createElement('style');c.textContent=`.nwt{padding:8px 10px;margin-bottom:8px;background:#1c2550;color:#fff;border:3px solid #ffd23f}.nwt small{display:block;color:#ffd23f;font-size:11px}.nwt b{font-size:15px}
+.nwi{margin:0 0 12px;padding:8px;background:#fffaf0;border:3px solid #1c2550;box-shadow:0 3px 0 #1c2550}.nwh{display:flex;align-items:center;gap:6px;font-size:15px;color:#1c2550;margin-bottom:6px}.nwh i{font-style:normal;display:inline-grid;place-items:center;width:22px;height:22px;background:#ffd23f;border:2px solid #1c2550;font-size:12px}
+.nwi img{display:block;width:100%;border:2px solid #1c2550;margin:4px 0 6px;image-rendering:auto}.nwi ol{margin:0;padding-left:20px;font-size:13px;line-height:1.55;color:#2a3050}.nwold{display:flex;gap:4px;flex-wrap:wrap}.nwold button{padding:4px 8px;border:2px solid #1c2550;border-radius:0;background:#e9edff}.nwold button.on{background:#ffd23f}`;document.head.appendChild(c);
+}catch(e){console.warn('9K',e)}})();
+</script>
 </body></html>
