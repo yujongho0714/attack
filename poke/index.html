@@ -8653,6 +8653,22 @@ async function rtWild(o){
   actEnd(null);ACT.cd={};if(AUTO.stopAfter)autoStop();try{if(res==='win'){BGM.win(o);await sleep(FAST()?600:1400)}}catch(e){}
   await evolveCheck();showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();save();try{BGM.area()}catch(e){}
   return res}
+// ===== 9M PvP 3대3 실시간 (자동 전용) — 내 파티 앞 3마리 vs 상대 덱 앞 3마리, 한 경기장에 동시에 =====
+function loadRtb3(){return window.RTB3?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='rtteam.js?v='+Date.now();s.onload=ok;s.onerror=()=>no(new Error('rtteam.js'));document.head.appendChild(s)})}
+async function rtPvp3(o){
+  if(!o||!o.pvp||!o.foes||!o.foes.length)return undefined;
+  try{await loadRtb();await loadRtb3();await rzMovesLoad()}catch(e){console.warn('rtPvp3 load',e);return undefined}
+  const mine=G.party.filter(m=>m&&m.hp>0&&META[m.n]).slice(0,3),foes=o.foes.filter(f=>f&&META[f.n]).slice(0,3);if(!mine.length||!foes.length)return undefined;
+  SCENE='battle';BS.on=1;BS.trainer=o.trainer||'PVP';BS.bg=o.bg||'stadium';BS.potN=0;BS.me=BS.foe=null;
+  try{FX2.clear()}catch(e){}try{BGM.battle(o)}catch(e){}try{sfx('enc')}catch(e){}
+  try{await trainerScene('trainers/CHAMPION_Red.png',o.trainer||'PVP',['⚔ 3대3 실시간 대전!','내 포켓몬 '+mine.map(nm).join(' · ')+' vs 상대 '+foes.map(nm).join(' · '),'자동으로 싸워요. 한쪽 3마리가 다 쓰러지면 끝!'])}catch(e){}
+  const r=await RTB3.start(Object.assign({meTeam:mine.map(m=>Object.assign({},m,{moves:m.moves.slice()})),foeTeam:foes,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
+    hp0:m=>{const q=G.party.find(x=>x.uid===m.uid);return q?q.hp:null},aiTier:'T2',bg:rtBgOf,...rtCommon(),sfx,autoMe:1,noQuit:0,quitText:'대전을 포기할까요? (지는 것으로 돼요)',maxTime:240,
+    loseTxt:'졌다… 다음엔 이길 거야!',drawTxt:'무승부!',endHint:'자동으로 돌아가요'}));
+  const res=r==='win'?'win':r==='draw'?'draw':'lose';
+  try{FX2.clear()}catch(e){}showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();try{BGM.area()}catch(e){}
+  return res}
+window.rtPvp3=rtPvp3;
 window.rtWild=rtWild;window.rtWildOn=rtWildOn;
 css.textContent+='#rtWBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(384px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 13px "Galmuri11",sans-serif;color:#1c2550;background:#ffd9a0;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#rtWBtn.show{display:flex}#rtWBtn.on{background:#9bf0a8}';
 setInterval(()=>{try{
@@ -8671,6 +8687,7 @@ setInterval(()=>{try{
 }catch(e){}},1000);
 }catch(e){console.warn('rtbtn',e)}})();
 </script>
+<script>/* 9M: PvP(방어덱 · 친구 대전)은 3대3 실시간 자동으로 */{const _bt=battle;battle=async function(o){if(o&&o.pvp&&window.rtPvp3){try{const r=await rtPvp3(o);if(r!==undefined)return r}catch(e){console.warn('pvp3',e);SCENE='over';BS.on=0}}return _bt.apply(this,arguments)}}</script>
 <script id="b9i">
 // ===== 9I 난이도 최초 격파자 특별 접두사 =====
 // 챔피언이 되면 서버(pokeBoss/first-dN/players/{기기id} = {name, dmg:난이도, t})에 기록 → 가장 먼저 기록한 친구가 그 난이도 「최초 정복」 접두사(내 캐릭터 접두사 칸)
@@ -8735,8 +8752,9 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
- {v:2026111902,date:'11월 19일',t:'화면 크기 · 실시간 전투 쉬워짐 · 턴제 고르기 · 데미지 스킨 · 초월 · 천계 새 이야기',items:[
+ {v:2026111903,date:'11월 19일',t:'PVP 3대3 · 화면 크기 · 실시간 전투 쉬워짐 · 턴제 고르기 · 데미지 스킨 · 초월 · 천계 새 이야기',items:[
   {img:'ui/news/n01_hub.webp',h:'모든 새 기능은 「컨텐츠」에 있어요',p:['화면 오른쪽 버튼 모음에서 <b>「컨텐츠」</b>(사진의 빨간 동그라미)를 눌러요.','맨 위부터 <b>전투 방식 · 데미지 스킨 · 업데이트 소식</b>이 있어요.']},
+  {img:'ui/news/n10_pvp3.webp',h:'⚔ PVP가 3대3 실시간 자동 대전으로',p:['PVP(방어덱 도전 · 친구 대전)를 하면 <b>내 파티 앞 3마리 vs 상대 덱 앞 3마리</b>가 한 경기장에 동시에 나와요.','<b>자동으로만</b> 싸워요. 파란 고리 = 내 편, 빨간 고리 = 상대 편.','한쪽 3마리가 다 쓰러지면 끝! 순서를 바꾸려면 파티 순서를 바꿔요.']},
   {img:'ui/news/n08_scale.webp',h:'📱 화면 크기 (메뉴가 잘릴 때)',p:['컨텐츠 → <b>「📱 화면 크기」</b> (메뉴 → 설정에도 있어요)','<b>크게 100% · 조금 작게 90% · 작게 80% · 아주 작게 70% · 와이드 60%</b> 중에 눌러 보세요. 누르면 바로 바뀌어요.','마음에 들면 <b>「이대로 쓰기」</b>, 아니면 「되돌리기」(10초 지나면 저절로 되돌아가요). 이 폰에만 저장돼요.']},
   {img:'ui/news/n09_scalep.webp',h:'📱 화면 크기 고르는 화면',p:['그림 칸이 작아질수록 화면이 넓게(와이드) 보여요.','안드로이드는 게임 화면을 한 번 누르면 전체 화면 + 가로로 바뀌어요. 아이폰은 화면 회전 잠금을 끄고 폰을 가로로 돌려요.']},
   {img:'ui/news/n02_mode.webp',h:'⚔ 실시간 / 🎴 턴제 고르기',p:['컨텐츠 → <b>「전투 방식 (실시간 / 턴제)」</b> → 「전투 방식 바꾸기」','<b>실시간</b>: 조이스틱으로 움직이며 피하고 버튼으로 공격해요.','<b>턴제</b>: 예전처럼 기술을 골라 차례대로 싸워요. 언제든 다시 바꿀 수 있어요.']},
