@@ -20,4 +20,5 @@ jobs:
           git config user.name "unzip-bot"
           git add -A
           git commit -m "poke: 새 캐릭터 이미지 + 게임 파일 업데이트" || exit 0
-          git push
+          git pull --rebase origin main
+          git push origin main
