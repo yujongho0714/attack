@@ -7,6 +7,7 @@
  */
 (function(){
 'use strict';
+if(!window.BEAMFX&&!document.getElementById('beamfxJs')){try{const sc=document.createElement('script');sc.id='beamfxJs';sc.src='beamfx.js';document.head.appendChild(sc)}catch(er){}}   // 9T 빔 엔진
 const TICK=1/60, AW=1200, AH=760, WALL=18;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let rnd=Math.random;   // 9M: C.seed가 있으면 같은 숫자에서 시작하는 난수(같은 씨앗 = 똑같은 전투 → 나중에 실시간 매칭에서 모두가 같은 경기를 봄)
@@ -442,7 +443,7 @@ function fire(e,c){
   } else if(k==='beam'){
     const T=clamp(m.p/150,1.1,1.8);phaseTo(e,'active',Math.round(T*60));c.L=0;c.maxL=clamp(360+m.p*1.5,360,690);
     c.dmgMul=Math.min(1,12/(T*60))*1.25;
-    {const bl=c.maxL*.85;skillFx(e,m,{x:e.x,y:e.y},{x:clamp(e.x+u.x*bl,WALL,AW-WALL),y:clamp(e.y+u.y*bl,WALL,AH-WALL)},{force:1})}
+    if(!(window.BEAMFX&&fxOn()))/* 9T: 새 빔 엔진이 있으면 예전 빔 그림은 안 씀 */{const bl=c.maxL*.85;skillFx(e,m,{x:e.x,y:e.y},{x:clamp(e.x+u.x*bl,WALL,AW-WALL),y:clamp(e.y+u.y*bl,WALL,AH-WALL)},{force:1})}
   } else if(k==='pulse'){
     const cone=m.kd==='cone';const R=205*szMul(e,0);
     W.fx.push({k:cone?'cone':'ring',x:e.x,y:e.y,a:c.aim,t:0,life:.35,r:R,c:C.TCOL[m.type]||'#fff'});
@@ -505,7 +506,7 @@ function activeTick(e,c,tgt){
     if(tgt.hp>0){const want=Math.atan2(tgt.y-e.y,tgt.x-e.x);c.aim+=clamp(angDiff(c.aim,want),-1.1*TICK,1.1*TICK)}
     c.L=Math.min(c.maxL,c.L+1100*TICK);
     e.row=dirRow(Math.cos(c.aim),Math.sin(c.aim));
-    e.beam={a:c.aim,L:c.L,col:C.TCOL[m.type]||'#fff'};
+    e.beam={a:c.aim,L:c.L,col:C.TCOL[m.type]||'#fff',type:m.type,full:c.L>=c.maxL-1};
     if(c.t%12===0&&tgt.hp>0){
       const u=aimVec(c);const dx=tgt.x-e.x,dy=tgt.y-e.y;const al=dx*u.x+dy*u.y,pe=Math.abs(-dx*u.y+dy*u.x);
       if(al>=0&&al<=c.L+tgt.r&&pe<=tgt.r*1.1+32*szMul(e,0)){dealDamage(e,tgt,c.mi,{mult:c.dmgMul||.25,pm:1})}}
@@ -831,6 +832,7 @@ function render(){
     cx.font='bold 14px sans-serif';cx.textAlign='center';cx.lineWidth=3;cx.strokeStyle='#000';cx.fillStyle='#fff';const tl=Math.ceil(z.life)+'초';cx.strokeText(tl,z.x,z.y+5);cx.fillText(tl,z.x,z.y+5);cx.globalAlpha=1}
   for(const d of W.delays){const al=d.t>.5?.25:.35+.3*Math.sin(W.time*30);cx.globalAlpha=al;cx.fillStyle='#ff4a3a';cx.beginPath();cx.arc(d.x,d.y,d.r,0,7);cx.fill();cx.globalAlpha=1;cx.strokeStyle='#fff';cx.lineWidth=3;cx.stroke()}
   // 내가 누르고 있는 기술의 사용 범위 미리보기
+  if(window.BEAMFX&&fxOn()){const sk=BEAMFX.render(cx);if(sk>1)W.shk=Math.max(W.shk||0,sk*.5)}
   drawPreview(cx);
   // 개체
   if(fxOn()){try{C.fxe.VFX.drawGround(cx)}catch(er){}}
@@ -843,7 +845,8 @@ function render(){
     // 조준 예고 (준비 중, 내 것만)
     if(e.cast&&e.cast.phase==='startup'&&e===me){const c=e.cast;cx.globalAlpha=.25;cx.strokeStyle='#fff';cx.lineWidth=3;cx.setLineDash([10,8]);cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+Math.cos(c.aim)*220,e.y+Math.sin(c.aim)*220);cx.stroke();cx.setLineDash([]);cx.globalAlpha=1}
     if(e.cast&&e.cast.phase==='startup'&&e!==me){const c=e.cast;cx.globalAlpha=.3;cx.strokeStyle='#ff6a5a';cx.lineWidth=4;cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+Math.cos(c.aim)*200,e.y+Math.sin(c.aim)*200);cx.stroke();cx.globalAlpha=1}
-    if(e.beam){const b=e.beam;cx.save();cx.translate(e.x,e.y-(e.lift||0)-20);cx.rotate(b.a);const gg=cx.createLinearGradient(0,0,b.L,0);gg.addColorStop(0,'#fff');gg.addColorStop(1,b.col);cx.globalAlpha=fxOn()?.14:.85;cx.fillStyle=gg;cx.fillRect(0,-18,b.L,36);cx.globalAlpha=fxOn()?.2:.9;cx.fillStyle='#fff';cx.fillRect(0,-6,b.L,12);cx.restore();cx.globalAlpha=1}
+    if(e.beam&&window.BEAMFX&&fxOn()){const b=e.beam,ox=e.x,oy=e.y-(e.lift||0)-20;BEAMFX.live(e,b.type,ox,oy,ox+Math.cos(b.a)*b.L,oy+Math.sin(b.a)*b.L,b.full,1)}   // 9T: 사용자 빔 엔진(18속성 블룸)
+    else if(e.beam){const b=e.beam;cx.save();cx.translate(e.x,e.y-(e.lift||0)-20);cx.rotate(b.a);const gg=cx.createLinearGradient(0,0,b.L,0);gg.addColorStop(0,'#fff');gg.addColorStop(1,b.col);cx.globalAlpha=fxOn()?.14:.85;cx.fillStyle=gg;cx.fillRect(0,-18,b.L,36);cx.globalAlpha=fxOn()?.2:.9;cx.fillStyle='#fff';cx.fillRect(0,-6,b.L,12);cx.restore();cx.globalAlpha=1}
     const st=e.anim;
     const TR=e.eng&&e.tier>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
     if(TR){const a0=cx.globalAlpha;try{TFX.back(e.eng,cx,e.S,e.x,ty,e.sc,e.tier,tms)}catch(er){}cx.globalAlpha=a0}
@@ -1195,7 +1198,7 @@ function updBtns(){updSide();
 
 // ---------- 실행 ----------
 function stop(r){
-  if(!W||W.stopped)return;W.stopped=1;cancelAnimationFrame(W.raf);
+  if(!W||W.stopped)return;W.stopped=1;try{window.BEAMFX&&BEAMFX.clear()}catch(er){}cancelAnimationFrame(W.raf);
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
   try{for(const p of W.proj)if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}   // 9E: 날아가던 기술 그림(돌·소용돌이)이 다음 전투에 남던 문제
   if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear();C.fxe.VFX.clear&&C.fxe.VFX.clear()}catch(er){}}

@@ -8669,6 +8669,7 @@ async function rtPvp3(o){
   try{FX2.clear()}catch(e){}showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();try{BGM.area()}catch(e){}
   return res}
 window.rtPvp3=rtPvp3;
+window.rtCtxBase=()=>({getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},bg:rtBgOf,...rtCommon(),sfx});window.rtLoadBase=loadRtb;   // 9Q 난투전용
 window.rtWild=rtWild;window.rtWildOn=rtWildOn;
 css.textContent+='#rtWBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(384px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 13px "Galmuri11",sans-serif;color:#1c2550;background:#ffd9a0;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#rtWBtn.show{display:flex}#rtWBtn.on{background:#9bf0a8}';
 setInterval(()=>{try{
@@ -8752,6 +8753,9 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026111909,date:'11월 19일 밤',t:'빔 기술이 화려해졌어요 · 실시간 난투전(시험판)',items:[
+  {img:'ui/news/n13_beam.webp',h:'🌊🔥⚡ 빔 기술 새 이펙트 (18타입)',p:['하이드로펌프 · 화염방사 · 10만볼트 · 냉동빔 · 솔라빔 · 파괴광선 같은 <b>빔 기술 48개</b>가 새 빔으로 바뀌었어요.','타입마다 모양이 달라요: 물은 소용돌이 고리, 불은 일렁이는 불길, 전기는 갈라지는 번개, 드래곤은 두 줄 나선…','맞는 곳에 충격파와 파편이 튀고 빛이 번져요.']},
+  {img:'ui/news/n14_brawl.webp',h:'⚔ 실시간 난투전 (시험판)',p:['컨텐츠 → <b>「⚔ 실시간 난투전」</b> → 싸울 포켓몬 고르기 → <b>「🔍 상대 찾기」</b>','같은 시간에 「상대 찾기」를 누른 친구끼리 만나요. <b>2명이 모이면 3초 뒤 시작</b>, 그 사이에 더 들어오면 최대 6명까지!','모두 Lv.50으로 공평하게 싸워요. 직접 움직이고 기술을 써서 <b>마지막까지 살아남으면 1등</b>. 하루 10판, 등수만큼 PVP 코인과 돈을 받아요.','📶 같은 와이파이(도장)에서 제일 잘 돼요. 집에서 데이터로 하면 연결이 안 될 수도 있어요.']}]},
  {v:2026111908,date:'11월 19일 밤',t:'포켓몬 얼굴 그림(초상화)이 예전 그림으로 돌아왔어요',items:[
   {img:'',h:'🖼 예전 초상화 복구',p:['대화창 · 카드팩 · 도감에 나오는 포켓몬 얼굴 그림이 <b>예전 그림</b>으로 돌아왔어요.','기쁨 · 화남 같은 표정 그림도 다시 나와요.']}]},
  {v:2026111907,date:'11월 19일 밤',t:'나가기 · 교대 · 약 버튼이 커졌어요',items:[
@@ -8857,5 +8861,164 @@ const IT=k=>ITEMS&&ITEMS[k]?ITEMS[k].n:k;
 const c=document.createElement('style');c.textContent=`.iv3s{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin:0 4px 8px}.iv3s span{background:#1c2550;color:#cfd6ff;padding:6px 8px;font-size:12px}.iv3s b{color:#ffd23f;font-size:14px}
 .iv3k{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px 8px}.iv3k span{background:#fffaf0;border:2px solid #1c2550;padding:3px 8px;font-size:12px}.iv3k b{color:#c0392b}`;document.head.appendChild(c);
 }catch(e){console.warn('9P 계정 상세',e)}})();
+</script>
+<script id="b9q">
+// ===== 9Q 실시간 난투전: 사람끼리만 · 2명 모이면 3초 뒤 시작 · 랜덤 2~6명 · 각자 직접 조작 · 데미지 보정 · 하루 10판 =====
+// 찾기: 서버 칸 pokeRank/brq-{날짜}(대기 w~ · 방 r~) · 연결 신호: pokeRank/brs-{방}(o~ 손님 / a~ 방장) · 연결: WebRTC(폰끼리 바로) · 판정은 방장 폰
+(function(){try{
+const BRDAY=10,ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+const brS=()=>{G.brawl=G.brawl||{};const d=dayKey();if(G.brawl.d!==d)G.brawl={d,n:0,w:G.brawl.w||0,g:G.brawl.g||0,pick:G.brawl.pick};return G.brawl};
+const now=()=>Date.now(),t36=n=>n.toString(36);
+const Q=(bd,since)=>(window.brFSQ||brQ)(bd,since),P=(bd,id,n,v,t)=>(window.brFSP||fsPut)(bd,id,n,v,t);
+async function brQ(bd,since){const B=fsBase();if(!B||!navigator.onLine)return null;try{const r=await fetch(B.u+bd+':runQuery?key='+B.k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],where:{fieldFilter:{field:{fieldPath:'t'},op:'GREATER_THAN',value:{integerValue:String(since)}}},limit:80}})});if(!r.ok)return null;const j=await r.json();const o=[];
+  for(const x of j)if(x.document){const d=x.document,f=d.fields||{};let id=d.name.split('/').pop();try{id=decodeURIComponent(id)}catch(e){}o.push({id,name:(f.name||{}).stringValue||'',v:+((f.v||{}).integerValue||0),t:+((f.t||{}).integerValue||0)})}return o}catch(e){return null}}
+// --- 연결 정보(SDP)를 짧게 줄여서 문서 이름에 담기 ---
+function sdpPack(sdp){const L=sdp.split(/\r?\n/),g=k=>{const l=L.find(x=>x.startsWith('a='+k+':'));return l?l.slice(k.length+3).trim():''};
+  const fp=(g('fingerprint').split(' ')[1]||'').split(':').map(h=>parseInt(h,16));
+  const c=L.filter(x=>x.startsWith('a=candidate:')).map(x=>x.slice(12).split(' ')).filter(p=>(p[2]||'').toLowerCase()==='udp'&&!/:/.test(p[4])).slice(0,6).map(p=>{const i=p.indexOf('typ');return[p[0],p[3],p[4],p[5],p[i+1]].join(' ')});
+  return acB64u(new TextEncoder().encode(JSON.stringify({u:g('ice-ufrag'),p:g('ice-pwd'),f:acB64u(new Uint8Array(fp)),s:g('setup'),m:g('mid')||'0',c})))}
+function sdpUnpack(z){const o=JSON.parse(new TextDecoder().decode(acUb64(z)));const fp=[...acUb64(o.f)].map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(':');
+  const c=o.c.map(s=>{const p=s.split(' ');return 'a=candidate:'+p[0]+' 1 udp '+p[1]+' '+p[2]+' '+p[3]+' typ '+p[4]+(p[4]!=='host'?' raddr 0.0.0.0 rport 0':'')});
+  return ['v=0','o=- 4611731400430051336 2 IN IP4 127.0.0.1','s=-','t=0 0','a=group:BUNDLE '+o.m,'a=msid-semantic: WMS','m=application 9 UDP/DTLS/SCTP webrtc-datachannel','c=IN IP4 0.0.0.0',...c,'a=ice-ufrag:'+o.u,'a=ice-pwd:'+o.p,'a=ice-options:trickle','a=fingerprint:sha-256 '+fp,'a=setup:'+o.s,'a=mid:'+o.m,'a=sctp-port:5000','a=max-message-size:262144',''].join('\r\n')}
+const gather=pc=>new Promise(r=>{if(pc.iceGatheringState==='complete')return r();const t=setTimeout(r,2500);pc.addEventListener('icegatheringstatechange',()=>{if(pc.iceGatheringState==='complete'){clearTimeout(t);r()}})});
+window.brSdp={sdpPack,sdpUnpack};
+// --- 공정하게: 모두 Lv.50 기준 능력치, 센 친구는 아주 조금(최대 +12%)만 더 셈 ---
+const brPow=m=>{try{return stOf(m).reduce((a,b)=>a+b,0)}catch(e){return 300}};
+function brStats(n,pw,med){const M=META[n];const b=statsOf(M,50,[20,20,20,20,20,20]);const r=rstat(n)*.5;const f=Math.max(.9,Math.min(1.12,Math.pow(Math.max(1,pw)/Math.max(1,med),.12)));
+  return b.map((x,i)=>Math.round(i===0?x*(1+r/2)*f*4:x*(1+r)*(i===1||i===3?f:1)))}
+const brMon=m=>({n:m.n,sh:m.sh?1:0,fr:m.fr,moves:(m.moves||[]).slice(0,4)});
+const brPick=()=>{const al=G.party.filter(m=>m&&META[m.n]);const s=brS();return al.find(m=>m.uid===s.pick)||al[0]};
+// --- 상태 ---
+let M=null;   // {st, sess, ...}
+const say=(h,sub)=>{const e=document.getElementById('brSt');if(e)e.innerHTML=`<b>${h}</b>${sub?'<small>'+sub+'</small>':''}`};
+function brClean(){if(!M)return;try{for(const k in (M.peers||{})){try{M.peers[k].pc.close()}catch(e){}}}catch(e){}try{M.pc&&M.pc.close()}catch(e){}clearInterval(M.iv);M.dead=1;M=null}
+function brCancel(msg){brClean();if(msg)toast(msg);brDraw()}
+// --- 찾기 ---
+async function brFind(){if(M)return;const s=brS();if(s.n>=BRDAY){toast('오늘 난투전은 '+BRDAY+'판까지예요. 내일 또 만나요!');return}
+  if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되어야 해요');return}if(typeof RTCPeerConnection==='undefined'){toast('이 브라우저는 실시간 대전을 못 해요 (크롬·사파리 최신 버전으로)');return}
+  const m=brPick();if(!m){toast('포켓몬이 없어요');return}
+  M={st:'wait',sess:now(),hb:0,cd:0,lob:'brq-'+dayKey(),mon:m};brDraw();say('친구를 찾는 중…','같이 「상대 찾기」를 누른 친구와 바로 만나요');
+  const step=async()=>{if(!M||M.busy||M.st!=='wait')return;if(!document.getElementById('brBox')){brCancel();return}M.busy=1;try{await brTick()}catch(e){console.warn('brawl',e)}if(M)M.busy=0};
+  M.iv=setInterval(step,1500);step()}
+async function brTick(){const t=now(),me=G.pid;
+  if(t-M.hb>2800){M.hb=t;await P(M.lob,'w~'+me+'~'+t36(M.sess),G.name||'트레이너',0,t)}
+  if(!M||M.st!=='wait')return;
+  const L=await Q(M.lob,t-9000);if(!M||M.st!=='wait')return;if(!L){say('서버 연결이 잠깐 안 돼요…','다시 시도하는 중');return}
+  const rooms=[],busy=new Set();for(const x of L){const a=x.id.split('~');if(a[0]==='r'&&a.length>=4&&x.t>t-20000){const mem=a[3].split('.');rooms.push({rid:a[1],seed:parseInt(a[2],36)||1,mem,t:x.t});mem.forEach(p=>busy.add(p))}}
+  const mine=rooms.filter(r=>r.mem.includes(me)).sort((a,b)=>a.t-b.t)[0];
+  if(mine){if(mine.mem[0]===me&&!M.myRoom){/* 내가 방장이 아닌데 내 pid가 첫 자리? 그대로 방장 */}M.room=mine;M.st='sig';say(mine.mem.length+'명 모였어요!','연결하는 중… (같은 와이파이면 금방 돼요)');sfxS('ok');brSignal();return}
+  const W={};for(const x of L){const a=x.id.split('~');if(a[0]!=='w'||a.length<3||busy.has(a[1]))continue;const ss=parseInt(a[2],36)||0;if(!W[a[1]]||W[a[1]].ss<ss)W[a[1]]={pid:a[1],ss,name:x.name}}
+  if(!W[me])W[me]={pid:me,ss:M.sess,name:G.name};
+  const ws=Object.values(W).sort((a,b)=>a.ss-b.ss||(a.pid<b.pid?-1:1));
+  if(ws.length<2){M.cd=0;say('친구를 찾는 중…','지금 기다리는 친구: 나 혼자 · 친구도 「상대 찾기」를 누르면 바로 만나요');return}
+  if(ws[0].pid!==me){M.cd=0;say(ws.length+'명 모였어요! 곧 시작해요','방장이 방을 만드는 중…');return}
+  if(!M.cd)M.cd=t;const left=3-Math.floor((t-M.cd)/1000);
+  if(left>0){say(ws.length+'명 모였어요! '+left+'초 뒤 시작','더 들어오면 같이 싸워요 (최대 6명)');return}
+  const n=Math.min(6,ws.length),k=n<=2?2:2+Math.floor(Math.random()*(n-1));const mem=ws.slice(0,k).map(w=>w.pid);
+  const rid=t36(t)+Math.random().toString(36).slice(2,5),seed=1+Math.floor(Math.random()*1e9);
+  M.room={rid,seed,mem,t,host:1};M.roomId='r~'+rid+'~'+t36(seed)+'~'+mem.join('.');
+  await P(M.lob,M.roomId,G.name||'',k,t);M.st='sig';say(k+'명 모였어요!','연결하는 중…');sfxS('ok');brSignal()}
+const sfxS=k=>{try{sfx(k==='ok'?'lv':'tap')}catch(e){}};
+// --- 연결(신호 주고받기) ---
+async function brSignal(){const R=M.room,me=G.pid,bd='brs-'+R.rid,host=R.mem[0]===me;M.host=host;M.bd=bd;const T0=now();
+  if(host){M.peers={};M.hello={};
+    const loop=async()=>{if(!M||M.dead)return;const t=now();
+      if(M.roomId&&t-(M.rp||0)>3000){M.rp=t;P(M.lob,M.roomId,G.name||'',R.mem.length,t)}
+      const L=await Q(bd,T0-60000)||[];if(!M||M.dead)return;
+      for(const x of L){const a=x.id.split('~');if(a[0]!=='o'||a.length<3)continue;const pid=a[1];if(!R.mem.includes(pid)||M.peers[pid])continue;
+        const pc=new RTCPeerConnection(ICE),pr={pc,pid,z:null};M.peers[pid]=pr;
+        pc.ondatachannel=ev=>{const dc=ev.channel;pr.dc=dc;dc.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(er){return}brHostMsg(pid,m)};dc.onclose=()=>brHostGone(pid)};
+        try{await pc.setRemoteDescription({type:'offer',sdp:sdpUnpack(a.slice(2).join('~'))});await pc.setLocalDescription(await pc.createAnswer());await gather(pc);pr.z=sdpPack(pc.localDescription.sdp)}catch(e){console.warn('br answer',e);pr.bad=1}}
+      for(const pid in M.peers){const pr=M.peers[pid];if(pr.z&&!M.hello[pid]&&t-(pr.ap||0)>2500){pr.ap=t;P(bd,'a~'+pid+'~'+pr.z,G.name||'',1,t)}}
+      const got=Object.keys(M.hello).length,need=R.mem.length-1;say(R.mem.length+'명 모였어요!','연결된 친구 '+got+' / '+need);
+      if(got>=need||(t-T0>16000&&got>=1)){brGo();return}
+      if(t-T0>16000){brCancel('친구 폰과 연결이 안 됐어요. 같은 와이파이에 연결하고 다시 해 봐요');return}
+      setTimeout(loop,1200)};
+    loop();return}
+  // 손님
+  const pc=new RTCPeerConnection(ICE),dc=pc.createDataChannel('b',{ordered:true});M.pc=pc;M.dc=dc;
+  dc.onopen=()=>{const m=M.mon;dc.send(JSON.stringify({k:'hi',name:G.name||'트레이너',mon:brMon(m),pw:brPow(m)}));say('연결됐어요!','다른 친구를 기다리는 중…')};
+  dc.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(er){return}brGuestMsg(m)};
+  dc.onclose=()=>{if(M&&M.playing&&window.RTBR&&RTBR._dbg&&RTBR._dbg()&&!RTBR._dbg().over){toast('방장 친구와 연결이 끊겼어요');RTBR._stop('quit')}else if(M&&!M.playing)brCancel('연결이 끊겼어요')};
+  try{await pc.setLocalDescription(await pc.createOffer());await gather(pc)}catch(e){brCancel('연결 준비 실패');return}
+  const z=sdpPack(pc.localDescription.sdp);let done=0;
+  const loop=async()=>{if(!M||M.dead||M.playing||M.go)return;const t=now();
+    if(t-(M.op||0)>2500){M.op=t;P(bd,'o~'+me+'~'+z,G.name||'',0,t)}
+    if(!done){const L=await Q(bd,T0-60000)||[];if(!M||M.dead)return;const x=L.find(x=>x.id.startsWith('a~'+me+'~'));if(x){done=1;try{await pc.setRemoteDescription({type:'answer',sdp:sdpUnpack(x.id.split('~').slice(2).join('~'))})}catch(e){console.warn('br setAnswer',e)}}}
+    if(t-T0>22000&&!(dc.readyState==='open')){brCancel('친구 폰과 연결이 안 됐어요. 같은 와이파이에 연결하고 다시 해 봐요');return}
+    setTimeout(loop,1200)};
+  loop()}
+function brHostMsg(pid,m){if(!M)return;if(m.k==='hi'){M.hello[pid]={name:String(m.name||'').slice(0,12),mon:m.mon,pw:+m.pw||300};return}
+  const j=M.idx&&M.idx[pid];if(j==null)return;if(m.k==='rd'){M.rdy[j]=1}if(window.RTBR)RTBR._rx(j,m)}
+function brHostGone(pid){if(!M)return;const j=M.idx&&M.idx[pid];if(j!=null&&window.RTBR)RTBR._rx(j,{k:'q'})}
+function brGuestMsg(m){if(!M)return;if(m.k==='go'){M.go=1;brPlay({host:false,me:m.me,players:m.roster.map(brMk),tx:x=>{try{M&&M.dc&&M.dc.readyState==='open'&&M.dc.send(JSON.stringify(x))}catch(e){}}},m.seed);return}if(window.RTBR)RTBR._rx(-1,m)}
+const brMk=p=>({name:p.name,mon:Object.assign({lv:50,uid:'br'+p.j,_st:p.st,_pn:p.name},p.mon)});
+function brGo(){if(!M||M.go)return;M.go=1;const me=G.pid,mm=M.mon;
+  const L=[{pid:me,name:G.name||'트레이너',mon:brMon(mm),pw:brPow(mm)}];for(const pid of M.room.mem)if(pid!==me&&M.hello[pid])L.push(Object.assign({pid},M.hello[pid]));
+  const pws=L.map(x=>x.pw).sort((a,b)=>a-b),med=pws[Math.floor(pws.length/2)];
+  const roster=L.map((x,j)=>({j,name:x.name,mon:x.mon,st:brStats(x.mon.n,x.pw,med)}));
+  M.idx={};L.forEach((x,j)=>{if(j)M.idx[x.pid]=j});M.rdy={};
+  for(const pid in M.peers){const pr=M.peers[pid];const j=M.idx[pid];if(j==null){try{pr.pc.close()}catch(e){}continue}try{pr.dc.send(JSON.stringify({k:'go',me:j,roster,seed:M.room.seed}))}catch(e){}}
+  const bc=x=>{const s=JSON.stringify(x);for(const pid in M.peers){const pr=M.peers[pid];if(M.idx[pid]!=null&&pr.dc&&pr.dc.readyState==='open'){try{pr.dc.send(s)}catch(e){}}}};
+  brPlay({host:true,me:0,guests:L.slice(1).map((_,i)=>i+1),rdy:M.rdy,players:roster.map(brMk),bc,end:rank=>bc({k:'E',rank})},M.room.seed)}
+// --- 전투 ---
+function loadRtbr(){return window.RTBR?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='rtbrawl.js?v='+Date.now();s.onload=ok;s.onerror=()=>no(new Error('rtbrawl.js'));document.head.appendChild(s)})}
+async function brPlay(net,seed){if(!M)return;M.playing=1;closePanel(1);clearInterval(M.iv);const s=brS();s.n++;s.g++;save();
+  const n=net.players.length;
+  try{await window.rtLoadBase();await loadRtbr();await rzMovesLoad()}catch(e){toast('전투 파일을 못 불러왔어요');brClean();return}
+  SCENE='battle';BS.on=1;BS.trainer='난투전';BS.bg='stadium';BS.potN=0;BS.me=BS.foe=null;try{FX2.clear()}catch(e){}try{BGM.battle({})}catch(e){}
+  const base=window.rtCtxBase();
+  const ctx=Object.assign(base,{stOf:m=>(m._st||[200,50,50,50,50,50]).slice(),numK:()=>1,critOf:()=>({c:0,d:0}),gearOf:()=>null,dmgMul:()=>1,tierOf:()=>0,onUse:()=>0,dLv:()=>50,
+    nm:m=>(m._pn?m._pn+' · ':'')+nm(m),seed,net,maxTime:120,quitText:'난투전에서 나갈까요? (꼴찌가 돼요)',loseTxt:'',drawTxt:'',endHint:'곧 돌아가요',fast:()=>false,setFast:()=>{},potLeft:()=>null});
+  let r='quit';try{r=await RTBR.start(ctx)}catch(e){console.warn('brawl start',e)}
+  const last=(window.RTBR&&RTBR.last)||{};
+  if(r==='quit'&&!net.host){try{net.tx({k:'q'})}catch(e){}}
+  try{FX2.clear()}catch(e){}showBattleUI(0);SCENE='over';BS.on=0;try{await refreshSpr()}catch(e){}hud();try{BGM.area()}catch(e){}
+  const place=last.place||0,names=(last.rank||[]).map(j=>net.players[j]?net.players[j].name:'?');
+  let coin=0,money=0;if(place&&r!=='quit'){coin=[0,6,4,3,2,1,1][place]||1;money=(n-place+1)*1500*(1+Math.max(0,DIFF()));G.pvpCoin=(G.pvpCoin||0)+coin;G.money=(G.money||0)+money;if(place===1)s.w++;save()}
+  setTimeout(()=>brClean(),4000);
+  openPanel('⚔ 난투전 결과',`<div class="brRes">${place?`<div class="brBig">${place===1?'🏆 1등!':place+'등'}</div>`:'<div class="brBig">나갔어요</div>'}
+    <ol>${names.map((x,i)=>`<li class="${(last.rank||[])[i]===net.me?'me':''}"><b>${i+1}등</b> ${esc(x)}</li>`).join('')}</ol>
+    ${coin?`<p>보상: 🪙 PVP 코인 <b>+${coin}</b> · 💰 <b>+${money.toLocaleString()}</b>원</p>`:''}<p class="hhint">오늘 ${s.n} / ${BRDAY}판 · 1등 ${s.w}번</p>
+    <button class="brGo" onclick="brOpen()">⚔ 한 판 더</button></div>`)}
+// --- 화면 ---
+function brDraw(){const b=document.getElementById('brBox');if(!b)return;const s=brS(),m=brPick();const al=G.party.filter(x=>x&&META[x.n]);
+  b.innerHTML=`<div class="brHead"><b>⚔ 실시간 난투전</b><small>사람끼리만 · 2명 모이면 3초 뒤 시작 · 2~6명이 한 경기장에서 · 마지막까지 살아남으면 1등!</small></div>
+   <div class="brRule"><span>👥 랜덤 1:1 ~ 6명</span><span>🎮 내가 직접 조작</span><span>⚖ 모두 Lv.50으로 공평하게</span><span>📅 오늘 <b>${s.n}</b> / ${BRDAY}판</span></div>
+   <h4>싸울 포켓몬 (눌러서 고르기)</h4><div class="brMons">${al.map(x=>`<button class="${m&&x.uid===m.uid?'on':''}" data-u="${x.uid}" ${M?'disabled':''}><img src="${THUMB[x.n]||''}" alt=""><span>${nm(x)}</span></button>`).join('')}</div>
+   <div id="brSt" class="brSt">${M?'':'<b>준비 완료!</b><small>같이 할 친구도 지금 「상대 찾기」를 눌러야 만나요</small>'}</div>
+   ${M?'<button class="brGo cancel" id="brX">✋ 그만 찾기</button>':`<button class="brGo" id="brF" ${s.n>=BRDAY?'disabled':''}>🔍 상대 찾기</button>`}
+   <p class="hhint">📶 같은 와이파이(도장)에서 제일 잘 연결돼요. 집에서 데이터(LTE)로 하면 연결이 안 될 수도 있어요.</p>`;
+  b.querySelectorAll('.brMons button').forEach(x=>x.onclick=()=>{brS().pick=+x.dataset.u||x.dataset.u;const mm=al.find(y=>String(y.uid)===x.dataset.u);if(mm)brS().pick=mm.uid;save();sfxS();brDraw()});
+  const f=b.querySelector('#brF');if(f)f.onclick=()=>{sfxS();brFind()};const c=b.querySelector('#brX');if(c)c.onclick=()=>{sfxS();brCancel()}}
+function brOpen(){if(!G)return;if(M&&M.playing)return;openPanel('⚔ 실시간 난투전','<div id="brBox"></div>',()=>{if(M&&!M.playing)brCancel()});brDraw()}
+window.brOpen=brOpen;window.brDbg=()=>M;
+try{HUB.unshift({k:'brawl',n:'⚔ 실시간 난투전 (친구랑 진짜 대결)',d:'같은 시간에 「상대 찾기」를 누른 친구들과 한 경기장에서 직접 조작하며 싸워요. 2~6명, 하루 '+BRDAY+'판.',st:()=>'오늘 '+brS().n+'/'+BRDAY+'판',go:[['난투전 열기',()=>brOpen()]]})}catch(e){}
+const c=document.createElement('style');c.textContent=`#brBox{font-family:"Galmuri11",sans-serif}.brHead{background:#1c2550;color:#ffd23f;padding:10px 12px;border:3px solid #0a0d18;box-shadow:0 4px 0 #0a0d18;margin:2px 4px 10px}.brHead b{font-size:20px;display:block}.brHead small{color:#cfd6ff;font-size:12px}
+.brRule{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px 8px}.brRule span{background:#fffaf0;border:2px solid #1c2550;padding:4px 8px;font-size:12px;font-weight:700}.brRule b{color:#c0392b}
+.brMons{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px 10px}.brMons button{display:flex;flex-direction:column;align-items:center;width:74px;padding:4px;background:#fffaf0;border:3px solid #1c2550;box-shadow:0 3px 0 #1c2550;cursor:pointer;font:700 11px "Galmuri11",sans-serif}.brMons button img{width:48px;height:48px;image-rendering:pixelated}.brMons button.on{background:#ffd23f!important;box-shadow:0 0 0 3px #c0392b,0 3px 0 #1c2550!important}
+.brSt{margin:4px;padding:10px;background:#0f1530;color:#9bf0a8;border:3px solid #0a0d18;min-height:46px}.brSt b{display:block;font-size:16px}.brSt small{color:#cfd6ff;font-size:12px}
+.brGo{display:block;width:calc(100% - 8px);margin:8px 4px;padding:12px;font:900 20px "Galmuri11",sans-serif;color:#fff;background:#c0392b;border:3px solid #0a0d18;box-shadow:0 5px 0 #0a0d18,inset 0 0 0 2px rgba(255,255,255,.35);cursor:pointer;text-shadow:0 2px 0 #0a0d18}.brGo:active{transform:translateY(3px);box-shadow:0 2px 0 #0a0d18}.brGo.cancel{background:#59607a}.brGo:disabled{filter:grayscale(1);opacity:.6}
+.brRes{font-family:"Galmuri11",sans-serif;text-align:center}.brBig{font-size:40px;font-weight:900;color:#ffd23f;text-shadow:0 3px 0 #1c2550;margin:6px}.brRes ol{list-style:none;padding:0;margin:6px auto;max-width:280px}.brRes li{background:#fffaf0;border:2px solid #1c2550;margin:3px;padding:4px 8px;text-align:left}.brRes li.me{background:#ffd23f}`;document.head.appendChild(c);
+}catch(e){console.warn('9Q 난투전',e)}})();
+</script>
+<script id="b9t">
+// ===== 9T 빔 기술 = 사용자 빔 엔진(beamfx.js, 18속성 블룸) — 턴제 전투에도 (실시간 전투는 rtbattle.js 안에서) =====
+(function(){try{
+if(!window.BEAMFX&&!document.getElementById('beamfxJs')){const sc=document.createElement('script');sc.id='beamfxJs';sc.src='beamfx.js';document.head.appendChild(sc)}
+const isBeam=m=>{if(!m)return false;if(m.rk)return m.rk==='beam';const r=typeof RZM!=='undefined'&&RZM[m.id];if(r&&r.k)return r.k==='beam';return /빔|광선|레이저|캐논|방사|펌프/.test(m.name||'')};
+window.isBeamMv=isBeam;
+{const _r=SKFX.run;SKFX.run=async function(x,id,m,L,mine,adv){
+  try{if(window.BEAMFX&&x&&x.a&&x.b&&isBeam(m)&&!(G&&G.opt&&G.opt.beamOld)){
+    let ov=null;try{ov=(typeof GMFX!=='undefined')?GMFX.ov(m&&m.id,GMFX.tierOf(x,mine),{L:L|0,aw:((x&&x.A&&x.A.m&&x.A.m.aw)|0)}):null}catch(e){}
+    if(!ov){const E=BEAMFX.engine,t=String(m.type||'NORMAL').toLowerCase(),sp=BEAMFX.TYPE_SPECS.find(s=>s.id===t)||BEAMFX.TYPE_SPECS[BEAMFX.TYPE_SPECS.length-1];
+      try{x.pose&&x.pose(x.A,'shoot')}catch(e){}try{sfx('atk')}catch(e){}
+      const ws=E.config.widthScale;E.config.widthScale=Math.max(.7,Math.min(1.6,(x.S||70)/60));E.fire(sp.id,x.a.x,x.a.y,x.b.x,x.b.y);
+      const fr=16.667,tHit=(sp.chargeDur+sp.fireDur*.18)*fr;await sleep(tHit);E.config.widthScale=ws;try{x.hit&&x.hit(1)}catch(e){}
+      await sleep(Math.max(200,(sp.fireDur*.82)*fr));return}}}catch(e){console.warn('beam turn',e)}
+  return _r.apply(this,arguments)}}
+{const _f=CINE.front;CINE.front=function(cx,dt){const r=_f.apply(this,arguments);try{if(window.BEAMFX&&BEAMFX.engine.busy)BEAMFX.render(cx)}catch(e){}return r}}
+try{rzMovesLoad()}catch(e){}
+}catch(e){console.warn('9T 빔',e)}})();
 </script>
 </body></html>
