@@ -155,6 +155,7 @@ function mkEnt(mon,S,side,hp0){
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
     m.su=Math.max(1,Math.round(m.su-.6*clamp((s[5]-50)/100,0,1)*(m.su-17)))});
+  if(side===1)e.moves.forEach(m=>{if(m.su>0)m.su=Math.round(m.su*1.4)});   // 9J: 상대 준비동작 40% 길게(보고 피할 시간)
   e.moves.forEach((m,i)=>{e.cdMax[i]=m.cd*(m.hasted?e.haste:1)});
   e.ch=[0,0,0,0];e.chT=[0,0,0,0];e.pp=[0,0,0,0];
   e.moves.forEach((m,i)=>{if(m.chg){m.chg.per*=(m.hasted?e.haste:1);e.ch[i]=m.chg.max;e.cdMax[i]=m.chg.per}e.pp[i]=m.ppMax});
@@ -390,7 +391,7 @@ function toRecovery(e,c){phaseTo(e,'recovery',c.mv.rech?150:(e.ramp&&e.ramp.left
 function aimVec(c){return{x:Math.cos(c.aim),y:Math.sin(c.aim)}}
 function circleHit(e,c,cx,cy,rad,tgt,opt){
   if(tgt.hp<=0)return false;
-  if(len(tgt.x-cx,tgt.y-cy)<=rad*1.15+tgt.r*1.1){dealDamage(e,tgt,c.mi,opt);return true}
+  if(len(tgt.x-cx,tgt.y-cy)<=rad*(e.side?1:1.45)+tgt.r*(e.side?.9:1.2)){dealDamage(e,tgt,c.mi,opt);return true}
   return false;
 }
 function fire(e,c){
@@ -426,7 +427,7 @@ function fire(e,c){
     const special=!m.phys;
     const nF=Math.max(1,m.d.fan|0);   // 7F: fan=여러 발을 부채꼴로 한 번에(한 발 위력은 나눔)
     for(let fj=0;fj<nF;fj++){const fa=c.aim+(fj-(nF-1)/2)*.22,fu={x:Math.cos(fa),y:Math.sin(fa)};
-    W.proj.push({o:e,mi:c.mi,pm:nF>1?1.6/nF:0,x:e.x+fu.x*e.r,y:e.y+fu.y*e.r,dx:fu.x,dy:fu.y,sp:(special?480:430)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(m.d.sb==='bolt'?1.25:1)*szMul(e,0),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
+    W.proj.push({o:e,mi:c.mi,pm:nF>1?1.6/nF:0,x:e.x+fu.x*e.r,y:e.y+fu.y*e.r,dx:fu.x,dy:fu.y,sp:(special?480:430)*(e.side?.75:1.05)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(e.side?1:1.35)*(m.d.sb==='bolt'?1.25:1)*szMul(e,0),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
       hm:/^homing/.test(m.d.sb||'')?60:0});
     {const P=W.proj[W.proj.length-1];P.fxa=projSkin(P,m)}}
     toRecovery(e,c);
@@ -442,17 +443,17 @@ function fire(e,c){
     if(tgt.hp>0){
       const dx=tgt.x-e.x,dy=tgt.y-e.y,d=len(dx,dy);
       if(d<=R+tgt.r){
-        if(!cone||Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=75*Math.PI/180||d<e.r+tgt.r+28){hit=true;dealDamage(e,tgt,c.mi)}}}
+        if(!cone||Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=(e.side?65:95)*Math.PI/180||d<e.r+tgt.r+(e.side?18:40)){hit=true;dealDamage(e,tgt,c.mi)}}}
     if(hit&&m.st)applyEf(e,tgt,m,true);
     toRecovery(e,c);
   } else if(k==='zone'){
     const d=c.dist!=null?clamp(c.dist,40,230):Math.min(230,tgt.hp>0?len(tgt.x-e.x,tgt.y-e.y):230);
     W.zones=W.zones.filter(z=>z.o!==e||false);
-    W.zones.push({o:e,mi:c.mi,x:clamp(e.x+u.x*d,WALL,AW-WALL),y:clamp(e.y+u.y*d,WALL,AH-WALL),r:62,life:25,tick:1.5,col:C.TCOL[m.type]||'#fff',st:m.st});
+    W.zones.push({o:e,mi:c.mi,x:clamp(e.x+u.x*d,WALL,AW-WALL),y:clamp(e.y+u.y*d,WALL,AH-WALL),r:e.side?62:110,life:25,tick:1.5,col:C.TCOL[m.type]||'#fff',st:m.st});
     {const z=W.zones[W.zones.length-1];skillFx(e,m,{x:e.x,y:e.y},{x:z.x,y:z.y},{force:1})}
     toRecovery(e,c);
   } else if(k==='delayed'){
-    W.delays.push({o:e,mi:c.mi,x:tgt.x,y:tgt.y,t:2.2,r:58,col:C.TCOL[m.type]||'#fff',lock:false,tgt});
+    W.delays.push({o:e,mi:c.mi,x:tgt.x,y:tgt.y,t:2.2,r:e.side?58:88,col:C.TCOL[m.type]||'#fff',lock:false,tgt});
     toRecovery(e,c);
   } else if(k==='target'){
     if(tgt.hp>0&&len(tgt.x-e.x,tgt.y-e.y)<=550+tgt.r){
@@ -470,7 +471,7 @@ function activeTick(e,c,tgt){
     e.x=nx;e.y=ny;
     if(!c.hit&&tgt.hp>0){
       const dx=tgt.x-e.x,dy=tgt.y-e.y,d=len(dx,dy);
-      if(d<=c.reach*1.2+tgt.r*1.1&&(Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=c.half+.3||d<e.r+tgt.r+30)){
+      if(d<=c.reach*(e.side?1.05:1.45)+tgt.r*(e.side?.95:1.2)&&(Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=c.half+(e.side?.15:.5)||d<e.r+tgt.r+(e.side?18:40))){
         c.hit=true;dealDamage(e,tgt,c.mi,c.pm?{pm:c.pm}:undefined);if(m.st)applyEf(e,tgt,m,true)}}
     if(c.t>=c.len)toRecovery(e,c);
   } else if(k==='leap'){
@@ -576,7 +577,7 @@ function update(){
     if(p.hm>0&&tgt.hp>0){p.hm--;const a=Math.atan2(p.dy,p.dx),w=angDiff(a,Math.atan2(tgt.y-p.y,tgt.x-p.x)),mx=200*Math.PI/180*TICK,na=a+clamp(w,-mx,mx);p.dx=Math.cos(na);p.dy=Math.sin(na)}  // 유도: 초당 200도, 1초
     const st=p.sp*TICK;p.x+=p.dx*st;p.y+=p.dy*st;p.tr+=st;
     if(p.fxa){p.fxa.x=p.x;p.fxa.y=p.y-24;p.fxa.rot=Math.atan2(p.dy,p.dx)}
-    if(tgt.hp>0&&len(tgt.x-p.x,tgt.y-p.y)<=p.r*1.3+tgt.r*1.05){   // 9E 판정 넓힘
+    if(tgt.hp>0&&len(tgt.x-p.x,tgt.y-p.y)<=p.r*(p.o.side?1.05:1.5)+tgt.r*(p.o.side?.85:1.2)){   // 9E 판정 넓힘
       const d=dealDamage(p.o,tgt,p.mi,p.pm?{pm:p.pm}:undefined);if(p.st)applyEf(p.o,tgt,p.o.moves[p.mi],true);
       p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});skillFx(p.o,p.o.moves[p.mi],{x:p.x,y:p.y},{x:p.x,y:p.y},{force:1});
     } else if(p.tr>p.range||p.x<WALL||p.x>AW-WALL||p.y<WALL||p.y>AH-WALL){p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.2,r:p.r*1.5,c:p.col})}
@@ -596,12 +597,12 @@ function update(){
   W.proj=W.proj.filter(p=>{if(p.dead&&p.fxa){try{C.fxe.VFX.stop(p.fxa)}catch(e){}}return !p.dead});
   // 장판
   for(const z of W.zones){z.life-=TICK;z.tick-=TICK;
-    if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r*1.1+t.r*.9&&!t.hidden){const d=Math.max(1,Math.round(t.max*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,fmtN(d*kOf(t)),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
+    if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r*(z.o.side?1:1.15)+t.r*.9&&!t.hidden){const d=Math.max(1,Math.round(t.max*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,fmtN(d*kOf(t)),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
   W.zones=W.zones.filter(z=>z.life>0);
   // 내려찍기
   for(const d of W.delays){d.t-=TICK;
     if(d.t>.5&&d.tgt.hp>0){d.x=d.tgt.x;d.y=d.tgt.y}
-    if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});skillFx(d.o,d.o.moves[d.mi],{x:d.x,y:d.y},{x:d.x,y:d.y},{force:1});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=d.r*1.1+t.r*.9)dealDamage(d.o,t,d.mi)}}
+    if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});skillFx(d.o,d.o.moves[d.mi],{x:d.x,y:d.y},{x:d.x,y:d.y},{force:1});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=d.r*(d.o.side?1:1.15)+t.r*.9)dealDamage(d.o,t,d.mi)}}
   W.delays=W.delays.filter(d=>!d.dead);
   for(const h of W.chain){const t=foeOf(h.o);
     if(h.o.hp<=0||t.hp<=0||h.o.stun>0||h.o.hidden){h.dead=1;continue}
@@ -698,6 +699,11 @@ function tryBuffered(e){
 // ---------- AI (6D: 레조넌스 단계별 값) ----------
 // 단계: W 야생 / T1 쉬움 / T2 / G4 보통 / T4 어려움 / T5 최고 / REF 기준. 값은 원본 ai.tiers 그대로(rzsim.json)
 const AI_T={"W":{"rtMeanSec":0.48,"rtSdSec":0.11,"rtFloorT":18,"thinkSec":0.3,"aimSdDeg":9,"lead":0.15,"leadNoise":0.3,"dodgeShot":0.15,"dodgeMelee":0.05,"dodgeArea":0.25,"dodgeBeam":0.2,"dodgeSdSec":0.1,"sidestepP":0.2,"hesitationsPer10Sec":1.2,"hesitationSec":0.8,"tokenRegenPerSec":0.35,"tokenCap":2,"postPauseSec":0.9,"pressMinSec":3,"pressMaxSec":5,"resetMinSec":3,"resetMaxSec":4.5,"burstMax":1},"T1":{"rtMeanSec":0.42,"rtSdSec":0.09,"rtFloorT":17,"thinkSec":0.25,"aimSdDeg":7,"lead":0.35,"leadNoise":0.25,"dodgeShot":0.3,"dodgeMelee":0.15,"dodgeArea":0.4,"dodgeBeam":0.35,"dodgeSdSec":0.085,"sidestepP":0.3,"hesitationsPer10Sec":0.9,"hesitationSec":0.7,"tokenRegenPerSec":0.45,"tokenCap":3,"postPauseSec":0.7,"pressMinSec":4,"pressMaxSec":6,"resetMinSec":2.5,"resetMaxSec":3.5,"burstMax":1},"T2":{"rtMeanSec":0.36,"rtSdSec":0.07,"rtFloorT":15,"thinkSec":0.2,"aimSdDeg":5,"lead":0.6,"leadNoise":0.2,"dodgeShot":0.5,"dodgeMelee":0.3,"dodgeArea":0.6,"dodgeBeam":0.55,"dodgeSdSec":0.065,"sidestepP":0.4,"hesitationsPer10Sec":0.6,"hesitationSec":0.5,"tokenRegenPerSec":0.6,"tokenCap":3,"postPauseSec":0.5,"pressMinSec":5,"pressMaxSec":7,"resetMinSec":2,"resetMaxSec":3,"burstMax":2},"G4":{"rtMeanSec":0.3171,"rtSdSec":0.0557,"rtFloorT":14,"thinkSec":0.1524,"aimSdDeg":3.5714,"lead":0.7929,"leadNoise":0.15,"dodgeShot":0.6514,"dodgeMelee":0.4429,"dodgeArea":0.7429,"dodgeBeam":0.6929,"dodgeSdSec":0.0507,"sidestepP":0.5429,"hesitationsPer10Sec":0.3357,"hesitationSec":0.4,"tokenRegenPerSec":0.7643,"tokenCap":4,"postPauseSec":0.3571,"pressMinSec":5,"pressMaxSec":8,"resetMinSec":1.6286,"resetMaxSec":2.2857,"burstMax":2},"T4":{"rtMeanSec":0.28,"rtSdSec":0.045,"rtFloorT":13,"thinkSec":0.117,"aimSdDeg":2.5,"lead":0.9,"leadNoise":0.12,"dodgeShot":0.8,"dodgeMelee":0.6,"dodgeArea":0.85,"dodgeBeam":0.8,"dodgeSdSec":0.04,"sidestepP":0.65,"hesitationsPer10Sec":0.2,"hesitationSec":0.35,"tokenRegenPerSec":0.95,"tokenCap":5,"postPauseSec":0.25,"pressMinSec":6,"pressMaxSec":9,"resetMinSec":1.2,"resetMaxSec":1.8,"burstMax":3},"T5":{"rtMeanSec":0.26,"rtSdSec":0.04,"rtFloorT":12,"thinkSec":0.1,"aimSdDeg":2,"lead":0.95,"leadNoise":0.1,"dodgeShot":0.85,"dodgeMelee":0.65,"dodgeArea":0.9,"dodgeBeam":0.85,"dodgeSdSec":0.035,"sidestepP":0.7,"hesitationsPer10Sec":0.15,"hesitationSec":0.3,"tokenRegenPerSec":1.05,"tokenCap":5,"postPauseSec":0.2,"pressMinSec":6,"pressMaxSec":10,"resetMinSec":1,"resetMaxSec":1.6,"burstMax":3},"REF":{"rtMeanSec":0.25,"rtSdSec":0.03,"rtFloorT":12,"thinkSec":0.083,"aimSdDeg":1.5,"lead":1,"leadNoise":0.05,"dodgeShot":1,"dodgeMelee":1,"dodgeArea":1,"dodgeBeam":1,"dodgeSdSec":0.025,"sidestepP":1,"hesitationsPer10Sec":0,"hesitationSec":0,"tokenRegenPerSec":99999,"tokenCap":99999,"postPauseSec":0,"pressMinSec":99999,"pressMaxSec":99999,"resetMinSec":0,"resetMaxSec":0,"burstMax":4}};
+// 9J: 컴퓨터를 아이들 눈높이로 한 번 더 낮춤 — 늦게 반응 · 덜 정확 · 거의 안 피함 · 덜 자주 공격 (내 자동 AI 'ME'는 원래 T4 그대로)
+AI_T.ME=JSON.parse(JSON.stringify(AI_T.T4));
+for(const k in AI_T){if(k==='ME')continue;const t=AI_T[k];t.rtMeanSec+=.22;t.rtFloorT+=8;t.thinkSec+=.15;t.aimSdDeg+=8;t.lead*=.35;t.leadNoise+=.15;
+  for(const q of ['dodgeShot','dodgeMelee','dodgeArea','dodgeBeam'])t[q]*=.3;t.sidestepP*=.4;t.hesitationsPer10Sec+=1.2;t.hesitationSec+=.3;
+  t.tokenRegenPerSec=Math.min(t.tokenRegenPerSec*.65,.7);t.tokenCap=Math.min(t.tokenCap,3);t.postPauseSec+=.5;t.burstMax=Math.min(t.burstMax,2)}
 const AI_PLAIN={melee:'m',leap:'m',vanish:'m',roll:'m',projectile:'s',beam:'b',pulse:'a',delayed:'a',zone:'a',target:'a'};
 const gauss=()=>(rnd()+rnd()+rnd()+rnd()-2)*1.732;
 const tokCost=m=>m.st?.5:m.p<=60?.5:m.p<=90?.75:1;
@@ -1186,7 +1192,7 @@ async function start(ctx){
   // AI 기본 사거리: 가진 기술 중 위력 높은 기술 기준
   const best=W.foe.moves.filter(m=>m.p>0).sort((a,b)=>b.p-a.p)[0];
   if(best)W.ai.range=best.k==='melee'?120:best.k==='pulse'?150:best.k==='leap'?170:300;
-  if(C.autoMe){W.aiMe=mkAi(AI_T[C.autoTier]?C.autoTier:'T4');W.aiMe.uid=W.me.mon.uid;W.aiMe.range=aiRange(W.me)}
+  if(C.autoMe){W.aiMe=mkAi('ME');W.aiMe.uid=W.me.mon.uid;W.aiMe.range=aiRange(W.me)}
   buildUI();
   if(C.autoMe){const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
   return new Promise(res=>{

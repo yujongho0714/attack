@@ -8698,4 +8698,21 @@ window.fpOpen=async function(){openPanel('🏆 난이도 최초 정복자','<p c
 try{HUB.push({k:'first',n:'난이도 최초 정복자',d:'각 난이도(쉬움~천상계)에서 가장 먼저 챔피언이 된 친구에게 특별 접두사! 「천계 정복자의」 같은 최초 정복 등급(유일보다 높음).',st:()=>{const n=Object.keys((G&&G.fpGot)||{}).length;return n?'내 최초 정복 '+n+'개':'도전!'},go:[['최초 정복자 보기',()=>fpOpen()]]})}catch(e){}
 }catch(e){console.warn('9I 최초 정복',e)}})();
 </script>
+<script id="b9j">
+// ===== 9J 전투 방식 고르기: 실시간(새 전투) · 턴제(예전 전투) — 허브 · 설정 · 업데이트 뒤 처음 한 번 물어봐요 =====
+(function(){try{
+const isRT=()=>!!(G&&G.opt&&G.opt.rtWild!==false);
+window.btSet=function(rt){if(!G)return;G.opt=G.opt||{};G.opt.rtWild=!!rt;save();try{sfx('get')}catch(e){}toast(rt?'⚔ 실시간 전투로 싸워요 (직접 움직이며 피하기)':'🎴 턴제 전투로 싸워요 (기술을 골라 차례대로)')};
+window.btOpen=function(){if(!G)return;const rt=isRT();
+  openPanel('⚔ 전투 방식 고르기',`<p class="hhint">언제든 여기서 바꿀 수 있어요. 야생 · 트레이너 · 체육관 · 리그 · 월드보스 모두 같은 방식이에요.</p>
+   <div class="btsel"><button data-bt="1" class="${rt?'on':''}"><b>⚔ 실시간</b><small>조이스틱으로 움직이며 피하고 기술 버튼으로 공격 · 교대 · 약</small></button>
+   <button data-bt="0" class="${rt?'':'on'}"><b>🎴 턴제</b><small>예전처럼 기술을 골라 차례대로 싸워요 · 천천히 생각하며</small></button></div>`,null,p=>{
+   p.querySelectorAll('[data-bt]').forEach(b=>b.onclick=()=>{btSet(b.dataset.bt==='1');closePanel(1);btOpen()})})};
+try{HUB.unshift({k:'btmode',n:'전투 방식 (실시간 / 턴제)',d:'실시간 전투(직접 움직이며 싸우기)와 턴제 전투(기술을 골라 차례대로) 중에 골라요.',st:()=>isRT()?'지금: ⚔ 실시간':'지금: 🎴 턴제',go:[['전투 방식 바꾸기',()=>btOpen()]]})}catch(e){}
+// 업데이트 뒤 처음 한 번 물어보기
+setInterval(()=>{try{if(!G||SCENE!=='over'||G.opt.btAsk||PANEL||!G.party||!G.party.length)return;G.opt.btAsk=1;save();btOpen()}catch(e){}},4000);
+const c=document.createElement('style');c.textContent=`.btsel{display:flex;flex-direction:column;gap:8px}.btsel button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px;border:3px solid #1c2550;border-radius:0;background:#e9edff;color:#1c2550;font:900 16px 'Galmuri11',monospace;box-shadow:0 4px 0 #1c2550;text-align:left}
+.btsel button small{font:12px 'Galmuri11',monospace;color:#4a5070}.btsel button.on{background:#ffd23f;outline:3px solid #fff;outline-offset:-6px}`;document.head.appendChild(c);
+}catch(e){console.warn('9J 전투 방식',e)}})();
+</script>
 </body></html>
