@@ -830,7 +830,9 @@ async function rzSpr(d){try{const M=await rzmap();const k=M[d];if(!k)return null
   const al=(st,L)=>{if(img[st])return;for(const x of L)if(img[x]){img[st]=img[x];meta.anims[st]=meta.anims[x];return}};
   al('shoot',['charge','attack']);al('special',['shoot','charge','attack']);al('faint',['sleep','hurt']);al('walk',['idle']);
   return img.idle?{meta,img}:null}catch(e){return null}}
-async function getSpr(n){if(SPR.has(n))return SPR.get(n);const P=(async()=>{if(n.startsWith('sc:')){const d=(NCAL[n]||n).slice(3);return (await rzSpr(d))||scSpr(d)}const rec=await UP.get(n);if(!rec||!rec.sheets)return null;const meta=typeof rec.meta==='string'?JSON.parse(rec.meta):rec.meta;const img={};
+// [거다이맥스 1단계] 거다이 폼은 평소 모습·움직임을 일반폼(base) 그림으로 써요. (거다이 그림은 걷기가 없어서 변신 연출 때만 쓸 예정) 되돌리려면 window.GMX_NORMAL_LOOK=false
+if(!window.GMX){try{const _s=document.createElement('script');_s.src='gmax-core.js';_s.onload=()=>{try{GMX.load('gmaxmap.json')}catch(e){}};document.head.appendChild(_s)}catch(e){}}
+async function getSpr(n){if(SPR.has(n))return SPR.get(n);try{const _M=META[n];if(_M&&_M.form==='gmax'&&_M.base&&_M.base!==n&&window.GMX_NORMAL_LOOK!==false)return getSpr(_M.base)}catch(e){}const P=(async()=>{if(n.startsWith('sc:')){const d=(NCAL[n]||n).slice(3);return (await rzSpr(d))||scSpr(d)}const rec=await UP.get(n);if(!rec||!rec.sheets)return null;const meta=typeof rec.meta==='string'?JSON.parse(rec.meta):rec.meta;const img={};
   for(const k in rec.sheets){try{img[k]=await createImageBitmap(rec.sheets[k])}catch(e){try{img[k]=await UP.bmp(rec.sheets[k])}catch(e2){}}}return{meta,img}})();
   SPR.set(n,P);SPRQ.push(n);if(SPRQ.length>48){const o=SPRQ.shift();if(!PARTYN().includes(o))SPR.delete(o)}return P}
 // 인터넷(SpriteCollab 공개 저장소)에서 바로 받기
