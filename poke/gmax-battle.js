@@ -242,7 +242,7 @@ function fxRun(dt,run){
 for(const nme of ['actPress','actRoll']){const f=window[nme];if(typeof f==='function')window[nme]=function(){if(active())return;return f.apply(this,arguments)}}
 if(typeof actSwitch==='function'){const _sw=actSwitch;actSwitch=function(){if(active())return;return _sw.apply(this,arguments)}}
 if(typeof rzStatus==='function'){const _rs=rzStatus;rzStatus=function(mine,m,AB,DB){try{if(!mine&&B.mach&&B.mach.invincible()&&DB===BS.me)return}catch(e){}return _rs.apply(this,arguments)}}   // 상태이상도 무시
-{const _b=battle;battle=async function(){B.mach=null;initMach();B.hold=null;B.fk=null;B.want=0;B.tDone=null;closePick();document.body.classList.remove('gmxcine');return _b.apply(this,arguments)}}
+{const _b=battle;battle=async function(){B.mach=null;B.usesBy=new Map();B.curMon=null;initMach();B.hold=null;B.fk=null;B.want=0;B.tDone=null;closePick();document.body.classList.remove('gmxcine');return _b.apply(this,arguments)}}
 {const _ae=actEnd;actEnd=function(){if(active())abort();return _ae.apply(this,arguments)}}
 
 function initMach(){
@@ -255,7 +255,7 @@ initMach();
 function frame(dt){
   dt=Math.min(.05,dt||0);const M=B.mach;if(!M)return;
   if(!inBattle()){if(active())abort();ui(0);return}
-  refreshForm();padPoll();
+  syncUses();refreshForm();padPoll();
   // 기술 쓰는 중에 눌렀으면 끝나자마자
   if(B.want){B.wantT-=dt;if(canStartNow()){tryStart()}else if(B.wantT<=0)B.want=0}
   autoTrigger();
@@ -265,6 +265,17 @@ function frame(dt){
   if(active()||fadeOut>0)cine(dt);
   ui(0)}
 let fadeOut=0;
+
+
+// ---------- 포켓몬마다 변신 횟수 따로 (한 배틀에서 포켓몬 한 마리당 2번) ----------
+// 교대하면 나온 포켓몬의 남은 횟수로 바뀌고, 들어간 포켓몬의 횟수는 기억해 둬요.
+function syncUses(){
+  try{const M=B.mach,m=BS.me&&BS.me.m;if(!M||!m)return;
+    if(!B.usesBy)B.usesBy=new Map();
+    if(B.curMon!==m){
+      if(B.curMon)B.usesBy.set(B.curMon,M.uses);
+      B.curMon=m;M.uses=B.usesBy.has(m)?B.usesBy.get(m):CFG.USES_PER_SIDE}
+    else B.usesBy.set(m,M.uses)}catch(e){}}
 
 // 자동 배틀이면 알아서 변신 (트레이너·보스·월드보스 때, 시작하고 몇 초 뒤)
 function autoTrigger(){
@@ -311,7 +322,7 @@ function ui(force){
   const left=M.uses,k=left+'/'+(CFG.USES_PER_SIDE);const key=k+(left>0?'':'x');
   if(b.style.display!=='flex')b.style.display='flex';
   if(b.dataset.k!==key||force){b.dataset.k=key;b.classList.toggle('off',left<=0);
-    b.innerHTML=left>0?'<span>🌩 거다이맥스</span><small>남은 '+left+'번 · F</small>':'<span>🌩 거다이맥스</span><small>더 이상 변신할 수 없어요</small>'}}
+    b.innerHTML=left>0?'<span>🌩 거다이맥스</span><small>이 포켓몬 '+left+'/'+CFG.USES_PER_SIDE+' · F</small>':'<span>🌩 거다이맥스</span><small>더 이상 변신할 수 없어요</small>'}}
 function openPick(){
   closePick();css();const el=document.createElement('div');el.id='gmxPick';
   const foe=BS.foe.m,ft=META[foe.n].types;
