@@ -42,17 +42,27 @@ function formKeyOf(m){
     return GM.formsForDex(M.dex)[0]||null}catch(e){return null}}
 
 // ---------- 그림·소리 읽기 ----------
-const IMG={};function loadImg(url){return IMG[url]||(IMG[url]=new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=url}))}
+const IMG={};function loadImg(url){return IMG[url]||(IMG[url]=new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>{delete IMG[url];res(null)};i.src=url}))}   // 못 받은 그림은 기억하지 않아요 (다시 시도할 수 있게)
+// 그림 읽기. GitHub Pages 가 "속도 제한 초과"(요청이 너무 많음)로 막으면 못 받을 수 있어서, 실패하면 잠시 뒤 자동으로 다시 시도해요 (최대 6번, 점점 길게 기다림)
+const RT={},LD={};
 function loadAssets(fk){
-  if(B.assets[fk]!==undefined)return;B.assets[fk]='loading';
-  const I=GM.infoOf(fk);if(!I){B.assets[fk]=null;return}
+  if(LD[fk])return;
+  const cur=B.assets[fk];
+  if(cur!==undefined){
+    if(cur&&!cur.partial)return;   // 다 받았으면 끝
+    const r=RT[fk]||(RT[fk]={n:0,at:performance.now()+3000});
+    if(r.n>=6||performance.now()<r.at)return;
+    r.n++;r.at=performance.now()+Math.min(30000,3000*(r.n+1))}
+  const I=GM.infoOf(fk);if(!I){B.assets[fk]=null;RT[fk]={n:99,at:0};return}
+  LD[fk]=1;
   (async()=>{const o={fk,info:I,anims:null,img:{},front:null,fn:I.frontFrames||1};
     try{if(I.gmaxSet){const r=await fetch(BASE+'sets/'+I.gmaxSet+'.json');if(r.ok){const j=await r.json();o.anims=j.anims;
         await Promise.all(Object.keys(j.anims).map(async k=>{o.img[k]=await loadImg(BASE+I.gmaxSet+'/'+j.anims[k].f+'-Anim.png')}));if(!o.img.idle)o.anims=null}}}catch(e){o.anims=null}
     try{if(I.front)o.front=await loadImg(BASE+'gmax-front/'+I.front)}catch(e){}
-    if(!o.anims&&!o.front){B.assets[fk]=null;return}
-    if(!o.cloudB){o.cloudB=await loadImg(BASE+'dynamax-cloud/cloud-back.png');o.cloudF=await loadImg(BASE+'dynamax-cloud/cloud-front.png')}
-    B.assets[fk]=o})().catch(()=>{B.assets[fk]=null})}
+    if(!o.anims&&!o.front){if(cur===undefined)B.assets[fk]=null;return}
+    o.cloudB=(cur&&cur.cloudB)||await loadImg(BASE+'dynamax-cloud/cloud-back.png');o.cloudF=(cur&&cur.cloudF)||await loadImg(BASE+'dynamax-cloud/cloud-front.png');
+    o.partial=(!!I.gmaxSet&&!o.anims)||!o.cloudB||!o.cloudF;   // 일부만 받았으면 나중에 다시 시도
+    B.assets[fk]=o})().catch(()=>{if(B.assets[fk]===undefined)B.assets[fk]=null}).then(()=>{LD[fk]=0})}
 const ready=fk=>!!fk&&B.assets[fk]&&B.assets[fk]!=='loading';
 const ABUF={},ALOAD={};
 function play(k,gain,rate){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();
