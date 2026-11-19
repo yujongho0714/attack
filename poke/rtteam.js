@@ -1107,16 +1107,25 @@ function buildUI(){
     bb.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();tryThrow()});
     bsw.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();W.ballSel=((W.ballSel||0)+1)%Math.max(1,ballList().length)});
   }
-  const qb=document.createElement('div');qb.textContent='✕';qb.style.cssText='position:absolute;left:8px;bottom:8px;width:34px;height:34px;border-radius:8px;background:rgba(0,0,0,.5);color:#fff;font:bold 18px sans-serif;display:flex;align-items:center;justify-content:center;pointer-events:auto';ui.appendChild(qb);
+  // 9R: 나가기 · 교대 · 약 버튼을 크고 알아보기 쉽게 (게임 버튼 모양, 왼쪽 아래 한 줄)
+  const SB=(ic,lb,bg)=>{const b=document.createElement('div');b.style.cssText='position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));width:78px;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;background:'+bg+';border:3px solid #0a0d18;box-shadow:0 4px 0 #0a0d18,inset 0 0 0 2px rgba(255,255,255,.35),inset 0 -6px 0 rgba(0,0,0,.18);color:#fff;font:900 14px "Galmuri11",sans-serif;text-shadow:0 2px 0 #0a0d18;z-index:3';
+    const i=document.createElement('div');i.textContent=ic;i.style.cssText='font-size:24px;line-height:26px';const t=document.createElement('div');t.textContent=lb;t.style.cssText='font-size:13px;line-height:15px;white-space:nowrap';
+    const n=document.createElement('div');n.style.cssText='position:absolute;right:-8px;top:-10px;min-width:22px;padding:1px 5px;background:#ffd23f;color:#1c2550;border:2px solid #0a0d18;font:900 11px "Galmuri11",sans-serif;text-shadow:none;display:none;text-align:center';
+    b.append(i,t,n);b._i=i;b._t=t;b._n=n;b._lb=lb;
+    b.addEventListener('pointerdown',()=>{b.style.transform='translateY(3px)';b.style.boxShadow='0 1px 0 #0a0d18,inset 0 0 0 2px rgba(255,255,255,.35)'});
+    const up=()=>{b.style.transform='';b.style.boxShadow='0 4px 0 #0a0d18,inset 0 0 0 2px rgba(255,255,255,.35),inset 0 -6px 0 rgba(0,0,0,.18)'};b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
+    ui.appendChild(b);return b};
+  let sx=10;const place2=b=>{b.style.left='calc('+sx+'px + env(safe-area-inset-left))';sx+=88};
+  const qb=SB('🏃',C.noQuit?'도망 불가':'나가기',C.noQuit?'#59607a':'#c0392b');place2(qb);W.qBtn=qb;
   // 6F-4a: 교대 버튼 + 파티 보기 패널(전투 일시정지). 실제 교체는 6F-4b
   if(C.party&&C.party().length>1){
-    const sw=document.createElement('div');sw.textContent='🔄 교대';sw.style.cssText='position:absolute;left:50px;bottom:8px;height:34px;padding:0 10px;border-radius:8px;background:rgba(0,0,0,.5);color:#fff;font:bold 13px sans-serif;display:flex;align-items:center;pointer-events:auto';
-    sw.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();openParty()});ui.appendChild(sw);W.swBtn=sw;
+    const sw=SB('🔄','교대','#2f6fd6');place2(sw);
+    sw.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();openParty()});W.swBtn=sw;
   }
   // 6F-4c: 회복 아이템 버튼
   if(C.items&&C.useItem){
-    const ib=document.createElement('div');ib.textContent='🧪 약';ib.style.cssText='position:absolute;left:'+((C.party&&C.party().length>1)?136:50)+'px;bottom:8px;height:34px;padding:0 10px;border-radius:8px;background:rgba(0,0,0,.5);color:#fff;font:bold 13px sans-serif;display:flex;align-items:center;pointer-events:auto';
-    ib.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();openItems()});ui.appendChild(ib);W.itBtn=ib;
+    const ib=SB('🧪','약','#1f9a55');place2(ib);
+    ib.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();openItems()});W.itBtn=ib;
   }
   document.body.appendChild(root);
   W.root=root;W.cv=cv;W.ctx=cv.getContext('2d');W.ui={jb,jk,btns,rb,rcnt,bb,bsw};
@@ -1133,8 +1142,7 @@ function buildUI(){
     b.addEventListener('pointercancel',ev=>{delete IN.hold[ev.pointerId]});
   };
   btns.forEach((b,i)=>bindBtn(b,i));bindBtn(rb,-1);
-  if(C.noQuit)qb.style.display='none';   // 6F-3: 트레이너 전투는 도망 금지
-  qb.addEventListener('pointerdown',ev=>{ev.stopPropagation();if(W.over)return;if(confirm(C.quitText||'시험 전투를 그만둘까요?'))stop('quit')});
+  qb.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();if(W.over)return;if(C.noQuit){floatTxt(W.me.x,W.me.y-110,'트레이너 전투는 도망칠 수 없어요!','#ffd23f',true);return}setTimeout(()=>{if(W&&!W.over&&confirm(C.quitText||'전투에서 나갈까요?'))stop('quit')},30)});   // 6F-3: 트레이너 전투는 도망 금지 (9R: 숨기지 않고 '도망 불가'로 보여 줌)
   // 조이스틱 (화면 왼쪽 아무 데나)
   root.addEventListener('pointerdown',ev=>{
     if(W.over&&W.overT>.8){stop(W.over);return}
@@ -1165,7 +1173,15 @@ function buildUI(){
   W.rs=()=>{const dpr=Math.min(2,devicePixelRatio||1);cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr)};
   W.rs();addEventListener('resize',W.rs);
 }
-function updBtns(){
+function updSide(){try{   // 9R: 교대·약 버튼에 남은 시간·개수 표시
+  const sw=W.swBtn,ib=W.itBtn;
+  if(sw){const c=W.swCd>0;sw.style.filter=c?'grayscale(.8) brightness(.75)':'';sw._t.textContent=c?Math.ceil(W.swCd)+'초':'교대'}
+  if(ib){const c=W.itCd>0;let left=null;try{left=C.potLeft?C.potLeft():null}catch(e){}
+    ib.style.filter=c||left===0?'grayscale(.8) brightness(.75)':'';ib._t.textContent=c?Math.ceil(W.itCd)+'초':'약';
+    let tot=0,inf=0;for(const x of itemList()){if(x.count==='∞')inf=1;else tot+=(+x.count||0)}if(left!=null&&!inf)tot=Math.min(tot,left);
+    const tx=inf?'∞':String(tot);if(ib._n.textContent!==tx){ib._n.textContent=tx}ib._n.style.display='block'}
+}catch(e){}}
+function updBtns(){updSide();
   const me=W.me,U=W.ui;if(!U)return;
   for(let i=0;i<4;i++){const b=U.btns[i],m=me.moves[i];if(!m)continue;const r=Math.min(1,me.cd[i]/me.cdMax[i]);b._cd.style.height=(r*100)+'%';b.style.opacity=canCast(me,i)?1:.75;
     // 6C-4 충전 개수(다단 기술)·PP 표시
