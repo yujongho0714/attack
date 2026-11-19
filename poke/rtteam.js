@@ -1205,15 +1205,19 @@ async function start(ctx){
   const best=W.foe.moves.filter(m=>m.p>0).sort((a,b)=>b.p-a.p)[0];
   if(best)W.ai.range=best.k==='melee'?120:best.k==='pulse'?150:best.k==='leap'?170:300;
   for(const e of W.ents){e.ai=mkAi(AI_T[C.aiTier]?C.aiTier:'T2');e.ai.range=aiRange(e)}W.ai=W.foe.ai;
-  buildUI();try{const U=W.ui;(U.btns||[]).forEach(b=>b.style.display='none');['rb','rcnt','bb','bsw','jb'].forEach(k=>{if(U[k]&&U[k].style)U[k].style.display='none'});[...W.root.querySelectorAll('div,button')].forEach(el=>{if(/^(교대|약)$/.test((el.textContent||'').trim()))el.style.display='none'})}catch(er){}   // 9M: 자동 전용 — 조작 버튼 숨김
+  buildUI();
+  {W.fast=false;try{W.fast=(C.fast&&C.fast())||localStorage.getItem('pka-rtfast')==='1'}catch(er){}   // 9O: 전투 안 ⏩ 2배속 버튼
+   const fb=document.createElement('div');fb.style.cssText='position:absolute;left:calc(50% + 82px);top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 12px;color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #56627f;pointer-events:auto;cursor:pointer;user-select:none;z-index:4;white-space:nowrap';
+   const up=()=>{fb.textContent=W.fast?'⏩ 2배속 ON':'⏩ 2배속';fb.style.background=W.fast?'#e8a020':'#2a3256'};up();
+   fb.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.fast=!W.fast;try{localStorage.setItem('pka-rtfast',W.fast?'1':'0');C.setFast&&C.setFast(W.fast)}catch(er){}up()});W.root.appendChild(fb);W.fastBtn=fb}try{const U=W.ui;(U.btns||[]).forEach(b=>b.style.display='none');['rb','rcnt','bb','bsw','jb'].forEach(k=>{if(U[k]&&U[k].style)U[k].style.display='none'});[...W.root.querySelectorAll('div,button')].forEach(el=>{if(/^(교대|약)$/.test((el.textContent||'').trim()))el.style.display='none'})}catch(er){}   // 9M: 자동 전용 — 조작 버튼 숨김
   if(C.autoMe){const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
     const loop=now=>{
       if(!W||W.stopped)return;
-      let dt=Math.min(.1,(now-last)/1000);last=now;acc+=dt;let n=0;
-      if(W.paused){acc=0}else while(acc>=TICK&&n<5){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
-      if(n>=5)acc=0;
+      let dt=Math.min(.1,(now-last)/1000);last=now;acc+=dt*(W.fast?2:1);let n=0;   // 9O: 2배속
+      if(W.paused){acc=0}else while(acc>=TICK&&n<(W.fast?10:5)){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
+      if(n>=(W.fast?10:5))acc=0;
       if(C.autoMe){if(W.over&&W.overT>1.6&&!W.pp&&!W.ip){stop(W.over);return}
         if(W.autoTag){const a=autoNow(),tx=a?'⚔ 3대3 자동 대전':'⚔ 3대3 자동 대전';if(W.autoTag._t!==tx){W.autoTag._t=tx;W.autoTag.textContent=tx;W.autoTag.style.color=a?'#9bf0a8':'#ffd23f';W.autoTag.style.borderColor=a?'#9bf0a8':'#ffd23f'}}}
       if(fxOn()&&!W.paused){try{C.fxe.FX2.update(dt);C.fxe.VFX.update(dt)}catch(er){}}

@@ -771,7 +771,7 @@ function aiUpdate(a,ai0,p0){
 // ---------- 7A: 자동전투(AUTO) — 내 포켓몬도 AI가 조종 · 화면을 만지면 2.5초 동안 직접 조작 ----------
 const MAN_SEC=2.5;
 function touchedNow(){return IN.stick.on||IN.press.length>0||IN.roll||Object.keys(IN.hold).length>0||Object.values(IN.keys).some(Boolean)}
-function autoNow(){if(!C.autoMe||!W)return false;if(touchedNow())W.manT=W.time;return W.manT==null||W.time-W.manT>MAN_SEC}
+function autoNow(){if(!W||!W.autoOn)return false;if(touchedNow())W.manT=W.time;return W.manT==null||W.time-W.manT>MAN_SEC}
 function aiRange(e){const b=e.moves.filter(m=>m&&m.p>0).sort((x,y)=>y.p-x.p)[0];return b?(b.k==='melee'?120:b.k==='pulse'?150:b.k==='leap'?170:300):240}
 function mkAi(tier){const AT=AI_T[tier]||AI_T.G4;return{T:AT,tier,sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)}}
 function autoMe(me,foe){
@@ -1193,17 +1193,26 @@ async function start(ctx){
   // AI 기본 사거리: 가진 기술 중 위력 높은 기술 기준
   const best=W.foe.moves.filter(m=>m.p>0).sort((a,b)=>b.p-a.p)[0];
   if(best)W.ai.range=best.k==='melee'?120:best.k==='pulse'?150:best.k==='leap'?170:300;
-  if(C.autoMe){W.aiMe=mkAi('ME');W.aiMe.uid=W.me.mon.uid;W.aiMe.range=aiRange(W.me)}
+  W.autoOn=!!C.autoMe;try{if(!C.autoMe&&localStorage.getItem('pka-rtauto')==='1')W.autoOn=true}catch(er){}   // 9O: 전투 안 자동 버튼(한 번 켜면 다음 전투도 켜짐)
+  W.aiMe=mkAi('ME');W.aiMe.uid=W.me.mon.uid;W.aiMe.range=aiRange(W.me);
   buildUI();
-  if(C.autoMe){const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
+  {W.fast=false;try{W.fast=(C.fast&&C.fast())||localStorage.getItem('pka-rtfast')==='1'}catch(er){}   // 9O: 전투 안 ⏩ 2배속 버튼
+   const fb=document.createElement('div');fb.style.cssText='position:absolute;left:calc(50% + 82px);top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 12px;color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #56627f;pointer-events:auto;cursor:pointer;user-select:none;z-index:4;white-space:nowrap';
+   const up=()=>{fb.textContent=W.fast?'⏩ 2배속 ON':'⏩ 2배속';fb.style.background=W.fast?'#e8a020':'#2a3256'};up();
+   fb.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.fast=!W.fast;try{localStorage.setItem('pka-rtfast',W.fast?'1':'0');C.setFast&&C.setFast(W.fast)}catch(er){}up()});W.root.appendChild(fb);W.fastBtn=fb}
+  {const ab=document.createElement('div');ab.style.cssText='position:absolute;left:50%;top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 14px;background:#2a3256;color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #56627f;pointer-events:auto;cursor:pointer;user-select:none;z-index:4;white-space:nowrap';
+   const upd=()=>{ab.textContent=W.autoOn?'🤖 자동 ON':'🤖 자동 OFF';ab.style.background=W.autoOn?'#2bbf5a':'#2a3256';if(W.autoTag)W.autoTag.style.display=W.autoOn?'':'none'};
+   ab.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.autoOn=!W.autoOn;W.manT=null;try{localStorage.setItem('pka-rtauto',W.autoOn?'1':'0')}catch(er){}upd()});W.root.appendChild(ab);W.autoBtn=ab;W.autoUpd=upd}
+  {const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
     const loop=now=>{
       if(!W||W.stopped)return;
-      let dt=Math.min(.1,(now-last)/1000);last=now;acc+=dt;let n=0;
-      if(W.paused){acc=0}else while(acc>=TICK&&n<5){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
-      if(n>=5)acc=0;
-      if(C.autoMe){if(W.over&&W.overT>1.6&&!W.pp&&!W.ip){stop(W.over);return}
+      let dt=Math.min(.1,(now-last)/1000);last=now;acc+=dt*(W.fast?2:1);let n=0;   // 9O: 2배속
+      if(W.paused){acc=0}else while(acc>=TICK&&n<(W.fast?10:5)){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
+      if(n>=(W.fast?10:5))acc=0;
+      if(W.autoUpd&&W.autoBtn&&W.autoBtn._s!==W.autoOn){W.autoBtn._s=W.autoOn;W.autoUpd()}
+      if(W.autoOn){if(W.over&&W.overT>1.6&&!W.pp&&!W.ip){stop(W.over);return}
         if(W.autoTag){const a=autoNow(),tx=a?'🤖 자동 전투 중 · 화면을 만지면 직접 조작':'✋ 직접 조작 중 · 손 떼면 자동';if(W.autoTag._t!==tx){W.autoTag._t=tx;W.autoTag.textContent=tx;W.autoTag.style.color=a?'#9bf0a8':'#ffd23f';W.autoTag.style.borderColor=a?'#9bf0a8':'#ffd23f'}}}
       if(fxOn()&&!W.paused){try{C.fxe.FX2.update(dt);C.fxe.VFX.update(dt)}catch(er){}}
       render();

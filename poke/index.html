@@ -3673,7 +3673,7 @@ function wbBoss(wk){const L=WB_DEX.filter(d=>BYDEX[d]&&META[BYDEX[d]]&&rarOf(BYD
 function wbS(){if(!G.wb||G.wb.wk!==wbWeek()){const old=G.wb;G.wb={wk:wbWeek(),dmg:0,tries:{},throws:0,done:0,caught:0,paid:(old&&old.paid)||{}};if(old&&old.dmg>0&&!G.wb.paid[old.wk])G.wb.last=old}if(!G.pid)G.pid=(Date.now().toString(36)+Math.random().toString(36).slice(2,8));return G.wb}
 // ---------- 서버 ----------
 const WBC={list:null,t:0,err:''};
-async function wbFetch(wk,force){const c=wbCfg();if(!c){WBC.err='local';return null}if(!force&&WBC.list&&WBC.wk===wk&&Date.now()-WBC.t<20000)return WBC.list;
+async function wbFetch(wk,force){const c=wbCfg();if(!c){WBC.err='local';return null}if(WBC.list&&WBC.wk===wk&&Date.now()-WBC.t<(force?15000:60000))return WBC.list;   /* 9N 읽기 줄이기: 월보 목록 1분(새로고침도 15초) 재사용 */
   try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeBoss/${wk}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)throw new Error(r.status);const j=await r.json();
     const L=(j.documents||[]).map(d=>({id:d.name.split('/').pop(),name:(d.fields.name||{}).stringValue||'?',dmg:+((d.fields.dmg||{}).integerValue||0)})).sort((a,b)=>b.dmg-a.dmg);WBC.list=L;WBC.wk=wk;WBC.t=Date.now();WBC.err='';return L}catch(e){WBC.err=String(e.message||e);return null}}
 async function wbPush(){const c=wbCfg(),w=wbS();if(!c||!w.dmg)return false;try{const u=`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeBoss/${w.wk}/players/${G.pid}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=dmg&updateMask.fieldPaths=t`;
@@ -5869,7 +5869,7 @@ function chBragPick(){const all=[...G.party,...G.box].filter(m=>META[m.n]).sort(
   const P2=document.createElement('div');P2.id='chPick';P2.innerHTML=`<div class="chh"><b>어떤 포켓몬을 자랑할까요?</b><button class="chc">✕</button></div><input id="chBx" maxlength="30" placeholder="한마디 (안 써도 돼요)" autocomplete="off"><div class="chpl">${all.map((m,i)=>chMonCard(m).replace('class="chmon"','class="chmon" data-i="'+i+'"')).join('')}</div>`;
   document.body.appendChild(P2);const bx=P2.querySelector('#chBx');bx.onkeydown=e=>e.stopPropagation();bx.onkeyup=e=>e.stopPropagation();P2.querySelector('.chc').onclick=()=>P2.remove();
   P2.querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{sfx('tap');const m=all[+b.dataset.i];if(await chSend('p',bx.value.slice(0,30),m)){P2.remove();sfx('get')}})}
-function chLoop(){clearTimeout(CHT);CHT=setTimeout(async()=>{try{if(G&&document.visibilityState==='visible'&&(CHOPEN||SCENE==='over'))await chPoll()}catch(e){}chLoop()},CHOPEN?12000:90000)}
+function chLoop(){clearTimeout(CHT);CHT=setTimeout(async()=>{try{if(G&&document.visibilityState==='visible'&&(CHOPEN||SCENE==='over'))await chPoll()}catch(e){}chLoop()},CHOPEN?12000:180000)}   /* 9N: 채팅 닫혀 있으면 3분마다 */
 function chMiniUpd(){let m=document.getElementById('chMini');if(!m){m=document.createElement('button');m.id='chMini';m.innerHTML='<span class="chst">채팅</span><div class="chml"></div>';m.onclick=()=>{sfx('tap');chOpen()};document.body.appendChild(m);chDraw(1)}
   const show=G&&G.party&&G.party.length&&SCENE==='over'&&!PANEL&&!(DLG&&DLG.on)&&!document.getElementById('chWin');m.style.display=show?'':'none';m.classList.toggle('un',!!CHUN)}
 setInterval(()=>{try{chMiniUpd();if(SCENE==='battle'&&document.getElementById('chWin')){const i=document.querySelector('#chTx');if(!i||document.activeElement!==i)chClose()}}catch(e){}},500);
@@ -8580,7 +8580,7 @@ const RT_SKMV={sg_mortalslash:1,sg_xenonsmasher:2,sg_baekho:3,sg_heukryong:4,sg_
 const rtDmgSkin=(m,id)=>{if(RT_SKMV[id]!=null)return RT_SKMV[id];try{return isMine(rtReal(m))?((G.opt&&G.opt.dskin)|0):0}catch(e){return 0}};
 // 8F: 장비 옵션(공격력·체력·방어력·회피·크리티컬) — 내 포켓몬만, 새 전투 전부 (예전 전투는 그대로 월드보스에서만)
 const rtGearOf=m=>{try{if(!isMine(rtReal(m))||typeof gearStats!=='function')return null;const T=gearStats();return (T.atk||T.hp||T.def||T.eva||T.crt||T.cdm)?T:null}catch(e){return null}};
-const rtCommon=()=>({SGD,dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
+const rtCommon=()=>({SGD,dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
 const rtBgOf=()=>{try{if(BS.bg==='stadium'&&typeof STAD!=='undefined'&&STAD.complete&&STAD.naturalWidth)return STAD;return bgImg(STG[BS.bg]||'grass')}catch(e){return null}};   // 7B: 새 전투 배경
 async function rtWild(o){
   if(!rtWildOn()||!o||o.wb||o.pvp||!o.foes||!o.foes.length)return undefined;
@@ -8752,8 +8752,11 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
- {v:2026111903,date:'11월 19일',t:'PVP 3대3 · 화면 크기 · 실시간 전투 쉬워짐 · 턴제 고르기 · 데미지 스킨 · 초월 · 천계 새 이야기',items:[
+ {v:2026111905,date:'11월 19일 밤',t:'내 기록 자동 보관 (잃어버려도 복구돼요)',items:[
+  {img:'ui/news/n11_backup.webp',h:'🛟 내 돈 · 재화 · 포켓몬 기록이 자동으로 보관돼요',p:['인터넷이 켜져 있으면 <b>3시간에 한 번</b> 내 돈, 코인, 가방, 카드팩, 재료, 환생·난이도·배지, <b>포켓몬 전부(레벨·각성·한계돌파·접두사)</b>가 안전하게 보관돼요.','폰을 바꾸거나 기록이 날아가도 <b>관장님이 이 기록을 보고 그대로 복구</b>해 줄 수 있어요.','따로 누를 건 없어요. 게임을 켜 두기만 하면 돼요!']}]},
+ {v:2026111904,date:'11월 19일',t:'자동·2배속 버튼 · PVP 3대3 · 화면 크기 · 실시간 전투 쉬워짐 · 턴제 고르기 · 데미지 스킨 · 초월 · 천계 새 이야기',items:[
   {img:'ui/news/n01_hub.webp',h:'모든 새 기능은 「컨텐츠」에 있어요',p:['화면 오른쪽 버튼 모음에서 <b>「컨텐츠」</b>(사진의 빨간 동그라미)를 눌러요.','맨 위부터 <b>전투 방식 · 데미지 스킨 · 업데이트 소식</b>이 있어요.']},
+  {img:'',h:'🤖 자동 · ⏩ 2배속 버튼 (실시간 전투 안)',p:['실시간 전투 화면 <b>위쪽 가운데</b>에 「자동」과 「2배속」 버튼이 생겼어요.','<b>자동 ON</b>: 내 포켓몬이 알아서 싸워요. 화면을 만지면 잠깐 직접 조작. 한 번 켜면 다음 전투도 켜져 있어요.','<b>2배속</b>: 전투가 2배 빨라져요. 밖의 「빠르게」 버튼을 켜도 처음부터 2배속이에요.']},
   {img:'ui/news/n10_pvp3.webp',h:'⚔ PVP가 3대3 실시간 자동 대전으로',p:['PVP(방어덱 도전 · 친구 대전)를 하면 <b>내 파티 앞 3마리 vs 상대 덱 앞 3마리</b>가 한 경기장에 동시에 나와요.','<b>자동으로만</b> 싸워요. 파란 고리 = 내 편, 빨간 고리 = 상대 편.','한쪽 3마리가 다 쓰러지면 끝! 순서를 바꾸려면 파티 순서를 바꿔요.']},
   {img:'ui/news/n08_scale.webp',h:'📱 화면 크기 (메뉴가 잘릴 때)',p:['컨텐츠 → <b>「📱 화면 크기」</b> (메뉴 → 설정에도 있어요)','<b>크게 100% · 조금 작게 90% · 작게 80% · 아주 작게 70% · 와이드 60%</b> 중에 눌러 보세요. 누르면 바로 바뀌어요.','마음에 들면 <b>「이대로 쓰기」</b>, 아니면 「되돌리기」(10초 지나면 저절로 되돌아가요). 이 폰에만 저장돼요.']},
   {img:'ui/news/n09_scalep.webp',h:'📱 화면 크기 고르는 화면',p:['그림 칸이 작아질수록 화면이 넓게(와이드) 보여요.','안드로이드는 게임 화면을 한 번 누르면 전체 화면 + 가로로 바뀌어요. 아이폰은 화면 회전 잠금을 끄고 폰을 가로로 돌려요.']},
@@ -8807,5 +8810,46 @@ const c=document.createElement('style');c.textContent=`.vsg{display:grid;grid-te
 #vsBar{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:#1c2550;color:#fff;border:3px solid #ffd23f;font:900 15px 'Galmuri11',monospace;box-shadow:0 4px 0 #0a0d18}
 #vsBar span{display:flex;gap:8px}#vsBar button{padding:7px 14px;border:3px solid #0a0d18;border-radius:0;font:900 14px 'Galmuri11',monospace}#vsBar .ok{background:#ffd23f;color:#1c2550}#vsBar .no{background:#e9edff;color:#1c2550}`;document.head.appendChild(c);
 }catch(e){console.warn('9L 화면 크기',e)}})();
+</script>
+<script id="b9n">/* 9N 읽기 줄이기: 랭킹은 5분 동안 같은 목록 재사용 (한 번 열 때마다 100명 전부 읽던 것) */{const _rf=rankFetch;const RC={};rankFetch=async function(b){let k=b;try{k=b+"|"+RKB[b].k()}catch(e){}const c=RC[k];if(c&&Date.now()-c.t<300000)return c.L;const L=await _rf.apply(this,arguments);if(L)RC[k]={t:Date.now(),L};return L}}</script><script id="b9p">
+// ===== 9P 아이 계정 상세 (복구용): 돈 · 재화 전부 · 진행(환생·난이도·배지) · 포켓몬 전부(레벨·각성·초월·한계돌파·접두사) =====
+// 3시간에 한 번(또는 날이 바뀌면) 그 아이만의 칸(inv3-{기기id}-{주})에 올려요. 서버 칸은 이름·숫자만 받아서 내용은 문서 이름에 나눠 담아요(1000자씩)
+// 관장님: 계정 관리 · 랭킹 목록의 「포켓몬」 버튼 → 새 「상세」 화면 (예전 기록만 있으면 예전 화면)
+(function(){try{
+const CH=1000;
+const enc=()=>{const all=[...G.party,...G.box].filter(m=>m&&META[m.n]);all.sort((a,b)=>rarM(b)-rarM(a)||b.lv-a.lv);
+  const mon=m=>[String(m.n).replace(/^sc:/,''),m.lv,m.sh?1:0,m.px!=null?m.px:'',m.fr!=null?m.fr:'',m.aw||0,m.ax||0,m.lb||0,m.rbx!=null?m.rbx:'',G.party.includes(m)?1:0].join('.');
+  const sf={};try{for(const c in (G.sf||{}))sf[c]=G.sf[c].s||0}catch(e){}
+  const d={v:1,t:Date.now(),nm:G.name||'',money:G.money||0,coin:G.pvpCoin||0,rb:G.rebirth||0,df:DIFF(),dmax:G.dmax||0,bd:G.badges||0,ub:G.ub||0,ch:G.champ||0,dex:Object.keys((G.dex&&G.dex.c)||{}).length,
+    bag:G.bag||{},packs:G.packs||{},dupes:(G.dupes||[]).length,du:(G.dupes||[]).reduce((o,x)=>{const k=(x.kind||'?')+(x.rar!=null?x.rar:'');o[k]=(o[k]||0)+1;return o},{}),
+    trm:G.trm||{},mepx:G.mepx!=null?G.mepx:'',eq:(G.me&&G.me.eq)||{},sf,gear:Object.keys(G.gear||{}).length,mons:all.length,m:all.map(mon).join(',')};
+  return d};
+const b64=s=>acB64u(new TextEncoder().encode(s)),unb=s=>new TextDecoder().decode(acUb64(s));
+async function up(){if(!G||!G.pid||!navigator.onLine||!fsBase()||(typeof isGM==='function'&&isGM()))return;const now=Date.now(),day=dayKey();const L=G.inv3||{};if(L.d===day&&now-(L.t||0)<3*36e5)return;
+  const d=enc();if(!d.mons)return;const p=b64(JSON.stringify(d)),n=Math.ceil(p.length/CH),ts=now.toString(36),bd='inv3-'+G.pid+'-'+wbWeek();
+  for(let i=0;i<n;i++){const ok=await fsPut(bd,'c~'+ts+'~'+i+'~'+n+'~'+p.slice(i*CH,(i+1)*CH),G.name||'',i,Math.floor(now/1000));if(!ok)return}
+  G.inv3={d:day,t:now};save()}
+setTimeout(()=>{try{up()}catch(e){}},40000);setInterval(()=>{try{if(G&&SCENE==='over')up()}catch(e){}},600000);
+async function load(pid){for(const off of [0,1]){const L=await fsListAll('inv3-'+pid+'-'+wbWeek(off))||[];const G2={};
+  for(const x of L){const m=/^c~([0-9a-z]+)~(\d+)~(\d+)~(.*)$/.exec(x.id);if(!m)continue;const g=G2[m[1]]=G2[m[1]]||{n:+m[3],p:[]};g.p[+m[2]]=m[4]}
+  const ks=Object.keys(G2).filter(k=>{const g=G2[k];return g.p.filter(Boolean).length===g.n}).sort((a,b)=>parseInt(b,36)-parseInt(a,36));
+  if(ks.length){try{return JSON.parse(unb(G2[ks[0]].p.join('')))}catch(e){}}}return null}
+window.inv3Load=load;window.inv3Up=up;
+const IT=k=>ITEMS&&ITEMS[k]?ITEMS[k].n:k;
+{const _o=invOpen;invOpen=async function(pid,name){openPanel('계정 상세 · '+esc(name||''),'<p class="hhint">불러오는 중…</p>');const d=await load(pid);if(!d)return _o.apply(this,arguments);
+  const M=d.m.split(',').filter(Boolean).map(s=>{const a=s.split('.');return{n:'sc:'+a[0],lv:+a[1],sh:a[2]==='1',px:a[3]===''?null:+a[3],fr:a[4]===''?null:+a[4],aw:+a[5]||0,ax:+a[6]||0,lb:+a[7]||0,rbx:a[8]===''?null:+a[8],pt:a[9]==='1'}}).filter(x=>META[x.n]);
+  const rr=x=>{const b=META[x.n].form&&x.fr!=null?x.fr:rarOf(x.n);return x.ax>b?x.ax:b};
+  const cnt=RAR.map((_,i)=>M.filter(x=>rr(x)===i).length);
+  const kv=(o,f)=>Object.keys(o||{}).filter(k=>(o[k]|0)>0).map(k=>`<span>${f?f(k):k} <b>${(o[k]|0).toLocaleString()}</b></span>`).join('')||'<small>없음</small>';
+  const sfx2=Object.keys(d.sf||{}).filter(k=>d.sf[k]>0).map(k=>k+' ★'+d.sf[k]).join(' · ');
+  openPanel('계정 상세 · '+esc(name||d.nm||''),`<p class="hhint">${new Date(d.t).toLocaleString('ko-KR')} 기준 (3시간마다 올라와요) · 이 화면을 보고 「선물」로 복구해 줄 수 있어요</p>
+   <div class="iv3s"><span>💰 돈 <b>${(d.money||0).toLocaleString()}</b></span><span>🪙 PVP 코인 <b>${d.coin||0}</b></span><span>🔄 환생 <b>${d.rb}</b>회</span><span>난이도 <b>${DNAME[d.df]||d.df}</b> (최고 ${DNAME[Math.max(0,(d.dmax||2)-1)]||''})</span><span>🏅 배지 <b>${d.bd}</b> · 상위 ${d.ub}</span><span>🏆 챔피언 <b>${d.ch}</b>회</span><span>📖 도감 <b>${d.dex}</b></span><span>포켓몬 <b>${d.mons}</b>마리</span>
+    ${d.mepx!==''&&PX[d.mepx]?`<span>캐릭터 접두사 <b>${PX[d.mepx].n}</b></span>`:''}<span>💠 핵 <b>${(d.trm||{}).core||0}</b> · 🌟 숨결 <b>${(d.trm||{}).breath||0}</b> · 🔱 인장 <b>${(d.trm||{}).seal||0}</b></span><span>각성 재료 <b>${d.dupes}</b>장</span><span>장비 <b>${d.gear}</b>개${sfx2?' · '+sfx2:''}</span></div>
+   <h4>🎒 가방</h4><div class="iv3k">${kv(d.bag,IT)}</div><h4>🃏 카드팩</h4><div class="iv3k">${kv(d.packs)}</div>
+   <h4>포켓몬 전부 (등급 높은 순)</h4><div class="ivc">${RAR.map((n,i)=>cnt[i]?`<span style="color:${RARC[i]}">${n} <b>${cnt[i]}</b></span>`:'').join('')}</div>
+   <div class="ivg">${M.map(x=>{const r=rr(x);return `<div class="ivr" style="--c:${RARC[r]}"><img src="${THUMB[x.n]||''}" alt="" loading="lazy"><b>${META[x.n].name}${x.pt?' ⭐':''}</b><small>[${RAR[r]}] Lv.${x.lv}${x.sh?' · 이로치':''}</small><small>각성 ${x.aw} · 한계돌파 ${x.lb}${x.rbx!=null?' · 받은 환생 '+x.rbx:''}</small>${x.px!=null&&PX[x.px]?`<small>[${PX[x.px].n}]</small>`:''}</div>`}).join('')}</div><p class="hhint">⭐ = 파티 · 환생은 계정 전체(${d.rb}회)가 모든 포켓몬에 적용돼요</p>`)}}
+const c=document.createElement('style');c.textContent=`.iv3s{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin:0 4px 8px}.iv3s span{background:#1c2550;color:#cfd6ff;padding:6px 8px;font-size:12px}.iv3s b{color:#ffd23f;font-size:14px}
+.iv3k{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px 8px}.iv3k span{background:#fffaf0;border:2px solid #1c2550;padding:3px 8px;font-size:12px}.iv3k b{color:#c0392b}`;document.head.appendChild(c);
+}catch(e){console.warn('9P 계정 상세',e)}})();
 </script>
 </body></html>
