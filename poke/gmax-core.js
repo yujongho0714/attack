@@ -16,19 +16,74 @@ const CFG={
   USES_PER_SIDE:2,       // 한 배틀에서 한 쪽당 변신 가능 횟수
   PICK_SECONDS:3,        // 기술 선택 제한시간
   T_TRANSFORM:1.5,       // 변신 연출 길이(초)  (레조넌스: gather 0 → surge .4 → land 1.42 → clouds 1.55 → 울음 1.67)
-  T_FIRE:2.2,            // 발사 연출 길이(초) — 2단계에서 실제 연출에 맞춰 조정
+  T_FIRE:3.6,            // 발사 연출 길이(초): 컷인 0~1.0 · 충전 0.75~1.45 · 빔 1.45~ · 명중 1.85 · 여운 ~3.6 (gmax-battle.js 와 맞춰 둠)
   T_RETURN:.6,           // 복귀 연출 길이(초)
   AFTER_INV:.5,          // 복귀 뒤 추가 무적(초)
   POWER_GMAX:190,        // 거다이맥스 전용기 위력
   POWER_DMAX:180,        // 일반 다이기술 위력
-  JOIN_WINDOW:1.5        // 상대가 같이 변신할 수 있는 시간(양쪽 거다이 정면충돌용, 3단계)
+  JOIN_WINDOW:1.5,       // 상대가 같이 변신할 수 있는 시간(양쪽 거다이 정면충돌용, 3단계)
+  // ---- 2단계에서 추가: 실시간 배틀 연결·연출용 ----
+  FIRE_AK:.5,            // 실시간 배틀 피해 배율 (일반 기술은 게임이 .33 을 곱해요. 거다이 발사는 한 방 크게라서 .5)
+  SCALE:3.2,             // 거다이 몸 크기(= 게임 기본 캐릭터 크기 ×3.2, 화면 높이 절반까지만)
+  IMPACT_AT:1.85,        // 발사 시작 뒤 몇 초에 명중(피해)하는가
+  CHARGE_AT:.75, BEAM_AT:1.45, CUT_END:1.0,   // 충전 시작 · 빔 발사 · 컷인 끝 (발사 시작 기준 초)
+  AUTO_MIN_T:5,          // 자동 배틀이 변신하기 전 기다리는 시간(초)
+  AUTO_GAP:10,           // 자동 배틀이 변신을 또 쓰기까지 기다리는 시간(초)
+  AUTO_TRAINER_ONLY:1    // 1이면 자동 배틀은 트레이너·보스·월드보스 때만 알아서 변신
 };
 
 // ---------- 타입 → 다이기술 이름 (물리/특수 기술은 이 이름으로 바뀜, 변화기는 선택 불가) ----------
 const TYPE_KO={NORMAL:'노말',FIRE:'불꽃',WATER:'물',ELECTRIC:'전기',GRASS:'풀',ICE:'얼음',FIGHTING:'격투',POISON:'독',GROUND:'땅',FLYING:'비행',PSYCHIC:'에스퍼',BUG:'벌레',ROCK:'바위',GHOST:'고스트',DRAGON:'드래곤',DARK:'악',STEEL:'강철',FAIRY:'페어리'};
 const DMAX_NAME={NORMAL:'다이어택',FIRE:'다이번',WATER:'다이스트림',ELECTRIC:'다이썬더',GRASS:'다이그래스',ICE:'다이아이스',FIGHTING:'다이너클',POISON:'다이애시드',GROUND:'다이어스',FLYING:'다이제트',PSYCHIC:'다이사이코',BUG:'다이웜',ROCK:'다이록',GHOST:'다이할로우',DRAGON:'다이드라군',DARK:'다이아크',STEEL:'다이스틸',FAIRY:'다이페어리'};
-// 거다이맥스 전용기 이름 — 확실한 것(명세서 기준 리자몽)만 적어 뒀어요. 나머지는 「거다이+속성」으로 나오고, 공식 이름을 알면 여기에 추가하면 돼요.
-const GMAX_SIG={CHARIZARD:'거다이옥염'};
+// 거다이맥스 전용기 — 레조넌스(Pokemon-Resonance)의 전용기 표를 그대로 옮겼어요 (이름·타입·위력·맞았을 때 부가효과).
+//  n=이름 t=타입 p=위력(없으면 CFG.POWER_GMAX) fx=부가효과 d=화면에 보여줄 설명
+//  fx 종류(게임의 실시간 배틀에 맞게 옮긴 것):
+//   dot   {sec,frac,spare}  맞은 뒤 sec초 동안 1초마다 최대HP×frac 피해 (spare 타입이면 안 입음)   ← 레조넌스 "side" 효과
+//   bind  {sec,frac}        가두기: 움직임 크게 둔해지고 지속 피해                                  ← 사진·백화
+//   poison/par/conf/snooze/terror/cuddle/befuddle  상태이상 (게임에 상태이상 시스템이 없어서 배틀 파일 안에서 따로 처리)
+//   slow {sec,k}            상대 움직임이 k배로 느려짐 (속도·회피↓·중력 대신)
+//   cdAdd {sec}/torment{sec} 상대 기술 대기시간 연장 (PP 감소·트집 대신)
+//   heal/cure/buff/guard/replenish/defog  내 쪽 효과
+const GMAX_MOVE={
+  GMAXVINELASH:{n:'거다이편달',t:'GRASS',fx:{k:'dot',sec:8,frac:1/32,spare:'GRASS'},d:'8초간 지속 피해 (풀 타입은 안 입음)'},
+  GMAXWILDFIRE:{n:'거다이옥염',t:'FIRE',fx:{k:'dot',sec:8,frac:1/32,spare:'FIRE'},d:'8초간 지속 피해 (불꽃 타입은 안 입음)'},
+  GMAXCANNONADE:{n:'거다이포격',t:'WATER',fx:{k:'dot',sec:8,frac:1/32,spare:'WATER'},d:'8초간 지속 피해 (물 타입은 안 입음)'},
+  GMAXVOLCALITH:{n:'거다이분석',t:'ROCK',fx:{k:'dot',sec:8,frac:1/32,spare:'ROCK'},d:'8초간 지속 피해 (바위 타입은 안 입음)'},
+  GMAXDRUMSOLO:{n:'거다이난타',t:'GRASS',p:160,d:'위력 160 고정 · 부가효과 없음'},
+  GMAXFIREBALL:{n:'거다이화염구',t:'FIRE',p:160,d:'위력 160 고정 · 부가효과 없음'},
+  GMAXHYDROSNIPE:{n:'거다이저격',t:'WATER',p:160,d:'위력 160 고정 · 부가효과 없음'},
+  GMAXVOLTCRASH:{n:'거다이만뢰',t:'ELECTRIC',fx:{k:'par'},d:'상대 마비 (느려지고 잠깐 굳음)'},
+  GMAXSTUNSHOCK:{n:'거다이감전',t:'ELECTRIC',fx:{k:'par'},d:'상대 마비 (느려지고 잠깐 굳음)'},
+  GMAXMALODOR:{n:'거다이악취',t:'POISON',fx:{k:'poison',sec:10,frac:1/16},d:'상대 독 (10초간 지속 피해)'},
+  GMAXBEFUDDLE:{n:'거다이고혹',t:'BUG',fx:{k:'befuddle'},d:'상대를 독·마비·잠 중 하나로'},
+  GMAXSMITE:{n:'거다이천벌',t:'FAIRY',fx:{k:'conf',sec:6},d:'상대 혼란 (6초간 헤매고 공격 약해짐)'},
+  GMAXGOLDRUSH:{n:'거다이금화',t:'NORMAL',fx:{k:'conf',sec:6},d:'상대 혼란 (6초간 헤매고 공격 약해짐)'},
+  GMAXCUDDLE:{n:'거다이포옹',t:'NORMAL',fx:{k:'cuddle',sec:6,pulse:1.5,chance:.5,stagger:.6},d:'6초간 헤롱헤롱 (1.5초마다 50%로 멈칫)'},
+  GMAXSTONESURGE:{n:'거다이암진',t:'WATER',fx:{k:'dot',sec:8,frac:1/32,spare:'',label:'스텔스락'},d:'뾰족한 바위 함정 (8초간 지속 피해)'},
+  GMAXSTEELSURGE:{n:'거다이강철진',t:'STEEL',fx:{k:'dot',sec:8,frac:1/32,spare:'STEEL',label:'강철 압정'},d:'강철 함정 (8초간 지속 피해)'},
+  GMAXCENTIFERNO:{n:'거다이백화',t:'FIRE',fx:{k:'bind',sec:6,frac:1/32,label:'불꽃 소용돌이'},d:'6초간 가둠 (움직임 둔화 + 지속 피해)'},
+  GMAXSANDBLAST:{n:'거다이사진',t:'GROUND',fx:{k:'bind',sec:6,frac:1/32,label:'모래 지옥'},d:'6초간 가둠 (움직임 둔화 + 지속 피해)'},
+  GMAXFOAMBURST:{n:'거다이포말',t:'WATER',fx:{k:'slow',sec:10,k2:.45,label:'스피드 DOWN'},d:'상대 속도 크게 DOWN (10초)'},
+  GMAXWINDRAGE:{n:'거다이풍격',t:'FLYING',fx:{k:'defog'},d:'상대 방어 효과·내 불리한 효과 제거'},
+  GMAXGRAVITAS:{n:'거다이천도',t:'PSYCHIC',fx:{k:'slow',sec:10,k2:.7,label:'중력'},d:'10초간 중력 (상대 둔해짐)'},
+  GMAXFINALE:{n:'거다이단원',t:'FAIRY',fx:{k:'heal',frac:1/6},d:'내 HP 최대치의 1/6 회복'},
+  GMAXSWEETNESS:{n:'거다이감로',t:'GRASS',fx:{k:'cure'},d:'내 약화 효과 해제'},
+  GMAXTARTNESS:{n:'거다이산격',t:'GRASS',fx:{k:'slow',sec:8,k2:.8,label:'회피 DOWN'},d:'상대 회피 DOWN (8초간 둔해짐)'},
+  GMAXREPLENISH:{n:'거다이재생',t:'NORMAL',fx:{k:'replenish',chance:.5},d:'50% 확률로 내 기술 대기시간 초기화'},
+  GMAXDEPLETION:{n:'거다이감쇠',t:'DRAGON',fx:{k:'cdAdd',sec:5},d:'상대 기술 대기시간 +5초'},
+  GMAXRESONANCE:{n:'거다이선율',t:'ICE',fx:{k:'guard',sec:8,label:'오로라베일'},d:'8초간 오로라베일 (받는 피해 감소)'},
+  GMAXCHISTRIKE:{n:'거다이회심격',t:'FIGHTING',fx:{k:'buff',sec:12,label:'급소 집중'},d:'내 공격 UP (12초)'},
+  GMAXTERROR:{n:'거다이환영',t:'GHOST',fx:{k:'terror',sec:4},d:'4초간 상대가 도망 못 침 (제자리에 붙잡음)'},
+  GMAXSNOOZE:{n:'거다이수마',t:'DARK',fx:{k:'snooze',wait:3,sleep:2.5},d:'3초 뒤 상대가 잠듦 (2.5초)'},
+  GMAXMELTDOWN:{n:'거다이융격',t:'STEEL',fx:{k:'torment',sec:8},d:'8초간 트집 (상대 기술 대기시간 2배로)'},
+  GMAXONEBLOW:{n:'거다이일격',t:'DARK',d:'방어·회피 무시 · 부가효과 없음'},
+  GMAXRAPIDFLOW:{n:'거다이연격',t:'WATER',d:'방어·회피 무시 · 부가효과 없음'}
+};
+// 거다이 폼 → 전용기 (공식 대응, 레조넌스와 같음)
+const GMAX_FORM={VENUSAUR_2:'GMAXVINELASH',CHARIZARD_3:'GMAXWILDFIRE',BLASTOISE_2:'GMAXCANNONADE',BUTTERFREE_1:'GMAXBEFUDDLE',PIKACHU_17:'GMAXVOLTCRASH',MEOWTH_3:'GMAXGOLDRUSH',MACHAMP_1:'GMAXCHISTRIKE',GENGAR_2:'GMAXTERROR',KINGLER_1:'GMAXFOAMBURST',LAPRAS_1:'GMAXRESONANCE',EEVEE_2:'GMAXCUDDLE',SNORLAX_1:'GMAXREPLENISH',GARBODOR_1:'GMAXMALODOR',MELMETAL_1:'GMAXMELTDOWN',RILLABOOM_1:'GMAXDRUMSOLO',CINDERACE_1:'GMAXFIREBALL',INTELEON_1:'GMAXHYDROSNIPE',CORVIKNIGHT_1:'GMAXWINDRAGE',ORBEETLE_1:'GMAXGRAVITAS',DREDNAW_1:'GMAXSTONESURGE',COALOSSAL_1:'GMAXVOLCALITH',FLAPPLE_1:'GMAXTARTNESS',APPLETUN_1:'GMAXSWEETNESS',SANDACONDA_1:'GMAXSANDBLAST',TOXTRICITY_2:'GMAXSTUNSHOCK',TOXTRICITY_3:'GMAXSTUNSHOCK',CENTISKORCH_1:'GMAXCENTIFERNO',HATTERENE_1:'GMAXSMITE',GRIMMSNARL_1:'GMAXSNOOZE',COPPERAJAH_1:'GMAXSTEELSURGE',DURALUDON_1:'GMAXDEPLETION',URSHIFU_2:'GMAXONEBLOW',URSHIFU_3:'GMAXRAPIDFLOW',ALCREMIE_63:'GMAXFINALE'};
+const GMAX_SIG={};for(const k in GMAX_FORM)GMAX_SIG[k.replace(/_\d+$/,'')]=GMAX_MOVE[GMAX_FORM[k]].n;
+// 일반 다이기술(전용기 아닌 것)의 부가효과 — 레조넌스의 능력치 변화를 실시간 배틀에 맞게 옮긴 것 (날씨·필드는 이 게임에 없어서 뺐어요)
+const DMAX_FX={FIGHTING:{k:'buff',sec:10,d:'내 공격 UP'},POISON:{k:'buff',sec:10,d:'내 공격 UP'},STEEL:{k:'guard',sec:8,d:'받는 피해 감소'},GROUND:{k:'guard',sec:8,d:'받는 피해 감소'},DRAGON:{k:'debuff',sec:10,d:'상대 공격 DOWN'},BUG:{k:'debuff',sec:10,d:'상대 공격 DOWN'},NORMAL:{k:'slow',sec:8,k2:.7,d:'상대 속도 DOWN'}};
 
 // ---------- 거다이맥스 가능 종 표 (gmaxmap.json 을 읽어서 채움) ----------
 // 키: 게임의 거다이 폼 키(예: CHARIZARD_3). 값: {dex,name,types,baseKey,gmaxSet,front,frontFrames,hasMotion}
@@ -63,8 +118,10 @@ function convertAll(moves,sig){
 // 거다이 폼 키 → 전용기 {name,type}  (대표 타입 = 폼의 첫 번째 타입)
 function sigOf(formKey){
   const I=infoOf(formKey);if(!I)return null;
-  const base=(I.baseKey||'').toUpperCase(),t=(I.types||[])[0];
-  return{name:GMAX_SIG[base]||('거다이'+(TYPE_KO[t]||'')),type:t};
+  const id=GMAX_FORM[formKey],M=id&&GMAX_MOVE[id];
+  if(M)return{id,name:M.n,type:M.t,p:M.p||0,fx:M.fx||null,d:M.d||''};
+  const t=(I.types||[])[0];   // 표에 없는 폼은 「거다이+속성」
+  return{id:null,name:'거다이'+(TYPE_KO[t]||''),type:t,p:0,fx:null,d:''};
 }
 
 // ---------- 자동 선택 ----------
@@ -119,7 +176,7 @@ function machine(o){
   return M;
 }
 
-const API={CFG,ST,TYPE_KO,DMAX_NAME,GMAX_SIG,setMap,formsForDex,infoOf,sigOf,convertMove,convertAll,autoPick,machine,
+const API={CFG,ST,TYPE_KO,DMAX_NAME,GMAX_SIG,GMAX_MOVE,GMAX_FORM,DMAX_FX,setMap,formsForDex,infoOf,sigOf,convertMove,convertAll,autoPick,machine,
   // 지도 파일 읽기 (브라우저)
   load(url){return fetch(url||'gmaxmap.json').then(r=>r.ok?r.json():null).then(j=>{if(j)setMap(j);return j}).catch(()=>null)}};
 if(typeof module!=='undefined'&&module.exports)module.exports=API;

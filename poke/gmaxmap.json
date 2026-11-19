@@ -15,6 +15,19 @@
    "frontFrames": 10,
    "hasMotion": true
   },
+  "CHARIZARD_3": {
+   "dex": 6,
+   "name": "리자몽 (거다이맥스)",
+   "types": [
+    "FIRE",
+    "FLYING"
+   ],
+   "baseKey": "CHARIZARD",
+   "gmaxSet": "gmax_charizard",
+   "front": "CHARIZARD_3-Anim.png",
+   "frontFrames": 12,
+   "hasMotion": true
+  },
   "BLASTOISE_2": {
    "dex": 9,
    "name": "거북왕 (거다이맥스)",
@@ -237,6 +250,19 @@
    "frontFrames": 97,
    "hasMotion": true
   },
+  "COALOSSAL_1": {
+   "dex": 839,
+   "name": "석탄산 (거다이맥스)",
+   "types": [
+    "ROCK",
+    "FIRE"
+   ],
+   "baseKey": "COALOSSAL",
+   "gmaxSet": "gmax_coalossal",
+   "front": "COALOSSAL_1-Anim.png",
+   "frontFrames": 90,
+   "hasMotion": true
+  },
   "FLAPPLE_1": {
    "dex": 841,
    "name": "애프룡 (거다이맥스)",
@@ -340,6 +366,18 @@
    "frontFrames": 70,
    "hasMotion": true
   },
+  "ALCREMIE_63": {
+   "dex": 869,
+   "name": "마휘핑 (거다이맥스)",
+   "types": [
+    "FAIRY"
+   ],
+   "baseKey": "ALCREMIE",
+   "gmaxSet": "gmax_alcremie",
+   "front": "ALCREMIE_63-Anim.png",
+   "frontFrames": 12,
+   "hasMotion": true
+  },
   "COPPERAJAH_1": {
    "dex": 879,
    "name": "대왕끼리동 (거다이맥스)",
@@ -389,31 +427,6 @@
    "gmaxSet": "gmax_urshifurapid",
    "front": "URSHIFU_3-Anim.png",
    "frontFrames": 44,
-   "hasMotion": true
-  },
-  "CHARIZARD_3": {
-   "dex": 6,
-   "name": "리자몽 (거다이맥스)",
-   "types": [
-    "FIRE",
-    "FLYING"
-   ],
-   "baseKey": "CHARIZARD",
-   "gmaxSet": "gmax_charizard",
-   "front": "CHARIZARD_3-Anim.png",
-   "frontFrames": 12,
-   "hasMotion": true
-  },
-  "ALCREMIE_63": {
-   "dex": 869,
-   "name": "마휘핑 (거다이맥스)",
-   "types": [
-    "FAIRY"
-   ],
-   "baseKey": "ALCREMIE",
-   "gmaxSet": "gmax_alcremie",
-   "front": "ALCREMIE_63-Anim.png",
-   "frontFrames": 12,
    "hasMotion": true
   }
  }
