@@ -2001,12 +2001,13 @@ function menuOpen(tab){if(SCENE!=='over')return;if(typeof tab==='number')MENUTAB
   `<button class="it" id="oBag" style="width:100%;background:#ffe9a8;margin-top:8px">🎒 가방 열기 (아이템 · 기술 카드 · 접두사 주문서)</button><button class="it" id="oGift" style="width:100%;background:#ff9ac0">🎁 선물 코드 · 선물 가방 ${(G.gifts||[]).length?'('+G.gifts.length+')':''}</button><button class="it" id="oFuse" style="width:100%;background:#c0a0ff">🎴 카드팩 · 합성 ${(G.dupes||[]).length?'(재료 '+G.dupes.length+')':''}</button>`,
   `<div style="text-align:center;font-weight:900;margin:6px 0 2px">🏅 배지 ${G.badges} / 8</div>${badgeCase()}${badgeCase()}
   ${canFly()?`<h4>🕊 날아가기</h4><div>${tw.map(a=>`<button class="it" data-fly="${a}">${areaName(a)}</button>`).join('')}</div>`:'<h4>🕊 날아가기</h4><small>비행 타입 포켓몬이 있으면 가 본 마을로 날아갈 수 있어요</small>'}`,
-  `<h4>설정</h4><label><input type="checkbox" id="oC" ${G.opt.catchNew?'checked':''}> 자동일 때 새 포켓몬 잡기</label><label><input type="checkbox" id="oAB" ${BR().auto?'checked':''}> 자동일 때 몬스터볼 알아서 던지기 <small>(끄면 물어봐요)</small></label><div class="row"><span>슈퍼볼은</span><select id="oBG">${RAR.slice(0,4).map((x,i)=>`<option value="${i}" ${BR().great==i?'selected':''}>${x} 이상</option>`).join('')}</select></div><div class="row"><span>하이퍼볼은</span><select id="oBH">${RAR.slice(0,4).map((x,i)=>`<option value="${i}" ${BR().hyper==i?'selected':''}>${x} 이상</option>`).join('')}</select></div><label><input type="checkbox" id="oB" ${G.autoBattle?'checked':''}> 걸어 다닐 때도 전투는 자동</label><label><input type="checkbox" id="oP" ${SHOWPATH?'checked':''}> 자동 길 표시</label>
+  `<h4>설정</h4><label><input type="checkbox" id="oC" ${G.opt.catchNew?'checked':''}> 자동일 때 새 포켓몬 잡기</label><label><input type="checkbox" id="oAB" ${BR().auto?'checked':''}> 자동일 때 몬스터볼 알아서 던지기 <small>(끄면 물어봐요)</small></label><div class="row"><span>슈퍼볼은</span><select id="oBG">${RAR.slice(0,4).map((x,i)=>`<option value="${i}" ${BR().great==i?'selected':''}>${x} 이상</option>`).join('')}</select></div><div class="row"><span>하이퍼볼은</span><select id="oBH">${RAR.slice(0,4).map((x,i)=>`<option value="${i}" ${BR().hyper==i?'selected':''}>${x} 이상</option>`).join('')}</select></div><label><input type="checkbox" id="oB" ${G.autoBattle?'checked':''}> 걸어 다닐 때도 전투는 자동</label><label><input type="checkbox" id="oP" ${SHOWPATH?'checked':''}> 자동 길 표시</label><label><input type="checkbox" id="oRT" ${G.opt.rtWild!==false?'checked':''}> ⚔ 새 실시간 전투 <small>(끄면 예전 전투)</small></label>
   <div style="margin-top:10px"><button class="it" id="oS">💾 저장</button><button class="it" id="oT">🏠 처음 화면</button></div>`];
   openPanel('📋 메뉴',`<div class="tabs">${MT.map((n,i)=>`<button data-mt="${i}" class="${i===MENUTAB?'on':''}">${n}</button>`).join('')}</div>${SEC[MENUTAB]}`,null,p=>{
     const Q=sel=>p.querySelector(sel)||{};
     p.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{sfx('tap');menuOpen(+b.dataset.mt)});
 
+    Q('#oRT').onchange=e=>{G.opt.rtWild=!!e.target.checked;save();toast(G.opt.rtWild?'⚔ 새 실시간 전투로 싸워요':'⚔ 예전 전투로 싸워요')};
     Q('#oF').onchange=e=>{const v=e.target.value;if(v===''){G.fol=null}else{const m=[...G.party,...G.box][+v];m.fid=m.fid||('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));G.fol=m.fid;toast('🐾 '+nm(m)+'(이)가 졸졸 따라와요!')}refreshSpr();save()};
     p.querySelectorAll('.mon').forEach(x=>x.onclick=()=>{const i=+x.dataset.i;if(i>0){const [m]=G.party.splice(i,1);G.party.unshift(m);refreshSpr();save();menuOpen()}});
     p.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>{const i=+x.dataset.b;const m=G.box[i];if(G.party.length<6){G.box.splice(i,1);G.party.push(m)}else{const o=G.party.pop();G.box[i]=o;G.party.push(m)}save();menuOpen()});
@@ -2402,6 +2403,29 @@ const RZM={};let RZMP=null;
 function rzMovesLoad(){return RZMP||(RZMP=fetch('rzmoves.json').then(r=>r.ok?r.json():null).then(D=>{if(!D)return;for(const id in D){const d=D[id];RZM[id]=d;const st=d.c===2||!(d.p>0);const o=MOVES[id]||(MOVES[id]={id,name:d.n,type:'NORMAL'});
   o.id=id;o.name=d.n;if(typeof TCOL!=='undefined'&&TCOL[d.t])o.type=d.t;o.pw=st?0:d.p;o.acc=d.a>0?d.a:100;o.ph=d.c===0;o.pri=d.pr||0;o.pp=d.pp;o.rk=d.k;o.rkd=d.kd;o.rsub=d.sb;o.raim=d.aim;o.rfx=d.ef;o.st=st?1:0}}).catch(e=>{console.warn('rzmoves',e)}))}
 {const _lp2=loadPool;loadPool=async function(...a){const r=await _lp2.apply(this,a);try{await rzMovesLoad()}catch(e){console.warn(e)}return r}}
+// ===== 6G: 레조넌스 능력치(종족값)·기본기술 (rzdex.json) — 등급·환생·각성 보너스는 stOf에서 그대로 따로 붙어요 =====
+const RZD={};let RZDP=null;const RZKEY={};
+function rzDexLoad(){return RZDP||(RZDP=Promise.all([fetch('rzdex.json').then(r=>r.ok?r.json():null),fetch('rzmap.json').then(r=>r.ok?r.json():null)]).then(([D,MP])=>{if(!D||!MP)return;Object.assign(RZD,D);Object.assign(RZKEY,MP)}).catch(e=>console.warn('rzdex',e)))}
+const rzPad=d=>String(d).padStart(4,'0');
+function rzKeyOf(k){const M=META[k];if(!M)return null;if(M.form){const p=String(k).replace(/^sc:/,'');return RZKEY[p]||null}return RZKEY[rzPad(M.dex)]||null}
+function rzApplyMeta(){let n=0;for(const k in META){const M=META[k],rk=rzKeyOf(k),R=rk&&RZD[rk];if(!R)continue;M.rzk=rk;
+    if(M.form!=='gmax'){const s=R[3].slice();M.stats=s;M.s=s;n++}
+    M.rzmv=(R[5]||[]).map(x=>String(x).toLowerCase()).filter(id=>id&&(MOVES[id]||RZM[id]))}
+  return n}
+// 기술 배우기: 레조넌스 기본기술 4개를 Lv.1부터 (레조넌스 자료가 없는 포켓몬은 예전 방식)
+const learnsetOld=learnset;
+learnset=function(M){if(M&&M.rzmv&&M.rzmv.length)return M.rzmv.slice(0,4).map(id=>[1,id]);return learnsetOld(M)};
+// 저장된 포켓몬 옮기기(한 번만): 예전에 레벨로 자동으로 배운 기술만 레조넌스 기본기술로 바꿔요.
+// 기술 카드·선물로 배운 기술, 직접 추가 기술(sg_*)은 그대로 둬요.
+function rzMigrateMon(m){if(!m||m.rz6g)return 0;const M=META[m.n];if(!M||!M.rzmv||!M.rzmv.length)return 0;
+  let auto=new Set();try{for(const [l,id] of learnsetOld(M))auto.add(id)}catch(e){}
+  const keep=(m.moves||[]).filter(id=>id&&!auto.has(id)&&!M.rzmv.includes(id));
+  const out=keep.slice(0,4);for(const id of M.rzmv){if(out.length>=4)break;if(!out.includes(id))out.push(id)}
+  const ch=out.join()!==(m.moves||[]).join();m.moves=out;m.rz6g=1;try{m.hp=Math.min(Math.max(m.hp>0?1:0,m.hp),stOf(m)[0])}catch(e){}return ch?1:0}
+function rzMigrate(g){if(!g)return;let c=0;for(const a of [g.party,g.box,g.hold])(a||[]).forEach(m=>{c+=rzMigrateMon(m)});
+  if(c)setTimeout(()=>{try{toast('⚔ 포켓몬 '+c+'마리의 기본 기술이 레조넌스 기술로 바뀌었어요 (카드·선물 기술은 그대로)');save()}catch(e){}},3200)}
+{const _lp3=loadPool;loadPool=async function(...a){const r=await _lp3.apply(this,a);try{await rzMovesLoad();await rzDexLoad();rzApplyMeta()}catch(e){console.warn('6G',e)}return r}}
+{const _st=start;start=function(...a){const r=_st.apply(this,a);try{rzMigrate(G)}catch(e){console.warn('6G migrate',e)}return r}}
 // 변화기술(위력 없음) 사용: 회복 · 자기 강화 · 방어 · 상대 약화 (레조넌스 사용방식 self/target)
 function rzStatus(mine,m,AB,DB){const S=bsz(),now=performance.now(),kd=m.rkd,atk=AB.m,tx=(t,c)=>FX2.num(AB.ax,AB.ay-S*1.6,t,c||'#9be7ff',1);
   if(m.rk==='self'){if(kd==='heal'){const mx=stOf(atk)[0];atk.hp=Math.min(mx,atk.hp+Math.ceil(mx*.25));bbox();tx('회복!','#7dff9b')}
@@ -8345,7 +8369,7 @@ async function rtGo(){
     // 6F-1: 실시간 포획(시험 전투는 볼이 공짜·무한, 잡아도 저장 안 됨). 확률은 기존 던지기 공식 그대로
     const catchP=(f,it,ratio)=>{const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38][DIFF()])};
     const balls=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞'}));
-    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP,
+    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP,...rtCommon(),bg:()=>{try{return bgImg('grass')}catch(e){return null}},
       // 6F-4c 시험: 회복약 무한(저장 안 됨)
       items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞',heal:ITEMS[k].heal})),
       useItem:k=>{const it=ITEMS[k];return it&&it.heal?{heal:it.heal}:null},sfx});
@@ -8355,7 +8379,18 @@ async function rtGo(){
 }
 window.rtGo=rtGo;
 // ===== 6F-2: 진짜 야생 조우를 새 전투로 (GM/운영자가 켰을 때만 · 자동 중에는 예전 전투) =====
-const rtWildOn=()=>{try{return !!(G&&G.opt&&G.opt.rtWild&&(isGM()||OPER.on)&&!autoActive()&&!BS.on)}catch(e){return false}};
+const rtWildOn=()=>{try{return !!(G&&G.opt&&G.opt.rtWild!==false&&!BS.on)}catch(e){return false}};   // 7C: 모두에게 기본 ON (메뉴 → 🔧 설정에서 끄기)   // 7A: 자동(AUTO) 중에도 새 전투 (내 포켓몬은 AI가 조종)
+// 7D: 숫자 배율 K = 10^(표시레벨/200) → Lv.1 ×1 · Lv.100 ×3 · 환생3(Lv.400) ×100 · 환생9(Lv.1000) ×10만 (체력·데미지 숫자만, 승패 밸런스와 무관)
+const rtNumK=m=>{try{return Math.min(1e7,Math.pow(10,dLv(m)/200))}catch(e){return 1}};
+// 7D: 예전 전투와 같은 보정 — 기술 레벨(+8%/레벨) · 난이도별 상대 데미지(DDMG)
+const rtDmgMul=(a,d,id)=>{let k=1;try{if(a&&a.moves&&a.moves.includes(id))k*=1+.08*(mlv(a,id)-1)}catch(e){}try{if(!isMine(a))k*=DDMG[DIFF()]}catch(e){}
+  // 환생하면 체력이 ×(1+0.4×환생)으로 커지는데 데미지는 그대로라 실시간 전투가 너무 길어짐(환생9 트레이너 74초) → 데미지도 같은 배율(양쪽 똑같이, 밸런스 그대로)
+  try{if((G.rebirth||(a.gmrb!=null&&opAny()))&&(isMine(a)||a.rbf))k*=1+REBSTAT*rbOf(a)}catch(e){}
+  return k};
+// ⚠ 새 전투에는 내 포켓몬의 '복사본'이 들어가서 isMine()·G.party.includes()가 false가 됨 → 환생·도감·칭호·접두사 보너스가 빠졌었음(6F-2~7C 버그). uid로 진짜 포켓몬을 찾아서 계산
+const rtReal=m=>{try{if(!m||!G)return m;return G.party.find(x=>x.uid===m.uid)||G.box.find(x=>x.uid===m.uid)||m}catch(e){return m}};
+const rtCommon=()=>({stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id)});
+const rtBgOf=()=>{try{if(BS.bg==='stadium'&&typeof STAD!=='undefined'&&STAD.complete&&STAD.naturalWidth)return STAD;return bgImg(STG[BS.bg]||'grass')}catch(e){return null}};   // 7B: 새 전투 배경
 async function rtWild(o){
   if(!rtWildOn()||!o||o.wb||o.pvp||!o.foes||!o.foes.length)return undefined;
   const tr=!!o.trainer;if(!tr&&o.foes.length!==1)return undefined;
@@ -8370,7 +8405,8 @@ async function rtWild(o){
   try{BGM.battle(o)}catch(e){}try{sfx('enc')}catch(e){}
   // AI 단계: 야생=W · 트레이너는 난이도(0~5)별 T1,T2,G4,T4,T5,REF · 관장·사천왕·챔피언은 한 단계 위
   const TIERS=['T1','T2','G4','T4','T5','REF'];
-  const tier=!tr?'W':TIERS[Math.min(5,Math.max(0,DIFF())+((o.gym||o.league||/관장|챔피언|사천왕/.test(o.trainer))?1:0))];
+  const WTIERS=['W','W','W','T2','G4','T4'];   // 7D: 야생도 난이도 따라 (예전 턴제 승률과 맞춤 — 지옥↑에서 야생이 너무 쉬웠음)
+  const tier=!tr?WTIERS[Math.min(5,Math.max(0,DIFF()))]:TIERS[Math.min(5,Math.max(0,DIFF())+((o.gym||o.league||/관장|챔피언|사천왕/.test(o.trainer))?1:0))];
   const balls=()=>BALLS().map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0}));
   const takeBall=k=>{const it=ITEMS[k];if(!it||(G.bag[k]||0)<=0)return null;G.bag[k]--;let r=it;
     if(it.ball&&it.ball<255&&(G.bag.razz||0)>0&&G.opt.razz!==false){G.bag.razz--;r=Object.assign({},it,{ball:it.ball*1.5});try{toast('🍓 라즈열매를 먼저 줬다! 잡기 쉬워졌다')}catch(e){}}return r};
@@ -8390,12 +8426,14 @@ async function rtWild(o){
       lastMon=m;part.add(m.uid);
       const me=Object.assign({},m,{moves:m.moves.slice()});const reserve=alive().length>1;
       const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
-        meHp:m.hp,foeHp:f.hp,aiTier:tier,party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:q.lv,hp:q.hp,max:stOf(q)[0]})),
+        meHp:m.hp,foeHp:f.hp,aiTier:tier,bg:rtBgOf,...rtCommon(),party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:q.lv,hp:q.hp,max:stOf(q)[0]})),
         pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
         // 6F-4c: 전투 중 회복 아이템(가방에서 1개 차감). 상처약·좋은상처약·고급상처약·오랭/시트러스열매
         items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal})),
         useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;G.bag[k]--;return{heal:it.heal}},sfx,
-        loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:'화면을 누르면 계속해요'},
+        loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:autoActive()?'자동으로 계속해요':'화면을 누르면 계속해요',
+        // 7A: 자동전투 — 내 포켓몬도 AI(T4). 야생은 잡고 싶은 포켓몬이면 자동 볼(예전 자동 규칙 wantCatch·autoBallFor 그대로)
+        autoMe:autoActive()?1:0,autoTier:'T4',autoBall:()=>{try{return(!tr&&autoActive()&&wantCatch(f)&&!capFull(f))?autoBallFor(f):null}catch(e){return null}}},
         tr?{noQuit:1,maxTime:300}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
       const L=window.RTB.last||{};
       // 6F-4b: 교대로 여러 마리가 싸웠을 수 있음 → 체력은 uid별로 저장, 마지막에 싸운 포켓몬이 cur
@@ -8430,8 +8468,8 @@ setInterval(()=>{try{
   let w=document.getElementById('rtWBtn');
   const on2=!!G&&(isGM()||OPER.on)&&SCENE==='over'&&!document.body.classList.contains('inb');
   if(!on2){if(w)w.classList.remove('show')}else{
-    if(!w){w=document.createElement('button');w.id='rtWBtn';w.onclick=()=>{try{sfx('tap')}catch(e){}G.opt=G.opt||{};G.opt.rtWild=!G.opt.rtWild;try{save()}catch(e){}toast(G.opt.rtWild?'⚔ 야생·트레이너 전투가 새 전투로 바뀌어요 (자동 중에는 예전 전투)':'⚔ 야생 전투를 예전 방식으로 되돌렸어요')};document.body.appendChild(w)}
-    const st=!!(G.opt&&G.opt.rtWild);w.textContent=st?'⚔ 야생·트레이너=새 전투 ON':'⚔ 야생·트레이너=새 전투 OFF';w.classList.toggle('on',st);w.classList.add('show')}
+    if(!w){w=document.createElement('button');w.id='rtWBtn';w.onclick=()=>{try{sfx('tap')}catch(e){}G.opt=G.opt||{};G.opt.rtWild=!(G.opt.rtWild!==false);try{save()}catch(e){}toast(G.opt.rtWild?'⚔ 야생·트레이너 전투가 새 전투로 바뀌어요 (자동 중에는 예전 전투)':'⚔ 야생 전투를 예전 방식으로 되돌렸어요')};document.body.appendChild(w)}
+    const st=!!(G.opt&&G.opt.rtWild!==false);w.textContent=st?'⚔ 야생·트레이너=새 전투 ON':'⚔ 야생·트레이너=새 전투 OFF';w.classList.toggle('on',st);w.classList.add('show')}
 }catch(e){}},1000);
 setInterval(()=>{try{
   let b=document.getElementById('rtBtn');

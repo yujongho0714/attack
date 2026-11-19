@@ -119,6 +119,7 @@ function mkEnt(mon,S,side,hp0){
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
   e.haste=hasteOf(s[5]);
+  try{e.K=C.numK?clamp(+C.numK(mon)||1,1,1e7):1}catch(er){e.K=1}   // 7D 숫자 배율
   {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
@@ -132,6 +133,9 @@ const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;return 
 // ---------- 데미지 ----------
 function floatTxt(x,y,t,col,big){W.fx.push({k:'txt',x,y,t:0,life:.9,s:t,c:col||'#fff',big:!!big})}
 // 6E-3: 데미지 숫자(통통 튀며 떠오름) · 충격파 · 불꽃 · 화면 번쩍 · 반전 (sjdhdhbd.html 방식)
+// 7D: 숫자 배율 — 진행(레벨·환생)에 따라 체력·데미지 숫자만 같이 커짐(승패 밸런스는 그대로). 1만↑ '만', 1억↑ '억'
+function fmtN(v){v=Math.max(0,Math.round(v));if(v<1e5)return v.toLocaleString('en-US');if(v<1e8){const q=v/1e4;return (q<1e3?q.toFixed(q<100?1:0):Math.round(q).toLocaleString('en-US'))+'만'}const q=v/1e8;return (q<100?q.toFixed(2):Math.round(q).toLocaleString('en-US'))+'억'}
+const kOf=e=>(e&&e.K)||1;
 function dmgPop(x,y,txt,col,fin){W.fx.push({k:'dmg',x:x+(rnd()-.5)*56,y:y+(rnd()-.5)*24,t:0,life:fin?.95:.75,s:txt,c:col||'#fff',sc:fin?1.35:1})}
 function hitFx(def,col,fin){
   W.fx.push({k:'shock',sys:1,x:def.x,y:def.y-20,t:0,life:fin?.34:.22,r:fin?120:70,c:fin?'#ffffff':col,w:fin?9:5});
@@ -163,6 +167,7 @@ function dealDamage(att,def,mi,opt){
   let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5:1)*(m.melee&&m.phys?1.15:1);
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
+  if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
   if(m.exec&&def.lv>att.lv)dmg*=.5;               // 즉사기: 상대 레벨이 높으면 절반
   let fixedDmg=null;
   if(m.fx){const f=m.fx;
@@ -172,12 +177,12 @@ function dealDamage(att,def,mi,opt){
   if(fixedDmg!=null)dmg=fixedDmg;
   if(opt.fixed)dmg=opt.fixed;
   const capped=fixedDmg!=null||opt.fixed?dmg:Math.min(dmg,def.max*.6);
-  dmg=Math.max(e===0?0:1,Math.round(capped));
+  const rawD=capped;dmg=Math.max(e===0?0:1,Math.round(capped));
   if(e===0)dmg=0;
   def.hp=Math.max(0,def.hp-dmg);
   def.flash=.15;
   if(dmg>0){
-    W._dp={dmg,e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
+    W._dp={dmg,raw:Math.max(rawD,dmg>0?1:0),e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
     if(e>1)floatTxt(def.x,def.y-95,'효과 굉장!','#ffb030');
     if(e<1&&e>0)floatTxt(def.x,def.y-95,'별로…','#9bb');
   } else floatTxt(def.x,def.y-70,'효과 없음','#9bb');
@@ -191,7 +196,7 @@ function dealDamage(att,def,mi,opt){
   // 6E-3: 마지막 타(또는 치명타·효과 굉장)는 크게, 중간 타는 작게
   const fin=(opt.chain?!!opt.last:!W._more)||crit||e>1;W._more=0;
   if(dmg>0&&W._dp){const q=W._dp;W._dp=null;
-    dmgPop(def.x,def.y-62,(crit&&fin?'CRIT ':'')+q.dmg+(fin&&(crit||q.e>1)?'!':''),q.col,fin);
+    dmgPop(def.x,def.y-62,(crit&&fin?'CRIT ':'')+fmtN((fixedDmg!=null||opt.fixed?q.dmg:q.raw)*kOf(def))+(fin&&(crit||q.e>1)?'!':''),q.col,fin);
     hitFx(def,C.TCOL[m.type]||'#fff',fin);
     W.hitstop=Math.max(W.hitstop,fin?Math.max(HSTOP[m.g],.1):HSTOP[m.g]*.6)}
   else W.hitstop=Math.max(W.hitstop,HSTOP[m.g]);
@@ -411,9 +416,9 @@ function update(){
   W.time+=TICK;
   if(W.swCd>0)W.swCd=Math.max(0,W.swCd-TICK);   // 6F-4b: 교체 쿨타임
   if(W.itCd>0)W.itCd=Math.max(0,W.itCd-TICK);   // 6F-4c: 약 쿨타임
-  playerInput(me);
+  if(autoNow())autoMe(me,foe);else playerInput(me);
   updBall();
-  aiUpdate(foe);
+  aiUpdate(foe,W.ai,me);
   for(const e of [me,foe]){
     if(e.hp<=0)continue;
     e.at+=TICK;
@@ -427,8 +432,8 @@ function update(){
     if(e.rc<2)e.rc=Math.min(2,e.rc+TICK/3.2);
     // 상태이상
     for(const s in e.ail){e.ail[s]-=TICK;
-      if(s==='burn'&&W.tick%60===0){const d=Math.max(1,Math.round(e.max*.01));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,String(d),'#f84')}
-      if(s==='poison'&&W.tick%60===0){const d=Math.max(1,Math.round(e.max*.015));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,String(d),'#c6c')}
+      if(s==='burn'&&W.tick%60===0){const d=Math.max(1,Math.round(e.max*.01));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#f84')}
+      if(s==='poison'&&W.tick%60===0){const d=Math.max(1,Math.round(e.max*.015));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#c6c')}
       if(e.ail[s]<=0){delete e.ail[s];e.ailImm=e.ailImm||{};if(s==='burn')e.ailImm.burn=6;if(s==='paralysis')e.ailImm.paralysis=8}}
     if(e.ailImm)for(const s in e.ailImm)e.ailImm[s]-=TICK;
     if(e.stgT>0){e.stgT-=TICK;if(e.stgT<=0){for(const k in e.stg)e.stg[k]-=Math.sign(e.stg[k]);e.stgT=8}}
@@ -483,7 +488,7 @@ function update(){
   W.proj=W.proj.filter(p=>{if(p.dead&&p.fxa){try{C.fxe.VFX.stop(p.fxa)}catch(e){}}return !p.dead});
   // 장판
   for(const z of W.zones){z.life-=TICK;z.tick-=TICK;
-    if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r+t.r*.5&&!t.hidden){const d=Math.max(1,Math.round(t.max*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,String(d),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
+    if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r+t.r*.5&&!t.hidden){const d=Math.max(1,Math.round(t.max*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,fmtN(d*kOf(t)),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
   W.zones=W.zones.filter(z=>z.life>0);
   // 내려찍기
   for(const d of W.delays){d.t-=TICK;
@@ -589,9 +594,9 @@ const AI_PLAIN={melee:'m',leap:'m',vanish:'m',roll:'m',projectile:'s',beam:'b',p
 const gauss=()=>(rnd()+rnd()+rnd()+rnd()-2)*1.732;
 const tokCost=m=>m.st?.5:m.p<=60?.5:m.p<=90?.75:1;
 const rr=(a,b)=>a+rnd()*(b-a);
-function aiUpdate(a){
+function aiUpdate(a,ai0,p0){
   if(a.capt){a.wish={x:0,y:0};return}
-  const ai=W.ai,T=ai.T,p=W.me;
+  const ai=ai0||W.ai,T=ai.T,p=p0||W.me;
   if(a.hp<=0){a.wish={x:0,y:0};return}
   const d=len(p.x-a.x,p.y-a.y),to=norm(p.x-a.x,p.y-a.y);
   const low=a.hp<a.max*.3;
@@ -623,7 +628,7 @@ function aiUpdate(a){
   } else a.wish={x:0,y:0};
   // 공격
   ai.cd=Math.max(0,ai.cd-TICK);
-  if(ai.cd<=0&&ai.hes<=0&&!a.cast&&a.stun<=0&&a.rollT<=0){
+  if(ai.cd<=0&&ai.hes<=0&&!a.cast&&a.stun<=0&&a.rollT<=0&&!ai.noAtk){
     const opts=[];
     a.moves.forEach((m,i)=>{if(!canCast(a,i))return;
       const cost=tokCost(m)*(ai.burst>0?.5:1);if(ai.tok<cost)return;
@@ -648,6 +653,26 @@ function aiUpdate(a){
   }
 }
 
+// ---------- 7A: 자동전투(AUTO) — 내 포켓몬도 AI가 조종 · 화면을 만지면 2.5초 동안 직접 조작 ----------
+const MAN_SEC=2.5;
+function touchedNow(){return IN.stick.on||IN.press.length>0||IN.roll||Object.keys(IN.hold).length>0||Object.values(IN.keys).some(Boolean)}
+function autoNow(){if(!C.autoMe||!W)return false;if(touchedNow())W.manT=W.time;return W.manT==null||W.time-W.manT>MAN_SEC}
+function aiRange(e){const b=e.moves.filter(m=>m&&m.p>0).sort((x,y)=>y.p-x.p)[0];return b?(b.k==='melee'?120:b.k==='pulse'?150:b.k==='leap'?170:300):240}
+function mkAi(tier){const AT=AI_T[tier]||AI_T.G4;return{T:AT,tier,sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)}}
+function autoMe(me,foe){
+  if(me.hp<=0){me.wish={x:0,y:0};return}
+  const ai=W.aiMe;if(ai.uid!==me.mon.uid){ai.uid=me.mon.uid;ai.range=aiRange(me)}   // 교대하면 사거리 다시 계산
+  // 잡고 싶은 포켓몬이면(host가 볼 종류를 알려 줌) 체력을 깎다가 낮아지면 공격을 멈추고 볼을 던짐
+  let bk=null;if(C.autoBall&&!W.ball&&foe.hp>0){try{bk=C.autoBall()}catch(e){}}
+  const ratio=foe.max?foe.hp/foe.max:1;
+  ai.noAtk=!!(bk||W.ball)&&ratio<=.45;
+  if(bk&&(ratio<=.45||bk==='master'||W.time>45&&ratio<=.6)&&!(W.ballCd>0)&&!me.cast&&me.rollT<=0&&me.stun<=0){
+    const L=ballList(),j=L.findIndex(x=>x.k===bk);if(j>=0){W.ballSel=j;tryThrow()}}
+  // 체력 25% 아래면 약(제일 센 것부터, 한 전투 2번까지)
+  if(me.hp<me.max*.25&&(W.autoHeal||0)<2&&!(W.itCd>0)&&C.useItem){const L=itemList();const it=L[L.length-1];if(it&&useItemNow(it.k))W.autoHeal=(W.autoHeal||0)+1}
+  aiUpdate(me,ai,foe);
+}
+
 // ---------- 그리기 ----------
 function render(){
   const cv=W.cv,cx=W.ctx,Wd=cv.width,Hd=cv.height;
@@ -667,11 +692,18 @@ function render(){
   if(W.inv>0){cv.style.filter='invert(1) contrast(1.6)';W.inv--}else if(cv.style.filter)cv.style.filter='';
   cx.setTransform(sc,0,0,sc,Wd/2-W.cam.x*sc+shx,Hd/2-W.cam.y*sc+shy);
   // 바닥
-  const g=cx.createLinearGradient(0,0,0,AH);g.addColorStop(0,'#5e8f55');g.addColorStop(1,'#487244');
-  cx.fillStyle=g;cx.fillRect(0,0,AW,AH);
-  cx.strokeStyle='rgba(255,255,255,.07)';cx.lineWidth=2;
-  for(let x=0;x<=AW;x+=100){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,AH);cx.stroke()}
-  for(let y=0;y<=AH;y+=100){cx.beginPath();cx.moveTo(0,y);cx.lineTo(AW,y);cx.stroke()}
+  // 7B: 전투 배경 = 게임의 장소 배경 그림(풀숲·숲·동굴·바다·체육관…). 그림이 없거나 아직 안 받아졌으면 예전 초록 바닥
+  let bim=null;try{bim=C.bg?C.bg():null}catch(er){}
+  if(bim&&bim.complete&&bim.naturalWidth){
+    const pad=60,BW=AW+pad*2,BH=AH+pad*2,k=Math.max(BW/bim.naturalWidth,BH/bim.naturalHeight);
+    cx.drawImage(bim,-pad+(BW-bim.naturalWidth*k)/2,-pad+(BH-bim.naturalHeight*k)/2,bim.naturalWidth*k,bim.naturalHeight*k);
+    cx.fillStyle='rgba(10,8,20,.18)';cx.fillRect(-pad,-pad,BW,BH);   // 포켓몬·이펙트가 잘 보이게 살짝 어둡게
+  }else{
+    const g=cx.createLinearGradient(0,0,0,AH);g.addColorStop(0,'#5e8f55');g.addColorStop(1,'#487244');
+    cx.fillStyle=g;cx.fillRect(0,0,AW,AH);
+    cx.strokeStyle='rgba(255,255,255,.07)';cx.lineWidth=2;
+    for(let x=0;x<=AW;x+=100){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,AH);cx.stroke()}
+    for(let y=0;y<=AH;y+=100){cx.beginPath();cx.moveTo(0,y);cx.lineTo(AW,y);cx.stroke()}}
   cx.strokeStyle='#e8f0d8';cx.lineWidth=6;cx.strokeRect(WALL-3,WALL-3,AW-WALL*2+6,AH-WALL*2+6);
   // 장판/예고
   for(const z of W.zones){const pul=.3+.08*Math.sin(W.time*4);cx.globalAlpha=pul;cx.fillStyle=z.col;cx.beginPath();cx.arc(z.x,z.y,z.r,0,7);cx.fill();cx.globalAlpha=.9;cx.strokeStyle='#fff';cx.lineWidth=3;cx.setLineDash([14,8]);cx.stroke();cx.setLineDash([]);
@@ -732,9 +764,10 @@ function hud(cx,Wd,Hd){
   const bar=(x,y,w,e,right)=>{
     cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(x,y,w,46*u);
     cx.fillStyle='#fff';cx.font='bold '+(15*u)+'px sans-serif';cx.textAlign=right?'right':'left';
-    cx.fillText(C.nm(e.mon)+'  Lv.'+e.mon.lv,right?x+w-8*u:x+8*u,y+18*u);
+    cx.fillText(C.nm(e.mon)+'  Lv.'+(C.dLv?C.dLv(e.mon):e.mon.lv),right?x+w-8*u:x+8*u,y+18*u);
     cx.fillStyle='#222';cx.fillRect(x+8*u,y+26*u,w-16*u,10*u);
     const r=Math.max(0,e.hp/e.max);cx.fillStyle=r>.5?'#3be06a':r>.2?'#ffc83a':'#ff4a3a';cx.fillRect(x+8*u,y+26*u,(w-16*u)*r,10*u);
+    {cx.fillStyle='#fff';cx.font='bold '+(11*u)+'px sans-serif';cx.textAlign=right?'left':'right';cx.fillText(fmtN(Math.ceil(e.hp)*kOf(e))+' / '+fmtN(e.max*kOf(e)),right?x+8*u:x+w-8*u,y+44*u)}
     // 상태
     const ss=Object.keys(e.ail).map(s=>({burn:'화',poison:'독',paralysis:'마',sleep:'잠',freeze:'얼',confusion:'혼'})[s]||s).join('');
     if(ss){cx.fillStyle='#f9a';cx.textAlign=right?'left':'right';cx.fillText(ss,right?x+8*u:x+w-8*u,y+18*u)}
@@ -827,7 +860,7 @@ function useItemNow(k){
   let got=0;if(r.heal>0){const b0=me.hp;me.hp=Math.min(me.max,me.hp+r.heal);got=Math.round(me.hp-b0)}
   if(r.cure)me.ail={};
   W.itCd=IT_CD;
-  floatTxt(me.x,me.y-90,got>0?'+'+got:'회복!','#6f6',true);
+  floatTxt(me.x,me.y-90,got>0?'+'+fmtN(got*kOf(me)):'회복!','#6f6',true);
   W.fx.push({k:'ring',sys:1,x:me.x,y:me.y,t:0,life:.35,r:60,c:'#6fff8a'});
   try{C.sfx&&C.sfx('heal')}catch(e){}
   return true}
@@ -841,7 +874,7 @@ function openItems(){
   const box=document.createElement('div');box.style.cssText='width:min(92vw,360px);max-height:86vh;overflow:auto;background:#1c2230;border:2px solid #56627f;border-radius:14px;padding:12px;color:#fff';
   const h=document.createElement('div');h.style.cssText='font-weight:bold;font-size:16px;margin-bottom:2px';h.textContent='회복 아이템';box.appendChild(h);
   const me=W.me;const sub=document.createElement('div');sub.style.cssText='font-size:12px;opacity:.75;margin-bottom:8px';
-  sub.textContent=(W.itCd>0?'쿨타임 '+Math.ceil(W.itCd)+'초 남았어요. ':'')+'싸우는 중인 포켓몬에게 써요 ('+Math.round(me.hp)+'/'+Math.round(me.max)+'). 쓰면 '+IT_CD+'초 동안 못 써요.';box.appendChild(sub);
+  sub.textContent=(W.itCd>0?'쿨타임 '+Math.ceil(W.itCd)+'초 남았어요. ':'')+'싸우는 중인 포켓몬에게 써요 ('+fmtN(me.hp*kOf(me))+'/'+fmtN(me.max*kOf(me))+'). 쓰면 '+IT_CD+'초 동안 못 써요.';box.appendChild(sub);
   const L=itemList();
   if(!L.length){const n=document.createElement('div');n.style.cssText='padding:12px;text-align:center;opacity:.7';n.textContent='쓸 수 있는 회복 아이템이 없어요';box.appendChild(n)}
   for(const it of L){
@@ -906,7 +939,7 @@ function openParty(){
     row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 10px;margin:4px 0;border-radius:8px;background:'+(cur?'#2a4a2a':can?'#34476b':'#2b3347')+';opacity:'+(dead?.5:1)+';'+(can?'cursor:pointer;border:1px solid #7fa6e8':'border:1px solid transparent');
     const l=document.createElement('div');l.innerHTML='<b>'+q.name+'</b> Lv.'+q.lv;
     const r=document.createElement('div');r.style.cssText='font-size:12px;text-align:right';
-    r.textContent=cur?'싸우는 중 '+hp+'/'+mx:(dead?'기절':hp+'/'+mx+(can?' · 교체':''));
+    const kk=kOf(W.me),hs=fmtN(hp*kk)+'/'+fmtN(mx*kk);r.textContent=cur?'싸우는 중 '+hs:(dead?'기절':hs+(can?' · 교체':''));
     row.appendChild(l);row.appendChild(r);box.appendChild(row);
     if(can)row.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();doSwitch(q.uid)});
   }
@@ -1026,7 +1059,9 @@ async function start(ctx){
   // AI 기본 사거리: 가진 기술 중 위력 높은 기술 기준
   const best=W.foe.moves.filter(m=>m.p>0).sort((a,b)=>b.p-a.p)[0];
   if(best)W.ai.range=best.k==='melee'?120:best.k==='pulse'?150:best.k==='leap'?170:300;
+  if(C.autoMe){W.aiMe=mkAi(AI_T[C.autoTier]?C.autoTier:'T4');W.aiMe.uid=W.me.mon.uid;W.aiMe.range=aiRange(W.me)}
   buildUI();
+  if(C.autoMe){const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
     const loop=now=>{
@@ -1034,6 +1069,8 @@ async function start(ctx){
       let dt=Math.min(.1,(now-last)/1000);last=now;acc+=dt;let n=0;
       if(W.paused){acc=0}else while(acc>=TICK&&n<5){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
       if(n>=5)acc=0;
+      if(C.autoMe){if(W.over&&W.overT>1.6&&!W.pp&&!W.ip){stop(W.over);return}
+        if(W.autoTag){const a=autoNow(),tx=a?'🤖 자동 전투 중 · 화면을 만지면 직접 조작':'✋ 직접 조작 중 · 손 떼면 자동';if(W.autoTag._t!==tx){W.autoTag._t=tx;W.autoTag.textContent=tx;W.autoTag.style.color=a?'#9bf0a8':'#ffd23f';W.autoTag.style.borderColor=a?'#9bf0a8':'#ffd23f'}}}
       if(fxOn()&&!W.paused){try{C.fxe.FX2.update(dt);C.fxe.VFX.update(dt)}catch(er){}}
       render();
       W.raf=requestAnimationFrame(loop)};
