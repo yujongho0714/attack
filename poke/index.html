@@ -8269,7 +8269,8 @@ function drawOver(){const s=CN.s;if(!s||!ACT.on||!BS.me)return;const c=cx,S=bsz(
   if(!s.ended){const me=BS.me,w=S*1.5,x=me.ax-w/2,y=me.ay-S*1.95,q=1-s.t/DUR;c.save();c.fillStyle='rgba(0,0,0,.55)';c.fillRect(x-2,y-2,w+4,S*.17+4);c.fillStyle=s.pals[0][2];c.fillRect(x,y,w*Math.max(0,q),S*.17);c.restore()}}
 // ---- 끼워 넣기 ----
 const _ap=actPress;
-actPress=function(i,dir){if(CF.off||!ACT.on||typeof G==='undefined'||!G||G.mode==='turn')return _ap.apply(this,arguments);
+const ONESHOT=1; // 사용자 요청(2026-11-19): 5초 홀드 연발 없앰 → 기술은 한 번에 한 방. 다시 켜려면 0
+actPress=function(i,dir){if(ONESHOT||CF.off||!ACT.on||typeof G==='undefined'||!G||G.mode==='turn')return _ap.apply(this,arguments);
   const id=BS.me&&BS.me.m.moves[i];if(!id)return;const m=mv(id);
   const shake=()=>{const b=document.querySelector('.ask[data-i="'+i+'"]');b&&(b.classList.remove('no'),void b.offsetWidth,b.classList.add('no'))};
   if(CN.s&&!CN.s.ended){shake();return}
@@ -8280,7 +8281,7 @@ const _au=actUpdate;actUpdate=function(dt){const r=_au.apply(this,arguments);try
 const _ado=actDrawOver;actDrawOver=function(){const r=_ado.apply(this,arguments);try{drawOver()}catch(e){console.warn('채널링 그리기',e)}return r};
 const _adu=actDrawUnder;actDrawUnder=function(){const r=_adu.apply(this,arguments);try{drawUnder()}catch(e){}return r};
 // 기술 버튼: 누르면 바로 5초 발사 · 누른 채 움직이면 방향 (손가락을 놓으면 자동 조준)
-const _ui=actUI;actUI=function(on){const r=_ui.apply(this,arguments);try{if(on){hint(0);CN.s=null;CN.E=[];CN.Z=[];CN.hold=null;pull();if(!CF.off)bind()}}catch(e){console.warn(e)}return r};
+const _ui=actUI;actUI=function(on){const r=_ui.apply(this,arguments);try{if(on){hint(0);CN.s=null;CN.E=[];CN.Z=[];CN.hold=null;pull();if(!CF.off&&!ONESHOT)bind()}}catch(e){console.warn(e)}return r};
 function bind(){const u=document.getElementById('actUI');if(!u)return;
   u.querySelectorAll('.ask').forEach(b0=>{const b=b0.cloneNode(true);b0.replaceWith(b);
     b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const i=+b.dataset.i;ACT.man=ACT.t;const was=CN.s;actPress(i,null);
