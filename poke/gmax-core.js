@@ -29,7 +29,18 @@ const CFG={
   CHARGE_AT:.75, BEAM_AT:1.45, CUT_END:1.0,   // 충전 시작 · 빔 발사 · 컷인 끝 (발사 시작 기준 초)
   AUTO_MIN_T:5,          // 자동 배틀이 변신하기 전 기다리는 시간(초)
   AUTO_GAP:10,           // 자동 배틀이 변신을 또 쓰기까지 기다리는 시간(초)
-  AUTO_TRAINER_ONLY:1    // 1이면 자동 배틀은 트레이너·보스·월드보스 때만 알아서 변신
+  AUTO_TRAINER_ONLY:1,   // 1이면 자동 배틀은 트레이너·보스·월드보스 때만 알아서 변신
+  // ---- 3단계 마무리: 양쪽 거다이 정면충돌 · AI 변신/합류 ----
+  CLASH_T:2.0,           // 정면충돌(빔 맞대기) 지속 시간(초)
+  CLASH_PUSH:.35,        // 승부가 난 뒤 이긴 쪽 빔이 상대까지 밀고 들어가는 시간(초)
+  CLASH_LOSER_K:.25,     // 진 쪽 기술이 들어가는 피해 비율 (0이면 완전히 막힘, 부가효과는 이긴 쪽만)
+  CLASH_NOISE:.12,       // 승부에 섞이는 운(±). 공격력이 비슷할수록 결과가 갈려요
+  AI_THINK:1,            // 상대 AI가 변신할지 생각하는 간격(초)
+  AI_MIN_T:6,            // 배틀 시작 뒤 이 시간이 지나야 변신 생각을 시작
+  AI_GAP:14,             // 직전 변신이 끝나고 다시 변신하기까지 기다리는 시간(초)
+  AI_HP_LOW:.55,         // 상대 AI 체력이 이 비율 이하면 변신 확률이 높아져요
+  AI_KILL_HP:.3,         // 내 체력이 이 비율 이하면 마무리하려고 변신
+  AI_JOIN:.7             // 한쪽이 변신했을 때 다른 쪽(AI·자동 배틀)이 같이 변신할 확률
 };
 
 // ---------- 타입 → 다이기술 이름 (물리/특수 기술은 이 이름으로 바뀜, 변화기는 선택 불가) ----------
@@ -155,6 +166,9 @@ function machine(o){
   // 안 되는 이유(버튼 안내용) — 가능하면 ''
   M.why=()=>!M.canForm?'거다이맥스 폼이 없어요':!M.alive?'쓰러졌어요':M.uses<=0?'더 이상 변신할 수 없어요':M.st!==ST.NORMAL?'지금은 안 돼요':'';
   M.start=()=>{if(!M.can())return false;M.uses--;go(ST.TRANSFORM);return true};
+  // 상대가 먼저 변신한 뒤에 같이 변신(합류): 연출 시간을 상대와 똑같이 맞춰서 시작해요 (t = 상대의 변신 경과 시간)
+  M.startAt=t=>{if(!M.start())return false;M.t=Math.max(0,t||0);return true};
+  M.fireLen=0;   // 0이면 CFG.T_FIRE. 정면충돌이면 게임이 더 길게 잡아요
   // 연출 중에는 월드(투사체·쿨다운·타이머)를 멈춰요
   M.frozen=()=>M.st!==ST.NORMAL;
   // 무적: 변신~발사 동안 + 복귀 뒤 추가 시간
@@ -167,16 +181,40 @@ function machine(o){
     M.t+=dt;
     if(M.st===ST.TRANSFORM&&M.t>=CFG.T_TRANSFORM){go(ST.PICK);M.pickLeft=CFG.PICK_SECONDS;emit('pickOpen');if(M.auto)emit('autoPick')}
     else if(M.st===ST.PICK){M.pickLeft=Math.max(0,CFG.PICK_SECONDS-M.t);if(M.pickLeft<=0)emit('autoPick')}   // 시간 초과 → 게임이 autoPick 결과로 choose 를 불러요
-    else if(M.st===ST.FIRE&&M.t>=CFG.T_FIRE){go(ST.RETURN);emit('hit')}
-    else if(M.st===ST.RETURN&&M.t>=CFG.T_RETURN){M.inv=CFG.AFTER_INV;go(ST.NORMAL);emit('done')}
+    else if(M.st===ST.FIRE&&M.t>=(M.fireLen||CFG.T_FIRE)){go(ST.RETURN);emit('hit')}
+    else if(M.st===ST.RETURN&&M.t>=CFG.T_RETURN){M.inv=CFG.AFTER_INV;M.fireLen=0;go(ST.NORMAL);emit('done')}
   };
   // 배틀이 새로 시작할 때 / 쓰러졌을 때
-  M.reset=()=>{M.st=ST.NORMAL;M.t=0;M.uses=CFG.USES_PER_SIDE;M.pick=-1;M.inv=0;M.alive=true};
+  M.reset=()=>{M.st=ST.NORMAL;M.t=0;M.uses=CFG.USES_PER_SIDE;M.pick=-1;M.inv=0;M.alive=true;M.fireLen=0};
   M.setAlive=a=>{M.alive=!!a;if(!a&&M.st!==ST.NORMAL){M.st=ST.NORMAL;M.t=0}};
   return M;
 }
 
-const API={CFG,ST,TYPE_KO,DMAX_NAME,GMAX_SIG,GMAX_MOVE,GMAX_FORM,DMAX_FX,setMap,formsForDex,infoOf,sigOf,convertMove,convertAll,autoPick,machine,
+
+// ---------- 정면충돌 (양쪽 거다이가 같이 발사) ----------
+// a,b = 각자 기술의 예상 피해(상성·능력치 반영) → 내 몫 0~1. 둘 다 0이면 .5
+function clashShare(a,b){a=Math.max(0,+a||0);b=Math.max(0,+b||0);return a+b>0?a/(a+b):.5}
+// r = 내 몫, rnd = 0~1 난수 → 'me' | 'foe'  (몫이 .5 를 넘으면 유리하지만 운도 섞여요)
+function clashWinner(r,rnd){const n=((rnd==null?.5:rnd)-.5)*2*CFG.CLASH_NOISE;return r+n>=.5?'me':'foe'}
+// 충돌 중 게이지 위치 g (0=내 입 끝, 1=상대 입 끝), u = 충돌 진행 0~1. 시작은 정중앙, 몫이 큰 쪽으로 서서히 밀려요.
+function clashGauge(r,u,wob){u=Math.max(0,Math.min(1,u));const e=1-(1-u)*(1-u);const g=.5+(r-.5)*1.5*e+(wob||0);return Math.max(.1,Math.min(.9,g))}
+// ---------- 상대 AI 의 변신 판단 ----------
+// c: {usesLeft, selfHp(0~1, 변신하려는 쪽), otherHp(0~1), t(배틀 시간), since(직전 변신 뒤 시간), rnd}
+function aiWantsGmax(c){
+  if(!(c.usesLeft>0))return false;
+  if(c.t<CFG.AI_MIN_T||c.since<CFG.AI_GAP)return false;
+  const r=c.rnd==null?Math.random():c.rnd;
+  if(c.selfHp<=CFG.AI_HP_LOW)return r<.55;     // 몰리면 변신
+  if(c.otherHp<=CFG.AI_KILL_HP)return r<.35;   // 상대를 마무리할 때
+  if(c.usesLeft>=CFG.USES_PER_SIDE&&c.t>=12)return r<.12;   // 아직 한 번도 안 썼으면 가끔 그냥 변신
+  return false}
+// 상대(또는 자동 배틀의 나)가 변신하는 걸 보고 같이 변신할까?
+function aiWantsJoin(c){
+  if(!(c.usesLeft>0))return false;
+  const r=c.rnd==null?Math.random():c.rnd,p=c.selfHp<=.5?Math.min(1,CFG.AI_JOIN+.2):CFG.AI_JOIN;
+  return r<p}
+
+const API={CFG,ST,clashShare,clashWinner,clashGauge,aiWantsGmax,aiWantsJoin,TYPE_KO,DMAX_NAME,GMAX_SIG,GMAX_MOVE,GMAX_FORM,DMAX_FX,setMap,formsForDex,infoOf,sigOf,convertMove,convertAll,autoPick,machine,
   // 지도 파일 읽기 (브라우저)
   load(url){return fetch(url||'gmaxmap.json').then(r=>r.ok?r.json():null).then(j=>{if(j)setMap(j);return j}).catch(()=>null)}};
 if(typeof module!=='undefined'&&module.exports)module.exports=API;
@@ -209,6 +247,23 @@ if(typeof require!=='undefined'&&typeof module!=='undefined'&&require.main===mod
   assert(g.start());for(let i=0;i<800;i++)g.tick(1/60);assert.strictEqual(g.uses,0);
   assert(!g.can());assert.strictEqual(g.why(),'더 이상 변신할 수 없어요');   // 3번째 변신 막힘
   const g2=API.machine({canForm:false});assert(!g2.start());
+  // 3단계 마무리 시험: 정면충돌·AI 판단·합류 시작
+  assert.strictEqual(API.clashShare(100,100),.5);assert.strictEqual(API.clashShare(0,0),.5);assert(API.clashShare(300,100)>.7);
+  assert.strictEqual(API.clashWinner(.9,.5),'me');assert.strictEqual(API.clashWinner(.1,.5),'foe');
+  assert.strictEqual(API.clashWinner(.5,.99),'me');assert.strictEqual(API.clashWinner(.5,.01),'foe');   // 막상막하면 운이 갈라요
+  assert.strictEqual(API.clashWinner(.9,0),'me');  // 몫이 압도적이면 운이 나빠도 이김
+  assert(Math.abs(API.clashGauge(.5,.5,0)-.5)<1e-9);assert(API.clashGauge(.9,1,0)>.8&&API.clashGauge(.1,1,0)<.2);assert(API.clashGauge(1,1,.5)<=.9);
+  const base={usesLeft:2,selfHp:1,otherHp:1,t:20,since:99,rnd:0};
+  assert(!API.aiWantsGmax(Object.assign({},base,{usesLeft:0})));assert(!API.aiWantsGmax(Object.assign({},base,{t:3})));assert(!API.aiWantsGmax(Object.assign({},base,{since:3})));
+  assert(API.aiWantsGmax(Object.assign({},base,{selfHp:.4})));assert(API.aiWantsGmax(Object.assign({},base,{otherHp:.2,usesLeft:1})));
+  assert(!API.aiWantsGmax(Object.assign({},base,{rnd:.99,selfHp:.4})));assert(!API.aiWantsGmax(Object.assign({},base,{usesLeft:1})));
+  assert(API.aiWantsJoin({usesLeft:1,selfHp:1,rnd:.1}));assert(!API.aiWantsJoin({usesLeft:0,selfHp:1,rnd:0}));assert(!API.aiWantsJoin({usesLeft:1,selfHp:1,rnd:.95}));
+  {const a=API.machine({canForm:true}),b=API.machine({canForm:true});assert(a.start());for(let i=0;i<30;i++){a.tick(1/60);b.tick(1/60)}
+   assert(b.startAt(a.t));assert(Math.abs(a.t-b.t)<1e-9);
+   for(let i=0;i<200;i++){a.tick(1/60);b.tick(1/60)}assert.strictEqual(a.st,'PICK');assert.strictEqual(b.st,'PICK');   // 같이 선택 단계로
+   a.choose(0);b.choose(0);a.fireLen=b.fireLen=API.CFG.T_FIRE+API.CFG.CLASH_T+API.CFG.CLASH_PUSH;
+   for(let i=0;i<60*API.CFG.T_FIRE+20;i++){a.tick(1/60);b.tick(1/60)}assert.strictEqual(a.st,'FIRE');   // 충돌 때문에 평소 길이로는 안 끝나요
+   while(a.st!=='NORMAL'||b.st!=='NORMAL'){a.tick(1/60);b.tick(1/60)}assert.strictEqual(a.fireLen,0)}
   console.log('gmax-core 시험 통과');
 }
 })(typeof window!=='undefined'?window:globalThis);
