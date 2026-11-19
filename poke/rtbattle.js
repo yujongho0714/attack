@@ -143,6 +143,9 @@ function mkEnt(mon,S,side,hp0){
   try{e.critX=C.critOf?C.critOf(mon)||{c:0,d:0}:{c:0,d:0}}catch(er){e.critX={c:0,d:0}}
   // 8F: 장비(출결 캐릭터 장비 · 스타포스 강화 · 큐브 옵션) — 내 포켓몬에게 모든 새 전투에서 (예전엔 월드보스에서만)
   e.hm=1;e.gear=null;try{const g=C.gearOf?C.gearOf(mon):null;if(g){e.gear=g;e.hm=1+(g.hp||0)/100;e.max=Math.round(e.max*e.hm);e.hp=e.max;e.critX={c:Math.min(.75,(e.critX?e.critX.c:0)+(g.crt||0)/100),d:(e.critX?e.critX.d:0)+(g.cdm||0)/100}}}catch(er){}
+  // 9B 초월 등급(6 유일 · 7 불멸 · 8 태초 · 9 만제): 기운 모습 + 불멸 버팀 · 태초 보호막(최대 체력 20%)
+  e.tier=0;try{e.tier=C.tierOf?(+C.tierOf(mon)||0):0}catch(er){}e.undying=e.tier>=7;e.sh=e.tier>=8?Math.round(e.max*.2):0;e.shMax=e.sh;
+  if(e.tier>=6&&window.TFX)try{e.eng=TFX.eng()}catch(er){}
   {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0*e.hm,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득) · 저장된 체력은 장비 전 값   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
@@ -238,7 +241,9 @@ function dealDamage(att,def,mi,opt){
   const capped=fixedDmg!=null||opt.fixed?dmg:Math.min(dmg,def.max*.6);
   const rawD=capped;dmg=Math.max(e===0?0:1,Math.round(capped));
   if(e===0)dmg=0;
+  if(def.sh>0&&dmg>0){const a=Math.min(def.sh,dmg);def.sh-=a;dmg-=a;if(def.sh<=0){def.sh=0;floatTxt(def.x,def.y-115,'보호막 깨짐','#ffe9a0')}if(dmg<=0){floatTxt(def.x,def.y-70,'보호막!','#ffe9a0');def.flash=.08;return 0}}   // 9B 태초 보호막
   def.hp=Math.max(0,def.hp-dmg);
+  if(def.hp<=0&&def.undying&&!def._ud){def._ud=1;def.hp=1;def.inv=Math.max(def.inv||0,48);floatTxt(def.x,def.y-125,'불멸!','#8fb4ff',true);W.hitstop=Math.max(W.hitstop||0,.15);try{W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.5,r:110,c:'#8fb4ff'})}catch(er){}}   // 9B 불멸: 한 번 버팀
   def.flash=.15;
   if(dmg>0){
     W._dp={dmg,raw:Math.max(rawD,dmg>0?1:0),e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
@@ -380,7 +385,7 @@ function toRecovery(e,c){phaseTo(e,'recovery',c.mv.rech?150:(e.ramp&&e.ramp.left
 function aimVec(c){return{x:Math.cos(c.aim),y:Math.sin(c.aim)}}
 function circleHit(e,c,cx,cy,rad,tgt,opt){
   if(tgt.hp<=0)return false;
-  if(len(tgt.x-cx,tgt.y-cy)<=rad+tgt.r){dealDamage(e,tgt,c.mi,opt);return true}
+  if(len(tgt.x-cx,tgt.y-cy)<=rad*1.15+tgt.r*1.1){dealDamage(e,tgt,c.mi,opt);return true}
   return false;
 }
 function fire(e,c){
@@ -432,7 +437,7 @@ function fire(e,c){
     if(tgt.hp>0){
       const dx=tgt.x-e.x,dy=tgt.y-e.y,d=len(dx,dy);
       if(d<=R+tgt.r){
-        if(!cone||Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=60*Math.PI/180||d<e.r+tgt.r+10){hit=true;dealDamage(e,tgt,c.mi)}}}
+        if(!cone||Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=75*Math.PI/180||d<e.r+tgt.r+28){hit=true;dealDamage(e,tgt,c.mi)}}}
     if(hit&&m.st)applyEf(e,tgt,m,true);
     toRecovery(e,c);
   } else if(k==='zone'){
@@ -460,7 +465,7 @@ function activeTick(e,c,tgt){
     e.x=nx;e.y=ny;
     if(!c.hit&&tgt.hp>0){
       const dx=tgt.x-e.x,dy=tgt.y-e.y,d=len(dx,dy);
-      if(d<=c.reach+tgt.r&&(Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=c.half||d<e.r+tgt.r+14)){
+      if(d<=c.reach*1.2+tgt.r*1.1&&(Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=c.half+.3||d<e.r+tgt.r+30)){
         c.hit=true;dealDamage(e,tgt,c.mi,c.pm?{pm:c.pm}:undefined);if(m.st)applyEf(e,tgt,m,true)}}
     if(c.t>=c.len)toRecovery(e,c);
   } else if(k==='leap'){
@@ -471,7 +476,7 @@ function activeTick(e,c,tgt){
     if(tgt.hp>0){const dd=norm(tgt.x-e.x,tgt.y-e.y);const a=Math.atan2(c.dir.y,c.dir.x),b=Math.atan2(dd.y,dd.x);const na=a+clamp(angDiff(a,b),-3*TICK,3*TICK);c.dir={x:Math.cos(na),y:Math.sin(na)}}
     e.x+=c.dir.x*c.spd*TICK;e.y+=c.dir.y*c.spd*TICK;e.row=dirRow(c.dir.x,c.dir.y);
     c.hitCd--;
-    if(c.hitCd<=0&&tgt.hp>0&&len(tgt.x-e.x,tgt.y-e.y)<=e.r+tgt.r+8){c.hitCd=33;let pm=1;if(m.rollUp){const rc=e.rollCh&&W.time-e.rollCh.t<6&&e.rollCh.id===m.id?e.rollCh.n+1:0;e.rollCh={n:rc,t:W.time,id:m.id};pm=Math.min(m.rollUp,Math.pow(2,rc))}   // 6초 안에 또 맞히면 계속 2배(최대 8배)
+    if(c.hitCd<=0&&tgt.hp>0&&len(tgt.x-e.x,tgt.y-e.y)<=e.r+tgt.r+22){c.hitCd=33;let pm=1;if(m.rollUp){const rc=e.rollCh&&W.time-e.rollCh.t<6&&e.rollCh.id===m.id?e.rollCh.n+1:0;e.rollCh={n:rc,t:W.time,id:m.id};pm=Math.min(m.rollUp,Math.pow(2,rc))}   // 6초 안에 또 맞히면 계속 2배(최대 8배)
     dealDamage(e,tgt,c.mi,{pm});if(m.rollUp&&pm>1)floatTxt(e.x,e.y-100,'위력 ×'+pm,'#ffd23f')}
     if(m.rollUp){   // 6C-4 구르기·아이스볼: 벽에 튕기며 3초 동안 계속 굴러서 여러 번 맞힘(맞힐 때마다 위력 2배)
       if(e.x<WALL+e.r||e.x>AW-WALL-e.r){c.dir={x:-c.dir.x,y:c.dir.y};e.x=clamp(e.x,WALL+e.r,AW-WALL-e.r)}
@@ -489,7 +494,7 @@ function activeTick(e,c,tgt){
     e.beam={a:c.aim,L:c.L,col:C.TCOL[m.type]||'#fff'};
     if(c.t%12===0&&tgt.hp>0){
       const u=aimVec(c);const dx=tgt.x-e.x,dy=tgt.y-e.y;const al=dx*u.x+dy*u.y,pe=Math.abs(-dx*u.y+dy*u.x);
-      if(al>=0&&al<=c.L+tgt.r&&pe<=tgt.r+22*szMul(e,0)){dealDamage(e,tgt,c.mi,{mult:c.dmgMul||.25,pm:1})}}
+      if(al>=0&&al<=c.L+tgt.r&&pe<=tgt.r*1.1+32*szMul(e,0)){dealDamage(e,tgt,c.mi,{mult:c.dmgMul||.25,pm:1})}}
     if(c.t>=c.len){e.beam=null;toRecovery(e,c)}
   } else {toRecovery(e,c)}
 }
@@ -562,7 +567,7 @@ function update(){
     if(p.hm>0&&tgt.hp>0){p.hm--;const a=Math.atan2(p.dy,p.dx),w=angDiff(a,Math.atan2(tgt.y-p.y,tgt.x-p.x)),mx=200*Math.PI/180*TICK,na=a+clamp(w,-mx,mx);p.dx=Math.cos(na);p.dy=Math.sin(na)}  // 유도: 초당 200도, 1초
     const st=p.sp*TICK;p.x+=p.dx*st;p.y+=p.dy*st;p.tr+=st;
     if(p.fxa){p.fxa.x=p.x;p.fxa.y=p.y-24;p.fxa.rot=Math.atan2(p.dy,p.dx)}
-    if(tgt.hp>0&&len(tgt.x-p.x,tgt.y-p.y)<=p.r+tgt.r*.8){
+    if(tgt.hp>0&&len(tgt.x-p.x,tgt.y-p.y)<=p.r*1.3+tgt.r*1.05){   // 9E 판정 넓힘
       const d=dealDamage(p.o,tgt,p.mi,p.pm?{pm:p.pm}:undefined);if(p.st)applyEf(p.o,tgt,p.o.moves[p.mi],true);
       p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});skillFx(p.o,p.o.moves[p.mi],{x:p.x,y:p.y},{x:p.x,y:p.y},{force:1});
     } else if(p.tr>p.range||p.x<WALL||p.x>AW-WALL||p.y<WALL||p.y>AH-WALL){p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.2,r:p.r*1.5,c:p.col})}
@@ -576,18 +581,18 @@ function update(){
   W.proj=W.proj.filter(p=>{if(p.dead&&p.fxa){try{C.fxe.VFX.stop(p.fxa)}catch(e){}}return !p.dead});
   // 장판
   for(const z of W.zones){z.life-=TICK;z.tick-=TICK;
-    if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r+t.r*.5&&!t.hidden){const d=Math.max(1,Math.round(t.max*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,fmtN(d*kOf(t)),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
+    if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r*1.1+t.r*.9&&!t.hidden){const d=Math.max(1,Math.round(t.max*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,fmtN(d*kOf(t)),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
   W.zones=W.zones.filter(z=>z.life>0);
   // 내려찍기
   for(const d of W.delays){d.t-=TICK;
     if(d.t>.5&&d.tgt.hp>0){d.x=d.tgt.x;d.y=d.tgt.y}
-    if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});skillFx(d.o,d.o.moves[d.mi],{x:d.x,y:d.y},{x:d.x,y:d.y},{force:1});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=d.r+t.r*.5)dealDamage(d.o,t,d.mi)}}
+    if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});skillFx(d.o,d.o.moves[d.mi],{x:d.x,y:d.y},{x:d.x,y:d.y},{force:1});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=d.r*1.1+t.r*.9)dealDamage(d.o,t,d.mi)}}
   W.delays=W.delays.filter(d=>!d.dead);
   for(const h of W.chain){const t=foeOf(h.o);
     if(h.o.hp<=0||t.hp<=0||h.o.stun>0||h.o.hidden){h.dead=1;continue}
     h.t--;if(h.t>0)continue;
     const m=h.o.moves[h.mi];
-    if(!h.melee||len(t.x-h.o.x,t.y-h.o.y)<=h.o.r+t.r+110){dealDamage(h.o,t,h.mi,{chain:1,last:h.n<=1});if(m&&!h.melee)W.fx.push({k:'burst',x:t.x,y:t.y-20,t:0,life:.2,r:24,c:C.TCOL[m.type]||'#fff'})}
+    if(!h.melee||len(t.x-h.o.x,t.y-h.o.y)<=h.o.r+t.r+140){dealDamage(h.o,t,h.mi,{chain:1,last:h.n<=1});if(m&&!h.melee)W.fx.push({k:'burst',x:t.x,y:t.y-20,t:0,life:.2,r:24,c:C.TCOL[m.type]||'#fff'})}
     h.n--;h.t=h.iv;if(h.n<=0)h.dead=1}
   W.chain=W.chain.filter(h=>!h.dead);
   // 효과 시간
@@ -812,13 +817,17 @@ function render(){
     if(e.cast&&e.cast.phase==='startup'&&e!==me){const c=e.cast;cx.globalAlpha=.3;cx.strokeStyle='#ff6a5a';cx.lineWidth=4;cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+Math.cos(c.aim)*200,e.y+Math.sin(c.aim)*200);cx.stroke();cx.globalAlpha=1}
     if(e.beam){const b=e.beam;cx.save();cx.translate(e.x,e.y-(e.lift||0)-20);cx.rotate(b.a);const gg=cx.createLinearGradient(0,0,b.L,0);gg.addColorStop(0,'#fff');gg.addColorStop(1,b.col);cx.globalAlpha=fxOn()?.14:.85;cx.fillStyle=gg;cx.fillRect(0,-18,b.L,36);cx.globalAlpha=fxOn()?.2:.9;cx.fillStyle='#fff';cx.fillRect(0,-6,b.L,12);cx.restore();cx.globalAlpha=1}
     const st=e.anim;
-    try{C.drawPm(cx,e.S,st,e.row,e.at,e.x,e.y-(e.lift||0)-18,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
+    const TR=e.eng&&e.tier>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
+    if(TR){const a0=cx.globalAlpha;try{TFX.back(e.eng,cx,e.S,e.x,ty,e.sc,e.tier,tms)}catch(er){}cx.globalAlpha=a0}
+    try{C.drawPm(cx,TR?TFX.spr(e.S,e.tier):e.S,st,e.row,e.at,e.x,ty,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
+    if(TR){try{TFX.front(e.eng,cx,e.S,e.x,ty,e.sc,e.tier,tms)}catch(er){}}
     cx.globalAlpha=1;
     if(e.protect>0){cx.strokeStyle='#9be7ff';cx.lineWidth=4;cx.globalAlpha=.8;cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+14,e.r+14,0,0,7);cx.stroke();cx.globalAlpha=1}
     // 머리 위 작은 HP바
     const bw=90,bx=e.x-bw/2,by=e.y-18-clamp((e.vis||110)*.78,40,150)-12;
     cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(bx-2,by-2,bw+4,10);
     const rr=Math.max(0,e.hp/e.max);cx.fillStyle=rr>.5?'#3be06a':rr>.2?'#ffc83a':'#ff4a3a';cx.fillRect(bx,by,bw*rr,6);
+    if(e.sh>0){cx.fillStyle='#ffe9a0';cx.fillRect(bx,by-5,bw*Math.min(1,e.sh/e.max)*5,3)}   // 9B 보호막 줄(최대 체력 20% = 가득)
   }
   // 발사체
   for(const p of W.proj){cx.globalAlpha=p.fxa?.3:.9;cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y-24,p.r,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y-24,p.r*.5,0,7);cx.fill();cx.globalAlpha=1}
@@ -947,6 +956,7 @@ function useItemNow(k){
   if(!hurt&&!(it.cure&&ail)){floatTxt(me.x,me.y-90,'체력이 가득이에요','#fff');return false}
   let r=null;try{r=C.useItem(k)}catch(e){}
   if(!r){floatTxt(me.x,me.y-90,'쓸 수 없어요','#f88');return false}
+  if(r.deny){floatTxt(me.x,me.y-90,r.deny,'#f88');return false}   // 9D 물약 제한
   let got=0;if(r.heal>0){const b0=me.hp;me.hp=Math.min(me.max,me.hp+r.heal*(me.hm||1));got=Math.round(me.hp-b0)}
   if(r.cure)me.ail={};
   W.itCd=IT_CD;
@@ -964,7 +974,7 @@ function openItems(){
   const box=document.createElement('div');box.style.cssText='width:min(92vw,360px);max-height:86vh;overflow:auto;background:#1c2230;border:2px solid #56627f;border-radius:14px;padding:12px;color:#fff';
   const h=document.createElement('div');h.style.cssText='font-weight:bold;font-size:16px;margin-bottom:2px';h.textContent='회복 아이템';box.appendChild(h);
   const me=W.me;const sub=document.createElement('div');sub.style.cssText='font-size:12px;opacity:.75;margin-bottom:8px';
-  sub.textContent=(W.itCd>0?'쿨타임 '+Math.ceil(W.itCd)+'초 남았어요. ':'')+'싸우는 중인 포켓몬에게 써요 ('+fmtN(me.hp*kOf(me))+'/'+fmtN(me.max*kOf(me))+'). 쓰면 '+IT_CD+'초 동안 못 써요.';box.appendChild(sub);
+  sub.textContent=(W.itCd>0?'쿨타임 '+Math.ceil(W.itCd)+'초 남았어요. ':'')+'싸우는 중인 포켓몬에게 써요 ('+fmtN(me.hp*kOf(me))+'/'+fmtN(me.max*kOf(me))+'). 쓰면 '+IT_CD+'초 동안 못 써요.'+(()=>{try{const n=C.potLeft&&C.potLeft();return n==null?'':' · 이번 전투 물약 '+n+'번 남음'}catch(e){return''}})();box.appendChild(sub);
   const L=itemList();
   if(!L.length){const n=document.createElement('div');n.style.cssText='padding:12px;text-align:center;opacity:.7';n.textContent='쓸 수 있는 회복 아이템이 없어요';box.appendChild(n)}
   for(const it of L){
@@ -1001,6 +1011,7 @@ async function doSwitch(uid){
   ne.swapT=SW_VULN;ne.flash=SW_VULN/60;             // 잠깐 무방비(깜박임)
   for(let i=0;i<4;i++)ne.cd[i]=Math.min(ne.cdMax[i],1.5);   // 쿨타임 초기화 꼼수 방지
   w.chain=w.chain.filter(c=>c.o!==old);             // 나간 포켓몬의 연타는 끊김
+  w.proj=w.proj.filter(p=>{if(p.o!==old)return true;try{if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}return false});w.zones=w.zones.filter(z=>z.o!==old);w.delays=w.delays.filter(d=>d.o!==old);   // 9E: 나간 포켓몬 기술 그림이 멈춰 남지 않게
   w.delays.forEach(d=>{if(d.tgt===old)d.tgt=ne});   // 상대의 내려찍기 조준은 새 포켓몬을 따라감
   w.me=ne;
   if(!w.used.includes(uid))w.used.push(uid);
@@ -1136,7 +1147,8 @@ function updBtns(){
 function stop(r){
   if(!W||W.stopped)return;W.stopped=1;cancelAnimationFrame(W.raf);
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
-  if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear()}catch(er){}}
+  try{for(const p of W.proj)if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}   // 9E: 날아가던 기술 그림(돌·소용돌이)이 다음 전투에 남던 문제
+  if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear();C.fxe.VFX.clear&&C.fxe.VFX.clear()}catch(er){}}
   W.root.remove();IN.keys={};IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.press=[];IN.hold={};IN.roll=0;
   try{const hpBy=Object.assign({},W.hpBy);hpBy[W.me.mon.uid]=W.me.hp/(W.me.hm||1);window.RTB.last={r,meHp:W.me.hp/(W.me.hm||1),meMax:W.me.max/(W.me.hm||1),foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time,meUid:W.me.mon.uid,hpBy,used:W.used.slice()}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
   const res=W.res;W=null;res(r);
@@ -1146,6 +1158,7 @@ async function start(ctx){
   C=ctx;
   const [S1,S2]=await Promise.all([C.getSpr(C.sprKey(C.me)),C.getSpr(C.sprKey(C.foe))]);
   W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0,itCd:0};
+  try{C.fxe&&C.fxe.VFX.clear&&C.fxe.VFX.clear();C.fxe&&C.fxe.FX2.clear()}catch(er){}   // 9E: 지난 전투 그림 지우고 시작
   W.me=mkEnt(C.me,S1,0);W.foe=mkEnt(C.foe,S2,1);
   const AT=AI_T[C.aiTier]||AI_T.W;
   W.ai={T:AT,tier:AI_T[C.aiTier]?C.aiTier:'W',sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)};
