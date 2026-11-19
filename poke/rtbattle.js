@@ -410,6 +410,7 @@ function update(){
   if(W.hitstop>0){W.hitstop-=TICK;return}
   W.time+=TICK;
   if(W.swCd>0)W.swCd=Math.max(0,W.swCd-TICK);   // 6F-4b: 교체 쿨타임
+  if(W.itCd>0)W.itCd=Math.max(0,W.itCd-TICK);   // 6F-4c: 약 쿨타임
   playerInput(me);
   updBall();
   aiUpdate(foe);
@@ -810,6 +811,52 @@ function drawPreview(cx){
 // ---------- 6F-4a/4b: 파티 패널(일시정지) + 실제 교체 ----------
 const SW_CD=5,SW_VULN=36;   // 교체 쿨타임 5초 · 교체 직후 무방비 36틱(0.6초)
 function closeParty(){if(!W||!W.pp)return;W.pp.remove();W.pp=null;W.paused=0}
+// ---------- 6F-4c: 전투 중 회복 아이템 (패널·일시정지 · 가방 1개 차감은 host의 C.useItem) ----------
+// C.items():[{k,e,n,count,heal}] · C.useItem(k):{heal:number,cure?:1} (없으면 null, 실제 모드는 가방에서 1개 차감)
+const IT_CD=4;   // 약 쓴 뒤 다시 쓰려면 4초
+const itemList=()=>{try{return C.items?C.items()||[]:[]}catch(e){return[]}};
+function closeItems(){if(!W||!W.ip)return;W.ip.remove();W.ip=null;W.paused=0}
+function useItemNow(k){
+  if(!W||W.over||W.ball||(W.itCd||0)>0||!C.useItem)return false;
+  const me=W.me;if(me.hp<=0)return false;
+  const hurt=me.hp<me.max-.5,ail=Object.keys(me.ail||{}).length>0;
+  const it=itemList().find(x=>x.k===k);if(!it)return false;
+  if(!hurt&&!(it.cure&&ail)){floatTxt(me.x,me.y-90,'체력이 가득이에요','#fff');return false}
+  let r=null;try{r=C.useItem(k)}catch(e){}
+  if(!r){floatTxt(me.x,me.y-90,'쓸 수 없어요','#f88');return false}
+  let got=0;if(r.heal>0){const b0=me.hp;me.hp=Math.min(me.max,me.hp+r.heal);got=Math.round(me.hp-b0)}
+  if(r.cure)me.ail={};
+  W.itCd=IT_CD;
+  floatTxt(me.x,me.y-90,got>0?'+'+got:'회복!','#6f6',true);
+  W.fx.push({k:'ring',sys:1,x:me.x,y:me.y,t:0,life:.35,r:60,c:'#6fff8a'});
+  try{C.sfx&&C.sfx('heal')}catch(e){}
+  return true}
+function openItems(){
+  if(!W||W.over||W.pp||W.ip||W.ball||!C.items)return;
+  W.paused=1;IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.hold={};IN.press=[];IN.roll=0;
+  try{W.ui.jb.style.display='none'}catch(e){}
+  const ip=document.createElement('div');
+  ip.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;pointer-events:auto;z-index:5;font-family:sans-serif';
+  ip.addEventListener('pointerdown',ev=>ev.stopPropagation());
+  const box=document.createElement('div');box.style.cssText='width:min(92vw,360px);max-height:86vh;overflow:auto;background:#1c2230;border:2px solid #56627f;border-radius:14px;padding:12px;color:#fff';
+  const h=document.createElement('div');h.style.cssText='font-weight:bold;font-size:16px;margin-bottom:2px';h.textContent='회복 아이템';box.appendChild(h);
+  const me=W.me;const sub=document.createElement('div');sub.style.cssText='font-size:12px;opacity:.75;margin-bottom:8px';
+  sub.textContent=(W.itCd>0?'쿨타임 '+Math.ceil(W.itCd)+'초 남았어요. ':'')+'싸우는 중인 포켓몬에게 써요 ('+Math.round(me.hp)+'/'+Math.round(me.max)+'). 쓰면 '+IT_CD+'초 동안 못 써요.';box.appendChild(sub);
+  const L=itemList();
+  if(!L.length){const n=document.createElement('div');n.style.cssText='padding:12px;text-align:center;opacity:.7';n.textContent='쓸 수 있는 회복 아이템이 없어요';box.appendChild(n)}
+  for(const it of L){
+    const can=!(W.itCd>0)&&it.count!==0;
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 10px;margin:4px 0;border-radius:8px;background:'+(can?'#34476b':'#2b3347')+';opacity:'+(can?1:.55)+';'+(can?'cursor:pointer;border:1px solid #7fa6e8':'border:1px solid transparent');
+    const l=document.createElement('div');l.innerHTML='<span style="display:inline-block;width:22px;vertical-align:middle">'+(it.e||'')+'</span> <b>'+it.n+'</b>';
+    const r=document.createElement('div');r.style.cssText='font-size:12px;text-align:right';r.textContent=(it.heal?'+'+it.heal+' · ':'')+'×'+it.count;
+    row.appendChild(l);row.appendChild(r);box.appendChild(row);
+    if(can)row.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(useItemNow(it.k))closeItems()});
+  }
+  const cl=document.createElement('div');cl.textContent='닫기 (전투 계속)';cl.style.cssText='margin-top:8px;text-align:center;padding:10px;border-radius:8px;background:#3b6ea5;font-weight:bold';
+  cl.addEventListener('pointerdown',ev=>{ev.stopPropagation();closeItems()});box.appendChild(cl);
+  ip.appendChild(box);W.root.appendChild(ip);W.ip=ip;
+}
 const partyHp=q=>{const h=W.hpBy&&W.hpBy[q.uid];return h!=null?h:q.hp};
 function setMoveBtns(){
   const U=W.ui;if(!U)return;
@@ -840,7 +887,7 @@ async function doSwitch(uid){
   setMoveBtns();closeParty();
 }
 function openParty(){
-  if(!W||W.over||W.pp||W.ball)return;
+  if(!W||W.over||W.pp||W.ip||W.ball)return;
   W.paused=1;IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.hold={};IN.press=[];IN.roll=0;
   try{W.ui.jb.style.display='none'}catch(e){}
   const pp=document.createElement('div');
@@ -898,6 +945,11 @@ function buildUI(){
     const sw=document.createElement('div');sw.textContent='🔄 교대';sw.style.cssText='position:absolute;left:50px;bottom:8px;height:34px;padding:0 10px;border-radius:8px;background:rgba(0,0,0,.5);color:#fff;font:bold 13px sans-serif;display:flex;align-items:center;pointer-events:auto';
     sw.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();openParty()});ui.appendChild(sw);W.swBtn=sw;
   }
+  // 6F-4c: 회복 아이템 버튼
+  if(C.items&&C.useItem){
+    const ib=document.createElement('div');ib.textContent='🧪 약';ib.style.cssText='position:absolute;left:'+((C.party&&C.party().length>1)?136:50)+'px;bottom:8px;height:34px;padding:0 10px;border-radius:8px;background:rgba(0,0,0,.5);color:#fff;font:bold 13px sans-serif;display:flex;align-items:center;pointer-events:auto';
+    ib.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();openItems()});ui.appendChild(ib);W.itBtn=ib;
+  }
   document.body.appendChild(root);
   W.root=root;W.cv=cv;W.ctx=cv.getContext('2d');W.ui={jb,jk,btns,rb,rcnt,bb,bsw};
   // 포인터
@@ -935,6 +987,8 @@ function buildUI(){
     if(k in mk&&!e.repeat)IN.press.push({i:mk[k],aim:null})
     if(k==='b'&&!e.repeat)tryThrow();
     if(k==='n'&&!e.repeat&&C.balls)W.ballSel=((W.ballSel||0)+1)%Math.max(1,ballList().length);
+    if(k==='Escape'&&W.ip){closeItems();return}
+    if(k==='i'&&!e.repeat&&C.items&&C.useItem){W.ip?closeItems():openItems();return}
     if(k==='Escape'&&W.pp){closeParty();return}
     if(k==='p'&&!e.repeat&&C.party&&C.party().length>1){W.pp?closeParty():openParty();return}
     if(k==='Escape'&&!W.over&&!C.noQuit)stop('quit')};
@@ -965,7 +1019,7 @@ async function start(ctx){
   if(W)return 'quit';
   C=ctx;
   const [S1,S2]=await Promise.all([C.getSpr(C.sprKey(C.me)),C.getSpr(C.sprKey(C.foe))]);
-  W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0};
+  W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0,itCd:0};
   W.me=mkEnt(C.me,S1,0);W.foe=mkEnt(C.foe,S2,1);
   const AT=AI_T[C.aiTier]||AI_T.W;
   W.ai={T:AT,tier:AI_T[C.aiTier]?C.aiTier:'W',sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)};

@@ -8324,7 +8324,10 @@ async function rtGo(){
     // 6F-1: 실시간 포획(시험 전투는 볼이 공짜·무한, 잡아도 저장 안 됨). 확률은 기존 던지기 공식 그대로
     const catchP=(f,it,ratio)=>{const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38][DIFF()])};
     const balls=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞'}));
-    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP});
+    const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP,
+      // 6F-4c 시험: 회복약 무한(저장 안 됨)
+      items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞',heal:ITEMS[k].heal})),
+      useItem:k=>{const it=ITEMS[k];return it&&it.heal?{heal:it.heal}:null},sfx});
     toast(r==='catch'?'⚔ 시험 전투: 잡았다! (시험이라 저장 안 됨)':r==='win'?'⚔ 시험 전투 승리!':r==='lose'?'⚔ 시험 전투 패배':r==='draw'?'⚔ 무승부':'⚔ 시험 전투 종료');
   }catch(e){console.warn('rtb',e);try{toast('시험 전투 오류: '+(e.message||e))}catch(_){}}
   finally{window.__rtRun=0}
@@ -8368,6 +8371,9 @@ async function rtWild(o){
       const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
         meHp:m.hp,foeHp:f.hp,aiTier:tier,party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:q.lv,hp:q.hp,max:stOf(q)[0]})),
         pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
+        // 6F-4c: 전투 중 회복 아이템(가방에서 1개 차감). 상처약·좋은상처약·고급상처약·오랭/시트러스열매
+        items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal})),
+        useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;G.bag[k]--;return{heal:it.heal}},sfx,
         loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:'화면을 누르면 계속해요'},
         tr?{noQuit:1,maxTime:300}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
       const L=window.RTB.last||{};
