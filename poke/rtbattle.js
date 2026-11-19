@@ -27,6 +27,13 @@ let C=null, W=null; // 게임 도구 / 현재 전투 상태
 
 // ---------- 쿨타임 (6C-1: 레조넌스 원본 공식 그대로) ----------
 // 원본: sessionEnv 의 기술 쿨타임 함수 + data 설정값. 시험 모드에서 맞춘 값.
+// 6C-4: 원본 설정값 — 연속기(rampage)·다단 충전(charges)·PP·발버둥·몸 크기
+const RAMP={min:2,max:3,firstT:17,followT:6,gapT:8,armor:2,confuseSec:3,cdMul:2,powerMul:.75};
+const CHG={max5:5,cap:5,canon:3.1,gm5Melee:[1.19,1.5,1.19,1.19],gm5Shot:1.125,gmFixMelee:1.1,gmFixShot:1,
+  rs:{furyswipes:1.9,cometpunch:1.9,tailslap:2.5,doubleslap:1.3,furyattack:1.3,armthrust:1.3,doublekick:2.3,dualchop:3,doublehit:2.6,geargrind:3.6,doubleironbash:4.2,dualwingbeat:3,surgingstrikes:2.1,tripledive:2.2,triplekick:2,tripleaxel:3.3,populationbomb:1.5,furycutter:1.8,pinmissile:2.2,bulletseed:2.2,iciclespear:2.2,rockblast:2.2,bonerush:2.2,scaleshot:2.2,spikecannon:1.8,barrage:1.5,watershuriken:1.8,twineedle:2.1,bonemerang:3.9,dragondarts:3.4,twinbeam:3.2,tachyoncutter:4.3}};
+const PPMUL=2,STRUGGLE={n:'발버둥',t:'NORMAL',c:0,p:40,a:100,pp:0,pr:0,k:'melee',kd:'strike',sb:'',aim:'direction',ef:[{op:'recoil',frac:.25,of:'max'}],f:'Struggle'};
+const SIZE={ref:30,refH:.4,exp:.7,rf:.3,min:24,max:380,rmin:12,rmax:110,refSize:61,kbRef:30,kbExp:.5,kbMin:.4,mvRef:60,mvExp:.2,mvMin:.9,mvMax:1.3,meleeShare:.5};
+const szMul=(e,melee)=>{const x=Math.pow((e.size||57)/SIZE.mvRef,SIZE.mvExp*(melee?SIZE.meleeShare:1));return melee?clamp(x,1-(1-SIZE.mvMin)*SIZE.meleeShare,1+(SIZE.mvMax-1)*SIZE.meleeShare):clamp(x,SIZE.mvMin,SIZE.mvMax)};
 const CD={base:.7,perPower:.07,min:3.5,max:16,
   kind:{melee:.85,projectile:1,beam:1.15,pulse:1.15,self:1,vanish:1.25,leap:1,roll:1,zone:1,delayed:1,target:1},
   quick:.75,status:8,boost:12,protect:13,heal:20,recharge:16,rechargeNonBeam:6,rollPowerMul:4,
@@ -57,7 +64,7 @@ const hasteOf=spe=>clamp(CD.hasteBase-CD.hastePerStat*spe,CD.hasteMin,CD.hasteMa
 
 // ---------- 기술 정보 ----------
 function moveInfo(id){
-  let d=C.RZM&&C.RZM[id];
+  let d=id==='struggle'?STRUGGLE:(C.RZM&&C.RZM[id]);
   if(!d){const g=C.mv(id)||{};d={n:g.name||id,t:g.type||'NORMAL',c:g.ph?0:1,p:g.pw||0,a:g.acc||100,pr:g.pri||0,k:g.ph?'melee':'projectile',kd:'',sb:'',aim:'direction',ef:[],f:''};}
   const st=d.c===2||!(d.p>0);
   const k=d.k, exec=isExecute(d), fx=(d.ef||[]).find(x=>x.op==='fixed'&&x.mode!=='execute')||null;
@@ -70,7 +77,19 @@ function moveInfo(id){
   if(d.pr>0)su=4;
   const cdi=cooldownOf(d,k,p,st);
   const cd=cdi.sec;
-  return {id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,hasted:cdi.hasted,phys:d.c===0,exec,fx,selfko:opsOf(d).includes('selfKO'),rech:opsOf(d).includes('recharge'),hits:hitsOf(d),mh:(d.ef||[]).find(x=>x.op==='multiHit')||null};
+  const mh=(d.ef||[]).find(x=>x.op==='multiHit')||null,li=(d.ef||[]).find(x=>x.op==='lockIn')||null;
+  const o={id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,hasted:cdi.hasted,phys:d.c===0,exec,fx,selfko:opsOf(d).includes('selfKO'),rech:opsOf(d).includes('recharge'),hits:hitsOf(d),mh};
+  // 6C-4 다단 기술 = 충전(charges): 한 번 누르면 한 대, 충전이 하나씩 다시 참 (원본 multiHit.charges)
+  if(mh&&!st){const five=mh.n==null&&mh.min!=null,n=five?0:Math.round(mh.n||0);
+    if(five||n>=2){const mx=five?CHG.max5:Math.min(CHG.cap,n),typ=five?CHG.canon:n;
+      const gm=five?(melee?CHG.gm5Melee[g]:CHG.gm5Shot):(melee?CHG.gmFixMelee:CHG.gmFixShot);
+      o.chg={max:mx,per:CHG.rs[id]!=null?CHG.rs[id]:Math.max(.8,cd/typ*gm)}}}
+  if(li&&li.mode==='rampage'&&melee)o.ramp=1;            // 6C-4 연속기(역린·난동부리기·꽃잎댄스·분노의붕격)
+  if(li&&li.mode==='roll'&&li.powerDoublesPerHit)o.rollUp=li.maxMult||8;   // 6C-4 구르기·아이스볼: 맞힐 때마다 위력 2배(최대 8배)
+  if(o.ramp)o.su=RAMP.firstT;
+  o.ppMax=id==='struggle'?0:Math.max(1,(d.pp||10)*PPMUL);   // 6C-4 PP(원본 pp.maxMul 2)
+  if(id==='struggle'){o.cd=2.5;o.typeless=1}
+  return o;
 }
 
 // ---------- 6E: 기존 기술 이펙트(SKFX·FX2·VFX) 연결 ----------
@@ -108,12 +127,13 @@ function fxShake(g){if(!fxOn())return;try{C.fxe.FX2.hit([3,5,8,11][g]||3,0)}catc
 // ---------- 개체 ----------
 function mkEnt(mon,S,side,hp0){
   const s=C.stOf(mon);
-  let sc=2;
-  try{const A=S&&S.meta&&S.meta.anims&&(S.meta.anims.idle);if(A)sc=clamp(130/Math.max(A.w,A.h),1,4)}catch(e){}
-  const size=96;
+  // 6C-4 몸 크기: 원본 sizing.power — 크기 = 30×(키/0.4m)^0.7 (24~380), 몸 반지름 = 크기×0.3 (12~110), 그림도 크기에 비례
+  let size=57;try{if(C.bodySize){const b=+C.bodySize(mon);if(b>0)size=clamp(b,SIZE.min,SIZE.max)}}catch(er){}
+  let sc=2,vis=110;
+  try{const A=S&&S.meta&&S.meta.anims&&(S.meta.anims.idle);if(A){const tgtPx=clamp(200*Math.pow(size/SIZE.refSize,.6),160,400);/* 폰에서 작은 포켓몬도 잘 보이게 최소 100px(판정 반지름은 원본 그대로) */sc=clamp(tgtPx/Math.max(A.w,A.h),.5,6);vis=A.h*sc}}catch(e){}
   const e={mon,S,side,x:side?970:230,y:380,vx:0,vy:0,kx:0,ky:0,face:{x:side?-1:1,y:0},
     st:s,hp:s[0],max:s[0],lv:Math.min(100,mon.lv||50),types:(C.META[mon.n]||{types:['NORMAL']}).types,
-    sc,r:8+.36*size*.5+10,spd:clamp(128+.65*s[5],125,250),
+    sc,vis,size,r:Math.round(clamp(SIZE.rf*size,SIZE.rmin,SIZE.rmax)),spd:clamp(128+.65*s[5],125,250),
     moves:(mon.moves||[]).slice(0,4).map(moveInfo),cd:[0,0,0,0],cdMax:[1,1,1,1],
     rc:2,rollT:0,rdx:0,rdy:0,inv:0,stun:0,cast:null,buf:null,
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
@@ -125,6 +145,8 @@ function mkEnt(mon,S,side,hp0){
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
     m.su=Math.max(1,Math.round(m.su-.6*clamp((s[5]-50)/100,0,1)*(m.su-17)))});
   e.moves.forEach((m,i)=>{e.cdMax[i]=m.cd*(m.hasted?e.haste:1)});
+  e.ch=[0,0,0,0];e.chT=[0,0,0,0];e.pp=[0,0,0,0];
+  e.moves.forEach((m,i)=>{if(m.chg){m.chg.per*=(m.hasted?e.haste:1);e.ch[i]=m.chg.max;e.cdMax[i]=m.chg.per}e.pp[i]=m.ppMax});
   return e;
 }
 const foeOf=e=>e.side?W.me:W.foe;   // 6F-4b: 교대로 W.me가 바뀌어도 이미 나간 공격이 제 상대를 찾도록 side 기준
@@ -159,7 +181,7 @@ function dealDamage(att,def,mi,opt){
   if(def.inv>0){return 0}
   const A=m.phys?att.st[1]:att.st[3], D=m.phys?def.st[2]:def.st[4];
   const Am=stageMul(m.phys?att.stg.atk:att.stg.spa), Dm=stageMul(m.phys?def.stg.def:def.stg.spd);
-  const e=C.eff(m.type,def.types);
+  const e=m.typeless?1:C.eff(m.type,def.types);
   const stab=att.types.includes(m.type)?1.5:1;
   const crit=rnd()<(att.critWin>0?.5:1/24);
   let power=m.p*(opt.pm||1);
@@ -188,9 +210,13 @@ function dealDamage(att,def,mi,opt){
   } else floatTxt(def.x,def.y-70,'효과 없음','#9bb');
   if(att.critWin>0&&crit)att.critWin=0;
   // 다단 기술: 첫 타가 맞으면 나머지 타를 간격(근접 8틱·원거리 6틱)으로 이어서 침
-  if(dmg>0&&m.hits>1&&!opt.chain&&!opt.mult&&m.mh){const mh=m.mh;let n=m.hits;
+  if(dmg>0&&m.hits>1&&!opt.chain&&!opt.mult&&m.mh&&!m.chg){const mh=m.mh;let n=m.hits;
     if(mh.n==null&&mh.min!=null){const dist=mh.dist||[.35,.35,.15,.15];let r=rnd(),i=0;for(;i<dist.length-1&&r>dist[i];i++)r-=dist[i];n=mh.min+i}
     if(n>1){W.chain.push({o:att,mi:att.moves.indexOf(m)>=0?mi:mi,n:n-1,t:m.melee?8:6,iv:m.melee?8:6,melee:m.melee});W._more=1}}
+  // 6C-4 흡수(드레인): 준 데미지의 절반 회복 · 반동: 준 데미지의 일부(발버둥은 최대 체력 1/4)를 받음
+  if(dmg>0&&att.hp>0)for(const f of (m.d.ef||[])){
+    if(f.op==='drain'){const h=Math.min(att.max-att.hp,Math.max(1,Math.round(dmg*(f.frac||.5))));if(h>0){att.hp+=h;floatTxt(att.x,att.y-100,'+'+fmtN(h*kOf(att)),'#6f6')}}
+    if(f.op==='recoil'){const rc=Math.max(1,Math.round(f.of==='max'?att.max*(f.frac||.25):dmg*(f.frac||.25)));att.hp=Math.max(0,att.hp-rc);floatTxt(att.x,att.y-100,'반동 '+fmtN(rc*kOf(att)),'#f88')}}
   // 자폭기: 쓰면 기절
   if(m.selfko&&att.hp>0&&!att._ko){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
   // 6E-3: 마지막 타(또는 치명타·효과 굉장)는 크게, 중간 타는 작게
@@ -203,13 +229,15 @@ function dealDamage(att,def,mi,opt){
   if(dmg>0){fxShake(m.g);if(!opt.chain&&(m.k==='melee'||m.k==='roll'||m.k==='target'||m.k==='vanish'))skillFx(att,m,{x:att.x,y:att.y},{x:def.x,y:def.y})}
   // 경직·넉백·끊기
   const dirv=norm(def.x-att.x,def.y-att.y);
-  const kb=KB[m.g]*Math.max(.4,1-(def.r-30)/160);
-  const interrupt=def.cast&&def.cast.phase==='startup'&&(def.cast.mv.g>=3?m.g>=2:m.g>=1);
+  const kb=KB[m.g]*(def.r>SIZE.kbRef?Math.max(SIZE.kbMin,Math.pow(SIZE.kbRef/def.r,SIZE.kbExp)):1);   // 6C-4 큰 몸은 덜 밀림(원본 knockbackResist)
+  const rampArmor=def.cast&&(def.cast.mv.ramp||def.cast.ramp)&&m.g<=RAMP.armor;   // 6C-4 연속기 중엔 M급 이하 공격에 안 끊김
+  const interrupt=!rampArmor&&def.cast&&def.cast.phase==='startup'&&(def.cast.mv.g>=3?m.g>=2:m.g>=1);
   const buffBreak=def.cast&&def.cast.mv.k==='self'&&def.cast.phase==='startup'&&m.g>=1;
   const beamBreak=def.cast&&def.cast.mv.k==='beam'&&def.cast.phase==='active'&&m.g>=2;
   const dc=def.cast;
   if(dc&&dc.phase==='startup'&&!interrupt&&!buffBreak){def.kx+=dirv.x*kb*2;def.ky+=dirv.y*kb*2}   // 버팀: 끊기지 않고 조금만 밀림
   else if(dc&&dc.phase==='active'&&dc.mv.k==='beam'&&!beamBreak){def.kx+=dirv.x*kb;def.ky+=dirv.y*kb}
+  else if(rampArmor){def.kx+=dirv.x*kb;def.ky+=dirv.y*kb}
   else{
     if(dc)cancelCast(def,!!(interrupt||buffBreak||beamBreak));
     def.stun=Math.max(def.stun,STUN[m.g]);
@@ -225,9 +253,14 @@ function dealDamage(att,def,mi,opt){
 function cancelCast(e,hurt){
   if(!e.cast)return;
   const i=e.cast.mi;
-  if(hurt&&i>=0)e.cd[i]=e.cdMax[i]*.5;
+  if(hurt&&i>=0&&!(e.cast.mv&&e.cast.mv.chg))e.cd[i]=e.cdMax[i]*.5;
+  if(e.ramp){e.ramp=null}   // 연속기가 끊기면 혼란 없이 끝
   e.cast=null;e.beam=null;e.hidden=false;
 }
+// 6C-4 PP: 모든 기술 PP가 0이면 첫 칸이 발버둥(위력 40·쿨 2.5초·무속성·최대 체력 1/4 반동)
+function ppOut(e,i){floatTxt(e.x,e.y-120,e.moves[i].name+' PP 없음','#f88');
+  if(e.moves.every((m,j)=>!m||(m.ppMax>0&&e.pp[j]<=0))){e.moves[0]=moveInfo('struggle');e.cdMax[0]=2.5;e.cd[0]=Math.max(e.cd[0],.5);e.pp[0]=0;e.ch[0]=0;
+    floatTxt(e.x,e.y-140,'발버둥!','#ffd23f');if(e===W.me)setTimeout(()=>{try{setMoveBtns()}catch(er){}},0)}}
 function addStage(e,k,n){e.stg[k]=clamp(e.stg[k]+n,-3,3);e.stgT=8;floatTxt(e.x,e.y-90,({atk:'공격',def:'방어',spa:'특공',spd:'특방',spe:'스피드'}[k]||k)+(n>0?' ▲':' ▼'),n>0?'#8f8':'#f88')}
 function setAil(def,s,chance){
   if(chance!=null&&rnd()*100>=chance)return;
@@ -261,13 +294,17 @@ function applyEf(att,def,m,hit){
 // ---------- 기술 사용 ----------
 function canCast(e,i){
   const m=e.moves[i];
-  return m&&e.cd[i]<=0&&!e.cast&&e.stun<=0&&e.rollT<=0&&!(e.swapT>0)&&e.hp>0&&!e.ail.sleep&&!e.ail.freeze&&!W.over;
+  if(m&&m.ppMax>0&&e.pp&&e.pp[i]<=0)return false;   // PP 다 씀
+  return m&&(m.chg?e.ch[i]>=1:e.cd[i]<=0)&&!e.cast&&e.stun<=0&&e.rollT<=0&&!(e.swapT>0)&&e.hp>0&&!e.ail.sleep&&!e.ail.freeze&&!W.over;
 }
 function startCast(e,i,aimDir,dist){
   const m=e.moves[i];
   const cast={mi:i,mv:m,phase:'startup',t:0,su:m.su,aim:Math.atan2(aimDir.y,aimDir.x),want:Math.atan2(aimDir.y,aimDir.x),dist:dist};
   e.cast=cast;
-  e.cd[i]=e.cdMax[i]; // 쏘는 순간부터 쿨타임
+  if(m.chg){if(e.ch[i]>=m.chg.max)e.chT[i]=m.chg.per;e.ch[i]=Math.max(0,e.ch[i]-1);e.cd[i]=e.ch[i]>=1?0:e.chT[i]}
+  else e.cd[i]=e.cdMax[i]*(m.ramp?RAMP.cdMul:1); // 쏘는 순간부터 쿨타임 (연속기는 ×2)
+  if(m.ppMax>0&&e.pp){e.pp[i]=Math.max(0,e.pp[i]-1);if(e.pp[i]<=0)ppOut(e,i)}
+  if(m.ramp){cast.pm=RAMP.powerMul;e.ramp={mi:i,left:(RAMP.min-1)+(rnd()<.5?1:0)}}   // 연속기: 2~3번, 한 번 위력 ×0.75
   e.anim=m.melee?'attack':'shoot';e.at=0;
   W.fx.push({k:'callout',x:e.x,y:e.y-120,t:0,life:.9,s:m.name,c:C.TCOL[m.type]||'#fff'});
 }
@@ -293,10 +330,15 @@ function updateCast(e){
   } else if(c.phase==='active'){
     activeTick(e,c,tgt);
   } else if(c.phase==='recovery'){
-    if(c.t>=c.len){e.cast=null;e.anim='idle'}
+    if(c.t>=c.len){e.cast=null;e.anim='idle';rampNext(e)}
   }
 }
-function toRecovery(e,c){phaseTo(e,'recovery',c.mv.rech?150:REC[c.mv.g]);c.rooted=!!c.mv.rech;e.anim='idle'}
+// 6C-4 연속기: 다음 타를 짧은 준비(6틱)로 상대 쪽에 자동으로 이어서 침 · 다 치면 3초 혼란
+function rampNext(e){const r=e.ramp;if(!r)return;
+  if(r.left>0&&e.hp>0&&e.stun<=0&&foeOf(e).hp>0&&!W.over){r.left--;const m=e.moves[r.mi];if(!m){e.ramp=null;return}const t=foeOf(e),a=Math.atan2(t.y-e.y,t.x-e.x);
+    e.cast={mi:r.mi,mv:m,phase:'startup',t:0,su:RAMP.followT,aim:a,want:a,pm:RAMP.powerMul,ramp:1};e.anim='attack';e.at=0;return}
+  e.ramp=null;if(e.hp>0&&!e.ail.confusion){e.ail.confusion=RAMP.confuseSec;floatTxt(e.x,e.y-110,'지쳐서 혼란','#f9a')}}
+function toRecovery(e,c){phaseTo(e,'recovery',c.mv.rech?150:(e.ramp&&e.ramp.left>0)?RAMP.gapT:REC[c.mv.g]);c.rooted=!!c.mv.rech;e.anim='idle'}
 function aimVec(c){return{x:Math.cos(c.aim),y:Math.sin(c.aim)}}
 function circleHit(e,c,cx,cy,rad,tgt,opt){
   if(tgt.hp<=0)return false;
@@ -323,7 +365,7 @@ function fire(e,c){
     }
   }
   if(k==='melee'){
-    c.dash=120*(heavy?1.5:1);c.moved=0;c.len=Math.max(ACTIVE_MELEE[g],8);phaseTo(e,'active',c.len);c.dir=u;c.reach=70+(heavy?20:0)+10;c.half=(heavy?65:50)*Math.PI/180;
+    c.dash=120*(heavy?1.5:1);c.moved=0;c.len=Math.max(ACTIVE_MELEE[g],8);phaseTo(e,'active',c.len);c.dir=u;c.reach=(70+(heavy?20:0)+10)*szMul(e,1);c.half=(heavy?65:50)*Math.PI/180;
     W.fx.push({k:'slash',x:e.x,y:e.y,t:0,life:.25,a:c.aim,c:C.TCOL[m.type]||'#fff',r:c.reach+e.r});
   } else if(k==='leap'){
     let d=c.dist!=null?clamp(c.dist,30,175):tgt.hp>0?clamp(len(tgt.x-e.x,tgt.y-e.y),30,175):105;
@@ -334,7 +376,7 @@ function fire(e,c){
     const T=clamp(.35+m.p/120,.35,1.6);phaseTo(e,'active',Math.round(T*60));e.hidden=true;c.dir=u;
   } else if(k==='projectile'){
     const special=!m.phys;
-    W.proj.push({o:e,mi:c.mi,x:e.x+u.x*e.r,y:e.y+u.y*e.r,dx:u.x,dy:u.y,sp:(special?480:430)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(m.d.sb==='bolt'?1.25:1),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
+    W.proj.push({o:e,mi:c.mi,x:e.x+u.x*e.r,y:e.y+u.y*e.r,dx:u.x,dy:u.y,sp:(special?480:430)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(m.d.sb==='bolt'?1.25:1)*szMul(e,0),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
       hm:/^homing/.test(m.d.sb||'')?60:0});
     {const P=W.proj[W.proj.length-1];P.fxa=projSkin(P,m)}
     toRecovery(e,c);
@@ -343,7 +385,7 @@ function fire(e,c){
     c.dmgMul=Math.min(1,12/(T*60))*1.25;
     {const bl=c.maxL*.85;skillFx(e,m,{x:e.x,y:e.y},{x:clamp(e.x+u.x*bl,WALL,AW-WALL),y:clamp(e.y+u.y*bl,WALL,AH-WALL)},{force:1})}
   } else if(k==='pulse'){
-    const cone=m.kd==='cone';const R=205;
+    const cone=m.kd==='cone';const R=205*szMul(e,0);
     W.fx.push({k:cone?'cone':'ring',x:e.x,y:e.y,a:c.aim,t:0,life:.35,r:R,c:C.TCOL[m.type]||'#fff'});
     skillFx(e,m,{x:e.x,y:e.y},cone?{x:e.x+u.x*R*.6,y:e.y+u.y*R*.6}:{x:e.x,y:e.y},{force:1});
     let hit=false;
@@ -379,7 +421,7 @@ function activeTick(e,c,tgt){
     if(!c.hit&&tgt.hp>0){
       const dx=tgt.x-e.x,dy=tgt.y-e.y,d=len(dx,dy);
       if(d<=c.reach+tgt.r&&(Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=c.half||d<e.r+tgt.r+14)){
-        c.hit=true;dealDamage(e,tgt,c.mi);if(m.st)applyEf(e,tgt,m,true)}}
+        c.hit=true;dealDamage(e,tgt,c.mi,c.pm?{pm:c.pm}:undefined);if(m.st)applyEf(e,tgt,m,true)}}
     if(c.t>=c.len)toRecovery(e,c);
   } else if(k==='leap'){
     const p=c.t/20;e.x=c.sx+(c.tx-c.sx)*p;e.y=c.sy+(c.ty-c.sy)*p;e.lift=Math.sin(p*Math.PI)*48;
@@ -389,8 +431,12 @@ function activeTick(e,c,tgt){
     if(tgt.hp>0){const dd=norm(tgt.x-e.x,tgt.y-e.y);const a=Math.atan2(c.dir.y,c.dir.x),b=Math.atan2(dd.y,dd.x);const na=a+clamp(angDiff(a,b),-3*TICK,3*TICK);c.dir={x:Math.cos(na),y:Math.sin(na)}}
     e.x+=c.dir.x*c.spd*TICK;e.y+=c.dir.y*c.spd*TICK;e.row=dirRow(c.dir.x,c.dir.y);
     c.hitCd--;
-    if(c.hitCd<=0&&tgt.hp>0&&len(tgt.x-e.x,tgt.y-e.y)<=e.r+tgt.r+8){c.hitCd=33;dealDamage(e,tgt,c.mi)}
-    if(e.x<WALL+e.r||e.x>AW-WALL-e.r||e.y<WALL+e.r||e.y>AH-WALL-e.r)c.t=Math.max(c.t,c.len-1);
+    if(c.hitCd<=0&&tgt.hp>0&&len(tgt.x-e.x,tgt.y-e.y)<=e.r+tgt.r+8){c.hitCd=33;let pm=1;if(m.rollUp){const rc=e.rollCh&&W.time-e.rollCh.t<6&&e.rollCh.id===m.id?e.rollCh.n+1:0;e.rollCh={n:rc,t:W.time,id:m.id};pm=Math.min(m.rollUp,Math.pow(2,rc))}   // 6초 안에 또 맞히면 계속 2배(최대 8배)
+    dealDamage(e,tgt,c.mi,{pm});if(m.rollUp&&pm>1)floatTxt(e.x,e.y-100,'위력 ×'+pm,'#ffd23f')}
+    if(m.rollUp){   // 6C-4 구르기·아이스볼: 벽에 튕기며 3초 동안 계속 굴러서 여러 번 맞힘(맞힐 때마다 위력 2배)
+      if(e.x<WALL+e.r||e.x>AW-WALL-e.r){c.dir={x:-c.dir.x,y:c.dir.y};e.x=clamp(e.x,WALL+e.r,AW-WALL-e.r)}
+      if(e.y<WALL+e.r||e.y>AH-WALL-e.r){c.dir={x:c.dir.x,y:-c.dir.y};e.y=clamp(e.y,WALL+e.r,AH-WALL-e.r)}}
+    else if(e.x<WALL+e.r||e.x>AW-WALL-e.r||e.y<WALL+e.r||e.y>AH-WALL-e.r)c.t=Math.max(c.t,c.len-1);
     if(c.t>=c.len)toRecovery(e,c);
   } else if(k==='vanish'){
     if(tgt.hp>0){const dd=norm(tgt.x-e.x,tgt.y-e.y);e.x+=dd.x*spdOf(e)*2*TICK;e.y+=dd.y*spdOf(e)*2*TICK}
@@ -403,7 +449,7 @@ function activeTick(e,c,tgt){
     e.beam={a:c.aim,L:c.L,col:C.TCOL[m.type]||'#fff'};
     if(c.t%12===0&&tgt.hp>0){
       const u=aimVec(c);const dx=tgt.x-e.x,dy=tgt.y-e.y;const al=dx*u.x+dy*u.y,pe=Math.abs(-dx*u.y+dy*u.x);
-      if(al>=0&&al<=c.L+tgt.r&&pe<=tgt.r+22){dealDamage(e,tgt,c.mi,{mult:c.dmgMul||.25,pm:1})}}
+      if(al>=0&&al<=c.L+tgt.r&&pe<=tgt.r+22*szMul(e,0)){dealDamage(e,tgt,c.mi,{mult:c.dmgMul||.25,pm:1})}}
     if(c.t>=c.len){e.beam=null;toRecovery(e,c)}
   } else {toRecovery(e,c)}
 }
@@ -427,7 +473,9 @@ function update(){
     if(e.swapT>0)e.swapT--;   // 6F-4b: 교체 직후 잠깐 무방비(행동 불가, 무적 아님)
     {const dm=e.moves.map((m,j)=>m&&!m.st?j:-1).filter(j=>j>=0);
      const allCool=dm.length>0&&dm.every(j=>e.cd[j]>0); // 공격기가 전부 쿨타임 중이면 빨리 돈다
-     for(let i=0;i<4;i++){const m=e.moves[i];const r=(e.ail.paralysis?CD.paraRate:1)*(allCool&&m&&!m.st?CD.cadence:1);e.cd[i]=Math.max(0,e.cd[i]-TICK*r)}}
+     for(let i=0;i<4;i++){const m=e.moves[i];const r=(e.ail.paralysis?CD.paraRate:1)*(allCool&&m&&!m.st?CD.cadence:1);
+       if(m&&m.chg){if(e.ch[i]<m.chg.max){e.chT[i]-=TICK*r;if(e.chT[i]<=0){e.ch[i]++;e.chT[i]=e.ch[i]<m.chg.max?m.chg.per:0}}e.cd[i]=e.ch[i]>=1?0:Math.max(0,e.chT[i])}
+       else e.cd[i]=Math.max(0,e.cd[i]-TICK*r)}}
     // 구르기 충전
     if(e.rc<2)e.rc=Math.min(2,e.rc+TICK/3.2);
     // 상태이상
@@ -728,7 +776,7 @@ function render(){
     cx.globalAlpha=1;
     if(e.protect>0){cx.strokeStyle='#9be7ff';cx.lineWidth=4;cx.globalAlpha=.8;cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+14,e.r+14,0,0,7);cx.stroke();cx.globalAlpha=1}
     // 머리 위 작은 HP바
-    const bw=90,bx=e.x-bw/2,by=e.y-e.r*1.9-28;
+    const bw=90,bx=e.x-bw/2,by=e.y-18-clamp((e.vis||110)*.78,40,150)-12;
     cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(bx-2,by-2,bw+4,10);
     const rr=Math.max(0,e.hp/e.max);cx.fillStyle=rr>.5?'#3be06a':rr>.2?'#ffc83a':'#ff4a3a';cx.fillRect(bx,by,bw*rr,6);
   }
@@ -1032,7 +1080,10 @@ function buildUI(){
 }
 function updBtns(){
   const me=W.me,U=W.ui;if(!U)return;
-  for(let i=0;i<4;i++){const b=U.btns[i];if(!me.moves[i])continue;const r=Math.min(1,me.cd[i]/me.cdMax[i]);b._cd.style.height=(r*100)+'%';b.style.opacity=canCast(me,i)?1:.75}
+  for(let i=0;i<4;i++){const b=U.btns[i],m=me.moves[i];if(!m)continue;const r=Math.min(1,me.cd[i]/me.cdMax[i]);b._cd.style.height=(r*100)+'%';b.style.opacity=canCast(me,i)?1:.75;
+    // 6C-4 충전 개수(다단 기술)·PP 표시
+    if(!b._n){b._n=document.createElement('b');b._n.style.cssText='position:absolute;z-index:3;left:0;right:0;bottom:3px;text-align:center;font:bold 10px sans-serif;color:#fff;text-shadow:0 1px 2px #000;pointer-events:none';b.appendChild(b._n)}
+    const tx=(m.chg?'×'+me.ch[i]+' · ':'')+(m.ppMax>0?'PP '+me.pp[i]:m.id==='struggle'?'발버둥':'');if(b._n._t!==tx){b._n._t=tx;b._n.textContent=tx;b._n.style.color=m.ppMax>0&&me.pp[i]<=3?'#ff8a8a':'#fff'}}
   if(U.bb){const L=ballList(),sel=L[Math.min(W.ballSel||0,L.length-1)];
     const tx=sel?(sel.e||'⚪')+'\n'+(sel.count!=null?sel.count:''):'볼\n0';if(U.bb._tx!==tx){U.bb._tx=tx;U.bb.style.whiteSpace='pre';U.bb.innerHTML=tx.replace('\n','<br>');if(U.bb._cd)U.bb.insertBefore(U.bb._cd,U.bb.firstChild)}
     U.bb.style.opacity=(W.ball||W.ballCd>0||!sel)?.5:1;U.bsw.style.display=L.length>1?'flex':'none'}

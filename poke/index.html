@@ -8389,7 +8389,9 @@ const rtDmgMul=(a,d,id)=>{let k=1;try{if(a&&a.moves&&a.moves.includes(id))k*=1+.
   return k};
 // ⚠ 새 전투에는 내 포켓몬의 '복사본'이 들어가서 isMine()·G.party.includes()가 false가 됨 → 환생·도감·칭호·접두사 보너스가 빠졌었음(6F-2~7C 버그). uid로 진짜 포켓몬을 찾아서 계산
 const rtReal=m=>{try{if(!m||!G)return m;return G.party.find(x=>x.uid===m.uid)||G.box.find(x=>x.uid===m.uid)||m}catch(e){return m}};
-const rtCommon=()=>({stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id)});
+// 6C-4 몸 크기: rzdex.json 8번째 값(키로 계산한 원본 크기). 거다이맥스(g/*)는 큰 몸 220, 자료 없으면 보통 57
+const rtBody=m=>{try{const M=META[rtReal(m).n];if(M&&M.form==='gmax')return 220;const R=M&&M.rzk&&RZD[M.rzk];if(R&&R[7]>0)return R[7]}catch(e){}return 57};
+const rtCommon=()=>({bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id)});
 const rtBgOf=()=>{try{if(BS.bg==='stadium'&&typeof STAD!=='undefined'&&STAD.complete&&STAD.naturalWidth)return STAD;return bgImg(STG[BS.bg]||'grass')}catch(e){return null}};   // 7B: 새 전투 배경
 async function rtWild(o){
   if(!rtWildOn()||!o||o.wb||o.pvp||!o.foes||!o.foes.length)return undefined;
