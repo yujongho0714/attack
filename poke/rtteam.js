@@ -213,7 +213,7 @@ function hitFx(def,col,fin){
   const n=fin?22:10,P=[];for(let i=0;i<n;i++){const a=rnd()*Math.PI*2,v=(fin?170:110)*(.5+rnd()*.7);P.push({vx:Math.cos(a)*v,vy:Math.sin(a)*v-30,z:(fin?5:3.5)*(.6+rnd()*.7)})}
   W.fx.push({k:'spk',sys:1,x:def.x,y:def.y-24,t:0,life:fin?.55:.4,c:col,P});
   W.shk=Math.max(W.shk||0,fin?20:9);W.flashA=Math.max(W.flashA||0,fin?.35:.14);W.flashC=col;
-  if(fin)W.inv=3;
+  /* 9R: 막타 화면 뒤집힘(검게 번쩍) 없앰 — 정신없다는 요청 */
 }
 function dealDamage(att,def,mi,opt){
   opt=opt||{};

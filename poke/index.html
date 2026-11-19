@@ -6372,7 +6372,7 @@ const CINE=(()=>{
     cx.globalAlpha=a;cx.strokeStyle=q.c;cx.lineWidth=q.w;cx.stroke();
     cx.globalAlpha=a*.9;cx.strokeStyle='#fff';cx.lineWidth=Math.max(1,q.w*.35);cx.stroke();cx.restore()}}
   function hit(b,fin,c,S){if(c)col=c;S=S||60;try{FX2.flash(fin?'#ffffff':(c||'#ffffff'),fin?JD.cfg.flashFin:JD.cfg.flash)}catch(e){}
-    R.push({x:b.x,y:b.y,r:S*.2,m:S*(fin?JD.cfg.ringFin:JD.cfg.ring),v:S*(fin?6:4.5),w:fin?7:4,c:c||'#ffffff'});if(R.length>8)R.shift();if(fin)inv=2}
+    R.push({x:b.x,y:b.y,r:S*.2,m:S*(fin?JD.cfg.ringFin:JD.cfg.ring),v:S*(fin?6:4.5),w:fin?7:4,c:c||'#ffffff'});if(R.length>8)R.shift();/* 9R: 막타 화면 뒤집힘 없앰 */}
   const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
   // 스킬 한 개를 따로 그린 뒤 → 어두운 바깥 테두리 + 색 안쪽 테두리 → 본체(일반 합성) → 빛은 약하게만 더하기
   function fx(cx,draw,c){
@@ -8752,6 +8752,8 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026111906,date:'11월 19일 밤',t:'때릴 때 화면이 검게 번쩍이던 것 없앴어요',items:[
+  {img:'',h:'🖤 막타 화면 번쩍임 없앰',p:['기술 마지막 타가 맞을 때 화면 색이 확 뒤집혀서 <b>검게 번쩍</b>이던 연출을 없앴어요.','실시간 전투 · 3대3 · 턴제 전투 모두 적용돼요. 따로 누를 건 없어요!']}]},
  {v:2026111905,date:'11월 19일 밤',t:'내 기록 자동 보관 (잃어버려도 복구돼요)',items:[
   {img:'ui/news/n11_backup.webp',h:'🛟 내 돈 · 재화 · 포켓몬 기록이 자동으로 보관돼요',p:['인터넷이 켜져 있으면 <b>3시간에 한 번</b> 내 돈, 코인, 가방, 카드팩, 재료, 환생·난이도·배지, <b>포켓몬 전부(레벨·각성·한계돌파·접두사)</b>가 안전하게 보관돼요.','폰을 바꾸거나 기록이 날아가도 <b>관장님이 이 기록을 보고 그대로 복구</b>해 줄 수 있어요.','따로 누를 건 없어요. 게임을 켜 두기만 하면 돼요!']}]},
  {v:2026111904,date:'11월 19일',t:'자동·2배속 버튼 · PVP 3대3 · 화면 크기 · 실시간 전투 쉬워짐 · 턴제 고르기 · 데미지 스킨 · 초월 · 천계 새 이야기',items:[
