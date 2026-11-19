@@ -141,7 +141,9 @@ function mkEnt(mon,S,side,hp0){
   e.haste=hasteOf(s[5]);
   try{e.K=C.numK?clamp(+C.numK(mon)||1,1,1e7):1}catch(er){e.K=1}   // 7D 숫자 배율
   try{e.critX=C.critOf?C.critOf(mon)||{c:0,d:0}:{c:0,d:0}}catch(er){e.critX={c:0,d:0}}
-  {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득)
+  // 8F: 장비(출결 캐릭터 장비 · 스타포스 강화 · 큐브 옵션) — 내 포켓몬에게 모든 새 전투에서 (예전엔 월드보스에서만)
+  e.hm=1;e.gear=null;try{const g=C.gearOf?C.gearOf(mon):null;if(g){e.gear=g;e.hm=1+(g.hp||0)/100;e.max=Math.round(e.max*e.hm);e.hp=e.max;e.critX={c:Math.min(.75,(e.critX?e.critX.c:0)+(g.crt||0)/100),d:(e.critX?e.critX.d:0)+(g.cdm||0)/100}}}catch(er){}
+  {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0*e.hm,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득) · 저장된 체력은 장비 전 값   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
     m.su=Math.max(1,Math.round(m.su-.6*clamp((s[5]-50)/100,0,1)*(m.su-17)))});
@@ -170,14 +172,15 @@ function pxGlyph(ch,skin,unit){const key=skin.id+'_'+ch+'_'+(unit||'n');if(PXC[k
   else if(ch!=='CRIT_STAR'){g.fillStyle=skin.outline;for(let r=0;r<R;r++)for(let c=0;c<Cn;c++)if(M[r][c]==='1')g.fillRect(pad+c*px-px,pad+r*px-px,px*3,px*3)}
   for(let r=0;r<R;r++)for(let c=0;c<Cn;c++)if(M[r][c]==='1'){g.fillStyle=unit==='eok'?skin.eokTxt:unit==='man'?skin.manTxt:ch==='CRIT_STAR'?((r>=4&&r<=6&&c>=4&&c<=6)?'#ffffff':skin.critColor):r<=2?skin.numTop:r<=6?skin.numMid:skin.numBot;g.fillRect(pad+c*px,pad+r*px,px,px)}
   return PXC[key]=o}
-function pxTokens(num){const n=Math.floor(Math.max(1,num)),eok=Math.floor(n/1e8),man=Math.floor(n%1e8/1e4),rest=n%1e4,L=[];
+// 7I: 숫자 짧게 — 10만 미만은 그대로(4만5678) · 10만~1억은 만까지(175만) · 1억~10억은 억+만(9억8765만) · 10억 이상은 억만(123억)
+function pxTokens(num){const n=Math.floor(Math.max(1,num)),eok=Math.floor(n/1e8),man=n>=1e9?0:Math.floor(n%1e8/1e4),rest=n>=1e5?0:n%1e4,L=[];
   if(eok>0){String(eok).split('').forEach(ch=>L.push({ch,u:null}));L.push({ch:'억',u:'eok'})}
   if(man>0){String(man).split('').forEach(ch=>L.push({ch,u:null}));L.push({ch:'만',u:'man'})}
-  if(rest>0||!L.length)String(rest).split('').forEach(ch=>L.push({ch,u:null}));return L}
+  if((rest>0&&n<1e5)||!L.length)String(rest||n).split('').forEach(ch=>L.push({ch,u:null}));return L}
 function pxDraw(cx,f){const skin=PXSK[f.sk]||PXSK[0],u=f.t/f.life,ratio=1-u;let s;
   if(f.crit){s=u<.12?.6+u/.12*.78:u<.24?1.38-(u-.12)/.12*.38:1}else s=u<.1?.7+u/.1*.3:1;
   f.cs=(f.cs||0)+((f.ts||0)-(f.cs||0))*.24;
-  cx.save();cx.imageSmoothingEnabled=false;cx.globalAlpha=ratio<.25?ratio/.25:1;const k=s*(f.fin?1:.8);const sp=f.tk.map(t=>pxGlyph(t.ch,skin,t.u)).filter(Boolean),gap=2;const tw=sp.reduce((a,q)=>a+q.width+gap,-gap);
+  cx.save();cx.imageSmoothingEnabled=false;cx.globalAlpha=ratio<.25?ratio/.25:1;const k=s*(f.fin?.6:.48);   /* 7H-2: 사용자 요청 — 숫자가 길어서 전체 크기를 60%로 */const sp=f.tk.map(t=>pxGlyph(t.ch,skin,t.u)).filter(Boolean),gap=2;const tw=sp.reduce((a,q)=>a+q.width+gap,-gap);
   const hw=(tw/2+(f.crit?40:4))*k,fx0=clamp(f.x,WALL+hw,AW-WALL-hw);   /* 경기장 밖으로 잘리지 않게 */
   cx.translate(Math.round(fx0),Math.round(f.y-u*40+f.cs));cx.scale(k,k);let dx=-Math.round(tw/2);
   if(f.crit){const st=pxGlyph('CRIT_STAR',skin),ss=Math.floor(f.t*60/4)%2===0?1.15:.9;cx.save();cx.translate(dx-24,0);cx.scale(ss,ss);cx.drawImage(st,-Math.round(st.width/2),-Math.round(st.height/2));cx.restore();
@@ -185,7 +188,7 @@ function pxDraw(cx,f){const skin=PXSK[f.sk]||PXSK[0],u=f.t/f.life,ratio=1-u;let 
   for(const q of sp){cx.drawImage(q,dx,-Math.round(q.height/2));dx+=q.width+gap}
   cx.restore()}
 function dmgPop(x,y,txt,col,fin,val,crit,sk){
-  if(val!=null){for(const q of W.fx)if(q.k==='dmg'&&q.tk&&Math.abs(q.x-x)<160&&Math.abs(q.y-y)<140)q.ts=(q.ts||0)-44;   // 먼저 뜬 숫자는 위로 밀어 겹치지 않게
+  if(val!=null){for(const q of W.fx)if(q.k==='dmg'&&q.tk&&Math.abs(q.x-x)<160&&Math.abs(q.y-y)<140)q.ts=(q.ts||0)-28;   // 먼저 뜬 숫자는 위로 밀어 겹치지 않게
     W.fx.push({k:'dmg',x:x,y:y,t:0,life:.95,tk:pxTokens(val),crit:!!crit,sk:sk|0,fin:!!fin||!!crit,ts:0,cs:0});
     if(crit){const sk0=PXSK[sk|0]||PXSK[0];for(let i=0;i<14;i++){const a=i/14*Math.PI*2+rnd()*.3,v=180+rnd()*360;W.fx.push({k:'psq',x:x,y:y-35,vx:Math.cos(a)*v,vy:Math.sin(a)*v-90,z:rnd()>.5?6:4,c:i%2?sk0.critSpark:sk0.critColor,t:0,life:.4})}}
     return}
@@ -210,6 +213,7 @@ function dealDamage(att,def,mi,opt){
       return 0}
   }
   if(def.inv>0){return 0}
+  if(def.gear&&def.gear.eva>0&&rnd()<Math.min(.5,def.gear.eva/100)){floatTxt(def.x,def.y-70,'회피!','#9be7ff');return 0}   // 8F 장비 회피
   const A=m.phys?att.st[1]:att.st[3], D=m.phys?def.st[2]:def.st[4];
   const Am=stageMul(m.phys?att.stg.atk:att.stg.spa), Dm=stageMul(m.phys?def.stg.def:def.stg.spd);
   const e=m.typeless?1:C.eff(m.type,def.types);
@@ -221,6 +225,7 @@ function dealDamage(att,def,mi,opt){
   let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1);
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
+  if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;if(def.gear&&def.gear.def)dmg*=1-Math.min(.6,def.gear.def/100);   // 8F 장비 공격력·방어력
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
   if(m.exec&&def.lv>att.lv)dmg*=.5;               // 즉사기: 상대 레벨이 높으면 절반
   let fixedDmg=null;
@@ -942,7 +947,7 @@ function useItemNow(k){
   if(!hurt&&!(it.cure&&ail)){floatTxt(me.x,me.y-90,'체력이 가득이에요','#fff');return false}
   let r=null;try{r=C.useItem(k)}catch(e){}
   if(!r){floatTxt(me.x,me.y-90,'쓸 수 없어요','#f88');return false}
-  let got=0;if(r.heal>0){const b0=me.hp;me.hp=Math.min(me.max,me.hp+r.heal);got=Math.round(me.hp-b0)}
+  let got=0;if(r.heal>0){const b0=me.hp;me.hp=Math.min(me.max,me.hp+r.heal*(me.hm||1));got=Math.round(me.hp-b0)}
   if(r.cure)me.ail={};
   W.itCd=IT_CD;
   floatTxt(me.x,me.y-90,got>0?'+'+fmtN(got*kOf(me)):'회복!','#6f6',true);
@@ -990,7 +995,7 @@ async function doSwitch(uid){
   w.swapping=1;
   let S=null;try{S=await C.getSpr(C.sprKey(pk.mon))}catch(e){}
   if(W!==w||w.stopped||w.over){w.swapping=0;return}
-  w.hpBy[old.mon.uid]=old.hp;                       // 나가는 포켓몬의 지금 체력 기억
+  w.hpBy[old.mon.uid]=old.hp/(old.hm||1);                       // 나가는 포켓몬의 지금 체력 기억
   const ne=mkEnt(pk.mon,S,0,h);
   ne.x=old.x;ne.y=old.y;ne.face=old.face;ne.row=old.row;ne.rc=old.rc;ne.vx=ne.vy=0;
   ne.swapT=SW_VULN;ne.flash=SW_VULN/60;             // 잠깐 무방비(깜박임)
@@ -1133,7 +1138,7 @@ function stop(r){
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
   if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear()}catch(er){}}
   W.root.remove();IN.keys={};IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.press=[];IN.hold={};IN.roll=0;
-  try{const hpBy=Object.assign({},W.hpBy);hpBy[W.me.mon.uid]=W.me.hp;window.RTB.last={r,meHp:W.me.hp,meMax:W.me.max,foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time,meUid:W.me.mon.uid,hpBy,used:W.used.slice()}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
+  try{const hpBy=Object.assign({},W.hpBy);hpBy[W.me.mon.uid]=W.me.hp/(W.me.hm||1);window.RTB.last={r,meHp:W.me.hp/(W.me.hm||1),meMax:W.me.max/(W.me.hm||1),foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time,meUid:W.me.mon.uid,hpBy,used:W.used.slice()}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
   const res=W.res;W=null;res(r);
 }
 async function start(ctx){
