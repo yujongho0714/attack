@@ -64,7 +64,7 @@ const hasteOf=spe=>clamp(CD.hasteBase-CD.hastePerStat*spe,CD.hasteMin,CD.hasteMa
 
 // ---------- 기술 정보 ----------
 function moveInfo(id){
-  let d=id==='struggle'?STRUGGLE:(C.RZM&&C.RZM[id]);
+  let d=id==='struggle'?STRUGGLE:((C.RZM&&C.RZM[id])||(C.SGD&&C.SGD[id]));   // 7F: 직접 만든 전설 기술(sg_*)은 host가 준 SGD 정의
   if(!d){const g=C.mv(id)||{};d={n:g.name||id,t:g.type||'NORMAL',c:g.ph?0:1,p:g.pw||0,a:g.acc||100,pr:g.pri||0,k:g.ph?'melee':'projectile',kd:'',sb:'',aim:'direction',ef:[],f:''};}
   const st=d.c===2||!(d.p>0);
   const k=d.k, exec=isExecute(d), fx=(d.ef||[]).find(x=>x.op==='fixed'&&x.mode!=='execute')||null;
@@ -140,6 +140,7 @@ function mkEnt(mon,S,side,hp0){
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
   e.haste=hasteOf(s[5]);
   try{e.K=C.numK?clamp(+C.numK(mon)||1,1,1e7):1}catch(er){e.K=1}   // 7D 숫자 배율
+  try{e.critX=C.critOf?C.critOf(mon)||{c:0,d:0}:{c:0,d:0}}catch(er){e.critX={c:0,d:0}}
   {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
@@ -158,7 +159,37 @@ function floatTxt(x,y,t,col,big){W.fx.push({k:'txt',x,y,t:0,life:.9,s:t,c:col||'
 // 7D: 숫자 배율 — 진행(레벨·환생)에 따라 체력·데미지 숫자만 같이 커짐(승패 밸런스는 그대로). 1만↑ '만', 1억↑ '억'
 function fmtN(v){v=Math.max(0,Math.round(v));if(v<1e5)return v.toLocaleString('en-US');if(v<1e8){const q=v/1e4;return (q<1e3?q.toFixed(q<100?1:0):Math.round(q).toLocaleString('en-US'))+'만'}const q=v/1e8;return (q<100?q.toFixed(2):Math.round(q).toLocaleString('en-US'))+'억'}
 const kOf=e=>(e&&e.K)||1;
-function dmgPop(x,y,txt,col,fin){W.fx.push({k:'dmg',x:x+(rnd()-.5)*56,y:y+(rnd()-.5)*24,t:0,life:fin?.95:.75,s:txt,c:col||'#fff',sc:fin?1.35:1})}
+
+// ---------- 7H: 도트 데미지 스킨 (사용자가 준 PIXEL UNIT DAMAGE SKIN ENGINE 6종 · 억/만 배지 · 크리티컬 별) ----------
+const PXG = { '0': [ "..1111..", ".11..11.", "11....11", "11...111", "11..1111", "11.11.11", "1111..11", "111...11", "11....11", ".11..11.", "..1111.." ], '1': [ "...111..", "..1111..", ".11.11..", "11..11..", "....11..", "....11..", "....11..", "....11..", "....11..", "....11..", ".1111111" ], '2': [ ".111111.", "11....11", "......11", "......11", ".....11.", "...111..", ".111....", "11......", "11......", "11....11", "11111111" ], '3': [ ".111111.", "11....11", "......11", "......11", "..11111.", "......11", "......11", "......11", "......11", "11....11", ".111111." ], '4': [ "....111.", "...1111.", "..11.11.", ".11..11.", "11...11.", "11...11.", "11111111", ".....11.", ".....11.", ".....11.", "....1111" ], '5': [ "11111111", "11......", "11......", "1111111.", "......11", "......11", "......11", "......11", "......11", "11....11", ".111111." ], '6': [ "..11111.", ".11...11", "11......", "11......", "1111111.", "11....11", "11....11", "11....11", "11....11", ".11..11.", "..1111.." ], '7': [ "11111111", "11....11", ".....11.", "....11..", "....11..", "...11...", "...11...", "..11....", "..11....", "..11....", "..11...." ], '8': [ ".111111.", "11....11", "11....11", "11....11", ".111111.", "11....11", "11....11", "11....11", "11....11", "11....11", ".111111." ], '9': [ "..1111..", ".11..11.", "11....11", "11....11", ".1111111", "......11", "......11", "......11", "......11", "11...11.", ".11111.." ], '억': [ ".1111..11.", "11..11.11.", "11..11.11.", "11..11111.", ".1111..11.", ".......11.", ".11111111.", ".......11.", ".......11.", ".......11.", ".......11." ], '만': [ "11111..11.", "11..11.11.", "11..11.111", "11..11.11.", "11111..11.", ".......11.", "..11......", "..11......", "..11......", "..11111111", "..11111111" ], 'CRIT_STAR': [ ".....1.....", "....111....", ".1..111..1.", "..1111111..", "...11111...", "11111111111", "...11111...", "..1111111..", ".1..111..1.", "....111....", ".....1....." ] };
+const PXSK = [ { id: "maple_classic", name: "1. 메이플 오리지널", numTop: "#fff200", numMid: "#ff9f1a", numBot: "#ff3838", outline: "#1e0900", eokBg: "#ff1e42", eokTxt: "#ffffff", manBg: "#ff7f00", manTxt: "#ffffff", critColor: "#ffea00", critSpark: "#ff3838" }, { id: "sekiro_ink", name: "2. 불사베기 칠흑혈참", numTop: "#ff1e42", numMid: "#99001a", numBot: "#1a0206", outline: "#ff4d6d", eokBg: "#080103", eokTxt: "#ff1e42", manBg: "#2b040c", manTxt: "#ff8fa3", critColor: "#ff1e42", critSpark: "#ffffff" }, { id: "xenon_cyber", name: "3. 제논 플라즈마 블루", numTop: "#ffffff", numMid: "#00f0ff", numBot: "#0066ff", outline: "#00194d", eokBg: "#00f0ff", eokTxt: "#040814", manBg: "#0052d4", manTxt: "#ffffff", critColor: "#00f0ff", critSpark: "#ffffff" }, { id: "royal_gold", name: "4. 황제 르네상스 골드", numTop: "#ffffff", numMid: "#ffd700", numBot: "#d97706", outline: "#291500", eokBg: "#ffd700", eokTxt: "#1f0f00", manBg: "#f59e0b", manTxt: "#1f0f00", critColor: "#ffd700", critSpark: "#ffffff" }, { id: "emerald_dragon", name: "5. 청룡 비취 에메랄드", numTop: "#e0fff4", numMid: "#00ff9d", numBot: "#008f5a", outline: "#022417", eokBg: "#00ff9d", eokTxt: "#022417", manBg: "#059669", manTxt: "#ffffff", critColor: "#00ff9d", critSpark: "#ffd700" }, { id: "haki_purple", name: "6. 패왕색 흑섬 보라", numTop: "#f3e5f5", numMid: "#d500f9", numBot: "#651fff", outline: "#090014", eokBg: "#aa00ff", eokTxt: "#ffffff", manBg: "#4a0072", manTxt: "#ea80fc", critColor: "#ff1744", critSpark: "#d500f9" } ];
+const PXC={};
+function pxGlyph(ch,skin,unit){const key=skin.id+'_'+ch+'_'+(unit||'n');if(PXC[key])return PXC[key];const M=PXG[ch];if(!M)return null;const R=M.length,Cn=M[0].length,px=3,pad=6;
+  const o=document.createElement('canvas');o.width=Cn*px+pad*2;o.height=R*px+pad*2;const g=o.getContext('2d');
+  if(unit==='eok'||unit==='man'){g.fillStyle='#ffffff';g.fillRect(0,0,o.width,o.height);g.fillStyle=unit==='eok'?skin.eokBg:skin.manBg;g.fillRect(px,px,o.width-px*2,o.height-px*2)}
+  else if(ch!=='CRIT_STAR'){g.fillStyle=skin.outline;for(let r=0;r<R;r++)for(let c=0;c<Cn;c++)if(M[r][c]==='1')g.fillRect(pad+c*px-px,pad+r*px-px,px*3,px*3)}
+  for(let r=0;r<R;r++)for(let c=0;c<Cn;c++)if(M[r][c]==='1'){g.fillStyle=unit==='eok'?skin.eokTxt:unit==='man'?skin.manTxt:ch==='CRIT_STAR'?((r>=4&&r<=6&&c>=4&&c<=6)?'#ffffff':skin.critColor):r<=2?skin.numTop:r<=6?skin.numMid:skin.numBot;g.fillRect(pad+c*px,pad+r*px,px,px)}
+  return PXC[key]=o}
+function pxTokens(num){const n=Math.floor(Math.max(1,num)),eok=Math.floor(n/1e8),man=Math.floor(n%1e8/1e4),rest=n%1e4,L=[];
+  if(eok>0){String(eok).split('').forEach(ch=>L.push({ch,u:null}));L.push({ch:'억',u:'eok'})}
+  if(man>0){String(man).split('').forEach(ch=>L.push({ch,u:null}));L.push({ch:'만',u:'man'})}
+  if(rest>0||!L.length)String(rest).split('').forEach(ch=>L.push({ch,u:null}));return L}
+function pxDraw(cx,f){const skin=PXSK[f.sk]||PXSK[0],u=f.t/f.life,ratio=1-u;let s;
+  if(f.crit){s=u<.12?.6+u/.12*.78:u<.24?1.38-(u-.12)/.12*.38:1}else s=u<.1?.7+u/.1*.3:1;
+  f.cs=(f.cs||0)+((f.ts||0)-(f.cs||0))*.24;
+  cx.save();cx.imageSmoothingEnabled=false;cx.globalAlpha=ratio<.25?ratio/.25:1;const k=s*(f.fin?1:.8);const sp=f.tk.map(t=>pxGlyph(t.ch,skin,t.u)).filter(Boolean),gap=2;const tw=sp.reduce((a,q)=>a+q.width+gap,-gap);
+  const hw=(tw/2+(f.crit?40:4))*k,fx0=clamp(f.x,WALL+hw,AW-WALL-hw);   /* 경기장 밖으로 잘리지 않게 */
+  cx.translate(Math.round(fx0),Math.round(f.y-u*40+f.cs));cx.scale(k,k);let dx=-Math.round(tw/2);
+  if(f.crit){const st=pxGlyph('CRIT_STAR',skin),ss=Math.floor(f.t*60/4)%2===0?1.15:.9;cx.save();cx.translate(dx-24,0);cx.scale(ss,ss);cx.drawImage(st,-Math.round(st.width/2),-Math.round(st.height/2));cx.restore();
+    cx.fillStyle=skin.outline;cx.fillRect(dx-4,-36,76,14);cx.fillStyle=skin.critColor;cx.font='900 11px monospace';cx.textAlign='left';cx.fillText('CRITICAL!',dx,-25)}
+  for(const q of sp){cx.drawImage(q,dx,-Math.round(q.height/2));dx+=q.width+gap}
+  cx.restore()}
+function dmgPop(x,y,txt,col,fin,val,crit,sk){
+  if(val!=null){for(const q of W.fx)if(q.k==='dmg'&&q.tk&&Math.abs(q.x-x)<160&&Math.abs(q.y-y)<140)q.ts=(q.ts||0)-44;   // 먼저 뜬 숫자는 위로 밀어 겹치지 않게
+    W.fx.push({k:'dmg',x:x,y:y,t:0,life:.95,tk:pxTokens(val),crit:!!crit,sk:sk|0,fin:!!fin||!!crit,ts:0,cs:0});
+    if(crit){const sk0=PXSK[sk|0]||PXSK[0];for(let i=0;i<14;i++){const a=i/14*Math.PI*2+rnd()*.3,v=180+rnd()*360;W.fx.push({k:'psq',x:x,y:y-35,vx:Math.cos(a)*v,vy:Math.sin(a)*v-90,z:rnd()>.5?6:4,c:i%2?sk0.critSpark:sk0.critColor,t:0,life:.4})}}
+    return}
+  W.fx.push({k:'dmg',x:x+(rnd()-.5)*56,y:y+(rnd()-.5)*24,t:0,life:fin?.95:.75,s:txt,c:col||'#fff',sc:fin?1.35:1})}
 function hitFx(def,col,fin){
   W.fx.push({k:'shock',sys:1,x:def.x,y:def.y-20,t:0,life:fin?.34:.22,r:fin?120:70,c:fin?'#ffffff':col,w:fin?9:5});
   const n=fin?22:10,P=[];for(let i=0;i<n;i++){const a=rnd()*Math.PI*2,v=(fin?170:110)*(.5+rnd()*.7);P.push({vx:Math.cos(a)*v,vy:Math.sin(a)*v-30,z:(fin?5:3.5)*(.6+rnd()*.7)})}
@@ -183,10 +214,11 @@ function dealDamage(att,def,mi,opt){
   const Am=stageMul(m.phys?att.stg.atk:att.stg.spa), Dm=stageMul(m.phys?def.stg.def:def.stg.spd);
   const e=m.typeless?1:C.eff(m.type,def.types);
   const stab=att.types.includes(m.type)?1.5:1;
-  const crit=rnd()<(att.critWin>0?.5:1/24);
+  const cx0=att.critX||{c:0,d:0};   // 7G: 크리티컬 확률·데미지 보너스(접두사·먹이 아이템·내 캐릭터 접두사)
+  const crit=rnd()<(att.critWin>0?.5:1/24+cx0.c);
   let power=m.p*(opt.pm||1);
   let base=((2*att.lv/5+2)*power*(A*Am)/Math.max(1,D*Dm)/50+2);
-  let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5:1)*(m.melee&&m.phys?1.15:1);
+  let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1);
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
@@ -222,7 +254,7 @@ function dealDamage(att,def,mi,opt){
   // 6E-3: 마지막 타(또는 치명타·효과 굉장)는 크게, 중간 타는 작게
   const fin=(opt.chain?!!opt.last:!W._more)||crit||e>1;W._more=0;
   if(dmg>0&&W._dp){const q=W._dp;W._dp=null;
-    dmgPop(def.x,def.y-62,(crit&&fin?'CRIT ':'')+fmtN((fixedDmg!=null||opt.fixed?q.dmg:q.raw)*kOf(def))+(fin&&(crit||q.e>1)?'!':''),q.col,fin);
+    {let sk=0;try{sk=C.dmgSkin?C.dmgSkin(att.mon,m.id)|0:0}catch(er){}dmgPop(def.x,def.y-62,null,q.col,fin,Math.max(1,Math.round((fixedDmg!=null||opt.fixed?q.dmg:q.raw)*kOf(def))),crit,sk)}
     hitFx(def,C.TCOL[m.type]||'#fff',fin);
     W.hitstop=Math.max(W.hitstop,fin?Math.max(HSTOP[m.g],.1):HSTOP[m.g]*.6)}
   else W.hitstop=Math.max(W.hitstop,HSTOP[m.g]);
@@ -304,6 +336,7 @@ function startCast(e,i,aimDir,dist){
   if(m.chg){if(e.ch[i]>=m.chg.max)e.chT[i]=m.chg.per;e.ch[i]=Math.max(0,e.ch[i]-1);e.cd[i]=e.ch[i]>=1?0:e.chT[i]}
   else e.cd[i]=e.cdMax[i]*(m.ramp?RAMP.cdMul:1); // 쏘는 순간부터 쿨타임 (연속기는 ×2)
   if(m.ppMax>0&&e.pp){e.pp[i]=Math.max(0,e.pp[i]-1);if(e.pp[i]<=0)ppOut(e,i)}
+  if(!e.side&&C.onUse){try{const up=C.onUse(e.mon,m.id);if(up)floatTxt(e.x,e.y-130,'⬆ '+m.name+' Lv.'+up,'#ffd23f',true)}catch(er){}}   // 7G 기술 레벨 올리기
   if(m.ramp){cast.pm=RAMP.powerMul;e.ramp={mi:i,left:(RAMP.min-1)+(rnd()<.5?1:0)}}   // 연속기: 2~3번, 한 번 위력 ×0.75
   e.anim=m.melee?'attack':'shoot';e.at=0;
   W.fx.push({k:'callout',x:e.x,y:e.y-120,t:0,life:.9,s:m.name,c:C.TCOL[m.type]||'#fff'});
@@ -376,9 +409,11 @@ function fire(e,c){
     const T=clamp(.35+m.p/120,.35,1.6);phaseTo(e,'active',Math.round(T*60));e.hidden=true;c.dir=u;
   } else if(k==='projectile'){
     const special=!m.phys;
-    W.proj.push({o:e,mi:c.mi,x:e.x+u.x*e.r,y:e.y+u.y*e.r,dx:u.x,dy:u.y,sp:(special?480:430)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(m.d.sb==='bolt'?1.25:1)*szMul(e,0),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
+    const nF=Math.max(1,m.d.fan|0);   // 7F: fan=여러 발을 부채꼴로 한 번에(한 발 위력은 나눔)
+    for(let fj=0;fj<nF;fj++){const fa=c.aim+(fj-(nF-1)/2)*.22,fu={x:Math.cos(fa),y:Math.sin(fa)};
+    W.proj.push({o:e,mi:c.mi,pm:nF>1?1.6/nF:0,x:e.x+fu.x*e.r,y:e.y+fu.y*e.r,dx:fu.x,dy:fu.y,sp:(special?480:430)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(m.d.sb==='bolt'?1.25:1)*szMul(e,0),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
       hm:/^homing/.test(m.d.sb||'')?60:0});
-    {const P=W.proj[W.proj.length-1];P.fxa=projSkin(P,m)}
+    {const P=W.proj[W.proj.length-1];P.fxa=projSkin(P,m)}}
     toRecovery(e,c);
   } else if(k==='beam'){
     const T=clamp(m.p/150,1.1,1.8);phaseTo(e,'active',Math.round(T*60));c.L=0;c.maxL=clamp(360+m.p*1.5,360,690);
@@ -523,7 +558,7 @@ function update(){
     const st=p.sp*TICK;p.x+=p.dx*st;p.y+=p.dy*st;p.tr+=st;
     if(p.fxa){p.fxa.x=p.x;p.fxa.y=p.y-24;p.fxa.rot=Math.atan2(p.dy,p.dx)}
     if(tgt.hp>0&&len(tgt.x-p.x,tgt.y-p.y)<=p.r+tgt.r*.8){
-      const d=dealDamage(p.o,tgt,p.mi);if(p.st)applyEf(p.o,tgt,p.o.moves[p.mi],true);
+      const d=dealDamage(p.o,tgt,p.mi,p.pm?{pm:p.pm}:undefined);if(p.st)applyEf(p.o,tgt,p.o.moves[p.mi],true);
       p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});skillFx(p.o,p.o.moves[p.mi],{x:p.x,y:p.y},{x:p.x,y:p.y},{force:1});
     } else if(p.tr>p.range||p.x<WALL||p.x>AW-WALL||p.y<WALL||p.y>AH-WALL){p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.2,r:p.r*1.5,c:p.col})}
   }
@@ -789,7 +824,9 @@ function render(){
     cx.fillStyle='#fff';cx.beginPath();cx.arc(0,0,5,0,7);cx.fill();cx.stroke();cx.restore()}
   // 효과
   for(const f of W.fx){if(fxOn()&&(f.k==='burst'||f.k==='cone'||f.k==='slash'||f.k==='beamline'||(f.k==='ring'&&!f.sys)))continue;const u=f.t/f.life;cx.save();cx.globalAlpha=Math.max(0,1-u);
-    if(f.k==='dmg'){const e0=1-Math.pow(1-Math.min(1,u*1.6),3),pop=1+.55*Math.max(0,1-u*7);cx.globalAlpha=Math.min(1,(1-u)*4);
+    if(f.k==='dmg'&&f.tk){pxDraw(cx,f)}
+    else if(f.k==='psq'){cx.globalAlpha=Math.max(0,1-f.t/f.life);cx.fillStyle=f.c;cx.fillRect(Math.round(f.x+f.vx*f.t),Math.round(f.y+f.vy*f.t+400*f.t*f.t),f.z,f.z)}
+    else if(f.k==='dmg'){const e0=1-Math.pow(1-Math.min(1,u*1.6),3),pop=1+.55*Math.max(0,1-u*7);cx.globalAlpha=Math.min(1,(1-u)*4);
       cx.font='italic 900 '+Math.round(30*f.sc*pop)+'px sans-serif';cx.textAlign='center';cx.lineJoin='round';cx.lineWidth=6;cx.strokeStyle='#000';cx.fillStyle='#fff';cx.shadowColor=f.c;cx.shadowBlur=14;
       const y=f.y-e0*46;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
     else if(f.k==='shock'){cx.globalAlpha=Math.max(0,1-u);cx.strokeStyle=f.c;cx.lineWidth=Math.max(1,f.w*(1-u));const R=f.r*(.2+.8*Math.sqrt(u));cx.beginPath();cx.ellipse(f.x,f.y,R,R*.7,0,0,7);cx.stroke()}
@@ -1128,5 +1165,5 @@ async function start(ctx){
     W.raf=requestAnimationFrame(loop);
   });
 }
-window.RTB={start,_dbg:()=>W,_step:n=>{for(let i=0;i<n&&W&&!W.over;i++){update();}},_press:i=>IN.press.push({i,aim:null}),_stop:r=>stop(r||'quit')};
+window.RTB={_pop:(x,y,v,crit,sk)=>{if(W)dmgPop(x,y,null,'#fff',1,v,crit,sk)},start,_dbg:()=>W,_step:n=>{for(let i=0;i<n&&W&&!W.over;i++){update();}},_press:i=>IN.press.push({i,aim:null}),_stop:r=>stop(r||'quit')};
 })();
