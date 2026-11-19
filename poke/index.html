@@ -7720,7 +7720,7 @@ try{HUB.push({k:'awake',n:'각성',d:'포켓몬 아래 ★은 환생할 때마�
 // ===== 9B 초월 승급: 유일 → 불멸 → 태초 → 만제 (m.ax) · 재료(G.trm) · 특수능력 · 기운(오라) 모습 =====
 (function(){try{
 const TRX={7:{k:'core',n:'불멸의 핵',ic:'💠',need:10,gold:500000},8:{k:'breath',n:'태초의 숨결',ic:'🌟',need:10,gold:1000000},9:{k:'seal',n:'만제의 인장',ic:'🔱',need:3,gold:2000000}};
-const TAB={7:'쓰러질 공격을 한 번 버텨요 (체력 1 남김)',8:'전투 시작 때 최대 체력 20% 보호막',9:'파티 전체 공격 +5%'};
+const TAB={7:'쓰러지면 1번 부활(체력 50%) · 각성하면 부활 뒤 무적 10초, 각성마다 +3초',8:'분신을 불러 같이 공격 20초 · 각성마다 +5초',9:'파티 전체 공격 +30% · 20초 동안 데미지 +30% 버프(재사용 30초, 각성마다 −3초)'};
 const TAURA={6:'하얀 기운',7:'황금 기운',8:'푸른 기운',9:'진홍 기운'};
 window.TRX=TRX;window.TAB=TAB;
 const trm=()=>{G.trm=G.trm||{};for(const k of ['core','breath','seal'])G.trm[k]=Math.max(0,G.trm[k]|0);return G.trm};
@@ -7779,7 +7779,7 @@ const css=document.createElement('style');css.textContent=`
 #trOv .trt{font:900 28px 'Galmuri11',monospace;-webkit-text-stroke:1px #000;text-shadow:0 0 14px currentColor}
 #trOv .trs{font:900 16px 'Galmuri11',monospace}#trOv .trs2{font:12px 'Galmuri11',monospace;color:#cfd6ff}
 #trOv button{margin-top:6px;padding:9px 30px;font:900 16px 'Galmuri11',monospace;border:3px solid #1c2550;border-radius:0;background:#ffd23f;color:#1c2550;box-shadow:0 4px 0 #1c2550}`;document.head.appendChild(css);
-try{HUB.push({k:'trans',n:'초월 승급 (불멸 · 태초 · 만제)',d:'유일 포켓몬을 불멸 → 태초 → 만제로 올려요. 등급마다 몸 색이 바뀌고 기운이 타오르며, 특수 능력이 생겨요. 불멸: 쓰러질 공격 1번 버팀 · 태초: 시작 보호막 20% · 만제: 파티 공격 +5%.',
+try{HUB.push({k:'trans',n:'초월 승급 (불멸 · 태초 · 만제)',d:'유일 포켓몬을 불멸 → 태초 → 만제로 올려요. 등급마다 몸 색이 바뀌고 기운이 타오르며, 특수 능력이 생겨요. 불멸: 1번 부활(각성하면 무적) · 태초: 분신 소환 · 만제: 파티 공격 +30% + 데미지 버프.',
   st:()=>{const t=trm();return '💠'+t.core+' 🌟'+t.breath+' 🔱'+t.seal},
   go:[['초월하기',()=>trOpen()],['기운 효과 켜기 / 끄기',()=>{G.opt=G.opt||{};G.opt.tfx=G.opt.tfx===0?1:0;save();toast('기운 효과 '+(G.opt.tfx===0?'꺼짐':'켜짐'));closePanel(1)}]]})}catch(e){}
 }catch(e){console.warn('9B 초월',e)}})();
@@ -8542,7 +8542,7 @@ const rtDmgMul=(a,d,id)=>{let k=1;try{if(a&&a.moves&&a.moves.includes(id))k*=1+.
   // 7G: 예전 전투에만 있던 위력 보너스도 새 전투에 — 부적(타입 +5%/개) · 등급 위력(신화 +15% … 태초 +70%)
   try{const t=mv(id).type;if(a.ch&&a.ch[t])k*=1+.05*a.ch[t]}catch(e){}
   try{const g=GPW[gradeOf(a)]||0;if(g)k*=1+g}catch(e){}
-  try{if(isMine(a)&&G.party.some(x=>x&&rarM(x)>=9))k*=1.05}catch(e){}   // 9B 만제: 파티 전체 공격 +5%
+  try{if(isMine(a)&&G.party.some(x=>x&&rarM(x)>=9))k*=1.3}catch(e){}   // 9F 만제: 파티 전체 공격 +30% (패시브)
   return k};
 // 7G: 크리티컬 보너스 — 포켓몬 접두사(crt·cdm) · 먹이 아이템(m.st.crt·cdm) · 내 캐릭터 접두사(절반, 내 포켓몬만)
 const rtCritOf=m=>{let c=0,d=0;try{const p=pxOf(m);if(p){c+=(p.e.crt||0)/100;d+=(p.e.cdm||0)/100}}catch(e){}try{if(m.st){c+=(m.st.crt||0)/100;d+=(m.st.cdm||0)/100}}catch(e){}

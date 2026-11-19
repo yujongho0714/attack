@@ -143,8 +143,13 @@ function mkEnt(mon,S,side,hp0){
   try{e.critX=C.critOf?C.critOf(mon)||{c:0,d:0}:{c:0,d:0}}catch(er){e.critX={c:0,d:0}}
   // 8F: 장비(출결 캐릭터 장비 · 스타포스 강화 · 큐브 옵션) — 내 포켓몬에게 모든 새 전투에서 (예전엔 월드보스에서만)
   e.hm=1;e.gear=null;try{const g=C.gearOf?C.gearOf(mon):null;if(g){e.gear=g;e.hm=1+(g.hp||0)/100;e.max=Math.round(e.max*e.hm);e.hp=e.max;e.critX={c:Math.min(.75,(e.critX?e.critX.c:0)+(g.crt||0)/100),d:(e.critX?e.critX.d:0)+(g.cdm||0)/100}}}catch(er){}
-  // 9B 초월 등급(6 유일 · 7 불멸 · 8 태초 · 9 만제): 기운 모습 + 불멸 버팀 · 태초 보호막(최대 체력 20%)
-  e.tier=0;try{e.tier=C.tierOf?(+C.tierOf(mon)||0):0}catch(er){}e.undying=e.tier>=7;e.sh=e.tier>=8?Math.round(e.max*.2):0;e.shMax=e.sh;
+  // 9F 초월 능력(위 등급은 아래 등급 능력도 가짐) — 각성 단계 e.aw(0~6)
+  //  불멸: 쓰러지면 1번 부활(체력 50%) · 각성하면 부활 뒤 무적 10초 + 각성마다 3초
+  //  태초: 들어오고 1초 뒤 분신 소환(같이 공격) 20초 + 각성마다 5초
+  //  만제: 20초 동안 데미지 +30% 버프, 재사용 30초 − 각성마다 3초 (자동) · 파티 공격 +30%는 host(rtDmgMul)
+  e.tier=0;try{e.tier=C.tierOf?(+C.tierOf(mon)||0):0}catch(er){}e.aw=Math.max(0,Math.min(6,(mon&&mon.aw)|0));
+  e.undying=e.tier>=7;e.sh=0;e.shMax=0;e.cloneDur=e.tier>=8?20+5*e.aw:0;e.cloneUsed=0;e.life=0;
+  e.zb=e.tier>=9?{cd:1,on:0,cdMax:Math.max(3,30-3*e.aw)}:null;
   if(e.tier>=6&&window.TFX)try{e.eng=TFX.eng()}catch(er){}
   {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0*e.hm,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득) · 저장된 체력은 장비 전 값   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
@@ -225,7 +230,7 @@ function dealDamage(att,def,mi,opt){
   const crit=rnd()<(att.critWin>0?.5:1/24+cx0.c);
   let power=m.p*(opt.pm||1);
   let base=((2*att.lv/5+2)*power*(A*Am)/Math.max(1,D*Dm)/50+2);
-  let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1);
+  let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1)*(att.zb&&att.zb.on>0?1.3:1);   // 9F 만제 버프
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
   if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;if(def.gear&&def.gear.def)dmg*=1-Math.min(.6,def.gear.def/100);   // 8F 장비 공격력·방어력
@@ -243,7 +248,7 @@ function dealDamage(att,def,mi,opt){
   if(e===0)dmg=0;
   if(def.sh>0&&dmg>0){const a=Math.min(def.sh,dmg);def.sh-=a;dmg-=a;if(def.sh<=0){def.sh=0;floatTxt(def.x,def.y-115,'보호막 깨짐','#ffe9a0')}if(dmg<=0){floatTxt(def.x,def.y-70,'보호막!','#ffe9a0');def.flash=.08;return 0}}   // 9B 태초 보호막
   def.hp=Math.max(0,def.hp-dmg);
-  if(def.hp<=0&&def.undying&&!def._ud){def._ud=1;def.hp=1;def.inv=Math.max(def.inv||0,48);floatTxt(def.x,def.y-125,'불멸!','#8fb4ff',true);W.hitstop=Math.max(W.hitstop||0,.15);try{W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.5,r:110,c:'#8fb4ff'})}catch(er){}}   // 9B 불멸: 한 번 버팀
+  if(def.hp<=0&&def.undying&&!def._ud){def._ud=1;def.hp=Math.round(def.max*.5);const s=def.aw>0?10+3*(def.aw-1):1;def.inv=Math.max(def.inv||0,Math.round(s*60));def.invMax=def.inv;cancelCast&&def.cast&&cancelCast(def,true);floatTxt(def.x,def.y-125,'불멸 부활!'+(def.aw>0?' 무적 '+s+'초':''),'#8fb4ff',true);W.hitstop=Math.max(W.hitstop||0,.15);try{W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.5,r:110,c:'#8fb4ff'})}catch(er){}}   // 9B 불멸: 한 번 버팀
   def.flash=.15;
   if(dmg>0){
     W._dp={dmg,raw:Math.max(rawD,dmg>0?1:0),e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
@@ -515,6 +520,10 @@ function update(){
     e.at+=TICK;
     e.flash=Math.max(0,e.flash-TICK);e.critWin=Math.max(0,e.critWin-TICK);e.protect=Math.max(0,e.protect-TICK);e.counterT=Math.max(0,(e.counterT||0)-TICK);
     e.healRep=Math.max(0,(e.healRep||0)-TICK);
+    if(e.inv>0)e.inv--;   // 9F: 무적 시간 줄어듦(전엔 안 줄어서 불멸 뒤 계속 무적이던 버그)
+    e.life+=TICK;
+    if(e.cloneDur>0&&!e.cloneUsed&&e.life>1){e.cloneUsed=1;W.clones.push({o:e,t:e.cloneDur,t0:e.cloneDur,cd:.6,ang:rnd()*6,x:e.x,y:e.y});floatTxt(e.x,e.y-115,'분신 소환! '+e.cloneDur+'초','#ffe14a',true);W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.45,r:100,c:'#ffe14a'})}
+    if(e.zb){if(e.zb.on>0)e.zb.on=Math.max(0,e.zb.on-TICK);e.zb.cd-=TICK;if(e.zb.cd<=0){e.zb.on=20;e.zb.cd=e.zb.cdMax;floatTxt(e.x,e.y-120,'만제의 위엄! 데미지 +30%','#ff4060',true);W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.5,r:120,c:'#ff2040'})}}
     if(e.swapT>0)e.swapT--;   // 6F-4b: 교체 직후 잠깐 무방비(행동 불가, 무적 아님)
     {const dm=e.moves.map((m,j)=>m&&!m.st?j:-1).filter(j=>j>=0);
      const allCool=dm.length>0&&dm.every(j=>e.cd[j]>0); // 공격기가 전부 쿨타임 중이면 빨리 돈다
@@ -572,6 +581,12 @@ function update(){
       p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});skillFx(p.o,p.o.moves[p.mi],{x:p.x,y:p.y},{x:p.x,y:p.y},{force:1});
     } else if(p.tr>p.range||p.x<WALL||p.x>AW-WALL||p.y<WALL||p.y>AH-WALL){p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.2,r:p.r*1.5,c:p.col})}
   }
+  // 9F 태초 분신: 주인 옆을 돌며 가장 센 기술을 60% 위력으로 쏨 (주인이 나가거나 쓰러지면 사라짐)
+  for(const c of W.clones){c.t-=TICK;const o=c.o;if(o.hp<=0||(o!==W.me&&o!==W.foe)){c.t=0;continue}
+    const tg=foeOf(o);c.ang+=TICK*1.3;const tx=o.x+Math.cos(c.ang)*95,ty=o.y+Math.sin(c.ang)*55;c.x+=(tx-c.x)*.12;c.y+=(ty-c.y)*.12;
+    c.cd-=TICK;if(c.cd<=0&&tg.hp>0&&!tg.hidden){c.cd=1.3;let mi=-1,bp=0;o.moves.forEach((m,j)=>{if(m&&!m.st&&(m.p||0)>bp){bp=m.p;mi=j}});
+      if(mi>=0){const n=norm(tg.x-c.x,tg.y-c.y);W.proj.push({o,mi,pm:.6,x:c.x,y:c.y,dx:n.x,dy:n.y,sp:540,r:15,range:900,tr:0,col:C.TCOL[o.moves[mi].type]||'#ffe14a',st:0,clone:1})}}}
+  W.clones=W.clones.filter(c=>c.t>0);
   // 발사체끼리 충돌 (반지름 비 1.5 이상이면 큰 쪽이 압도, 아니면 상쇄)
   for(let i=0;i<W.proj.length;i++)for(let j=i+1;j<W.proj.length;j++){
     const a=W.proj[i],b=W.proj[j];if(a.dead||b.dead||a.o===b.o)continue;
@@ -822,14 +837,20 @@ function render(){
     try{C.drawPm(cx,TR?TFX.spr(e.S,e.tier):e.S,st,e.row,e.at,e.x,ty,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
     if(TR){try{TFX.front(e.eng,cx,e.S,e.x,ty,e.sc,e.tier,tms)}catch(er){}}
     cx.globalAlpha=1;
+    if(e.inv>0&&e.invMax>60){cx.strokeStyle='#ffe14a';cx.lineWidth=4;cx.globalAlpha=.45+.35*Math.sin(W.time*12);cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+20,e.r+20,0,0,7);cx.stroke();cx.globalAlpha=1}   // 9F 불멸 무적
     if(e.protect>0){cx.strokeStyle='#9be7ff';cx.lineWidth=4;cx.globalAlpha=.8;cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+14,e.r+14,0,0,7);cx.stroke();cx.globalAlpha=1}
     // 머리 위 작은 HP바
     const bw=90,bx=e.x-bw/2,by=e.y-18-clamp((e.vis||110)*.78,40,150)-12;
     cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(bx-2,by-2,bw+4,10);
     const rr=Math.max(0,e.hp/e.max);cx.fillStyle=rr>.5?'#3be06a':rr>.2?'#ffc83a':'#ff4a3a';cx.fillRect(bx,by,bw*rr,6);
-    if(e.sh>0){cx.fillStyle='#ffe9a0';cx.fillRect(bx,by-5,bw*Math.min(1,e.sh/e.max)*5,3)}   // 9B 보호막 줄(최대 체력 20% = 가득)
+    if(e.zb&&e.zb.on>0){cx.font='bold 13px sans-serif';cx.textAlign='center';cx.fillStyle='#ff4060';cx.fillText('⚡ 데미지 +30% '+Math.ceil(e.zb.on)+'초',bx+bw/2,by-6)}   // 9F 만제 버프
+    if(e.inv>0&&e.invMax>60){cx.font='bold 13px sans-serif';cx.textAlign='center';cx.fillStyle='#ffe14a';cx.fillText('무적 '+Math.ceil(e.inv/60)+'초',bx+bw/2,by-(e.zb&&e.zb.on>0?20:6))}
   }
   // 발사체
+  for(const c of W.clones){const o=c.o;const a=Math.min(1,c.t)*(.5+.12*Math.sin(W.time*10));cx.globalAlpha=a;   // 9F 태초 분신 그리기
+    try{const S=window.TFX?TFX.spr(o.S,o.tier):o.S;C.drawPm(cx,S,'idle',o.row,o.at,c.x,c.y-18,o.sc*.85,{loop:true,alpha:a})}catch(er){}
+    cx.globalAlpha=a*.8;cx.strokeStyle='#ffe14a';cx.lineWidth=2;cx.beginPath();cx.ellipse(c.x,c.y,26,9,0,0,7);cx.stroke();
+    cx.globalAlpha=1;cx.font='bold 12px sans-serif';cx.textAlign='center';cx.fillStyle='#ffe14a';cx.fillText('분신 '+Math.ceil(c.t)+'초',c.x,c.y+22)}
   for(const p of W.proj){cx.globalAlpha=p.fxa?.3:.9;cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y-24,p.r,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y-24,p.r*.5,0,7);cx.fill();cx.globalAlpha=1}
   // 볼(6F-1)
   if(W.ball&&W.ball.ph!=='done'||W.over==='catch'&&W.ball){const B=W.ball;cx.save();cx.translate(B.x,B.y);cx.rotate(B.rot||0);
@@ -1010,7 +1031,7 @@ async function doSwitch(uid){
   ne.x=old.x;ne.y=old.y;ne.face=old.face;ne.row=old.row;ne.rc=old.rc;ne.vx=ne.vy=0;
   ne.swapT=SW_VULN;ne.flash=SW_VULN/60;             // 잠깐 무방비(깜박임)
   for(let i=0;i<4;i++)ne.cd[i]=Math.min(ne.cdMax[i],1.5);   // 쿨타임 초기화 꼼수 방지
-  w.chain=w.chain.filter(c=>c.o!==old);             // 나간 포켓몬의 연타는 끊김
+  w.chain=w.chain.filter(c=>c.o!==old);w.clones=w.clones.filter(c=>c.o!==old);             // 나간 포켓몬의 연타·분신은 끊김
   w.proj=w.proj.filter(p=>{if(p.o!==old)return true;try{if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}return false});w.zones=w.zones.filter(z=>z.o!==old);w.delays=w.delays.filter(d=>d.o!==old);   // 9E: 나간 포켓몬 기술 그림이 멈춰 남지 않게
   w.delays.forEach(d=>{if(d.tgt===old)d.tgt=ne});   // 상대의 내려찍기 조준은 새 포켓몬을 따라감
   w.me=ne;
@@ -1157,7 +1178,7 @@ async function start(ctx){
   if(W)return 'quit';
   C=ctx;
   const [S1,S2]=await Promise.all([C.getSpr(C.sprKey(C.me)),C.getSpr(C.sprKey(C.foe))]);
-  W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0,itCd:0};
+  W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],clones:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0,itCd:0};
   try{C.fxe&&C.fxe.VFX.clear&&C.fxe.VFX.clear();C.fxe&&C.fxe.FX2.clear()}catch(er){}   // 9E: 지난 전투 그림 지우고 시작
   W.me=mkEnt(C.me,S1,0);W.foe=mkEnt(C.foe,S2,1);
   const AT=AI_T[C.aiTier]||AI_T.W;
