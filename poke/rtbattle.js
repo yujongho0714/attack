@@ -71,7 +71,7 @@ function moveInfo(id){
   const st=d.c===2||!(d.p>0);
   const _mm=window.BEAMFX?BEAMFX.meleeMode(d.n,d.t):'',_qk=d.k==='pulse'&&d.t==='GROUND'&&!C.meleeClose;   // 9V-5: 땅 타입 퍼지는 기술(지진·땅고르기·땅가르기·매그니튜드)
   const _pvx=!!(C.net||C.pvp||C.meTeam),_bl=_pvx&&d.k==='melee';   // 9X: 사람끼리 대전이면 근접 기술은 못 날림 → 순간이동해서 붙어 때리고, 맞으면 경직
-  const _sk=window.BEAMFX&&BEAMFX.sprKind&&!C.meleeClose&&!_bl?BEAMFX.sprKind(d.n,d.t,d.k):null;   // 9W: 그림 이펙트 기술(지진·번개·바위 떨어뜨리기 → 상대 몸에서, 파도 → 날아감)
+  const _sk=window.BEAMFX&&BEAMFX.sprKind&&!C.meleeClose&&!_bl&&!(BEAMFX.sheetKey&&BEAMFX.sheetKey(d.n))?BEAMFX.sprKind(d.n,d.t,d.k):null;   // 9W: 그림 이펙트 기술(지진·번개·바위 떨어뜨리기 → 상대 몸에서, 파도 → 날아감)
   const k=_bl?'target':_sk?_sk.k:_qk?'target':(d.k==='melee'&&!C.meleeClose)?((_mm==='slash'||_mm==='bite'||_mm==='claw')?'target':'projectile'):d.k, exec=isExecute(d),   // 베기·할퀴기·깨물기·지진은 상대 몸에서 바로 터짐(target), 주먹만 날아감   // 9V-4: 베기 기술은 상대 몸에서 바로 X자로 터짐(target), 나머지 근접은 날아감   // 9V: 붙어서 때리는 기술도 날아가는 기술로
    _k0=d.k, fx=(d.ef||[]).find(x=>x.op==='fixed'&&x.mode!=='execute')||null;
   const p=st?0:exec?200:d.p<=1?60:d.p, g=gradeOf(p); // 즉사기=위력200, 위력1짜리(고정피해 등)=기본 60
@@ -301,6 +301,7 @@ function dealDamage(att,def,mi,opt){
     W.hitstop=Math.max(W.hitstop,fin?Math.max(HSTOP[m.g],.1):HSTOP[m.g]*.6)}
   else W.hitstop=Math.max(W.hitstop,HSTOP[m.g]);
   if(dmg>0){fxShake(m.g);if(!opt.chain&&(m.k==='melee'||m.k==='roll'||m.k==='target'||m.k==='vanish'))skillFx(att,m,{x:att.x,y:att.y},{x:def.x,y:def.y})}
+  if(dmg>0&&!opt.chain&&NFX()&&BEAMFX.sheetHit){try{BEAMFX.sheetHit(m.name,def.x,def.y-(def.r||40)*.6,clamp((def.r||40)*5,200,320),att.x>def.x)}catch(er){}}   // 9BM 그림 효과: 맞는 쪽
   // 경직·넉백·끊기
   const dirv=norm(def.x-att.x,def.y-att.y);
   const kb=KB[m.g]*(def.r>SIZE.kbRef?Math.max(SIZE.kbMin,Math.pow(SIZE.kbRef/def.r,SIZE.kbExp)):1);   // 6C-4 큰 몸은 덜 밀림(원본 knockbackResist)
@@ -425,6 +426,7 @@ function fire(e,c){
   const m=c.mv,k=m.k,g=m.g,u=aimVec(c),tgt=foeOf(e),heavy=m.p>=110;
   c.hit=false;
   e.face={x:u.x,y:u.y};e.row=dirRow(u.x,u.y);
+  if(NFX()&&BEAMFX.sheetCast&&!m.st){try{BEAMFX.sheetCast(m.name,e.x+u.x*(e.r||40)*.8,e.y-(e.r||40)*.6+u.y*(e.r||40)*.5,clamp((e.r||40)*4,160,260),u.x<0)}catch(er){}}   // 9BM 그림 효과: 쓰는 쪽(모으기)
   // 9BL 상대(몬스터)가 쓰는 근접·몸에 바로 맞는 기술: 3초 동안 바닥에 장판이 먼저 떠요 → 장판 밖으로 피하면 안 맞아요 (사람끼리 대전은 그대로)
   if(!C.bossWarn&&!(C.net||C.pvp||C.meTeam)&&e.side===1&&!m.st&&k!=='self'&&(m.p||0)>0&&tgt.hp>0&&/^(target|melee|leap|vanish|roll)$/.test(k)){
     const r=Math.round(clamp(62+(m.p||60)*.35,80,130));

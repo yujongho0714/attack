@@ -1836,10 +1836,22 @@ const SPR = { fw: 421, fh: 424, base: 15, img: {}, list: [], live: new Map(),
          thunder: { seq: [[0,.08],[1,.07],[2,.1],[3,.15],[4,.16],[5,.26]], hit: 2, glow: 1 },
          rock: { seq: [[0,.12],[1,.09],[2,.09],[3,.15],[4,.18],[5,.26]], hit: 2 },
          wave: { seq: [[3,.08],[4,.18],[5,.3]], hit: 0 } } };
-const sprImg = n => { let im = SPR.img[n]; if (!im) { im = SPR.img[n] = new Image(); im.src = 'ui/fx/' + n + '.webp'; } return im; };
+// 9BM 기술 그림 효과(제미나이 시트): 기술 이름 → 그림 줄(ui/fx2/키.webp, 칸 256×256) · 쓸 때만 불러와요
+const SHEET = { n: {"blizzard":6,"bubble_beam":6,"bug_bite":10,"bulldoze":20,"confusion":10,"crunch":20,"draco_meteor":6,"dragon_breath":10,"dragon_claw":6,"fire_blast":6,"fire_punch":6,"flamethrower":6,"focus_blast":6,"hurricane":6,"hydro_pump":6,"ice_beam":6,"ice_shard":6,"iron_tail":6,"leaf_blade":6,"magical_leaf":6,"moonblast":6,"night_slash":6,"origin_pulse":20,"psybeam":6,"rock_tomb":6,"shadow_ball":6,"spark":10,"thunderbolt":6,"volt_tackle":6,"water_shuriken":6},
+  // [모으기 끝 칸, 날아가기 끝 칸] — 그 앞은 쓰는 쪽에서, 그 뒤는 맞는 쪽에서
+  P: { origin_pulse: [3, 6], dragon_breath: [3, 4], spark: [2, 4], rock_tomb: [0, -1], bug_bite: [2, 5], confusion: [3, 5], bulldoze: [3, 8], crunch: [2, 9] },
+  N: {'하이드로펌프':'hydro_pump','냉동빔':'ice_beam','암석봉인':'rock_tomb','볼트태클':'volt_tackle','폭풍':'hurricane','화염방사':'flamethrower','문포스':'moonblast','깜짝베기':'night_slash','10만볼트':'thunderbolt','매지컬리프':'magical_leaf','거품광선':'bubble_beam','물수리검':'water_shuriken','불꽃펀치':'fire_punch','섀도볼':'shadow_ball','얼음뭉치':'ice_shard','드래곤크루':'dragon_claw','아이언테일':'iron_tail','리프블레이드':'leaf_blade','환상빔':'psybeam','불대문자':'fire_blast','눈보라':'blizzard','용성군':'draco_meteor','기합구슬':'focus_blast','벌레먹음':'bug_bite','염동력':'confusion','땅고르기':'bulldoze','깨물어부수기':'crunch','용의숨결':'dragon_breath','근원의파동':'origin_pulse','스파크':'spark'} };
+const sheetKey = name => SHEET.N[String(name || '').replace(/\s/g, '')] || null;
+function sheetSeq(key, part){ const id = key + '#' + part; if (SPR.SEQ[id]) return id;
+  const n = SHEET.n[key], ph = SHEET.P[key] || [2, 2], L = [];
+  if (part === 'c') for (let i = 0; i < ph[0]; i++) L.push([i, .07]);
+  else for (let i = Math.max(0, ph[1] + 1); i < n; i++) L.push([i, i === n - 1 ? .12 : .065]);
+  SPR.SEQ[id] = { seq: L.length ? L : [[0, .01]], hit: 0, img: key }; return id; }
+const sprImg = n => { let im = SPR.img[n]; if (!im) { im = SPR.img[n] = new Image(); im.src = (SHEET.n[n] ? 'ui/fx2/' : 'ui/fx/') + n + '.webp'; } return im; };
 ['quake', 'thunder', 'rock', 'wave'].forEach(sprImg);   // 미리 불러 두기
 function sprDraw(ctx, n, f, x, y, w, alpha, flip, glow){
   const im = sprImg(n); if (!im.complete || !im.naturalWidth) return;
+  if (SHEET.n[n]) { const c = 256, h = w; ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); if (flip) ctx.scale(-1, 1); ctx.drawImage(im, f * c, 0, c, c, -w / 2, -h / 2, w, h); ctx.restore(); return; }
   const k = im.naturalHeight / SPR.fh, h = w * SPR.fh / SPR.fw;
   ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
   ctx.drawImage(im, f * SPR.fw * k, 0, SPR.fw * k, SPR.fh * k, -w / 2, -h + h * SPR.base / SPR.fh, w, h);
@@ -1924,6 +1936,9 @@ window.BEAMFX = {
   sprKind,
   // 9W 그림 이펙트: 상대 발밑(x,y)에서 터짐. w=폭(월드 단위). onHit=맞는 칸에서 부름
   sprite(n, x, y, w, onHit) { SPR.list.push({ n, x, y, w: w || 240, t: 0, onHit }); },
+  sheetKey,
+  sheetCast(name, x, y, w, flip) { const k = sheetKey(name); if (!k) return false; const ph = SHEET.P[k] || [2, 2]; sprImg(k); if (ph[0] > 0) SPR.list.push({ n: k, seqN: sheetSeq(k, 'c'), x, y, w: w || 200, t: 0, flip }); return true; },
+  sheetHit(name, x, y, w, flip) { const k = sheetKey(name); if (!k) return false; sprImg(k); SPR.list.push({ n: k, seqN: sheetSeq(k, 'h'), x, y, w: w || 280, t: 0, flip }); return true; },
   // 파도: (x1,y1)→(x2,y2)로 날아가 부서짐 (턴제)
   waveShot(x1, y1, x2, y2, w, T, onHit) { SPR.list.push({ n: 'wave', seqN: 'wave', w: w || 200, t: 0, flip: x2 < x1, fly: { x1, y1, x2, y2, T: T || .5 }, x2, y2, onHit }); },
   // 파도: 게임 발사체 따라 그리기 (실시간)
