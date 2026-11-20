@@ -154,7 +154,11 @@ function mkEnt(mon,S,side,hp0){
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
   e.haste=hasteOf(s[5]);
-  try{e.K=C.numK?clamp(+C.numK(mon)||1,1,1e7):1}catch(er){e.K=1}   // 7D 숫자 배율
+  // 9AD 거대 월드보스(카오스·이터널): 보스는 화면 높이 72%까지 커지고(화면 밖으로 안 나감) 내 포켓몬은 70%
+  if(C.giant){try{const A=S&&S.meta&&S.meta.anims&&S.meta.anims.idle;
+    if(side===1&&A){const gv=Math.max(1.3,Math.min(AH*.72/Math.max(1,A.h*sc),AW*.42/Math.max(1,A.w*sc)));e.sc0=sc;e.gK=gv;e.gT=0;e.giant=1;e.gw=A.w*sc*gv;e.gh=A.h*sc*gv;e.r=Math.round(Math.min(e.r*1.6,SIZE.rmax*1.4))}
+    else if(side===0){e.sc*=.7;e.vis*=.7}}catch(er){}}
+  try{e.K=C.numK?clamp(+C.numK(mon)||1,1,1e12):1}catch(er){e.K=1}   // 9G: 천상계 ×100 · 월드보스 억 단위 위해 상한 1조   // 7D 숫자 배율
   try{e.critX=C.critOf?C.critOf(mon)||{c:0,d:0}:{c:0,d:0}}catch(er){e.critX={c:0,d:0}}
   // 8F: 장비(출결 캐릭터 장비 · 스타포스 강화 · 큐브 옵션) — 내 포켓몬에게 모든 새 전투에서 (예전엔 월드보스에서만)
   e.hm=1;e.gear=null;try{const g=C.gearOf?C.gearOf(mon):null;if(g){e.gear=g;e.hm=1+(g.hp||0)/100;e.max=Math.round(e.max*e.hm);e.hp=e.max;e.critX={c:Math.min(.75,(e.critX?e.critX.c:0)+(g.crt||0)/100),d:(e.critX?e.critX.d:0)+(g.cdm||0)/100}}}catch(er){}
@@ -162,10 +166,13 @@ function mkEnt(mon,S,side,hp0){
   //  불멸: 쓰러지면 1번 부활(체력 50%) · 각성하면 부활 뒤 무적 10초 + 각성마다 3초
   //  태초: 들어오고 1초 뒤 분신 소환(같이 공격) 20초 + 각성마다 5초
   //  만제: 20초 동안 데미지 +30% 버프, 재사용 30초 − 각성마다 3초 (자동) · 파티 공격 +30%는 host(rtDmgMul)
+  e.pctMax=(C.bossNoFrac&&side===1&&C.bossBase)?Math.max(1,C.bossBase):0;   // 9H: 월드보스는 '최대 체력의 몇 %' 효과(독·화상·장판·회복)를 원래 체력 기준으로
   e.tier=0;try{e.tier=C.tierOf?(+C.tierOf(mon)||0):0}catch(er){}e.aw=Math.max(0,Math.min(6,(mon&&mon.aw)|0));
   e.undying=e.tier>=7;e.sh=0;e.shMax=0;e.cloneDur=e.tier>=8?20+5*e.aw:0;e.cloneUsed=0;e.life=0;
   e.zb=e.tier>=9?{cd:1,on:0,cdMax:Math.max(3,30-3*e.aw)}:null;
   if(e.tier>=6&&window.TFX)try{e.eng=TFX.eng()}catch(er){}
+  if(side===1&&C.bossLook){e.vt=C.bossLook;if(!e.eng&&window.TFX)try{e.eng=TFX.eng()}catch(er){}}   // 9AF 월보 외형만 불멸·태초
+  if(side===1&&!e.vt&&!C.net&&!C.pvp&&!C.meTeam){try{const df=typeof DIFF==='function'?DIFF():0,lk=df>=7?8:df===6?7:0;if(lk>e.tier){e.vt=lk;if(!e.eng&&window.TFX)e.eng=TFX.eng()}}catch(er){}}   // 9AM 천계 적 = 불멸 모습 · 천상계 = 태초 모습 (모습만)
   {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0*e.hm,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득) · 저장된 체력은 장비 전 값   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
@@ -257,8 +264,10 @@ function dealDamage(att,def,mi,opt){
     fixedDmg=f.mode==='flat'?(f.value||0):f.mode==='level'?att.lv:f.mode==='levelRandom'?Math.floor(att.lv*(.5+rnd())):
       f.mode==='fracTargetHp'?def.hp*(f.value||.5):f.mode==='userCurrentHp'?att.hp:f.mode==='targetHpMinusUserHp'?Math.max(0,def.hp-att.hp):
       f.mode==='leaveAtLeast1Hp'?Math.min(dmg,def.hp-1):null}
+  if(fixedDmg!=null&&C.bossNoFrac&&def.side===1&&m.fx&&/^(fracTargetHp|targetHpMinusUserHp|leaveAtLeast1Hp)$/.test(m.fx.mode))fixedDmg=null;   // 9H: 월드보스엔 '체력 절반' 같은 비율 기술이 안 통함(보통 데미지로)
   if(fixedDmg!=null)dmg=fixedDmg;
   if(opt.fixed)dmg=opt.fixed;
+  if(C.bossHit&&att.side===1&&fixedDmg==null&&!opt.fixed&&dmg>0)dmg=def.max*C.bossHit*clamp((m.p||60)/90,.6,1.5)*Math.min(2,e)*(.85+rnd()*.15)*(crit?1.4:1);   // 9H: 월드보스 공격 = 내 포켓몬 최대 체력의 몇 % (싸움 길이를 일정하게)
   const capped=fixedDmg!=null||opt.fixed?dmg:Math.min(dmg,def.max*.6);
   const rawD=capped;dmg=Math.max(e===0?0:1,Math.round(capped));
   if(e===0)dmg=0;
@@ -279,9 +288,9 @@ function dealDamage(att,def,mi,opt){
   // 6C-4 흡수(드레인): 준 데미지의 절반 회복 · 반동: 준 데미지의 일부(발버둥은 최대 체력 1/4)를 받음
   if(dmg>0&&att.hp>0)for(const f of (m.d.ef||[])){
     if(f.op==='drain'){const h=Math.min(att.max-att.hp,Math.max(1,Math.round(dmg*(f.frac||.5))));if(h>0){att.hp+=h;floatTxt(att.x,att.y-100,'+'+fmtN(h*kOf(att)),'#6f6')}}
-    if(f.op==='recoil'){const rc=Math.max(1,Math.round(f.of==='max'?att.max*(f.frac||.25):dmg*(f.frac||.25)));att.hp=Math.max(0,att.hp-rc);floatTxt(att.x,att.y-100,'반동 '+fmtN(rc*kOf(att)),'#f88')}}
+    if(f.op==='recoil'){const rc=Math.max(1,Math.round(f.of==='max'?(att.pctMax||att.max)*(f.frac||.25):dmg*(f.frac||.25)));   /* 9AA: 월드보스가 PP 바닥나 발버둥 치면 10억의 1/4씩 자기 피를 깎아 죽던 버그 → 원래 체력 기준 */att.hp=Math.max(0,att.hp-rc);floatTxt(att.x,att.y-100,'반동 '+fmtN(rc*kOf(att)),'#f88')}}
   // 자폭기: 쓰면 기절
-  if(m.selfko&&att.hp>0&&!att._ko){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
+  if(m.selfko&&att.hp>0&&!att._ko&&!(C.bossNoFrac&&att.side===1)){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
   // 6E-3: 마지막 타(또는 치명타·효과 굉장)는 크게, 중간 타는 작게
   const fin=(opt.chain?!!opt.last:!W._more)||crit||e>1;W._more=0;
   if(dmg>0&&W._dp){const q=W._dp;W._dp=null;
@@ -349,7 +358,7 @@ function applyEf(att,def,m,hit){
       if(f.chance!=null&&rnd()*100>=f.chance)continue;
       for(const k in f.stages)addStage(who,k,f.stages[k]);
     }
-    else if(f.op==='heal'&&f.who==='user'){att.hp=Math.min(att.max,att.hp+Math.round(att.max*(f.frac||.5)));floatTxt(att.x,att.y-90,'회복','#8f8')}
+    else if(f.op==='heal'&&f.who==='user'){att.hp=Math.min(att.max,att.hp+Math.round((att.pctMax||att.max)*(f.frac||.5)));floatTxt(att.x,att.y-90,'회복','#8f8')}
     else if(f.op==='drain'&&hit){}
     else if(f.op==='recoil'&&hit){}
   }
@@ -414,6 +423,10 @@ function fire(e,c){
   const m=c.mv,k=m.k,g=m.g,u=aimVec(c),tgt=foeOf(e),heavy=m.p>=110;
   c.hit=false;
   e.face={x:u.x,y:u.y};e.row=dirRow(u.x,u.y);
+  if(C.bossWarn&&e.side===1&&!m.st&&k!=='self'&&(m.p||0)>0&&tgt.hp>0){   // 9AF 월드보스: 3초 뒤 터지는 장판 (근접기는 보스 둘레, 나머지는 내 자리)
+    const big=!!m.melee,r=big?Math.round(e.r+150):Math.round(clamp(70+(m.p||60)*.55,95,160));
+    W.delays.push({o:e,mi:c.mi,x:big?e.x:tgt.x,y:big?e.y:tgt.y,t:3,T:3,r,col:C.TCOL[m.type]||'#ff4a3a',boss:1,tgt});
+    floatTxt(big?e.x:tgt.x,(big?e.y:tgt.y)-r*.4,'⚠ 피해요!','#ff5050',true);toRecovery(e,c);return}
   if(m.st||k==='self'){
     // 변화기술
     const ef=m.d.ef||[];const names=ef.map(x=>x.op).join(',');
@@ -421,7 +434,7 @@ function fire(e,c){
       if(/guard/.test(names)){e.protect=36/60;floatTxt(e.x,e.y-90,'방어!','#9be7ff')}
       for(const f of ef){
         if(f.op==='stat'&&(f.who==='user'||!f.who))for(const s in f.stages)addStage(e,s,f.stages[s]);
-        if(f.op==='heal'&&f.who==='user'){const fr=e.healRep>0?.25:.5;e.hp=Math.min(e.max,e.hp+Math.round(e.max*fr));e.healRep=30;floatTxt(e.x,e.y-90,'회복','#8f8')}
+        if(f.op==='heal'&&f.who==='user'){const fr=e.healRep>0?.25:.5;e.hp=Math.min(e.max,e.hp+Math.round((e.pctMax||e.max)*fr));e.healRep=30;floatTxt(e.x,e.y-90,'회복','#8f8')}
         if(f.op==='stat'&&f.who==='target'&&m.d.tg!=='User'){for(const s in f.stages)addStage(tgt,s,f.stages[s])}
         if(f.op==='counter'){e.counterT=1.7}
       }
@@ -556,8 +569,8 @@ function update(){
     if(e.rc<2)e.rc=Math.min(2,e.rc+TICK/3.2);
     // 상태이상
     for(const s in e.ail){e.ail[s]-=TICK;
-      if(s==='burn'&&W.tick%60===0){const d=Math.max(1,Math.round(e.max*.01));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#f84')}
-      if(s==='poison'&&W.tick%60===0){const d=Math.max(1,Math.round(e.max*.015));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#c6c')}
+      if(s==='burn'&&W.tick%60===0){const d=Math.max(1,Math.round((e.pctMax||e.max)*.01));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#f84')}
+      if(s==='poison'&&W.tick%60===0){const d=Math.max(1,Math.round((e.pctMax||e.max)*.015));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#c6c')}
       if(e.ail[s]<=0){delete e.ail[s];e.ailImm=e.ailImm||{};if(s==='burn')e.ailImm.burn=6;if(s==='paralysis')e.ailImm.paralysis=8}}
     if(e.ailImm)for(const s in e.ailImm)e.ailImm[s]-=TICK;
     if(e.stgT>0){e.stgT-=TICK;if(e.stgT<=0){for(const k in e.stg)e.stg[k]-=Math.sign(e.stg[k]);e.stgT=8}}
@@ -592,6 +605,10 @@ function update(){
     if(ov>0&&me.rollT<=0&&foe.rollT<=0){const n=norm(dx,dy);const push=Math.min(190*TICK,ov/2+1);me.x-=n.x*push;me.y-=n.y*push;foe.x+=n.x*push;foe.y+=n.y*push}
   }
   for(const e of [me,foe]){e.x=clamp(e.x,WALL+e.r*.5,AW-WALL-e.r*.5);e.y=clamp(e.y,WALL+e.r*.5,AH-WALL-e.r*.5)}
+  if(foe.giant){const g=foe;if(g.gT<1.6){g.gT+=TICK;const u=Math.min(1,g.gT/1.6),k=1+(g.gK-1)*(u<1?(1-Math.pow(1-u,3)):1);g.sc=g.sc0*k;g.vis=g.gh/g.gK*k;W.qk=Math.max(W.qk||0,.5);
+      if(!g._gm){g._gm=1;floatTxt(g.x,g.y-120,'거대화!!','#ff4060',true)}}
+    const hw=g.gw*.5*Math.min(1,g.sc/(g.sc0*g.gK)),hh=g.gh*.5*Math.min(1,g.sc/(g.sc0*g.gK));
+    g.x=clamp(g.x,WALL+hw*.8,AW-WALL-hw*.8);g.y=clamp(g.y,WALL+hh+18,AH-WALL-hh*.75+18)}
   // 발사체
   for(const p of W.proj){
     const tgt=foeOf(p.o);
@@ -619,12 +636,12 @@ function update(){
   W.proj=W.proj.filter(p=>{if(p.dead&&p.fxa){try{C.fxe.VFX.stop(p.fxa)}catch(e){}}return !p.dead});
   // 장판
   for(const z of W.zones){z.life-=TICK;z.tick-=TICK;
-    if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r*(z.o.side?1:1.15)+t.r*.9&&!t.hidden){const d=Math.max(1,Math.round(t.max*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,fmtN(d*kOf(t)),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
+    if(z.tick<=0){z.tick=1.5;const t=foeOf(z.o);if(t.hp>0&&len(t.x-z.x,t.y-z.y)<=z.r*(z.o.side?1:1.15)+t.r*.9&&!t.hidden){const d=Math.max(1,Math.round((t.pctMax||t.max)*.0625));t.hp=Math.max(0,t.hp-d);floatTxt(t.x,t.y-70,fmtN(d*kOf(t)),z.col);if(z.st)applyEf(z.o,t,z.o.moves[z.mi],true)}}}
   W.zones=W.zones.filter(z=>z.life>0);
   // 내려찍기
   for(const d of W.delays){d.t-=TICK;
-    if(d.t>.5&&d.tgt.hp>0){d.x=d.tgt.x;d.y=d.tgt.y}
-    if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});skillFx(d.o,d.o.moves[d.mi],{x:d.x,y:d.y},{x:d.x,y:d.y},{force:1});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=d.r*(d.o.side?1:1.15)+t.r*.9)dealDamage(d.o,t,d.mi)}}
+    if(!d.boss&&d.t>.5&&d.tgt.hp>0){d.x=d.tgt.x;d.y=d.tgt.y}
+    if(d.t<=0){d.dead=1;W.fx.push({k:'ring',x:d.x,y:d.y,t:0,life:.35,r:d.r,c:d.col});skillFx(d.o,d.o.moves[d.mi],{x:d.x,y:d.y},{x:d.x,y:d.y},{force:1});const t=foeOf(d.o);if(t.hp>0&&len(t.x-d.x,t.y-d.y)<=(d.boss?d.r+t.r*.5:d.r*(d.o.side?1:1.15)+t.r*.9))dealDamage(d.o,t,d.mi);else if(d.boss&&t.hp>0)floatTxt(t.x,t.y-80,'피했다!','#9fe8ff')}}
   W.delays=W.delays.filter(d=>!d.dead);
   for(const h of W.chain){const t=foeOf(h.o);
     if(h.o.hp<=0||t.hp<=0||h.o.stun>0||h.o.hidden){h.dead=1;continue}
@@ -807,6 +824,8 @@ function autoMe(me,foe){
   // 체력 25% 아래면 약(제일 센 것부터, 한 전투 2번까지)
   if(me.hp<me.max*.25&&(W.autoHeal||0)<2&&!(W.itCd>0)&&C.useItem){const L=itemList();const it=L[L.length-1];if(it&&useItemNow(it.k))W.autoHeal=(W.autoHeal||0)+1}
   aiUpdate(me,ai,foe);
+  if(C.bossWarn){let ax=0,ay=0;for(const d of W.delays){if(!d.boss)continue;const dx=me.x-d.x,dy=me.y-d.y,L=len(dx,dy);if(L<d.r+me.r+30){const n=L>1?{x:dx/L,y:dy/L}:{x:d.x<AW/2?1:-1,y:0};ax+=n.x;ay+=n.y}}
+    if(ax||ay){const L=len(ax,ay)||1;me.wish={x:ax/L,y:ay/L}}}   // 9AF 자동: 장판 밖으로
 }
 
 // ---------- 그리기 ----------
@@ -819,8 +838,8 @@ function render(){
   const me=W.me,foe=W.foe;
   let tx=(me.x*.6+foe.x*.4),ty=(me.y*.6+foe.y*.4);
   const vw=Wd/sc;
-  tx=vw>=AW?AW/2:clamp(tx,vw/2,AW-vw/2);ty=viewH>=AH?AH/2:clamp(ty,viewH/2,AH-viewH/2);
-  W.cam=W.cam||{x:tx,y:ty};W.cam.x+=(tx-W.cam.x)*.12;W.cam.y+=(ty-W.cam.y)*.12;
+  if(foe.giant&&vw<AW&&foe.gw<vw){tx=clamp(tx,foe.x+foe.gw*.5-vw/2+20,foe.x-foe.gw*.5+vw/2-20)}tx=vw>=AW?AW/2:clamp(tx,vw/2,AW-vw/2);ty=viewH>=AH?AH/2:clamp(ty,viewH/2,AH-viewH/2);
+  W.cam=W.cam||{x:tx,y:ty};W.cam.x+=(tx-W.cam.x)*.12;W.cam.y+=(ty-W.cam.y)*.12;if(W.qk>0){W.qk-=1/60;W.cam.x+=(Math.random()-.5)*W.qk*28;W.cam.y+=(Math.random()-.5)*W.qk*28}
   cx.setTransform(1,0,0,1,0,0);
   cx.fillStyle='#0b1220';cx.fillRect(0,0,Wd,Hd);
   let shx=0,shy=0;if(fxOn()){try{const q=C.fxe.FX2.shakeXY();shx=q[0]*.5;shy=q[1]*.5}catch(er){}}
@@ -844,7 +863,7 @@ function render(){
   // 장판/예고
   for(const z of W.zones){const pul=.3+.08*Math.sin(W.time*4);cx.globalAlpha=pul;cx.fillStyle=z.col;cx.beginPath();cx.arc(z.x,z.y,z.r,0,7);cx.fill();cx.globalAlpha=.9;cx.strokeStyle='#fff';cx.lineWidth=3;cx.setLineDash([14,8]);cx.stroke();cx.setLineDash([]);
     cx.font='bold 14px sans-serif';cx.textAlign='center';cx.lineWidth=3;cx.strokeStyle='#000';cx.fillStyle='#fff';const tl=Math.ceil(z.life)+'초';cx.strokeText(tl,z.x,z.y+5);cx.fillText(tl,z.x,z.y+5);cx.globalAlpha=1}
-  for(const d of W.delays){const al=d.t>.5?.25:.35+.3*Math.sin(W.time*30);cx.globalAlpha=al;cx.fillStyle='#ff4a3a';cx.beginPath();cx.arc(d.x,d.y,d.r,0,7);cx.fill();cx.globalAlpha=1;cx.strokeStyle='#fff';cx.lineWidth=3;cx.stroke()}
+  for(const d of W.delays){if(d.boss){const u=1-d.t/d.T;cx.globalAlpha=.22;cx.fillStyle='#ff2a2a';cx.beginPath();cx.arc(d.x,d.y,d.r,0,7);cx.fill();cx.globalAlpha=.45+(d.t<.6?.35*Math.sin(W.time*30):0);cx.beginPath();cx.arc(d.x,d.y,d.r*u,0,7);cx.fill();cx.globalAlpha=1;cx.strokeStyle='#ff3030';cx.lineWidth=5;cx.setLineDash([14,8]);cx.beginPath();cx.arc(d.x,d.y,d.r,0,7);cx.stroke();cx.setLineDash([]);cx.font='900 30px sans-serif';cx.textAlign='center';cx.lineWidth=5;cx.strokeStyle='#000';cx.fillStyle='#fff';const tl=Math.ceil(d.t);cx.strokeText(tl,d.x,d.y+10);cx.fillText(tl,d.x,d.y+10);continue}const al=d.t>.5?.25:.35+.3*Math.sin(W.time*30);cx.globalAlpha=al;cx.fillStyle='#ff4a3a';cx.beginPath();cx.arc(d.x,d.y,d.r,0,7);cx.fill();cx.globalAlpha=1;cx.strokeStyle='#fff';cx.lineWidth=3;cx.stroke()}
   // 내가 누르고 있는 기술의 사용 범위 미리보기
   if(window.BEAMFX&&fxOn()){const sk=BEAMFX.render(cx);if(sk>1)W.shk=Math.max(W.shk||0,sk*.5)}
   drawPreview(cx);
@@ -862,10 +881,10 @@ function render(){
     if(e.beam&&window.BEAMFX&&fxOn()){const b=e.beam,ox=e.x,oy=e.y-(e.lift||0)-20;BEAMFX.live(e,b.type,ox,oy,ox+Math.cos(b.a)*b.L,oy+Math.sin(b.a)*b.L,b.full,1,b.aw)}   // 9T: 사용자 빔 엔진(18속성 블룸)
     else if(e.beam){const b=e.beam;cx.save();cx.translate(e.x,e.y-(e.lift||0)-20);cx.rotate(b.a);const gg=cx.createLinearGradient(0,0,b.L,0);gg.addColorStop(0,'#fff');gg.addColorStop(1,b.col);cx.globalAlpha=fxOn()?.14:.85;cx.fillStyle=gg;cx.fillRect(0,-18,b.L,36);cx.globalAlpha=fxOn()?.2:.9;cx.fillStyle='#fff';cx.fillRect(0,-6,b.L,12);cx.restore();cx.globalAlpha=1}
     const st=e.anim;
-    const TR=e.eng&&e.tier>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
-    if(TR){const a0=cx.globalAlpha;try{TFX.back(e.eng,cx,e.S,e.x,ty,e.sc,e.tier,tms)}catch(er){}cx.globalAlpha=a0}
-    try{C.drawPm(cx,TR?TFX.spr(e.S,e.tier):e.S,st,e.row,e.at,e.x,ty,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
-    if(TR){try{TFX.front(e.eng,cx,e.S,e.x,ty,e.sc,e.tier,tms)}catch(er){}}
+    const VT=e.vt||e.tier,TR=e.eng&&VT>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
+    if(TR){const a0=cx.globalAlpha;try{TFX.back(e.eng,cx,e.S,e.x,ty,e.sc,VT,tms)}catch(er){}cx.globalAlpha=a0}
+    try{C.drawPm(cx,TR?TFX.spr(e.S,VT):e.S,st,e.row,e.at,e.x,ty,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
+    if(TR){try{TFX.front(e.eng,cx,e.S,e.x,ty,e.sc,VT,tms)}catch(er){}}
     cx.globalAlpha=1;
     if(e.inv>0&&e.invMax>60){cx.strokeStyle='#ffe14a';cx.lineWidth=4;cx.globalAlpha=.45+.35*Math.sin(W.time*12);cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+20,e.r+20,0,0,7);cx.stroke();cx.globalAlpha=1}   // 9F 불멸 무적
     if(e.protect>0){cx.strokeStyle='#9be7ff';cx.lineWidth=4;cx.globalAlpha=.8;cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+14,e.r+14,0,0,7);cx.stroke();cx.globalAlpha=1}

@@ -171,6 +171,7 @@ function mkEnt(mon,S,side,hp0){
   e.undying=e.tier>=7;e.sh=0;e.shMax=0;e.cloneDur=e.tier>=8?20+5*e.aw:0;e.cloneUsed=0;e.life=0;
   e.zb=e.tier>=9?{cd:1,on:0,cdMax:Math.max(3,30-3*e.aw)}:null;
   if(e.tier>=6&&window.TFX)try{e.eng=TFX.eng()}catch(er){}
+  if(side===1&&!e.vt&&!C.net&&!C.pvp&&!C.meTeam){try{const df=typeof DIFF==='function'?DIFF():0,lk=df>=7?8:df===6?7:0;if(lk>e.tier){e.vt=lk;if(!e.eng&&window.TFX)e.eng=TFX.eng()}}catch(er){}}   // 9AM 천계 적 = 불멸 모습 · 천상계 = 태초 모습 (모습만)
   {const h0=hp0!=null?hp0:(side?C.foeHp:C.meHp);if(h0!=null&&isFinite(h0))e.hp=clamp(h0*e.hm,1,e.max)}   // 6F-2: 지금 체력에서 시작(없으면 가득) · 저장된 체력은 장비 전 값   // 6F-2: 지금 체력에서 시작(없으면 가득)
   // 속도가 빠르면 준비동작이 줄어듦 (원본 speed.windupCut: 속도 50~150 구간, 최대 60%, 17틱 아래로는 안 줄임)
   e.moves.forEach(m=>{if(m.st||m.p<=0||m.k==='self'||m.selfko||m.su<=17)return;
@@ -291,9 +292,9 @@ function dealDamage(att,def,mi,opt){
   // 6C-4 흡수(드레인): 준 데미지의 절반 회복 · 반동: 준 데미지의 일부(발버둥은 최대 체력 1/4)를 받음
   if(dmg>0&&att.hp>0&&!opt.net)for(const f of (m.d.ef||[])){
     if(f.op==='drain'){const h=Math.min(att.max-att.hp,Math.max(1,Math.round(dmg*(f.frac||.5))));if(h>0){att.hp+=h;floatTxt(att.x,att.y-100,'+'+fmtN(h*kOf(att)),'#6f6')}}
-    if(f.op==='recoil'){const rc=Math.max(1,Math.round(f.of==='max'?att.max*(f.frac||.25):dmg*(f.frac||.25)));att.hp=Math.max(0,att.hp-rc);floatTxt(att.x,att.y-100,'반동 '+fmtN(rc*kOf(att)),'#f88')}}
+    if(f.op==='recoil'){const rc=Math.max(1,Math.round(f.of==='max'?(att.pctMax||att.max)*(f.frac||.25):dmg*(f.frac||.25)));   /* 9AA: 월드보스가 PP 바닥나 발버둥 치면 10억의 1/4씩 자기 피를 깎아 죽던 버그 → 원래 체력 기준 */att.hp=Math.max(0,att.hp-rc);floatTxt(att.x,att.y-100,'반동 '+fmtN(rc*kOf(att)),'#f88')}}
   // 자폭기: 쓰면 기절
-  if(m.selfko&&att.hp>0&&!att._ko&&!opt.net){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
+  if(m.selfko&&att.hp>0&&!att._ko&&!(C.bossNoFrac&&att.side===1)&&!opt.net){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
   // 6E-3: 마지막 타(또는 치명타·효과 굉장)는 크게, 중간 타는 작게
   const fin=(opt.chain?!!opt.last:!W._more)||crit||e>1;W._more=0;
   if(dmg>0&&W._dp){const q=W._dp;W._dp=null;
@@ -877,10 +878,10 @@ function render(){
     if(e.beam&&window.BEAMFX&&fxOn()){const b=e.beam,ox=e.x,oy=e.y-(e.lift||0)-20;BEAMFX.live(e,b.type,ox,oy,ox+Math.cos(b.a)*b.L,oy+Math.sin(b.a)*b.L,b.full,1,b.aw)}   // 9T: 사용자 빔 엔진(18속성 블룸)
     else if(e.beam){const b=e.beam;cx.save();cx.translate(e.x,e.y-(e.lift||0)-20);cx.rotate(b.a);const gg=cx.createLinearGradient(0,0,b.L,0);gg.addColorStop(0,'#fff');gg.addColorStop(1,b.col);cx.globalAlpha=fxOn()?.14:.85;cx.fillStyle=gg;cx.fillRect(0,-18,b.L,36);cx.globalAlpha=fxOn()?.2:.9;cx.fillStyle='#fff';cx.fillRect(0,-6,b.L,12);cx.restore();cx.globalAlpha=1}
     const st=e.anim;
-    const TR=e.eng&&e.tier>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
-    if(TR){const a0=cx.globalAlpha;try{TFX.back(e.eng,cx,e.S,e.x,ty,e.sc,e.tier,tms)}catch(er){}cx.globalAlpha=a0}
-    try{C.drawPm(cx,TR?TFX.spr(e.S,e.tier):e.S,st,e.row,e.at,e.x,ty,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
-    if(TR){try{TFX.front(e.eng,cx,e.S,e.x,ty,e.sc,e.tier,tms)}catch(er){}}
+    const VT=e.vt||e.tier,TR=e.eng&&VT>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
+    if(TR){const a0=cx.globalAlpha;try{TFX.back(e.eng,cx,e.S,e.x,ty,e.sc,VT,tms)}catch(er){}cx.globalAlpha=a0}
+    try{C.drawPm(cx,TR?TFX.spr(e.S,VT):e.S,st,e.row,e.at,e.x,ty,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
+    if(TR){try{TFX.front(e.eng,cx,e.S,e.x,ty,e.sc,VT,tms)}catch(er){}}
     cx.globalAlpha=1;
     if(e.inv>0&&e.invMax>60){cx.strokeStyle='#ffe14a';cx.lineWidth=4;cx.globalAlpha=.45+.35*Math.sin(W.time*12);cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+20,e.r+20,0,0,7);cx.stroke();cx.globalAlpha=1}   // 9F 불멸 무적
     if(e.protect>0){cx.strokeStyle='#9be7ff';cx.lineWidth=4;cx.globalAlpha=.8;cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+14,e.r+14,0,0,7);cx.stroke();cx.globalAlpha=1}
