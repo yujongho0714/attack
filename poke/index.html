@@ -8958,6 +8958,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112026,date:'11월 20일',t:'컨텐츠 화면 새로 정리',items:[{img:'',h:'🗂 컨텐츠 화면이 깔끔해졌어요',p:['컨텐츠를 누르면 먼저 <b>큰 분류 6개</b>(매일 할 것 · 배틀·도전 · 친구랑 · 키우기 · 모으기·탐험 · 설정·소식)가 나와요.','분류를 누르면 <b>섹션별로</b> 그림과 설명이 함께 나와요. 설명은 「더 보기」를 누르면 다 보여요. ◀ 분류로 돌아갈 수 있어요.']}]},
  {v:2026112025,date:'11월 20일',t:'천계 새 컨텐츠 5개!',items:[
   {img:'',h:'🗼 천계 탑',p:['층마다 강해지는 천계 트레이너와 연속 배틀! <b>몇 층에 누가 어떤 포켓몬으로 기다리는지</b> 미리 볼 수 있어요. 10층마다 👑 보스!','5층마다 결정, 10층마다 큐브 · 지면 그 10층 묶음 처음부터 · 주간 랭킹 · 매주 1층부터.']},
   {img:'',h:'⚔ 전설 레이드',p:['방 코드 4자리로 친구 2~4명이 같은 전설 포켓몬을 함께 쓰러뜨려요. 한 사람 3번 도전 · 2시간 안에 성공하면 모두 포획 기회!']},
@@ -9647,5 +9648,75 @@ try{const C=[{k:'dq',n:'📜 오늘의 천계 의뢰 (매일)',d:'매일 새 의
 </script>
 
 
+
+<script id="b9ay">
+// ===== 9AY 컨텐츠 화면: 큰 분류 → 섹션별 그림 목록 =====
+(function(){try{
+const HZC=[['day','ic_gift','매일 할 것','#e09a00','출석 · 의뢰 · 포케스탑 · 시즌 패스'],['bt','ic_fast','배틀 · 도전','#d8323f','스토리 · 월드보스 · 천계 탑'],['fr','ic_rank','친구랑','#2f7be8','난투전 · 레이드 · 교환 · 랭킹'],
+  ['up','ic_star','키우기','#8048e8','편성 · 장비 · 승급 · 각성'],['col','ic_dex','모으기 · 탐험','#1e9e5e','도감 · 카드팩 · 알 · 마을'],['set','ic_menu','설정 · 소식','#5b6383','화면 · 전투 방식 · 업데이트']];
+const SEC={day:[['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매일 다시 도전',['rm','portal']]],
+  bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 매주 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']]],
+  fr:[['⚔ 친구와 대결',['brawl','pvp','rmroom']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
+  up:[['🐾 포켓몬 키우기',['team','trans','awake','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
+  col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','wild']],['🏘 마을 · 날씨',['mg','shop','wx']]],
+  set:[['📢 소식 · 정보',['news','odds']],['🖥 화면 · 전투',['vscale','btmode','dskin','hitfx','a2fx','dmeter']]]};
+const catOf=k=>{for(const c in SEC)for(const x of SEC[c])if(x[1].includes(k))return c;return 'col'};
+const DX=d=>['p',d],IM=s=>['i',s],SH=s=>['s',s];
+const HZP={season:IM('ui/ic_season.webp'),dq:IM('ui/tr/gem.png'),stop:IM('ui/ic_stop.webp'),rm:IM('badges/b3.webp'),portal:IM('ui/ic_portal.webp'),
+  tg:DX(493),story:IM('badges/b7.webp'),wb:DX(150),wbc:DX(384),wbe:DX(487),ctw:DX(249),tower:DX(68),first:IM('ui/rk_crown1.webp'),diff:DX(491),
+  brawl:SH('ui/news/n14_brawl.webp'),raid:DX(383),pvp:SH('ui/news/n10_pvp3.webp'),rmroom:DX(448),trade:DX(132),rank:IM('ui/podium.webp'),wc:DX(201),dojo:DX(107),
+  team:DX(6),gear:IM('ui/cube2.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/tr/core.png'),rebirth:DX(250),lb:IM('items/RARECANDY.png'),prefix:IM('ui/ic_scroll.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
+  dex:IM('ui/ic_dex.webp'),dxr:DX(151),card:IM('cardpack/pk3.webp'),egg:IM('ui/ic_egg.webp'),wild:DX(25),mg:DX(129),shop:IM('ui/ic_shop.webp'),wx:IM('ui/ic_wx.webp'),
+  news:SH('ui/news/n01_hub.webp'),vscale:SH('ui/news/n08_scale.webp'),btmode:SH('ui/news/n02_mode.webp'),dskin:SH('ui/news/n03_skin.webp'),hitfx:SH('ui/news/n20_sprfx.webp'),a2fx:SH('ui/news/n15_proj.webp'),dmeter:SH('ui/news/n04_battle.webp'),odds:IM('ui/ic_coin.webp')};
+const pic=k=>{const p=HZP[k]||IM('ui/'+((typeof HUBIC!=='undefined'&&HUBIC[k])||'ic_star')+'.webp');
+  if(p[0]==='p'){const n=BYDEX[p[1]];return `<img class="hzpk" src="${(n&&THUMB[n])||''}" alt="">`}
+  if(p[0]==='s')return `<img class="hzsh" src="${p[1]}" alt="">`;return `<img class="hzim" src="${p[1]}" alt="">`};
+const clean=s=>String(s||'').replace(/^[^\w가-힣]+\s*/,'').replace(/\s*\((매주|매일|매달[^)]*)\)/,'');
+const css=document.createElement('style');css.textContent=`
+.panel .hzcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.panel .hzcc{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:84px;border:3px solid #0b0f24;box-shadow:0 5px 0 #0b0f24;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#000))!important;color:#fff!important;text-align:left;cursor:pointer;border-radius:0!important;height:auto!important;width:auto!important;padding:12px 14px!important}
+.panel .hzcc:active{transform:translateY(3px);box-shadow:0 2px 0 #0b0f24}
+.panel .hzcc img{width:62px;height:62px;flex:none;object-fit:contain;filter:drop-shadow(0 3px 0 #0007)}.panel .hzcc b{display:block;color:#fff;font:900 18px 'Galmuri11',monospace;text-shadow:0 2px 0 #0008}.panel .hzcc small{display:block;margin-top:4px;font-size:11.5px;opacity:.92;line-height:1.35}.panel .hzcc em{position:absolute;right:8px;bottom:6px;font:900 11px 'Galmuri11',monospace;font-style:normal;opacity:.85}
+.panel .hzback{display:flex;align-items:center;gap:8px;margin:0 0 10px}.panel .hzback button{padding:7px 12px!important;border:3px solid #0b0f24;background:#fff!important;color:#1c2550;font:900 13px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24;border-radius:0!important}
+.panel .hzback b{flex:1;padding:7px 12px;background:linear-gradient(90deg,var(--c),color-mix(in srgb,var(--c) 60%,#000));color:#fff;border:3px solid #0b0f24;font:900 16px 'Galmuri11',monospace;text-shadow:0 2px 0 #0008;display:flex;align-items:center;gap:8px}.panel .hzback b img{width:26px;height:26px}
+.panel .hzsec{margin:0 0 12px}.panel .hzsec>h4{margin:0 0 7px;padding:5px 10px;background:#1c2550;color:#ffd23f;font:900 14px 'Galmuri11',monospace;border-left:8px solid var(--c)}
+.panel .hzr{position:relative;display:flex;gap:10px;align-items:stretch;margin:0 0 8px;padding:7px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 4px 0 #0b0f24}
+.panel .hzpic{position:relative;flex:none;width:96px;min-height:80px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle,color-mix(in srgb,var(--c) 35%,#fff),color-mix(in srgb,var(--c) 75%,#000));border:3px solid #0b0f24}
+.panel .hzpk{width:80px;height:80px;object-fit:cover;image-rendering:pixelated}.panel .hzim{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 3px 0 #0006)}.panel .hzsh{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.panel .hzpic em{position:absolute;left:0;top:0;padding:1px 5px;background:#ffd23f;color:#1c2550;font:900 10px 'Galmuri11',monospace;font-style:normal;border:0 solid #0b0f24;border-width:0 2px 2px 0}
+.panel .hzr.lk .hzpic>img{filter:grayscale(1) brightness(.55)}.panel .hzr.lk .hzpic:after{content:'🔒';position:absolute;font-size:28px}
+.panel .hzt2{flex:1;min-width:0;display:flex;flex-direction:column}.panel .hzt2>b{color:#1c2550;font-size:15px}.panel .hzt2>small{display:inline-block;align-self:flex-start;margin:3px 0;padding:1px 6px;background:#1c2550;color:#ffd23f;font:900 11px 'Galmuri11',monospace}
+.panel .hzt2>p{margin:2px 0 6px;font-size:12px;line-height:1.45;color:#3c4262;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.panel .hzt2>p.open{display:block}
+.panel .hzm{display:inline-block;cursor:pointer;text-decoration:underline;align-self:flex-start;margin:-3px 0 6px!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;color:#2f6bd8!important;font:900 11px 'Galmuri11',monospace;min-height:0!important;height:auto!important}
+.panel .hzbt{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px}.panel .hzbt button{padding:8px 12px!important;border:3px solid #0b0f24;background:#ffd23f!important;color:#1c2550;font:900 12px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24;border-radius:0!important}.panel .hzbt button+button{background:#fff!important}
+.panel .hzmg{display:flex;flex-direction:column;gap:4px;margin:0 0 6px}.panel .hzmg span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#1c2550;padding:3px 6px;background:#fff;border:2px solid #1c255055}.panel .hzmg span b{flex:1}.panel .hzmg button{padding:4px 8px!important;border:2px solid #0b0f24;background:#ffd23f!important;font:900 11px 'Galmuri11',monospace;box-shadow:0 2px 0 #0b0f24;border-radius:0!important}
+.panel .hzcc>.rdot,.panel .hzr>.rdot{position:absolute;top:-7px;right:-7px;width:16px;height:16px}`;document.head.appendChild(css);
+const lockOf=h=>{try{return /천계에 가면 열려요/.test(String(h.st()||''))}catch(e){return false}};
+const dotOn=k=>{try{return !!(NOTI[k]&&notiOn([k]))}catch(e){return false}};
+const _h=hubOpen;
+function row(h,c){let st='';try{st=h.st()||''}catch(e){}const lk=lockOf(h);
+  const mg=h.list&&typeof MGS!=='undefined'?`<div class="hzmg">${Object.keys(MGS).map(a=>`<span><b>${areaName(+a)} · ${MGS[a].n}</b>${G.a===+a?`<button data-hm="${a}">지금 하기</button>`:areaOpen(+a)?`<button data-hg="${a}">가서 하기</button>`:`<small>배지 ${areaNeed(+a)}개</small>`}</span>`).join('')}</div>`:'';
+  const bt=(h.go||[]).map((g,i)=>`<button data-hb="${h.k}:${i}">${g[0]}</button>`).join('')+(h.town?'<button data-tab="t">마을별로 보기</button>':'');
+  const tag=/매주/.test(h.n)?'매주':/매일|하루/.test(h.n)?'매일':/매달/.test(h.n)?'매달':'';
+  return `<div class="hzr${lk?' lk':''}" data-hk="${h.k}" style="--c:${c[3]}"><div class="hzpic">${pic(h.k)}${tag?'<em>'+tag+'</em>':''}</div><div class="hzt2"><b>${clean(h.n)}</b>${st?`<small>${st}</small>`:''}<p>${h.d}</p><span class="hzm">더 보기 ▼</span>${mg}${bt?`<div class="hzbt">${bt}</div>`:''}</div></div>`}
+hubOpen=function(tab){if(!G)return;tab=tab||HUB.tab||'c';if(tab==='t')return _h.call(this,'t');HUB.tab='c';
+  const cat=HUB.cat||'';const tabs=`<div class="tabs"><button data-tab="c" class="on">컨텐츠별</button><button data-tab="t">마을별</button></div>`;let body;
+  if(!cat){body=`<p class="hhint">무엇을 하고 싶어요? 분류를 누르면 그림과 함께 자세히 나와요.</p><div class="hzcg">${HZC.map(c=>{const L=HUB.filter(h=>catOf(h.k)===c[0]);return `<div class="hzcc" data-hzc="${c[0]}" style="--c:${c[3]}"><img src="ui/${c[1]}.webp" alt=""><span><b>${c[2]}</b><small>${c[4]}</small></span><em>${L.length}개 ▶</em>${L.some(h=>dotOn(h.k))?'<i class="rdot"></i>':''}</div>`}).join('')}</div>`}
+  else{const c=HZC.find(x=>x[0]===cat);const used=new Set();
+    const secs=SEC[cat].map(([t,ks])=>{const L=ks.map(k=>HUB.find(h=>h.k===k)).filter(Boolean);L.forEach(h=>used.add(h.k));return L.length?`<div class="hzsec" style="--c:${c[3]}"><h4>${t}</h4>${L.map(h=>row(h,c)).join('')}</div>`:''}).join('');
+    const rest=HUB.filter(h=>catOf(h.k)===cat&&!used.has(h.k));
+    body=`<div class="hzback" style="--c:${c[3]}"><button data-hzc="">◀ 분류</button><b><img src="ui/${c[1]}.webp" alt="">${c[2]}</b></div>${secs}${rest.length?`<div class="hzsec" style="--c:${c[3]}"><h4>✨ 그 밖에</h4>${rest.map(h=>row(h,c)).join('')}</div>`:''}`}
+  openPanel('컨텐츠',tabs+body,null,p=>{
+    p.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{sfx('tap');hubOpen(b.dataset.tab)});
+    p.querySelectorAll('[data-hzc]').forEach(b=>b.onclick=()=>{sfx('tap');HUB.cat=b.dataset.hzc;hubOpen('c');const g=document.querySelector('.panel .pb');if(g)g.scrollTop=0});
+    p.querySelectorAll('[data-hb]').forEach(b=>b.onclick=()=>{sfx('tap');const [k,i]=b.dataset.hb.split(':');const h=HUB.find(x=>x.k===k);closePanel(1);h.go[+i][1]()});
+    p.querySelectorAll('[data-hg]').forEach(b=>b.onclick=()=>{sfx('tap');const a=+b.dataset.hg;closePanel(1);if(MGS[a])G.navMg=a;navSet(a,null,'auto')});
+    p.querySelectorAll('[data-hm]').forEach(b=>b.onclick=()=>{sfx('tap');mgStart(+b.dataset.hm)});
+    p.querySelectorAll('.hzm').forEach(b=>{const t=b.previousElementSibling;requestAnimationFrame(()=>{if(t.scrollHeight<=t.clientHeight+2)b.remove()});b.onclick=()=>{sfx('tap');const o=t.classList.toggle('open');b.textContent=o?'접기 ▲':'더 보기 ▼'}});
+    p.querySelectorAll('.hzr').forEach(c=>{if(dotOn(c.dataset.hk)){const d=document.createElement('i');d.className='rdot';c.appendChild(d)}});
+  })};
+{const _c=closePanel;closePanel=function(){try{const t=document.querySelector('.panel .ph b');if(t&&/컨텐츠/.test(t.textContent)&&!arguments[0])HUB.cat=''}catch(e){}return _c.apply(this,arguments)}}
+}catch(e){console.warn('b9ay',e)}})();
+</script>
 
 </body></html>

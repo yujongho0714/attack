@@ -717,3 +717,7 @@
 - <script id="b9ax"> (b9ao 바로 뒤): 일일 의뢰 G.dq / 도감 지방 G.dxr + G.crowns['dx'+k]=9e15, CP.title 래핑 / 천계 탑 G.ctw{f,best,wk,wb,got}, ctRoster(f) = 주차+층 시드로 상대 고정, 10층마다 보스(체력×1.5), RKB.ctower / 전설 레이드: Firestore 보드 'raid-'+코드, id 'boss'(name=도감번호,v=HP 2천만,t=생성시각), 'p~'+pid(누적 데미지). 2시간, 1인 3회, BS.wbPr=1로 스웜 전투. 실시간 아님(방 코드 비동기 협동).
 - 이벤트 nxEv(k,n): catch/catchR/wild/trainer/gym/wb/sf/aw/ctw/raid — battle·sfTry·awGo 래핑.
 - HUB에 dq/ctw/raid/dxr 카드를 'tg' 바로 뒤에 넣음. 해금: max(DIFF,rbd)>=6.
+
+## 9AY (2026-11-20) 컨텐츠 화면 개편
+- <script id="b9ay"> (</body> 바로 앞): hubOpen(c) 덮어씀. HUB.cat="" → 큰 분류 카드 6개(HZC), 분류 → SEC 섹션별 행(그림 HZP + 설명 2줄 + 더 보기 + 버튼). 마을별(t)은 기존 그대로. SEC에 없는 키는 모으기 · 그 밖에. 패널 닫으면 분류 화면으로 초기화.
+- 사용자: 오른쪽 버튼들은 그대로 두기로 함 (전면 교체 X).
