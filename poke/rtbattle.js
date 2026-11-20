@@ -12,6 +12,7 @@ const rnd=Math.random;
 const GR=['L','M','H','X'];
 const gradeOf=p=>p<=50?0:p<=80?1:p<=110?2:3;
 const MELEE_K={melee:1,leap:1,vanish:1,roll:1};
+const WARN_T=3;   // 9BL 몬스터 근접기 장판 시간(초)
 const ST_MELEE=[12,17,24,34], ST_RANGE=[10,14,21,30];
 const WALK_ST=[.6,.35,0,0];            // 준비 중 걷기 배율
 const REC=[12,16,22,30], REC_MV=[.5,.5,.25,0];
@@ -424,6 +425,11 @@ function fire(e,c){
   const m=c.mv,k=m.k,g=m.g,u=aimVec(c),tgt=foeOf(e),heavy=m.p>=110;
   c.hit=false;
   e.face={x:u.x,y:u.y};e.row=dirRow(u.x,u.y);
+  // 9BL 상대(몬스터)가 쓰는 근접·몸에 바로 맞는 기술: 3초 동안 바닥에 장판이 먼저 떠요 → 장판 밖으로 피하면 안 맞아요 (사람끼리 대전은 그대로)
+  if(!C.bossWarn&&!(C.net||C.pvp||C.meTeam)&&e.side===1&&!m.st&&k!=='self'&&(m.p||0)>0&&tgt.hp>0&&/^(target|melee|leap|vanish|roll)$/.test(k)){
+    const r=Math.round(clamp(62+(m.p||60)*.35,80,130));
+    W.delays.push({o:e,mi:c.mi,x:tgt.x,y:tgt.y,t:WARN_T,T:WARN_T,r,col:C.TCOL[m.type]||'#ff4a3a',boss:1,tgt});
+    floatTxt(tgt.x,tgt.y-r*.4,'⚠ 피해요!','#ff5050',true);toRecovery(e,c);return}
   if(C.bossWarn&&e.side===1&&!m.st&&k!=='self'&&(m.p||0)>0&&tgt.hp>0){   // 9AF 월드보스: 3초 뒤 터지는 장판 (근접기는 보스 둘레, 나머지는 내 자리)
     const big=!!m.melee,r=big?Math.round(e.r+150):Math.round(clamp(70+(m.p||60)*.55,95,160));
     W.delays.push({o:e,mi:c.mi,x:big?e.x:tgt.x,y:big?e.y:tgt.y,t:3,T:3,r,col:C.TCOL[m.type]||'#ff4a3a',boss:1,tgt});
@@ -829,7 +835,7 @@ function autoMe(me,foe){
   // 체력 25% 아래면 약(제일 센 것부터, 한 전투 2번까지)
   if(me.hp<me.max*.25&&(W.autoHeal||0)<2&&!(W.itCd>0)&&C.useItem){const L=itemList();const it=L[L.length-1];if(it&&useItemNow(it.k))W.autoHeal=(W.autoHeal||0)+1}
   aiUpdate(me,ai,foe);
-  if(C.bossWarn){let ax=0,ay=0;for(const d of W.delays){if(!d.boss)continue;const dx=me.x-d.x,dy=me.y-d.y,L=len(dx,dy);if(L<d.r+me.r+30){const n=L>1?{x:dx/L,y:dy/L}:{x:d.x<AW/2?1:-1,y:0};ax+=n.x;ay+=n.y}}
+  if(C.bossWarn||!(C.net||C.pvp||C.meTeam)){let ax=0,ay=0;for(const d of W.delays){if(!d.boss)continue;const dx=me.x-d.x,dy=me.y-d.y,L=len(dx,dy);if(L<d.r+me.r+30){const n=L>1?{x:dx/L,y:dy/L}:{x:d.x<AW/2?1:-1,y:0};ax+=n.x;ay+=n.y}}
     if(ax||ay){const L=len(ax,ay)||1;me.wish={x:ax/L,y:ay/L}}}   // 9AF 자동: 장판 밖으로
 }
 
