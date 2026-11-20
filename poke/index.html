@@ -3721,7 +3721,7 @@ async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY
   let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{G.party=keepP;BS.wb=0;BS.wbKeep=null}
   if(r==='run'){w.tries[day]=Math.max(0,(w.tries[day]||1)-1);save();toast('도중에 나왔어요 · 도전 횟수는 그대로예요');wbOpen();return}
   const dmg=Math.max(0,hp0-Math.max(0,boss.hp));w.dmg+=dmg;w.best=Math.max(w.best||0,dmg);save();
-  const ok=await wbPush();sfx('badge');await say(['월드보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!','이번 주 내 누적 데미지 '+w.dmg.toLocaleString()+(wbCfg()?(ok?' · 랭킹에 올렸어요':' · 인터넷이 되면 자동으로 올려요'):'')]);wbOpen()}
+  const ok=await wbPush();try{WBC.t=0}catch(e){}sfx('badge');await say(['월드보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!','이번 주 내 누적 데미지 '+w.dmg.toLocaleString()+(wbCfg()?(ok?' · 랭킹에 올렸어요':' · 인터넷이 되면 자동으로 올려요'):'')]);wbOpen()}
 // 시간 제한: 지나면 보스가 날아가 버려요 (내 포켓몬은 다치지 않게 되돌려요)
 {const _u=actUpdate;actUpdate=function(dt){_u(dt);try{if(BS.wb&&ACT.on&&!ACT.pause){BS.wbT=(BS.wbT||0)+dt;if(BS.wbT>WB_TLIM&&!BS.wbEnd){BS.wbEnd=1;toast('10분이 지나서 보스가 하늘로 날아갔다');for(const m of G.party)m.hp=0}}else if(!BS.wb)BS.wbEnd=0}catch(e){}}}
 {const _bl=blackout;blackout=async function(){if(BS.wbEnd||(G&&G.wb&&BS.wb)){BS.wbEnd=0;return}return _bl.apply(this,arguments)}}
@@ -3755,15 +3755,16 @@ async function wbPayout(){const w=wbS(),o=w.last;if(!o||w.paid[o.wk])return;let 
   toast('지난주 월드보스 보상이 왔어요!'+(rank?' ('+rank+'위)':''))}
 setInterval(()=>{try{if(G&&G.party.length&&SCENE==='over'){wbS();if(G.wb.last)wbPayout()}}catch(e){}},15000);
 // ---------- 화면 ----------
+function wbMerge(L){const w=G&&G.wb;if(!(w&&w.dmg>0&&w.wk===wbWeekB()))return L;const A=(L||[]).slice();const i=A.findIndex(x=>x.id===G.pid);if(i<0)A.push({id:G.pid,name:(typeof rkName==='function'?rkName():G.name)||'나',dmg:w.dmg});else if(A[i].dmg<w.dmg)A[i]=Object.assign({},A[i],{dmg:w.dmg});return A.sort((a,b)=>b.dmg-a.dmg)}
 async function wbOpen(){if(!G)return;const w=wbS(),n=wbBoss();const fmt=x=>x.toLocaleString();const day=dayKey(),left=WB_TRY-(w.tries[day]||0);
-  const render=L=>{const tot=wbTotal(L),dead=tot>=WB_HP,hpL=Math.max(0,WB_HP-tot);const me=L?L.findIndex(x=>x.id===G.pid):-1;const ms=wbNextReset(),dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);
-    const top=(L||[]).slice(0,10).map((x,i)=>{const r=rkSplit(x.name);return `<div class="wbr${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${r.rep&&THUMB[r.rep]?`<img class="wbrp" src="${THUMB[r.rep]}">`:''}${esc(r.name)}</span><em>${fmt(x.dmg)}<small> · ${(x.dmg/WB_HP*100).toFixed(x.dmg/WB_HP>=.1?0:1)}%</small></em></div>`}).join('')||`<small>${wbCfg()?'아직 아무도 안 싸웠어요. 첫 데미지를 넣어 봐요!':'서버 연결 전이에요 · 내 기록만 보여요'}</small>`;
+  const render=L0=>{const L=wbMerge(L0);const tot=wbTotal(L),dead=tot>=WB_HP,hpL=Math.max(0,WB_HP-tot);const me=L?L.findIndex(x=>x.id===G.pid):-1;const ms=wbNextReset(),dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);
+    const top=(L||[]).map((x,i)=>{const r=rkSplit(x.name);return `<div class="wbr${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${r.rep&&THUMB[r.rep]?`<img class="wbrp" src="${THUMB[r.rep]}">`:''}${esc(r.name)}</span><em>${fmt(x.dmg)}<small> · ${(x.dmg/WB_HP*100).toFixed(x.dmg/WB_HP>=.1?0:1)}%</small></em></div>`}).join('')||`<small>${wbCfg()?'아직 아무도 안 싸웠어요. 첫 데미지를 넣어 봐요!':'서버 연결 전이에요 · 내 기록만 보여요'}</small>`;
     return `<div class="wbh" style="--c:${TCOL[META[n].types[0]]}"><img src="${THUMB[n]||''}"><div><small>이번 주 ${window.WBNM?WBNM():'월드보스'} · ${window.WBLB?WBLB():'전설'}</small><b>${typeof wbPre==='function'?wbPre():''}${META[n].name}</b><div class="wbhp"><i style="width:${hpL/WB_HP*100}%"></i><span>${dead?'처치 완료!':fmt(hpL)+' / '+fmt(WB_HP)}</span></div><div class="wbcd"><span><small>남은 체력</small><b>${dead?'0':fmt(hpL)}</b><small>${dead?'처치 완료':Math.ceil(hpL/WB_HP*100)+'%'}</small></span><span><small>남은 날</small><b class="wbD">${dd}일</b><small>금요일 초기화</small></span><span><small>남은 시간</small><b class="wbT">${String(Math.floor(ms%864e5/36e5)).padStart(2,'0')}:${String(Math.floor(ms%36e5/6e4)).padStart(2,'0')}:${String(Math.floor(ms%6e4/1e3)).padStart(2,'0')}</b><small>시:분:초</small></span></div></div></div>
     <div class="wbme"><span>내 누적 데미지 <b>${fmt(w.dmg)}</b> <small>(보스 체력의 ${(w.dmg/WB_HP*100).toFixed(1)}%)</small></span><span>내 순위 <b>${me>=0?(me+1)+'위':'-'}</b></span><span>오늘 도전 <b>${Math.max(0,left)}/${WB_TRY}</b></span></div>
     <div class="wbt">${dead?(w.done?`<button disabled>${w.caught?'포획 성공! 이번 주 끝':'포획 시도 끝 · 다음 주에 또!'}</button>`:w.dmg?`<button class="main" id="wbC">처치 완료! 포획 시도 (${WB_THROW-w.throws}번 남음)</button>`:'<button disabled>처치 완료 · 한 번만 싸우면 포획 기회!</button>'):''}<button class="${dead?'':'main'}" id="wbF" ${left>0?'':'disabled'}>${left>0?(dead?'추가 데미지 도전! (랭킹·보상에 그대로 들어가요)':'보스에게 도전! (시간 제한 없음)'):'오늘 도전 끝 · 내일 또!'}</button><button id="wbR">새로고침</button></div>${dead&&!w.dmg?'<p class="wbpd">보스는 쓰러졌지만 아직 끝이 아니에요! 한 번만 싸우면 포획 시도 '+WB_THROW+'번 + 주간 보상을 받아요.</p>':''}
     <h4>월드보스 시간표 <small>이번 주 + 앞으로 3주</small></h4><div class="wbtt">${[0,1,2,3].map(i=>{const wk=wbWeekB(-i),b=wbBoss(wk),d0=new Date(wk+'T00:00:00+09:00'),d1=new Date(d0.getTime()+6*864e5),f=d=>(d.getMonth()+1)+'/'+d.getDate();return `<div class="wbtr${i?'':' now'}"><img src="${THUMB[b]||''}"><div><small>${i?i+'주 뒤':'이번 주'} · ${f(d0)}(월) ~ ${f(d1)}(일)</small><b>${META[b].name}</b><span>${META[b].types.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')}</span></div></div>`}).join('')}</div>
     <p class="hhint">약한 타입을 미리 보고 포켓몬을 키워 두세요!</p>
-    <h4>누적 데미지 랭킹 TOP 10 <small class="wbst"></small> <button class="wbrk" onclick="rankOpen('tower')">다른 랭킹</button></h4><p class="wbpd">월드보스는 <b>인터넷이 켜져 있을 때만</b> 참여할 수 있어요. 모두의 데미지를 서버에 바로 모아서 실시간 랭킹을 만들기 때문이에요.${w.pend?' (방금 싸운 데미지가 아직 안 올라갔어요. 인터넷이 켜지면 자동으로 올라가요)':''}</p><div class="wbl">${top}</div>
+    <h4>이번 보스 랭킹 · 참여한 친구 전체 ${L&&L.length?L.length+'명':''} <small class="wbst"></small> <button class="wbrk" onclick="rankOpen('tower')">다른 랭킹</button></h4><p class="wbpd">월드보스는 <b>인터넷이 켜져 있을 때만</b> 참여할 수 있어요. 모두의 데미지를 서버에 바로 모아서 실시간 랭킹을 만들기 때문이에요.${w.pend?' (방금 싸운 데미지가 아직 안 올라갔어요. 인터넷이 켜지면 자동으로 올라가요)':''}</p><div class="wbl">${top}</div>
     <div class="hcard"><b>주간 보상 (금요일에 자동 지급)</b><p>1~10위: 영웅~전설 카드팩 2장 + 포켓몬팩 10장 + 기술팩 10장<br>11위부터: 영웅~전설 카드팩 1장 + 포켓몬팩 5장 + 기술팩 5장<br><small>영웅~전설 카드팩은 열면 영웅 90% · 전설 10%</small><br>보스를 쓰러뜨리면: 싸운 친구 모두 전설 카드팩 1장 더!<br>쓰러뜨린 다음엔 「포획 시도」로 볼을 ${WB_THROW}번 던져서 잡을 수 있어요.</p><small>지금은 전설 보스만 나와요. 나중엔 신화 · 환상 · 유일 보스도 나와요!</small></div>`};
   openPanel('월드보스',render(WBC.wk===w.wk?WBC.list:null),null,p=>{const bind=()=>{const f=p.querySelector('#wbF');if(f)f.onclick=()=>wbFight();const c=p.querySelector('#wbC');if(c)c.onclick=()=>wbCatch();const r=p.querySelector('#wbR');if(r)r.onclick=async()=>{sfx('tap');const L=await wbFetch(w.wk,1);p.querySelector('.pb, .pbody')?0:0;const host=p.querySelector('.wbh').parentNode;host.innerHTML=render(L);bind()}};bind();
     const upd=async f=>{const L=await wbFetch(w.wk,f);if(!document.body.contains(p))return false;const h=p.querySelector('.wbh');if(h&&L){h.parentNode.innerHTML=render(L);bind()}try{let b=p.querySelector('.wberr');const msg=!WBC.err?'':WBC.code===429?'⚠ 오늘 서버 사용량(읽기 한도)을 다 써서 랭킹 · 보스 체력을 못 불러와요. 내일 오후 5시(한국 시간)쯤 다시 열려요. 도전 데미지는 저장해 두었다가 자동으로 올려요.':WBC.code===403||WBC.code===401?'⚠ 서버가 막혀 있어요 (권한 '+WBC.code+'). 선생님께 알려 주세요.':WBC.code?'⚠ 서버 오류 '+WBC.code+' · 잠시 뒤 「새로고침」을 눌러 봐요.':'⚠ 인터넷 연결이 안 돼요 · 와이파이/데이터를 켜고 「새로고침」을 눌러 봐요.';if(msg){if(!b){b=document.createElement('p');b.className='wberr';b.style.cssText='margin:6px 0;padding:8px 10px;background:#ffe0e0;border:3px solid #c0392b;color:#7a1010;font:900 12px Galmuri11,sans-serif';const h=p.querySelector('.wbh');if(h)h.parentNode.insertBefore(b,h)}b.textContent=msg}else if(b)b.remove()}catch(e){}
@@ -9021,6 +9022,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112033,date:'11월 20일',t:'월드보스 랭킹 · 기술 크기',items:[{img:'',h:'🏆 월드보스 랭킹',p:['한 판만 싸워도 <b>내 이름이 바로 랭킹에</b> 나와요.','참여한 친구 <b>전체 순위</b>가 도전 버튼 바로 밑에 나와요. 보상표는 오른쪽 위 <b>「보상 보기」</b>를 누르면 보여요.','<b>지난 보스 랭킹</b>: 지난주 보스를 누르면 그 주에 누가 데미지를 제일 많이 넣었는지 볼 수 있어요.']},{img:'',h:'⚔ 월드보스 전투',p:['보스 체력이 <b>정확한 숫자</b>로 나오고, 옆에 <b>이번 전투에서 넣은 데미지</b>가 올라가요.','작은 포켓몬들이 쓰는 <b>기술 효과 크기를 절반쯤</b>으로 줄였어요.','<b>조작이 빨라졌어요</b>: 내 캐릭터 이동 속도 1.5배 · 조이스틱을 누르고 있으면 자동으로 바뀌지 않아요 · <b>왼쪽 화면 아무 데나</b> 누르면 그 자리에 조이스틱이 생겨요.']}]},
  {v:2026112032,date:'11월 20일',t:'초월 버튼이 생겼어요',items:[{img:'',h:'✨ 초월',p:['옆 메뉴에 <b>「초월」</b> 버튼이 생겼어요. 포켓몬을 한 단계 높은 등급으로 만드는 거예요.','포켓몬을 누르면 <b>초월 후 모습</b>을 움직이는 그대로 미리 볼 수 있어요. 능력치 · 기술 위력이 얼마나 오르는지도 표로 보여요.','재료가 다 모인 포켓몬은 「가능!」 표시가 떠요.']}]},
  {v:2026112031,date:'11월 20일',t:'악용 막기 · 월드보스 화면',items:[{img:'',h:'🐉 월드보스 화면 정리',p:['월드보스를 열면 <b>보스 남은 체력 · 내 데미지 · 순위 · 랭킹</b>이 맨 위에 나와요. 주간 보상표는 랭킹 아래로 옮겼어요.','서버에 연결이 안 되면 이유를 빨간 글씨로 알려 줘요.']},{img:'',h:'🛡 악용 막기',p:['폰 날짜 · 시간을 바꿔서 매일 보상을 다시 받는 것을 막았어요. 게임 시간은 뒤로 가지 않아요.','월드보스 <b>연습</b>과 전설 레이드는 시즌 패스 점수 · 업적에 안 들어가요.','레이드 방을 나갔다 다시 들어와도 도전 횟수는 그대로예요.']}]},
  {v:2026112030,date:'11월 20일',t:'챔피언 화면 자동 멈춤',items:[{img:'',h:'🏆 챔피언 화면에서 자동 멈춤',p:['챔피언 화면 · 전설 포켓몬 고르기 · 환생 물어보기가 떠 있으면 <b>자동 사냥이 멈춰요</b>.','난이도만 올렸는데 바로 「클리어」로 처리되던 것을 막았어요. 그렇게 받은 전설 포켓몬은 회수해요.']}]},
@@ -9850,7 +9852,53 @@ setInterval(()=>{try{if(!G||G.clrAud)return;G.clr=G.clr||{};const bad=[];const c
 </script>
 <script id="b9bg">
 // 9BG 월드보스 화면: 보스 체력 · 내 데미지 · 랭킹을 맨 위로, 주간 보상표는 랭킹 아래로
-setInterval(()=>{try{const p=document.querySelector('.panel');if(!p)return;const rw=p.querySelector('.wbrw'),wbh=p.querySelector('.wbh');if(!rw||!wbh)return;
+setInterval(()=>{try{const p=document.querySelector('.panel');if(!p)return;const rw=p.querySelector('.wbrw'),wbh=p.querySelector('.wbh');if(!rw||!wbh||rw.closest('#wbRwBox'))return;
   if(rw.compareDocumentPosition(wbh)&Node.DOCUMENT_POSITION_FOLLOWING){const after=p.querySelector('.wbl')||wbh;after.parentNode.insertBefore(rw,after.nextSibling)}}catch(e){}},300);
+</script>
+<script id="b9bi">
+// 9BI 월드보스 화면: 랭킹(참여한 친구 전체)을 위로 · 보상은 「보상 보기」를 눌러서 · 지난 보스들 랭킹도 볼 수 있게
+(function(){try{
+const css=document.createElement('style');css.textContent=`
+.panel .wbrwb{position:absolute;right:10px;top:10px;z-index:3;font:900 12px Galmuri11,sans-serif;color:#2a1a00;background:linear-gradient(#ffe07a,#e8a820);border:3px solid #0b0f24;box-shadow:0 3px 0 #0b0f24;padding:6px 10px;cursor:pointer;border-radius:4px}
+.panel .wbh{position:relative}
+.panel #wbRwBox{display:none;margin:6px 0 10px}.panel #wbRwBox.on{display:block}
+.panel .wbl{max-height:340px;overflow-y:auto}
+.panel .wbpt{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px}
+.panel .wbpt>div{flex:none;display:flex;align-items:center;gap:6px;background:#141a38;color:#dfe5ff;border:3px solid #1c2550;box-shadow:0 3px 0 #0b0f24;padding:5px 9px 5px 5px;font:900 11px Galmuri11,sans-serif;cursor:pointer;border-radius:4px}
+.panel .wbpt>div.on{background:#ffd75e;color:#2a1a00;border-color:#0b0f24}
+.panel .wbpt img{width:30px;height:30px;image-rendering:pixelated;background:#0003;border-radius:3px}
+.panel .wbpt small{display:block;font-size:9.5px;opacity:.8}
+.panel .wbpl{min-height:40px}`;document.head.appendChild(css);
+const LEG=['2026-11-16','2026-11-09','2026-11-02'];
+const PAST=()=>{const cur=wbWeekB(),L=[];for(let i=1;i<=3;i++){const k=wbWeekB(i);if(k>='2026-11-20'&&k<cur)L.push(k)}for(const k of LEG)if(L.length<4)L.push(k);return L};
+const PC={};
+async function pastFetch(wk){const key=wk+(window.WBSUF||'');if(PC[key])return PC[key];const c=wbCfg();if(!c)return {err:'local'};
+  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeBoss/${key}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)return {err:r.status};const j=await r.json();
+    const L=(j.documents||[]).map(d=>({id:d.name.split('/').pop(),name:(d.fields.name||{}).stringValue||'?',dmg:+((d.fields.dmg||{}).integerValue||0)})).filter(x=>x.dmg>0).sort((a,b)=>b.dmg-a.dmg);PC[key]=L;return L}catch(e){return {err:'net'}}}
+const rows=L=>L.map((x,i)=>{const r=rkSplit(x.name);return `<div class="wbr${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${r.rep&&THUMB[r.rep]?`<img class="wbrp" src="${THUMB[r.rep]}">`:''}${esc(r.name)}</span><em>${x.dmg.toLocaleString()}</em></div>`}).join('');
+const dt=wk=>{const d=new Date(wk+'T00:00:00+09:00');return (d.getMonth()+1)+'/'+d.getDate()};
+function fix(){const p=document.querySelector('.panel');if(!p)return;const wbh=p.querySelector('.wbh');if(!wbh)return;const host=wbh.parentNode;
+  // 보상: 상자에 넣고 「보상 보기」로 열기
+  let box=host.querySelector('#wbRwBox');
+  if(!box){box=document.createElement('div');box.id='wbRwBox';wbh.parentNode.insertBefore(box,wbh.nextSibling);
+    const b=document.createElement('div');b.className='wbrwb';b.textContent='🎁 보상 보기';b.onclick=()=>{try{sfx('tap')}catch(e){}const on=box.classList.toggle('on');b.textContent=on?'✕ 보상 닫기':'🎁 보상 보기'};wbh.appendChild(b)}
+  const rw=p.querySelector('.wbrw');if(rw){if(rw.parentNode!==box)box.insertBefore(rw,box.firstChild);fix.rw=rw.outerHTML}else if(fix.rw){box.insertAdjacentHTML('afterbegin',fix.rw)}
+  for(const h of host.querySelectorAll('.hcard'))if(/주간 보상/.test(h.textContent)&&h.parentNode!==box)box.appendChild(h);
+  // 랭킹을 도전 버튼 바로 밑으로
+  if(!host.querySelector('#wbPastSec')){
+    const t=host.querySelector('.wbt'),l=host.querySelector('.wbl');
+    if(t&&l){const h4=[...host.querySelectorAll('h4')].find(h=>/이번 보스 랭킹/.test(h.textContent));let a=t;
+      for(const el of [h4,l]){if(el){a.parentNode.insertBefore(el,a.nextSibling);a=el}}
+      const sec=document.createElement('div');sec.id='wbPastSec';
+      const P=PAST();sec.innerHTML=`<h4>지난 보스 랭킹 <small>보스마다 누가 데미지를 제일 많이 넣었는지</small></h4><div class="wbpt">${P.map((wk,i)=>{const b=wbBoss(wk);return `<div data-wk="${wk}"><img src="${THUMB[b]||''}"><span>${META[b]?META[b].name:'?'}<small>${dt(wk)} 주</small></span></div>`}).join('')}</div><div class="wbl wbpl"><small>위에서 보스를 누르면 그 주 랭킹이 나와요</small></div>`;
+      a.parentNode.insertBefore(sec,a.nextSibling);
+      const pl=sec.querySelector('.wbpl');
+      sec.querySelector('.wbpt').onclick=async e=>{const d=e.target.closest('[data-wk]');if(!d)return;try{sfx('tap')}catch(er){}sec.querySelectorAll('.wbpt>div').forEach(x=>x.classList.toggle('on',x===d));pl.innerHTML='<small>불러오는 중…</small>';
+        const L=await pastFetch(d.dataset.wk);if(!document.body.contains(pl))return;
+        pl.innerHTML=L&&L.err?`<small>${L.err==='local'?'서버 연결 전이에요':'불러오지 못했어요 ('+L.err+') · 잠시 뒤 다시 눌러 봐요'}</small>`:L.length?rows(L):'<small>이 주에는 기록이 없어요</small>'};
+    }}
+}
+setInterval(()=>{try{fix()}catch(e){}},300);
+}catch(e){console.warn('b9bi',e)}})();
 </script>
 </body></html>

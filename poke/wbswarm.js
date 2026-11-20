@@ -97,7 +97,7 @@ function update(){
     const p=W.proj[i];p.t+=TICK;
     const dx=B.x-p.x,dy=B.y-p.y,L=len(dx,dy);
     const stp=p.sp*TICK;
-    if(L<=stp+B.r*.7||p.t>2){hitBoss(p.o,p.m);if(p.fx&&window.BEAMFX&&!W.ff)try{if(p.wv)BEAMFX.waveCrash(p.x,p.y+10,170,p.x>B.x);else BEAMFX.pimpact(p.m.type,p.x,p.y,p.o===W.me?1:.6)}catch(er){}W.proj.splice(i,1);continue}
+    if(L<=stp+B.r*.7||p.t>2){hitBoss(p.o,p.m);if(p.fx&&window.BEAMFX&&!W.ff)try{if(p.wv)BEAMFX.waveCrash(p.x,p.y+10,90,p.x>B.x);else BEAMFX.pimpact(p.m.type,p.x,p.y,p.o===W.me?.5:.3)}catch(er){}W.proj.splice(i,1);continue}
     p.x+=dx/L*stp;p.y+=dy/L*stp;
   }
   // 아군
@@ -105,7 +105,7 @@ function update(){
   for(const e of W.allies){
     if(e.hp<=0){if(e.alive){e.alive=0;e.anim='faint';e.at=0;ring(e.x,e.y,50,'#ffffff',.5);if(e===W.me)meDied()}continue}
     const isMe=e===W.me;
-    const manual=isMe&&!W.ff&&(W.time-W.touch)<CFG.autoIdle;
+    const manual=isMe&&!W.ff&&(W.in.hold||W.keys.l||W.keys.r||W.keys.u||W.keys.d||(W.time-W.touch)<CFG.autoIdle);
     for(const m of e.moves)if(m.t>0)m.t-=TICK;
     if(e.cast>0){e.cast-=TICK;if(e.cast<=0)e.anim='idle'}
     // 이동
@@ -129,7 +129,7 @@ function update(){
       if(!W.tel.length)e.react=0;
     }
     const sp=len(vx,vy);
-    if(sp>.05){const n=Math.min(1,sp);e.x+=vx/sp*e.spd*n*TICK;e.y+=vy/sp*e.spd*n*TICK;e.face.x=vx;e.face.y=vy;e.row=dirRow(vx,vy);if(e.cast<=0)e.anim='walk'}
+    if(sp>.05){const n=manual?Math.min(1,sp*1.6):Math.min(1,sp),v=manual?e.spd*1.5:e.spd;e.x+=vx/sp*v*n*TICK;e.y+=vy/sp*v*n*TICK;e.face.x=vx;e.face.y=vy;e.row=dirRow(vx,vy);if(e.cast<=0)e.anim='walk'}
     else if(e.cast<=0)e.anim='idle';
     e.x=clamp(e.x,24,AW-24);e.y=clamp(e.y,60,AH-24);
     // 공격
@@ -161,11 +161,11 @@ function doAttack(e,m,dist){
   const B=W.boss;e.row=dirRow(B.x-e.x,B.y-e.y);
   const BX=window.BEAMFX,FX=!!BX&&!W.ff&&(e===W.me||W.proj.filter(p=>p.fx).length+W.beams.length<10),big=e===W.me;
   if(m.melee){
-    if(FX){W.delays.push({t:.12,f:()=>{hitBoss(e,m);try{const mm=BX.meleeMode(m.name,m.type);BX.melee(m.type,mm,e.x,e.y-30,B.x,B.y-B.vis*.3,mm==='slash'?2:1,big?1.3:.85)}catch(er){}}})}
+    if(FX){W.delays.push({t:.12,f:()=>{hitBoss(e,m);try{const mm=BX.meleeMode(m.name,m.type);BX.melee(m.type,mm,e.x,e.y-30,B.x,B.y-B.vis*.3,mm==='slash'?2:1,big?.6:.38)}catch(er){}}})}
     else{ring(B.x-(B.x-e.x)/(len(B.x-e.x,B.y-e.y)||1)*B.r*.9,B.y-(B.y-e.y)/(len(B.x-e.x,B.y-e.y)||1)*B.r*.9,26,C.TCOL[m.type]||'#fff',.25);W.delays.push({t:.12,f:()=>hitBoss(e,m)})}
     return}
   const sk=FX?BX.sprKind(m.name,m.type,m.k):null;
-  if(sk&&sk.k==='target'){W.delays.push({t:.22,f:()=>{hitBoss(e,m);try{if(sk.spr==='quake')BX.quake(m.type,B.x,B.y-10,big?1.3:1);else BX.sprite(sk.spr,B.x,B.y+30,(sk.spr==='thunder'?380:340)*(big?1:.75))}catch(er){}}});return}
+  if(sk&&sk.k==='target'){W.delays.push({t:.22,f:()=>{hitBoss(e,m);try{if(sk.spr==='quake')BX.quake(m.type,B.x,B.y-10,big?.6:.42);else BX.sprite(sk.spr,B.x,B.y+20,(sk.spr==='thunder'?190:170)*(big?1:.7))}catch(er){}}});return}
   if(FX&&m.k==='beam'){W.beams.push({o:e,m,t:0,life:.45});W.delays.push({t:.25,f:()=>hitBoss(e,m)});return}
   W.proj.push({x:e.x,y:e.y-e.vis*.4,o:e,m,t:0,sp:m.k==='pulse'?900:640,col:C.TCOL[m.type]||'#fff',fx:FX?1:0,wv:!!(sk&&sk.spr==='wave')});
   if(!FX&&(m.k==='pulse'||m.melee===false&&m.p>=100))ring(e.x,e.y,36,C.TCOL[m.type]||'#fff',.3);
@@ -230,7 +230,7 @@ function render(){
   // 투사체
   const BX=window.BEAMFX;
   if(BX){const B=W.boss;for(const b of W.beams){try{const ox=b.o.x,oy=b.o.y-b.o.vis*.4;BX.live(b,b.m.type,ox,oy,B.x,B.y-B.vis*.3,1,1,0)}catch(er){}}}
-  for(const p of W.proj){if(p.fx&&BX){try{const B=W.boss,a=Math.atan2(B.y-p.y,B.x-p.x);if(p.wv)BX.waveLive(p,p.x,p.y+10,a,150);else BX.proj(p,p.m.type,p.x,p.y,a,p.o===W.me?11:8,p.sp,0,0)}catch(er){}continue}cx.save();cx.globalAlpha=.95;cx.fillStyle=p.col;cx.shadowColor=p.col;cx.shadowBlur=14;cx.beginPath();cx.arc(p.x,p.y,7,0,7);cx.fill();cx.restore()}
+  for(const p of W.proj){if(p.fx&&BX){try{const B=W.boss,a=Math.atan2(B.y-p.y,B.x-p.x);if(p.wv)BX.waveLive(p,p.x,p.y+10,a,80);else BX.proj(p,p.m.type,p.x,p.y,a,p.o===W.me?11:8,p.sp,0,0)}catch(er){}continue}cx.save();cx.globalAlpha=.95;cx.fillStyle=p.col;cx.shadowColor=p.col;cx.shadowBlur=14;cx.beginPath();cx.arc(p.x,p.y,7,0,7);cx.fill();cx.restore()}
   // 이펙트
   for(const f of W.fx){const u=f.t/f.life;
     if(f.k==='ring'){cx.save();cx.globalAlpha=1-u;cx.strokeStyle=f.c;cx.lineWidth=5*(1-u)+1;cx.beginPath();cx.arc(f.x,f.y,f.r*(.3+.7*u),0,7);cx.stroke();cx.restore()}
@@ -282,10 +282,13 @@ function buildUI(){
   // 조이스틱
   const st=U.stick,knob=st.querySelector('i');let id=null;
   const mv=ev=>{const r=st.getBoundingClientRect(),cx0=r.left+r.width/2,cy0=r.top+r.height/2;let dx=ev.clientX-cx0,dy=ev.clientY-cy0;const L=Math.hypot(dx,dy),R=r.width/2;if(L>R){dx*=R/L;dy*=R/L}knob.style.transform='translate('+dx+'px,'+dy+'px)';W.in.x=dx/R;W.in.y=dy/R;W.touch=W.time};
-  st.addEventListener('pointerdown',ev=>{ev.preventDefault();id=ev.pointerId;try{st.setPointerCapture(id)}catch(e){}mv(ev)});
+  st.addEventListener('pointerdown',ev=>{ev.preventDefault();id=ev.pointerId;W.in.hold=1;try{st.setPointerCapture(id)}catch(e){}mv(ev)});
+  // 왼쪽 화면 아무 데나 누르면 그 자리에 조이스틱이 생겨요
+  U.cv.addEventListener('pointerdown',ev=>{if(id!==null||ev.clientX>innerWidth*.5||W.paused||W.over)return;ev.preventDefault();const R=st.offsetWidth/2;st.style.left=(ev.clientX-R)+'px';st.style.top=(ev.clientY-R)+'px';st.style.bottom='auto';id=ev.pointerId;W.in.hold=1;try{U.cv.setPointerCapture(id)}catch(e){}mv(ev)});
+  U.cv.addEventListener('pointermove',ev=>{if(ev.pointerId===id)mv(ev)});
   st.addEventListener('pointermove',ev=>{if(ev.pointerId===id)mv(ev)});
-  const up=ev=>{if(ev.pointerId!==id)return;id=null;knob.style.transform='';W.in.x=0;W.in.y=0};
-  st.addEventListener('pointerup',up);st.addEventListener('pointercancel',up);
+  const up=ev=>{if(ev.pointerId!==id)return;id=null;W.in.hold=0;W.touch=W.time;knob.style.transform='';W.in.x=0;W.in.y=0};
+  st.addEventListener('pointerup',up);st.addEventListener('pointercancel',up);U.cv.addEventListener('pointerup',up);U.cv.addEventListener('pointercancel',up);
   // 키보드
   W.kd=ev=>{if(W.over||W.paused)return;const k=ev.key;const M={ArrowLeft:'l',a:'l',ArrowRight:'r',d:'r',ArrowUp:'u',w:'u',ArrowDown:'d',s:'d'}[k];
     if(M){W.keys[M]=1;ev.preventDefault();W.touch=W.time}
@@ -309,7 +312,7 @@ function setMoveBtns(){
 }
 function hud(){
   const U=W.ui,B=W.boss,SC=C.SC||1;
-  const r=clamp(B.hp/B.max,0,1);U.b.style.width=(r*100)+'%';U.h.textContent=fmtN(B.hp*SC)+' / '+fmtN(B.max*SC);
+  const r=clamp(B.hp/B.max,0,1);U.b.style.width=(r*100)+'%';U.h.textContent=Math.round(B.hp*SC).toLocaleString('en-US')+' / '+Math.round(B.max*SC).toLocaleString('en-US')+(W.dealt>0?'   (이번 전투 -'+Math.round(W.dealt*SC).toLocaleString('en-US')+')':'');
   if(U.n._t!==C.bossName){U.n._t=C.bossName;U.n.textContent=C.bossName}
   const al=W.allies.filter(e=>e.hp>0).length;U.a.textContent='🐾 '+al+' / '+W.allies.length;
   const left=Math.max(0,C.maxTime-W.time),mm=Math.floor(left/60),ss=Math.floor(left%60);
@@ -364,14 +367,14 @@ function stop(r){
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
   const hpBy={};for(const e of W.allies)hpBy[e.mon.uid]=Math.max(0,e.hp/(e.max/(e.st[0]||1)));   // 장비 전 체력으로 되돌려 저장
   window.WBSW.last={r,bossHp:W.boss.hp,bossMax:W.boss.max,time:W.time,hpBy,meUid:W.me&&W.me.mon.uid,dealt:W.dealt,timeout:W.timeout};
-  W.ui.root.remove();const res=W.res;W=null;res(r);
+  try{const E=window.BEAMFX&&BEAMFX.engine;if(E&&E.config&&window._wbWS)E.config.widthScale=window._wbWS}catch(er){}W.ui.root.remove();const res=W.res;W=null;res(r);
 }
 
 async function start(ctx){
   if(W)return 'quit';
   C=Object.assign({minSkip:120,maxTime:300,SC:1},ctx);
   const SA=await Promise.all(C.allies.map(m=>C.getSpr(C.sprKey(m)))),SB=await C.getSpr(C.sprKey(C.boss));
-  W={tick:0,time:0,proj:[],tel:[],fx:[],delays:[],beams:[],_c:(()=>{try{window.BEAMFX&&BEAMFX.clear()}catch(er){}return 0})(),over:null,overT:0,paused:0,ff:0,touch:-99,dealt:0,bt:2.2,roar:CFG.bossRoarEvery,keys:{l:0,r:0,u:0,d:0},in:{x:0,y:0,dx:0,dy:0,fire:-1}};
+  W={tick:0,time:0,proj:[],tel:[],fx:[],delays:[],beams:[],_c:(()=>{try{if(window.BEAMFX){BEAMFX.clear();const E=BEAMFX.engine;if(E&&E.config){window._wbWS=E.config.widthScale;E.config.widthScale=.6}}}catch(er){}return 0})(),over:null,overT:0,paused:0,ff:0,touch:-99,dealt:0,bt:2.2,roar:CFG.bossRoarEvery,keys:{l:0,r:0,u:0,d:0},in:{x:0,y:0,dx:0,dy:0,fire:-1}};
   W.allies=C.allies.map((m,i)=>mkEnt(m,SA[i],0));
   W.boss=mkEnt(C.boss,SB,1);
   { // 보스 체력은 호출한 쪽이 넘긴 값 그대로 (월보 단위 ÷ SC)
