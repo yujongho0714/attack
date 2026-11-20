@@ -9031,6 +9031,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112047,date:'11월 21일',t:'도감 「잡으러 이동」',items:[{img:'',h:'🎯 잡으러 이동',p:['도감에서 포켓몬을 누르면 <b>「잡으러 이동」</b> 버튼이 생겼어요.','누르면 월드맵에서 갈 곳이 확대되고, 동그랗게 닫히며 들어간 다음 <b>내 캐릭터가 진짜 걸어서</b> 그곳으로 가요.']}]},
  {v:2026112046,date:'11월 21일',t:'채팅 자랑 카드',items:[{img:'',h:'💬 포켓몬 자랑이 진짜 모습으로',p:['자랑 카드에 <b>초월 등급</b>(불멸 · 태초 · 만제), <b>각성 별 개수</b>, <b>실제 능력치</b>(체력 · 공격 · 방어 · 특공 · 특방 · 스피드)가 나와요.','순위 칭호가 「1d 1위」처럼 이상하게 나오던 걸 「획득 1위」로 고쳤어요.','업데이트 후 새로 자랑한 것부터 보여요.']}]},
  {v:2026112045,date:'11월 21일',t:'화면 정리',items:[{img:'',h:'🧹 오른쪽 위 동그라미 정리',p:['퀘스트 줄 뒤에 가려져 있던 배지 · 골드 작은 아이콘을 없앴어요. (골드는 가방 · 상점에서 볼 수 있어요)']}]},
  {v:2026112044,date:'11월 21일',t:'월드보스 랭킹 표시',items:[{img:'',h:'🏆 랭킹',p:['운영자 계정은 원래 순위에서 빠져요. 이제 그걸 화면에 알려 줘요.','월드보스 랭킹은 <b>금요일</b>에 새로 시작해요.']}]},
@@ -9987,5 +9988,44 @@ window.rbReady=rbReady;
 const _o=objective;objective=function(){const o=_o.apply(this,arguments);try{if(o&&rbReady())return Object.assign({},o,{t:'🔁 챕터 완료! 환생해서 다음 난이도로 (사이드메뉴 「환생」)'})}catch(e){}return o};
 let told=0;setInterval(()=>{try{if(told||!rbReady()||document.querySelector('.panel')||(window.DLG&&DLG.on))return;told=1;toast('🔁 이번 챕터를 다 깼어요! 사이드메뉴 「환생」에서 다음 난이도로 넘어가요');}catch(e){}},5000);
 }catch(e){console.warn('b9bo',e)}})();
+</script>
+<script id="b9bp">
+// 9BP 도감 「잡으러 이동」: 월드맵이 뜨고 → 그 길로 쭉 확대 → 마리오처럼 동그랗게 닫히며 들어가고 → 내 캐릭터가 진짜 걸어서 가요
+(function(){try{
+const css=document.createElement('style');css.textContent=`
+#goOv{position:fixed;inset:0;z-index:100000;background:#05081acc;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s}
+#goOv.on{opacity:1}
+#goOv .gm{position:relative;height:min(86vh,calc(92vw*13/16));aspect-ratio:16/13;border:4px solid #c8a24a;border-radius:14px;overflow:hidden;box-shadow:0 6px 0 #0008;background:#2a5a7a}
+#goOv .gz{position:absolute;inset:0;transition:transform 1s cubic-bezier(.6,0,.4,1)}#goOv .gz::after{content:'';position:absolute;inset:0;pointer-events:none}
+#goOv .gz>img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+#goOv .gp{position:absolute;width:0;height:0}
+#goOv .gp i{position:absolute;left:-14px;top:-14px;width:28px;height:28px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 3px #0b0f24,0 0 18px #fff}
+#goOv .tg i{border-color:#ffd75e;animation:goP .7s ease-in-out infinite alternate}
+#goOv .gp b{position:absolute;left:50%;top:18px;transform:translateX(-50%);white-space:nowrap;font:900 13px Galmuri11,sans-serif;color:#fff;background:#0b0f24;border:2px solid #ffd75e;padding:2px 7px;border-radius:4px}
+#goOv .me i{background:#ff4a5a}
+#goOv .run{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#ff4a5a;border:3px solid #fff;box-shadow:0 0 0 2px #0b0f24;transition:left .9s ease-in-out,top .9s ease-in-out}
+#goOv .gt{position:absolute;left:0;right:0;top:10px;text-align:center;font:900 18px Galmuri11,sans-serif;color:#fff;text-shadow:0 2px 0 #000}
+#goIris{position:fixed;inset:0;z-index:100001;background:#000;pointer-events:none;clip-path:circle(150% at 50% 50%);-webkit-clip-path:circle(150% at 50% 50%)}
+@keyframes goP{to{transform:scale(1.35)}}`;document.head.appendChild(css);
+const sl=ms=>new Promise(r=>setTimeout(r,ms));
+function bestArea(n){const LG=window.LOCG||LOC;const L=(LG[n]||[]).filter(a=>{try{return areaOpen(a)}catch(e){return true}});if(!L.length)return null;let b=null;for(const a of L){const d=Math.abs(a-G.a);if(b==null||d<Math.abs(b-G.a))b=a}return b}
+async function iris(close){let o=document.getElementById('goIris');if(!o){o=document.createElement('div');o.id='goIris';document.body.appendChild(o)}
+  const f=close?[150,0]:[0,150],T=420,t0=performance.now();await new Promise(r=>{const st=()=>{const u=Math.min(1,(performance.now()-t0)/T),v=f[0]+(f[1]-f[0])*(u*u*(3-2*u));o.style.clipPath=o.style.webkitClipPath=`circle(${close?v:v}% at 50% 50%)`;
+    if(close){o.style.clipPath=o.style.webkitClipPath=`circle(${v}% at 50% 50%)`;o.style.background='transparent';o.style.boxShadow=`0 0 0 200vmax #000`;o.style.borderRadius='50%';o.style.clipPath='none';const R=v/150*Math.hypot(innerWidth,innerHeight);o.style.inset='auto';o.style.left=(innerWidth/2-R)+'px';o.style.top=(innerHeight/2-R)+'px';o.style.width=o.style.height=(2*R)+'px'}
+    else{const R=v/150*Math.hypot(innerWidth,innerHeight);o.style.clipPath='none';o.style.background='transparent';o.style.boxShadow='0 0 0 200vmax #000';o.style.borderRadius='50%';o.style.inset='auto';o.style.left=(innerWidth/2-R)+'px';o.style.top=(innerHeight/2-R)+'px';o.style.width=o.style.height=(2*R)+'px'}
+    if(u<1)requestAnimationFrame(st);else r()};st()});if(!close)o.remove()}
+async function goCatch(n){if(!G||!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}if(SCENE!=='over'){toast('밖에서만 할 수 있어요');return}
+  const a=bestArea(n);if(a==null){toast((META[n]?META[n].name:'')+'는 아직 갈 수 없는 곳에서만 나와요');return}
+  document.getElementById('pdx')&&document.getElementById('pdx').remove();try{closePanel(1)}catch(e){}
+  const W=WPOS,me=W[G.a]||W[0],tg=W[a];const o=document.createElement('div');o.id='goOv';
+  o.innerHTML=`<div class="gm"><div class="gz"><img src="ui/worldmap.webp" alt=""><div class="gp me" style="left:${me[0]}%;top:${me[1]}%"><i></i><b>나</b></div><div class="gp tg" style="left:${tg[0]}%;top:${tg[1]}%"><i></i><b>${esc(areaName(a))}</b></div><div class="run" style="left:${me[0]}%;top:${me[1]}%"></div></div><div class="gt">${esc(META[n].name)} 잡으러 출발!</div></div>`;
+  document.body.appendChild(o);try{sfx('tap')}catch(e){}requestAnimationFrame(()=>o.classList.add('on'));await sl(450);
+  const run=o.querySelector('.run');run.style.left=tg[0]+'%';run.style.top=tg[1]+'%';await sl(950);
+  o.querySelectorAll('.gp,.run').forEach(e=>{e.style.transition='opacity .25s';e.style.opacity='0'});await sl(200);const z=o.querySelector('.gz');z.style.transformOrigin=tg[0]+'% '+tg[1]+'%';z.style.transform='scale(5)';await sl(800);
+  await iris(true);o.remove();try{navSet(a,n,'auto')}catch(e){console.warn(e)}await sl(250);await iris(false);
+  toast('🎯 '+areaName(a)+'(으)로 걸어가요 · '+META[n].name+' 잡기')}
+window.goCatch=goCatch;
+const _dd=dexDev;dexDev=async function(n){const r=await _dd.apply(this,arguments);try{const o=document.getElementById('pdx');const bx=o&&o.querySelector('.pdxbtns');if(bx&&!bx.querySelector('[data-go9]')&&!(META[n]&&META[n].form)){const b=document.createElement('button');b.dataset.go9='1';b.textContent='잡으러 이동';b.style.cssText='background:#ffd75e;color:#2a1a00';b.onclick=e=>{e.stopPropagation();try{sfx('tap')}catch(er){}goCatch(n)};bx.insertBefore(b,bx.firstChild)}}catch(e){}return r};
+}catch(e){console.warn('b9bp',e)}})();
 </script>
 </body></html>
