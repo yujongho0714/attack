@@ -1,4 +1,11 @@
-<!doctype html><html lang="ko"><head><script id="fboff">/* 9H 고침: 서버 끄기 스위치(FBOFF)가 한 블록 안에서만 보여서 월드보스·랭킹·채팅 서버 함수(wbCfg·fsBase)가 늘 에러(FBOFF is not defined) → 전체에서 보이게 */var FBOFF=(function(){try{const q=new URLSearchParams(location.search);if(q.get('nofb')==='1')localStorage.setItem('pka-nofb','1');if(q.get('nofb')==='0')localStorage.removeItem('pka-nofb');if(q.get('fb')==='1')return false;if(localStorage.getItem('pka-nofb')==='1')return true;if(navigator.webdriver||/HeadlessChrome/i.test(navigator.userAgent))return true;if(location.protocol==='file:'||/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname))return true}catch(e){}return false})();</script><script>(function(){var ua=navigator.userAgent;if(!/KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|everytimeApp|DaumApps/i.test(ua))return;
+<!doctype html><html lang="ko"><head><script id="clock9bf">/* 9BF 시계 되돌리기 막기: 게임 시간은 뒤로 안 가요 (폰 날짜를 바꿔서 매일 보상 다시 받기 막기) */
+(function(){try{const _D=Date,_now=_D.now.bind(_D),p0=performance.now();let tm=0;try{tm=+localStorage.getItem('pka-tmax')||0}catch(e){}
+ let base=Math.max(_now(),tm);
+ function gameNow(){const t=Math.max(_now(),base+(performance.now()-p0));if(t>tm+5000){tm=t;try{localStorage.setItem('pka-tmax',String(Math.floor(t)))}catch(e){}}return t}
+ function GD(...a){if(!new.target)return new _D(gameNow()).toString();return a.length?new _D(...a):new _D(gameNow())}
+ GD.prototype=_D.prototype;GD.UTC=_D.UTC;GD.parse=_D.parse;GD.now=gameNow;window.Date=GD;
+ window.gmClock={now:gameNow,real:_now,srv:ms=>{const g=gameNow();if(ms>g+60000)base+=ms-g},skew:()=>gameNow()-_now()};
+}catch(e){}})();</script><script id="fboff">/* 9H 고침: 서버 끄기 스위치(FBOFF)가 한 블록 안에서만 보여서 월드보스·랭킹·채팅 서버 함수(wbCfg·fsBase)가 늘 에러(FBOFF is not defined) → 전체에서 보이게 */var FBOFF=(function(){try{const q=new URLSearchParams(location.search);if(q.get('nofb')==='1')localStorage.setItem('pka-nofb','1');if(q.get('nofb')==='0')localStorage.removeItem('pka-nofb');if(q.get('fb')==='1')return false;if(localStorage.getItem('pka-nofb')==='1')return true;if(navigator.webdriver||/HeadlessChrome/i.test(navigator.userAgent))return true;if(location.protocol==='file:'||/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname))return true}catch(e){}return false})();</script><script>(function(){var ua=navigator.userAgent;if(!/KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|everytimeApp|DaumApps/i.test(ua))return;
 var u=location.href;if(location.search.indexOf('install')<0)u=u+(location.search?'&':'?')+'install=1';
 if(/android/i.test(ua)){location.href='intent://'+u.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(u)+';end'}
 else if(/KAKAOTALK/i.test(ua)){location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(u)}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><script id="vscale">/* 9L 화면 크기: 이 기기에 저장된 배율로 화면 전체(메뉴 포함)를 줄여요 → 작은 폰에서도 메뉴가 다 보이게 */(function(){try{var s=parseFloat(localStorage.getItem('pka-vscale')||'1');if(!(s>=.5&&s<=1))s=1;window.VSCALE=s;if(s!==1){var m=document.querySelector('meta[name=viewport]');var c='width=device-width,initial-scale='+s+',maximum-scale='+s+',minimum-scale='+s+',user-scalable=no,viewport-fit=cover';if(m)m.setAttribute('content',c);else document.write('<meta name="viewport" content="'+c+'">')}}catch(e){}})()</script>
@@ -4775,7 +4782,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   itemInfo('spxsc',()=>{const L=[...G.party,...G.box].filter(m=>m.px!==SPXI());itPick(L.slice(0,40),ITEMS.spxsc,m=>{itAsk(nm(m)+'에게 「'+SPXN()+'」(+'+SPXV()+'%)을 붙일까요?','지금 접두사는 사라져요.',()=>{if(!(G.bag.spxsc>0))return;G.bag.spxsc--;m.px=SPXI();save();sfx('badge');toast(nm(m)+' · 시즌 한정 접두사!')})})})},true);
 // 점수 모으기
 setInterval(()=>{try{if(!G)return;const s=spS(),dk=dayKey();if(s.day!==dk){s.day=dk;spAdd(20,'접속')}}catch(e){}},5000);
-{const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{if(o&&r==='win'){if(o.wb)spAdd(20);else if(o.gym||o.league||/관장|챔피언|사천왕/.test(o.trainer||''))spAdd(30);else if(o.trainer)spAdd(6);else spAdd(2)}else if(r==='caught')spAdd(6);if(o&&o.wb&&r!=='win')spAdd(20)}catch(e){}return r}}
+{const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{if(BS.wbPr)return r;if(o&&r==='win'){if(o.wb)spAdd(20);else if(o.gym||o.league||/관장|챔피언|사천왕/.test(o.trainer||''))spAdd(30);else if(o.trainer)spAdd(6);else spAdd(2)}else if(r==='caught')spAdd(6);if(o&&o.wb&&r!=='win')spAdd(20)}catch(e){}return r}}
 {const _g=psGive;psGive=function(){const r=_g.apply(this,arguments);if(r)spAdd(3);return r}}
 {const _h=hpEnter;hpEnter=async function(){const r=await _h.apply(this,arguments);try{if(BS.lastRes==='win')spAdd(10)}catch(e){}return r}}
 {const _e=eggHatch;eggHatch=async function(){const r=await _e.apply(this,arguments);spAdd(15);return r}}
@@ -7364,7 +7371,7 @@ async function entry(m,opp){const a=abOf(m);if(!a)return;
 {const _sf=sendFoe;sendFoe=async function(m){await _sf.apply(this,arguments);try{await dexInfo();if(BS.me&&BS.me.m.hp>0){ENT.add(m);await entry(m,BS.me.m)}}catch(e){}}}
 {const _b=battle;battle=async function(o){for(const m of TOUCH)E.delete(m);TOUCH.clear();ENT.clear();BS.wbp=null;BS.bwx=0;let r;try{await dexInfo()}catch(e){}
   try{r=await _b.apply(this,arguments);return r}finally{for(const m of TOUCH)E.delete(m);TOUCH.clear();ENT.clear();BS.wbp=null;BS.bwx=0;BS._mv=null;BS._mt=null;
-    try{if(r==='win'){cnt('win');if(o&&o.trainer&&!o.wb)cnt('tr');if(o&&o.wb)cnt('wb')}}catch(e){}}}}
+    try{if(r==='win'&&!BS.wbPr){cnt('win');if(o&&o.trainer&&!o.wb)cnt('tr');if(o&&o.wb)cnt('wb')}}catch(e){}}}}
 
 // ---------- 업적 ----------
 const C=k=>(G.ach&&G.ach.c&&G.ach.c[k])||0;
@@ -8961,6 +8968,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112031,date:'11월 20일',t:'악용 막기',items:[{img:'',h:'🛡 악용 막기',p:['폰 날짜 · 시간을 바꿔서 매일 보상을 다시 받는 것을 막았어요. 게임 시간은 뒤로 가지 않아요.','월드보스 <b>연습</b>과 전설 레이드는 시즌 패스 점수 · 업적에 안 들어가요.','레이드 방을 나갔다 다시 들어와도 도전 횟수는 그대로예요.']}]},
  {v:2026112030,date:'11월 20일',t:'챔피언 화면 자동 멈춤',items:[{img:'',h:'🏆 챔피언 화면에서 자동 멈춤',p:['챔피언 화면 · 전설 포켓몬 고르기 · 환생 물어보기가 떠 있으면 <b>자동 사냥이 멈춰요</b>.','난이도만 올렸는데 바로 「클리어」로 처리되던 것을 막았어요. 그렇게 받은 전설 포켓몬은 회수해요.']}]},
  {v:2026112029,date:'11월 20일',t:'레벨 제한 없앰 · 레벨 표시 맞춤',items:[{img:'',h:'🔢 레벨 표시를 내 단계에 맞춤',p:['환생하면 내 포켓몬 레벨이 101 · 201 · 301…로 보이는데, 이제 <b>상대 · 야생 · 관장 · 추천 · 목표 레벨</b>도 똑같이 맞춰서 보여요.','예: 201레벨인데 「67까지 레벨업」 대신 「267까지 레벨업」처럼.']},{img:'',h:'⬆ 배지 없어도 계속 레벨 업',p:['배지별 레벨 제한을 없앴어요. 이제 <b>사냥만 해도 Lv.100까지</b> 계속 올라가요.','Lv.100 다음은 예전처럼 한계 돌파 ★로 더 강해져요.']}]},
  {v:2026112028,date:'11월 20일',t:'조작감 개선 · PVP 한곳에',items:[{img:'ui/news/n14_brawl.webp',h:'⚔ PVP 한곳에',p:['PVP 버튼을 누르면 <b>실시간 난투전 · 3대3 자동 대전 · 친구 대전</b>이 그림 카드로 한 화면에 나와요.','PVP 상점 · 실시간 교환 · 랭킹도 바로 아래에 있어요.']},{img:'',h:'💨 구르기는 화면을 쓱!',p:['구르기 버튼이 없어졌어요. 전투 중 <b>화면 아무 데나 손가락으로 쓱 밀면</b> 그 방향으로 굴러요.','처음 전투에서 구르기 연습 3번을 꼭 해요 (건너뛸 수 없어요).']},{img:'',h:'🎮 전투 버튼 정리',p:['기술 버튼을 오른쪽 아래에 모았어요. 첫 기술은 크게, 나머지 3개는 그 둘레에.','나가기 · 교대 · 약 · 볼을 왼쪽 아래 한 줄에 붙였어요.']},{img:'',h:'🕹 필드 이동',p:['조이스틱을 대각선으로 밀면 두 방향을 번갈아 걸어서 대각선으로 가요. 벽에 막히면 옆으로 미끄러져요.']}]},
@@ -9622,9 +9630,9 @@ function rdOpen(){if(!G)return;const lock=!reach(6),R0=rdL();
    ${lock?'<p class="hhint">🔒 천계에 가면 열려요.</p>':''}<button class="nxbig" id="rdNew" ${lock?'disabled':''}>🏰 방 만들기</button>
    ${card('🔑 방 코드로 들어가기','<div class="rdcode">'+[0,1,2,3].map(()=>'<i>·</i>').join('')+'</div><div class="rdpad">'+[1,2,3,4,5,6,7,8,9,'←',0,'OK'].map(x=>`<button data-k="${x}">${x}</button>`).join('')+'</div>')}`,null,p=>{
    let s='';const show=()=>{p.querySelectorAll('.rdcode i').forEach((e,i)=>e.textContent=s[i]||'·')};
-   p.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{sfx('tap');const k=b.dataset.k;if(k==='←')s=s.slice(0,-1);else if(k==='OK'){if(s.length!==4||lock)return;const d=await rdFetch(s);if(!d){toast('인터넷이 켜져 있어야 해요');return}if(d.none){toast('그런 방이 없어요');return}if(d.old){toast('끝난 방이에요 (2시간 지남)');return}rdL().code=s;rdL().tries=0;rdL().done=0;save();rdRoom(s);return}else if(s.length<4)s+=k;show()});
+   p.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{sfx('tap');const k=b.dataset.k;if(k==='←')s=s.slice(0,-1);else if(k==='OK'){if(s.length!==4||lock)return;const d=await rdFetch(s);if(!d){toast('인터넷이 켜져 있어야 해요');return}if(d.none){toast('그런 방이 없어요');return}if(d.old){toast('끝난 방이에요 (2시간 지남)');return}{const R1=rdL();R1.code=s;R1.T=R1.T||{};R1.tries=R1.T[s]|0;R1.dmg=(R1.D||{})[s]|0;save()}rdRoom(s);return}else if(s.length<4)s+=k;show()});
    const n=p.querySelector('#rdNew');if(n)n.onclick=async()=>{if(!wbCfg()||!navigator.onLine){toast('인터넷이 켜져 있어야 해요');return}const code=String(ri(1000,9999));const L=(typeof WB_DEX!=='undefined'?WB_DEX:[150]).filter(d=>BYDEX[d]);const dex=pick(L);
-     const ok=await fsPut(rdBoard(code),'boss',String(dex),RAID_HP,Math.floor(Date.now()/1000));if(!ok){toast('방을 못 만들었어요. 다시 해 봐요');return}rdL().code=code;rdL().tries=0;rdL().done=0;save();sfx('badge');rdRoom(code)}})}
+     const ok=await fsPut(rdBoard(code),'boss',String(dex),RAID_HP,Math.floor(Date.now()/1000));if(!ok){toast('방을 못 만들었어요. 다시 해 봐요');return}{const R1=rdL();R1.code=code;R1.T=R1.T||{};R1.tries=0;R1.dmg=0;save()}sfx('badge');rdRoom(code)}})}
 async function rdRoom(code){openPanel('⚔ 전설 레이드 · 방 '+code,'<p class="hhint">불러오는 중…</p>');const d=await rdFetch(code);const R0=rdL();
   if(!d||d.none){openPanel('⚔ 전설 레이드',`<p class="hhint">${!d?'인터넷이 켜져 있어야 해요.':'방을 찾을 수 없어요.'}</p><button class="nxbig" id="rdOut">나가기</button>`,null,p=>p.querySelector('#rdOut').onclick=()=>{delete G.raid.code;save();closePanel(1);rdOpen()});return}
   const n=BYDEX[d.dex]||SPECIES[0],M=META[n],left=Math.max(0,d.hp-d.tot),me=d.P.find(x=>x.id==='p~'+G.pid);
@@ -9638,8 +9646,8 @@ async function rdRoom(code){openPanel('⚔ 전설 레이드 · 방 '+code,'<p cl
    const g=p.querySelector('#rdGo');if(g)g.onclick=()=>rdFight(code,d);const c=p.querySelector('#rdCatch');if(c)c.onclick=()=>rdCatch(code,n)})}
 async function rdFight(code,d){if(SCENE!=='over'){toast('밖에서만 도전할 수 있어요');return}if(!G.party.some(m=>m.hp>0)){toast('먼저 치료하고 와요');return}const R0=rdL();closePanel(1);
   const n=BYDEX[d.dex]||SPECIES[0],boss=mkMon(n,100),left=Math.max(1000,d.hp-d.tot);boss.hpx=Math.max(1,left/stOf(boss)[0]);boss.hp=stOf(boss)[0];const hp0=boss.hp;
-  R0.tries=(R0.tries|0)+1;save();ev('raid');BS.wbPr=1;let r;try{r=await battle({scaled:1,trainer:'전설 레이드',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{BS.wbPr=0}
-  const dmg=Math.max(0,hp0-Math.max(0,boss.hp));R0.dmg=(R0.dmg|0)+dmg;save();
+  R0.tries=(R0.tries|0)+1;R0.T=R0.T||{};R0.T[code]=R0.tries;save();ev('raid');BS.wbPr=1;let r;try{r=await battle({scaled:1,trainer:'전설 레이드',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{BS.wbPr=0}
+  const dmg=Math.max(0,hp0-Math.max(0,boss.hp));R0.dmg=(R0.dmg|0)+dmg;R0.D=R0.D||{};R0.D[code]=R0.dmg;save();
   const ok=await fsPut(rdBoard(code),'p~'+G.pid,G.name||'친구',R0.dmg|0,Math.floor(Date.now()/1000));
   await say(['레이드 보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!',ok?'방에 기록했어요. 친구들과 힘을 합쳐요!':'인터넷이 안 돼서 기록을 못 했어요. 새로고침해 봐요.']);rdRoom(code)}
 async function rdCatch(code,n){const R0=rdL();if(R0['c'+code])return;R0['c'+code]=1;save();let got=0;for(let i=0;i<3&&!got;i++){await say(['볼 '+(i+1)+'번째… 던졌다!']);if(R()<.35)got=1}
@@ -9779,4 +9787,11 @@ setInterval(()=>{try{if(!G||G.clrAud)return;G.clr=G.clr||{};const bad=[];const c
   if(bad.length){console.log('clrAud',bad,took);setTimeout(()=>{try{say(['⚠ 이긴 적 없는 난이도가 「클리어」로 처리된 기록 '+bad.length+'개를 되돌렸어요.',took.length?'그때 받은 전설 포켓몬('+took.join(' · ')+')을 회수했어요.':'회수할 전설 포켓몬은 없었어요.','진짜로 챔피언이 되면 다시 받을 수 있어요!'])}catch(e){}},4000)}}catch(e){}},5000);
 </script>
 
+<script id="b9bf">
+// 9BF: 서버 시간 확인 (랭킹 서버에 작은 기록을 쓰고 그 시각을 받아요)
+(function(){async function sync(){try{if(!G||!window.gmClock||typeof fsBase!=='function')return;const B=fsBase();if(!B||!navigator.onLine)return;
+  const r=await fetch(B.u+'clock/players/'+encodeURIComponent(G.pid||G.name||'x')+'?key='+B.k+'&updateMask.fieldPaths=t',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{t:{integerValue:String(Math.floor(gmClock.real()/1000))}}})});
+  if(!r.ok)return;const j=await r.json();const ms=Date.parse(j.updateTime);if(ms>0)gmClock.srv(ms)}catch(e){}}
+ setTimeout(sync,8000);setInterval(sync,30*60e3)})();
+</script>
 </body></html>

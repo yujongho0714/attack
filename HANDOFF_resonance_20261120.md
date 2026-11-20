@@ -743,3 +743,9 @@
 - 원인: 챔피언(G.champ) 뒤 난이도 메뉴에서 높은 난이도로 바꾸면 clearScene 인터벌이 DIFF()-환생 키로 바로 「CHAMPION」+전설 고르기를 줌. 수정: clrLegit(d)=champD 있으면 d<=champD, 없으면 d<dMax(). 
 - 자동 멈춤: #clrOv/#lgOv/#gAsk/#rbPk 떠 있으면 autoThink 중단 · P.queue 비움.
 - 되돌리기 G.clrAud: d<dMax() 또는 (d==7 & ch7/champD>=7) 또는 (이번 환생 & d<=champD)가 아닌 G.clr 키 삭제 + 키마다 gift 전설(rar3) 하나 회수(보관함부터).
+
+## 9BF 악용 막기
+- <script id="clock9bf"> head 맨 앞: window.Date 교체(GD). gameNow=max(실제, 시작기준+performance 경과), localStorage pka-tmax에 최대 시각 저장 → 날짜 되돌리기 무효(앞으로 돌린 건 나중에 그만큼 기다려야 해서 이득 없음). gmClock.srv(ms): 서버 시각이 더 늦으면 앞당김. b9bf: 30분마다 pokeRank/clock/players/{pid} PATCH 응답 updateTime으로 동기화.
+- 시즌 패스 spAdd 래퍼 · 업적 cnt: BS.wbPr(월보 연습·레이드)면 안 셈.
+- 레이드: R0.T[code]/R0.D[code]로 방마다 도전 횟수·데미지 기록 → 다시 들어와도 그대로.
+- 남은 위험(사용자에게 물어봄): QR 옮기기로 기록을 복사하면 원래 폰에도 그대로 남아 계정 복제 가능.
