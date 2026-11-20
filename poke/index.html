@@ -5108,7 +5108,7 @@ async function tradeApply(t){let d;try{d=await qrUnpack(t)}catch(e){toast('교�
   G.usedT=G.usedT||{};if(G.usedT[d.t]){toast('이미 받은 포켓몬이에요 (같은 QR은 한 번만)');return}if((G.trOut||[]).some(x=>x.t===d.t)){toast('내가 보낸 QR이에요');return}
   const m=monUnpack(d.m);m.from=d.from||'친구';if(d.m.ax)m.ax=Math.min(6,d.m.ax|0);G.usedT[d.t]=1;const rbFx=trRbFix(m,d.m.rb);const lvOld=trLvFix(m);const M=META[m.n];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;
   if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m);save();return}G.box.push(m);save();try{refreshSpr()}catch(e){}
-  try{await CardPack.open({rar:rarM(m),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)'+(rbFx?' · 보낸 친구 레벨 기준 Lv.'+dLv(m)+'로 받았어요':'')+(lvOld?' · Lv.'+lvOld+' → Lv.'+m.lv+'로 내려갔어요 (내 레벨에 맞춰요)':''));try{spAdd(5)}catch(e){}if(lvOld)await pxSlot(m)}
+  try{await CardPack.open({rar:rarM(m),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(m.n,'Joyous')})}catch(e){}toast((d.from||'친구')+'에게서 '+nm(m)+'을(를) 받았어요! (보관함)'+(rbFx?' · 보낸 친구 레벨 기준 Lv.'+dLv(m)+'로 받았어요':'')+(lvOld?' · Lv.'+(lvOld+dLv(m)-m.lv)+' → Lv.'+dLv(m)+'로 내려갔어요 (내 레벨에 맞춰요)':''));try{spAdd(5)}catch(e){}if(lvOld)await pxSlot(m)}
 
 // ===== 친구 대전: 내 팀 QR을 보여 주고, 친구 팀 QR을 찍으면 그 팀과 배틀 · 이기면 승리 +1 (같은 친구는 하루 3번까지) =====
 async function pvpMine(){if(!G)return;if(typeof qrcode==='undefined'||typeof CompressionStream==='undefined'){toast('이 폰에서는 QR을 못 만들어요');return}
