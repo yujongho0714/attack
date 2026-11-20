@@ -8813,13 +8813,17 @@ const stOfK=k=>{const w=k===cur()?G.wb:G['wb_'+k];return w&&w.wk===wbWeekB()?w:{
   const L=Object.keys(META).filter(x=>META[x].form===(k==='c'?'mega':'gmax')).sort((a,b)=>bst(META[b].stats)-bst(META[a].stats)).slice(0,24).sort();
   if(!L.length)return _b(wk);const i=Math.floor(Date.parse(wk||wbWeekB())/(7*864e5))*(k==='c'?5:7)+(k==='c'?3:11);return L[((i%L.length)+L.length)%L.length]}}
 // 화면 열기: wbOpen('c') 처럼 종류를 줄 수 있어요 + 위에 종류 탭
-{const _o=wbOpen;wbOpen=async function(k){if(G){wbKind(k||cur())}const r=await _o.apply(this,[]);try{const pb=PANEL&&PANEL.d&&PANEL.d.querySelector('.pb');if(pb&&!pb.querySelector('.wbk')){const t=document.createElement('div');t.className='wbk';
+{const _o=wbOpen;wbOpen=async function(k){if(G){wbKind(k||cur())}const r=await _o.apply(this,[]);const add=()=>{try{const pb=PANEL&&PANEL.d&&PANEL.d.querySelector('.pb');if(pb&&!pb.querySelector('.wbk')){const t=document.createElement('div');t.className='wbk';
   t.innerHTML=['n','c','e'].filter(x=>!window.WBOPEN||WBOPEN(x)).map(x=>`<button data-k="${x}" class="${x===cur()?'on':''}"><b>${KD[x].nm}</b><small>${KD[x].lb}${x==='n'?'':' · 초월 재료'}</small></button>`).join('');pb.insertBefore(t,pb.firstChild);
   {const k=cur(),W=WBRW[k],kill=k==='n'?'처치하면 전설 카드팩 +1':k==='c'?'처치하면 모두 불멸의 핵 +12 · 결정 +10':'처치하면 모두 태초의 숨결 +12 · 인장 +1';
    const cell=i=>k==='n'?`<i>🎴${W.pk[i]}</i><i>📦${W.mp[i]}+${W.mp[i]}</i><i><img class="tri" src="ui/tr/gem.png" alt="">${W.gem[i]}</i>`:k==='c'?`<i>🎴${W.pk[i]}</i><i><img class="tri" src="ui/tr/core.png" alt="">${W.mat[i]}</i><i><img class="tri" src="ui/tr/gem.png" alt="">${W.gem[i]}</i>`:`<i>🎴${W.pk[i]}</i><i><img class="tri" src="ui/tr/breath.png" alt="">${W.mat[i]}</i><i><img class="tri" src="ui/tr/seal.png" alt="">${W.seal[i]}</i>`;
    const q=document.createElement('div');q.className='wbrw';const HD={n:['카드팩','포켓몬·기술팩','승급 결정'],c:['신화 카드팩','불멸의 핵','승급 결정'],e:['환상 카드팩','태초의 숨결','만제의 인장']}[k];q.innerHTML=`<div class="wbrwh">🏆 주간 순위 보상 <small>${kill}</small></div><div class="wbrwr hd"><b>순위</b>${HD.map(x=>`<i>${x}</i>`).join('')}</div>`+WBTN.map((x,i)=>`<div class="wbrwr r${i}"><b>${x}</b>${cell(i)}</div>`).join('');
    t.after(q)}
-  t.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);wbOpen(b.dataset.k)})}}catch(e){}return r}}
+  t.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);wbOpen(b.dataset.k)})}
+  if(pb&&!pb.querySelector('.wbgo')&&window.WBOPEN){const k=cur(),nx=['n','c','e'].filter(x=>x!==k&&WBOPEN(x));if(nx.length){const g=document.createElement('div');g.className='wbgo';
+    g.innerHTML=nx.map(x=>{const b=(()=>{const c0=cur();try{wbKind(x);return wbBoss()}finally{wbKind(c0)}})();return `<div class="wbgb" data-g="${x}"><img src="${THUMB[b]||''}"><span><b>${KD[x].nm} · ${typeof wbPre==='function'?({c:'카오스 ',e:'이터널 ',n:''}[x]):''}${META[b]?META[b].name:''}</b><small>${KD[x].lb} 보스 · ${x==='c'?'불멸의 핵 · 승급의 결정':x==='e'?'태초의 숨결 · 만제의 인장':'카드팩 · 승급의 결정'} · 하루 3번 따로 도전!</small></span><em>도전하러 가기 ▶</em></div>`}).join('');
+    pb.appendChild(g);g.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);wbOpen(b.dataset.g)})}}}catch(e){}};
+  add();try{const pb=PANEL&&PANEL.d&&PANEL.d.querySelector('.pb');if(pb){const mo=new MutationObserver(()=>{if(!document.body.contains(pb)){mo.disconnect();return}if(!pb.querySelector('.wbk')||!pb.querySelector('.wbgo'))add()});mo.observe(pb,{childList:true})}}catch(e){}return r}}
 // 싸움: 새 전투로 (일반 월보는 새 주부터)
 {const _bt=battle;battle=async function(o){if(o&&o.wb&&window.rtWB&&WBNEW()){const r=await rtWB(o);if(r!==undefined){try{if(cur()==='c'&&BS.wbLast&&BS.wbLast.dmg>0){trmAdd('gem',2);save();toast('<img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +2 (카오스 도전)')}}catch(e){}return r}}return _bt.apply(this,arguments)}}
 // 주간 보상: 종류마다 따로 받기 + 카오스·이터널 추가 보상(카드팩 등급·초월 재료)
@@ -8835,7 +8839,7 @@ try{const h=HUB.find(x=>x.k==='wb');if(h){h.go=[['월드보스 열기',()=>wbOpe
   HUB.push({k:'wbc',n:'카오스 월드보스 (매주)',d:'메가진화한 신화 등급 보스! 일반 월보보다 훨씬 세요. 쓰러뜨리면 참여한 사람 모두(쓰러진 뒤에 때린 사람도) 포획 기회 5번 — 잡으면 신화 등급! 도전할 때마다 <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +2 · 주간 순위 보상(1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지): 신화 카드팩 3~1 + <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 18~4 + <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 35~15. 보스를 쓰러뜨리면 모두 <img class="tri" src="ui/tr/core.png" alt="">+12 <img class="tri" src="ui/tr/gem.png" alt="">+10! (불멸 승급 = 핵 30개)',st:()=>'내 데미지 '+stOfK('c').dmg.toLocaleString(),go:[['카오스 월드보스 열기',()=>wbOpen('c')]]},
     {k:'wbe',n:'이터널 월드보스 (매주)',d:'거다이맥스 환상 등급 보스! 가장 강한 월드보스예요. 쓰러뜨리면 참여한 사람 모두(쓰러진 뒤에 때린 사람도) 포획 기회 5번 — 잡으면 환상 등급! 주간 순위 보상(1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지): 환상 카드팩 3~1 + <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 18~4 + <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장 2~0. 보스를 쓰러뜨리면 모두 <img class="tri" src="ui/tr/breath.png" alt="">+12 <img class="tri" src="ui/tr/seal.png" alt="">+1! (태초 = 숨결 60개 · 만제 = 인장 9개)',st:()=>'내 데미지 '+stOfK('e').dmg.toLocaleString(),go:[['이터널 월드보스 열기',()=>wbOpen('e')]]})}catch(e){}
 const css=document.createElement('style');css.textContent=`.wbk{display:flex;gap:5px;margin:0 0 8px}.wbk button{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:3px solid #1c2550;border-radius:0;background:#2a3256;color:#cfd6ff;font:900 12px 'Galmuri11',monospace;box-shadow:0 3px 0 #1c2550}
-.wbk button small{font-size:10px;opacity:.8}.wbrw{margin:0 0 8px;border:3px solid #1c2550;background:#141a38;box-shadow:0 3px 0 #0b0f24;font:900 11px 'Galmuri11',monospace;color:#dfe5ff}.wbrwh{background:#2a3256;padding:4px 6px;color:#ffd23f}.wbrwh small{float:right;color:#9fb0ff;font-size:10px}.wbrwr{display:flex;align-items:center;gap:4px;padding:3px 6px;border-top:2px solid #1c2550}.wbrwr b{width:62px;color:#cfd6ff}.wbrwr i{flex:1;font-style:normal;text-align:center}.wbrwr.r0 b{color:#ffd23f}.wbrwr.r1 b{color:#e6ecff}.wbrwr.r2 b{color:#ffa45c}.wbrwr.r0{background:#2b2a1a}.wbrwr.hd{background:#1c2550;color:#9fb0ff;font-size:10px}.wbrwr.hd i,.wbrwr.hd b{color:#9fb0ff}.wbk button.on{background:#ffd23f!important;color:#1c2550!important;border-color:#fff!important;transform:translateY(-2px)}.wbk button.on{background:#ffd23f;color:#1c2550}.wbk button[data-k="c"].on{background:#ff4060;color:#fff}.wbk button[data-k="e"].on{background:#14c8b8;color:#fff}`;document.head.appendChild(css);
+.wbk button small{font-size:10px;opacity:.8}.wbrw{margin:0 0 8px;border:3px solid #1c2550;background:#141a38;box-shadow:0 3px 0 #0b0f24;font:900 11px 'Galmuri11',monospace;color:#dfe5ff}.wbrwh{background:#2a3256;padding:4px 6px;color:#ffd23f}.wbrwh small{float:right;color:#9fb0ff;font-size:10px}.wbrwr{display:flex;align-items:center;gap:4px;padding:3px 6px;border-top:2px solid #1c2550}.wbrwr b{width:62px;color:#cfd6ff}.wbrwr i{flex:1;font-style:normal;text-align:center}.wbrwr.r0 b{color:#ffd23f}.wbrwr.r1 b{color:#e6ecff}.wbrwr.r2 b{color:#ffa45c}.wbrwr.r0{background:#2b2a1a}.wbgo{display:flex;flex-direction:column;gap:8px;margin:10px 0 4px}.wbgo .wbgb{cursor:pointer;display:flex!important;align-items:center;gap:10px;text-align:left;padding:8px 10px;border:3px solid #1c2550!important;background:linear-gradient(#3a1f5c,#22113a)!important;color:#fff!important;width:100%;box-shadow:0 4px 0 #0b0f24;font:900 13px 'Galmuri11',monospace}.wbgo img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated;background:#0003}.wbgo span{flex:1}.wbgo b{display:block;font-size:15px;color:#ffd23f}.wbgo small{color:#e3d4ff;font-size:11px}.wbgo em{font-style:normal;color:#ffd23f;white-space:nowrap}.wbrwr.hd{background:#1c2550;color:#9fb0ff;font-size:10px}.wbrwr.hd i,.wbrwr.hd b{color:#9fb0ff}.wbk button.on{background:#ffd23f!important;color:#1c2550!important;border-color:#fff!important;transform:translateY(-2px)}.wbk button.on{background:#ffd23f;color:#1c2550}.wbk button[data-k="c"].on{background:#ff4060;color:#fff}.wbk button[data-k="e"].on{background:#14c8b8;color:#fff}`;document.head.appendChild(css);
 // 처음: 저장된 종류 맞추기
 const fix=()=>{try{if(G)apply(cur())}catch(e){}};setInterval(fix,5000);fix();
 }catch(e){console.warn('9H 월보 종류',e)}})();
@@ -8905,6 +8909,11 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112019,date:'11월 20일',t:'천계 · 천상계 가이드 퀘스트!',items:[
+  {img:'',h:'🌌 가이드 퀘스트',p:['컨텐츠 → <b>월드보스 바로 밑</b> 「천계 · 천상계 가이드 퀘스트」.','천계 12개 · 천상계 9개 퀘스트를 순서대로 하면 승급의 결정 · 큐브 · 골드 · 불멸의 핵 · 태초의 숨결을 받아요.','진행도는 자동으로 채워져요. 다 하면 「받기!」 · 안 된 건 「가기 ▶」로 바로 가요.','천계에 처음 가면 자동으로 한 번 열려요.']}]},
+ {v:2026112018,date:'11월 20일',t:'월드보스 고침 + 천계 가이드',items:[
+  {img:'',h:'⚔ 월드보스 고쳤어요',p:['<b>나가기</b>를 눌러도 그때까지 넣은 데미지가 기록돼요 (도전 1번 사용). 예전엔 나가면 데미지가 사라졌어요.','월드보스 화면 위 <b>노말 · 카오스</b> 탭이 랭킹이 바뀌어도 사라지지 않아요. 맨 아래에도 「카오스 월드보스 도전하러 가기」가 있어요.','떼전투 기술 그림이 원래 우리 기술 이펙트(빔 · 발사체 · X베기 · 지진 · 번개 · 파도)로 바뀌었어요.']},
+  {img:'',h:'🌌 천계 · 천상계 가이드',p:['천계에 처음 가면 「이제 뭘 하지?」 가이드가 떠요. 컨텐츠 → 천계 · 천상계 가이드에서 언제든 볼 수 있어요.','순서: 낮은 난이도에서 골드 · 영혼 모으기 → 각성 → 장비 강화 → 승급 → 카오스 월드보스 → 다시 천계 관장 도전!','각성 · 승급 · 불멸 · 태초 · 만제는 <b>고른 포켓몬 한 마리에만</b> 적용돼요.']}]},
  {v:2026112017,date:'11월 20일',t:'월드보스 새 개편! 오늘부터 시작 (노말 · 카오스)',items:[
   {img:'',h:'⚔ 20마리가 다 같이 싸워요',p:['내 포켓몬 <b>최대 20마리</b>가 작게 나와서 보스와 한꺼번에 싸워요.','내 캐릭터는 <b>▼ 화살표</b>, 나머지는 반투명으로 자동 전투예요.','<b>「교체」</b>를 누르면 일시정지하고 다른 포켓몬으로 바꿀 수 있어요.','<b>2분</b>이 지나면 「건너뛰기」가 열려요. 시간 제한은 최대 <b>5분</b>이에요.']},
   {img:'',h:'📅 오늘부터 금요일 시작 · 7일 단위',p:['<b>노말</b>과 <b>카오스</b> 월드보스가 <b>오늘(11/20)부터</b> 새로 시작해요.','둘 다 <b>금요일 0시</b>에 새 보스로 바뀌는 7일 단위예요. 다음 초기화는 11/27(금)!','지난주(월~목) 기록은 오늘 한 번 정산해서 보상이 와요.','사이드 메뉴 월드보스: 위가 노말, 아래가 카오스예요. 이터널은 아직 잠겨 있어요.']},
@@ -9261,7 +9270,7 @@ window.isBeamMv=isBeam;
       for(let i=0;i<n;i++){await sleep(i?125:late);try{x.hit&&x.hit(1/n)}catch(e){}}
       await sleep(330);return}}}catch(e){console.warn('skill fx',e)}
   return _r.apply(this,arguments)}}
-{const _f=CINE.front;CINE.front=function(cx,dt){const r=_f.apply(this,arguments);try{if(window.BEAMFX&&BEAMFX.busy&&!document.getElementById('rtbRoot'))BEAMFX.render(cx)}catch(e){}   /* 실시간 전투 중엔 실시간 화면이 그림 */return r}}
+{const _f=CINE.front;CINE.front=function(cx,dt){const r=_f.apply(this,arguments);try{if(window.BEAMFX&&BEAMFX.busy&&!document.getElementById('rtbRoot')&&!document.body.classList.contains('wbsw'))BEAMFX.render(cx)}catch(e){}   /* 실시간 전투 중엔 실시간 화면이 그림 */return r}}
 try{rzMovesLoad()}catch(e){}
 }catch(e){console.warn('9T 이펙트',e)}})();
 </script>
@@ -9312,11 +9321,11 @@ async function rtSwarmWB(o){
   let r='lose';
   try{r=await WBSW.start(Object.assign({},rtCtxBase(),{allies:team,boss:f,bossMax:H0,SC,thumb:n=>THUMB[n]||'',toast,
     bossHit:(window.WBHIT&&WBHIT())||.08,bossName:(typeof wbPre==='function'?wbPre():'')+META[f.n].name,bossLook:k==='c'?7:k==='e'?8:0,
-    minSkip:SW.minSkip,maxTime:SW.maxTime,quitText:'그만 싸울까요? (이번 판 데미지는 없어지고 도전 횟수는 돌려받아요)'}))}
+    minSkip:SW.minSkip,maxTime:SW.maxTime,quitText:'그만 싸울까요? (지금까지 넣은 데미지는 기록되고, 도전 1번을 써요)'}))}
   finally{document.body.classList.remove('wbsw')}
   const L=window.WBSW.last||{};
   if(L.hpBy){for(const q of G.party){const hb=L.hpBy[q.uid];if(hb!=null)q.hp=hb>0?Math.max(1,Math.round(hb)):0}}
-  const res=r==='quit'?'run':r==='win'?'win':'lose';
+  const res=r==='win'?'win':'lose';   // 9AO: 나가기를 눌러도 넣은 데미지는 기록돼요
   if(L.bossHp!=null)f.hp=Math.max(0,L.bossHp);
   f.hpx=hx;f.hp=res==='run'?hp0:Math.max(0,f.hp*SC);
   BS.wbLast={dmg:res==='run'?0:Math.max(0,hp0-f.hp),time:L.time||0};
@@ -9329,5 +9338,70 @@ window.rtSwarmWB=rtSwarmWB;
   return _bt.apply(this,arguments)}}
 }catch(e){console.warn('wb20',e)}})();
 </script>
+<script id="b9ao">
+// 9AO-2 천계 · 천상계 가이드 퀘스트 — 지금 상태를 자동으로 확인 · 다 하면 「받기」 · 컨텐츠 목록에서 월드보스 바로 밑
+(function(){try{
+const MS=()=>[...G.party,...G.box];
+const awN=n=>MS().filter(m=>(m.aw|0)>=n).length;
+const gAtk=()=>{try{return gearStats().atk||0}catch(e){return 0}};
+const promN=()=>MS().filter(m=>(m.ax|0)>rarB(m)).length;
+const rarN=r=>MS().filter(m=>rarM(m)>=r).length;
+const fcN=(d,p)=>Object.keys(G.fc||{}).filter(k=>k.startsWith(d+':'+p)).length;
+const cDmg=()=>{try{const w=(G.wbK||'n')==='c'?G.wb:G.wb_c;return w&&w.wk===wbWeekB()?(w.dmg|0):0}catch(e){return 0}};
+const fm=n=>n>=1e8?(n/1e8).toFixed(n%1e8?1:0)+'억':n>=1e4?Math.round(n/1e4).toLocaleString()+'만':n.toLocaleString();
+// id · 할 일 · [지금 값, 목표] · 보상 · 가기
+const Q={6:[
+ ['6a','낮은 난이도에서 골드 50만 모으기',()=>[G.money|0,500000],{cube:2},'df'],
+ ['6b','포켓몬 1마리 각성하기 (★1)',()=>[awN(1),1],{gem:3},'aw'],
+ ['6c','장비 강화 · 공격력 +10%',()=>[gAtk(),10],{cube:3},'gr'],
+ ['6d','좋아하는 포켓몬 1마리 승급하기',()=>[promN(),1],{gem:5},'tr'],
+ ['6e','카오스 월드보스 도전하기',()=>[cDmg()>0?1:0,1],{gem:5},'wb'],
+ ['6f','한 포켓몬을 ★3까지 각성하기',()=>[awN(3),1],{gold:300000},'aw'],
+ ['6g','장비 강화 · 공격력 +30%',()=>[gAtk(),30],{cube:5},'gr'],
+ ['6h','천계 관장 처음 이기기',()=>[fcN(6,'g'),1],{gem:8},'lg'],
+ ['6i','천계 관장 4명 이기기',()=>[fcN(6,'g'),4],{gem:10},'lg'],
+ ['6j','천계 배지 8개 모두 모으기',()=>[fcN(6,'g'),8],{core:2},'lg'],
+ ['6k','천계 사천왕 이기기',()=>[fcN(6,'e'),1],{gem:10},'lg'],
+ ['6l','천계 챔피언 되기',()=>[fcN(6,'c'),1],{gold:1000000,gem:15},'lg']],
+7:[
+ ['7a','한 포켓몬을 ★5까지 각성하기',()=>[awN(5),1],{gem:10},'aw'],
+ ['7b','장비 강화 · 공격력 +60%',()=>[gAtk(),60],{cube:10},'gr'],
+ ['7c','신화 등급 이상 포켓몬 1마리',()=>[rarN(4),1],{gem:10},'tr'],
+ ['7d','카오스 월드보스 이번 주 1,000만 데미지',()=>[cDmg(),1e7],{gem:10},'wb'],
+ ['7e','불멸 포켓몬 1마리 만들기',()=>[rarN(7),1],{breath:3},'tr'],
+ ['7f','천상계 관장 처음 이기기',()=>[fcN(7,'g'),1],{gem:10},'lg'],
+ ['7g','천상계 배지 8개 모두 모으기',()=>[fcN(7,'g'),8],{breath:3},'lg'],
+ ['7h','천상계 사천왕 이기기',()=>[fcN(7,'e'),1],{gem:15},'lg'],
+ ['7i','천상계 챔피언 되기',()=>[fcN(7,'c'),1],{gold:3000000,gem:20},'lg']]};
+const IC={gem:'<img class="tri" src="ui/tr/gem.png" alt="">',core:'<img class="tri" src="ui/tr/core.png" alt="">',breath:'<img class="tri" src="ui/tr/breath.png" alt="">',cube:'<img class="tri" src="ui/cube1.webp" alt="">'};
+const rwT=r=>Object.entries(r).map(([k,v])=>k==='gold'?'💰 '+fm(v):(IC[k]||'')+'×'+v).join(' ');
+const give=r=>{for(const [k,v] of Object.entries(r)){if(k==='gold')G.money=(G.money|0)+v;else if(k==='cube')addItem('cube',v);else if(window.trmAdd)trmAdd(k,v)}};
+const reach=d=>Math.max(DIFF(),G.rbd|0)>=d;
+const st=q=>{let v=[0,1];try{v=q[2]()}catch(e){}return{cur:v[0],need:v[1],done:v[0]>=v[1],got:!!(G.tgq&&G.tgq[q[0]])}};
+const cnt=d=>{const L=Q[d].map(st);return{got:L.filter(x=>x.got).length,ready:L.filter(x=>x.done&&!x.got).length,n:L.length}};
+function tgOpen(tab){if(!G)return;G.tgq=G.tgq||{};tab=tab||(reach(7)?7:6);const nm=DNAME[tab]||'';
+  const rows=Q[tab].map((q,i)=>{const t=st(q),pc=Math.min(100,Math.round(t.cur/t.need*100));
+    return `<div class="tgq ${t.got?'got':t.done?'rd':''}"><i>${t.got?'✔':i+1}</i><span><b>${q[1]}</b><div class="tgb"><u style="width:${pc}%"></u><em>${t.need>=1e4?fm(Math.min(t.cur,t.need))+' / '+fm(t.need):Math.min(t.cur,t.need)+' / '+t.need}</em></div><small>보상 ${rwT(q[3])}</small></span>${t.got?'<button disabled>받음</button>':t.done?`<button class="main" data-rw="${q[0]}">받기!</button>`:`<button data-go="${q[4]}">가기 ▶</button>`}</div>`}).join('');
+  const lock=!reach(tab);const c6=cnt(6),c7=cnt(7);
+  openPanel('🌌 가이드 퀘스트 · '+nm,`<div class="tabs"><button data-tb="6" class="${tab===6?'on':''}">${DNAME[6]} ${c6.got}/${c6.n}${c6.ready?' 🔴':''}</button><button data-tb="7" class="${tab===7?'on':''}">${DNAME[7]} ${c7.got}/${c7.n}${c7.ready?' 🔴':''}</button></div>
+   <p class="hhint"><b>${nm}</b>부터는 상대가 엄청 세요 (레벨 1000이 넘어요). <b>바로 못 이기는 게 정상!</b> 순서대로 퀘스트를 하면서 키워요. 골드 · 영혼이 모자라면 <b>낮은 난이도</b>로 내려가서 모아요 — 환생한 난이도는 그대로예요.</p>
+   ${lock?`<p class="hhint">🔒 아직 <b>${nm}</b>에 가지 않았어요. 미리 볼 수는 있지만, ${nm}에 가면 시작돼요.</p>`:''}<div class="${lock?'tglk':''}">${rows}</div>`,null,p=>{
+   p.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);tgOpen(+b.dataset.tb)});
+   p.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>{if(lock)return;const q=Q[tab].find(x=>x[0]===b.dataset.rw);if(!q||G.tgq[q[0]]||!st(q).done)return;G.tgq[q[0]]=1;give(q[3]);save();try{hud()}catch(e){}try{sfx('badge')}catch(e){}toast('퀘스트 보상: '+rwT(q[3]));closePanel(1);tgOpen(tab)});
+   p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);const g=b.dataset.go;
+     try{if(g==='df')diffOpen();else if(g==='aw')awOpen();else if(g==='gr')gearOpen();else if(g==='tr')window.trOpen&&trOpen();else if(g==='wb')wbOpen(window.WBOPEN&&WBOPEN('c')?'c':'n');else if(g==='lg'){toast('난이도를 '+nm+'으로 하고, 지도에서 체육관 · 포켓몬 리그로 가서 도전해요!');diffOpen()}}catch(e){}})})}
+window.tgOpen=tgOpen;
+const css=document.createElement('style');css.textContent=".tgq{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:8px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 3px 0 #0b0f24}.tgq.rd{background:#fff1b8;border-color:#e0a000}.tgq.got{opacity:.6}.tgq i{font-style:normal;width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;background:#3a1f5c;color:#ffd23f;font:900 16px 'Galmuri11',monospace;border:3px solid #0b0f24}.tgq.got i{background:#2e8b57;color:#fff}.tgq span{flex:1;min-width:0}.tgq span>b{display:block;color:#1c2550;font-size:14px}.tgq small{color:#3c4262;font-size:12px}.tgb{position:relative;height:16px;margin:4px 0;background:#d9d4bf;border:2px solid #1c2550}.tgb u{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#ffd23f,#e09a00)}.tgb em{position:relative;display:block;text-align:center;font:900 11px/12px 'Galmuri11',monospace;font-style:normal;color:#1c2550}.tgq button{flex:none;padding:8px 10px;border:3px solid #0b0f24;background:#fff;color:#1c2550;font:900 12px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24}.tgq button.main{background:#ffd23f;animation:tgp 1s infinite}@keyframes tgp{50%{transform:scale(1.06)}}.tglk{filter:grayscale(.7);pointer-events:none}";document.head.appendChild(css);
+// 컨텐츠 목록: 월드보스 바로 밑
+try{const card={k:'tg',n:'🌌 천계 · 천상계 가이드 퀘스트',d:'천계부터는 상대가 엄청 세요! 낮은 난이도에서 골드 · 영혼 모으기 → 각성 → 장비 강화 → 승급 → 카오스 월드보스 → 관장 · 사천왕 · 챔피언. 하나씩 하면 보상을 받아요.',
+  st:()=>{try{if(!reach(6))return '천계에 가면 시작돼요';const d=reach(7)?7:6,c=cnt(d);return DNAME[d]+' '+c.got+'/'+c.n+(c.ready?' · 받을 보상 '+c.ready+'개!':'')}catch(e){return ''}},go:[['퀘스트 보기',()=>tgOpen()]]};
+  const i=HUB.findIndex(x=>x.k==='wb');if(i>=0)HUB.splice(i+1,0,card);else HUB.push(card)}catch(e){}
+let lastR=-1;
+setInterval(()=>{try{if(!G||SCENE!=='over')return;const d=Math.max(DIFF(),G.rbd|0);if(d<6)return;const k=d>=7?7:6;
+  if(!DLG.on&&!PANEL){G.tgSeen=G.tgSeen||{};if(!G.tgSeen[k]){G.tgSeen[k]=1;save();tgOpen(k);return}}
+  const r=cnt(k).ready;if(lastR>=0&&r>lastR)toast('🌌 가이드 퀘스트 완료! 컨텐츠 → 가이드 퀘스트에서 보상 받기');lastR=r}catch(e){}},5000);
+}catch(e){console.warn('b9ao',e)}})();
+</script>
+
 
 </body></html>

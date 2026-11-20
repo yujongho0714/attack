@@ -97,7 +97,7 @@ function update(){
     const p=W.proj[i];p.t+=TICK;
     const dx=B.x-p.x,dy=B.y-p.y,L=len(dx,dy);
     const stp=p.sp*TICK;
-    if(L<=stp+B.r*.7||p.t>2){hitBoss(p.o,p.m);W.proj.splice(i,1);continue}
+    if(L<=stp+B.r*.7||p.t>2){hitBoss(p.o,p.m);if(p.fx&&window.BEAMFX&&!W.ff)try{if(p.wv)BEAMFX.waveCrash(p.x,p.y+10,170,p.x>B.x);else BEAMFX.pimpact(p.m.type,p.x,p.y,p.o===W.me?1:.6)}catch(er){}W.proj.splice(i,1);continue}
     p.x+=dx/L*stp;p.y+=dy/L*stp;
   }
   // 아군
@@ -148,6 +148,7 @@ function update(){
     if(z.t>=z.life){W.tel.splice(i,1);boom(z)}}
   // 이펙트
   for(let i=W.fx.length-1;i>=0;i--){const f=W.fx[i];f.t+=TICK;if(f.t>=f.life)W.fx.splice(i,1)}
+  for(let i=W.beams.length-1;i>=0;i--){const b=W.beams[i];b.t+=TICK;if(b.t>=b.life||b.o.hp<=0)W.beams.splice(i,1)}
   // 끝났는지
   if(!W.over){
     if(B.hp<=0){finish('win')}
@@ -158,9 +159,16 @@ function update(){
 function doAttack(e,m,dist){
   m.t=m.cd;e.cast=.28;e.anim=m.melee?'attack':'shoot';e.at=0;
   const B=W.boss;e.row=dirRow(B.x-e.x,B.y-e.y);
-  if(m.melee){ring(B.x-(B.x-e.x)/(len(B.x-e.x,B.y-e.y)||1)*B.r*.9,B.y-(B.y-e.y)/(len(B.x-e.x,B.y-e.y)||1)*B.r*.9,26,C.TCOL[m.type]||'#fff',.25);W.delays.push({t:.12,f:()=>hitBoss(e,m)})}
-  else W.proj.push({x:e.x,y:e.y-e.vis*.4,o:e,m,t:0,sp:m.k==='pulse'?900:640,col:C.TCOL[m.type]||'#fff'});
-  if(m.k==='pulse'||m.melee===false&&m.p>=100)ring(e.x,e.y,36,C.TCOL[m.type]||'#fff',.3);
+  const BX=window.BEAMFX,FX=!!BX&&!W.ff&&(e===W.me||W.proj.filter(p=>p.fx).length+W.beams.length<10),big=e===W.me;
+  if(m.melee){
+    if(FX){W.delays.push({t:.12,f:()=>{hitBoss(e,m);try{const mm=BX.meleeMode(m.name,m.type);BX.melee(m.type,mm,e.x,e.y-30,B.x,B.y-B.vis*.3,mm==='slash'?2:1,big?1.3:.85)}catch(er){}}})}
+    else{ring(B.x-(B.x-e.x)/(len(B.x-e.x,B.y-e.y)||1)*B.r*.9,B.y-(B.y-e.y)/(len(B.x-e.x,B.y-e.y)||1)*B.r*.9,26,C.TCOL[m.type]||'#fff',.25);W.delays.push({t:.12,f:()=>hitBoss(e,m)})}
+    return}
+  const sk=FX?BX.sprKind(m.name,m.type,m.k):null;
+  if(sk&&sk.k==='target'){W.delays.push({t:.22,f:()=>{hitBoss(e,m);try{if(sk.spr==='quake')BX.quake(m.type,B.x,B.y-10,big?1.3:1);else BX.sprite(sk.spr,B.x,B.y+30,(sk.spr==='thunder'?380:340)*(big?1:.75))}catch(er){}}});return}
+  if(FX&&m.k==='beam'){W.beams.push({o:e,m,t:0,life:.45});W.delays.push({t:.25,f:()=>hitBoss(e,m)});return}
+  W.proj.push({x:e.x,y:e.y-e.vis*.4,o:e,m,t:0,sp:m.k==='pulse'?900:640,col:C.TCOL[m.type]||'#fff',fx:FX?1:0,wv:!!(sk&&sk.spr==='wave')});
+  if(!FX&&(m.k==='pulse'||m.melee===false&&m.p>=100))ring(e.x,e.y,36,C.TCOL[m.type]||'#fff',.3);
 }
 function hitBoss(e,m){
   const B=W.boss;if(B.hp<=0||W.over)return;
@@ -220,11 +228,14 @@ function render(){
   const L=W.ents.slice().sort((a,b)=>a.y-b.y);
   for(const e of L)drawEnt(cx,e);
   // 투사체
-  for(const p of W.proj){cx.save();cx.globalAlpha=.95;cx.fillStyle=p.col;cx.shadowColor=p.col;cx.shadowBlur=14;cx.beginPath();cx.arc(p.x,p.y,7,0,7);cx.fill();cx.restore()}
+  const BX=window.BEAMFX;
+  if(BX){const B=W.boss;for(const b of W.beams){try{const ox=b.o.x,oy=b.o.y-b.o.vis*.4;BX.live(b,b.m.type,ox,oy,B.x,B.y-B.vis*.3,1,1,0)}catch(er){}}}
+  for(const p of W.proj){if(p.fx&&BX){try{const B=W.boss,a=Math.atan2(B.y-p.y,B.x-p.x);if(p.wv)BX.waveLive(p,p.x,p.y+10,a,150);else BX.proj(p,p.m.type,p.x,p.y,a,p.o===W.me?11:8,p.sp,0,0)}catch(er){}continue}cx.save();cx.globalAlpha=.95;cx.fillStyle=p.col;cx.shadowColor=p.col;cx.shadowBlur=14;cx.beginPath();cx.arc(p.x,p.y,7,0,7);cx.fill();cx.restore()}
   // 이펙트
   for(const f of W.fx){const u=f.t/f.life;
     if(f.k==='ring'){cx.save();cx.globalAlpha=1-u;cx.strokeStyle=f.c;cx.lineWidth=5*(1-u)+1;cx.beginPath();cx.arc(f.x,f.y,f.r*(.3+.7*u),0,7);cx.stroke();cx.restore()}
     else if(f.k==='txt'){cx.save();cx.globalAlpha=1-u*u;cx.font='900 '+(f.big?30:18)+'px "Galmuri11",sans-serif';cx.textAlign='center';cx.lineWidth=5;cx.strokeStyle='#0a0d18';cx.strokeText(f.s,f.x,f.y-u*50);cx.fillStyle=f.c;cx.fillText(f.s,f.x,f.y-u*50);cx.restore()}}
+  try{if(BX)BX.render(cx)}catch(er){}
   // 내 캐릭터 화살표
   const me=W.me;if(me&&me.hp>0){const y=me.y-me.vis*.95-18+Math.sin(W.time*7)*5;cx.save();cx.fillStyle='#ffe14a';cx.strokeStyle='#0a0d18';cx.lineWidth=4;cx.beginPath();cx.moveTo(me.x,y+14);cx.lineTo(me.x-14,y-10);cx.lineTo(me.x+14,y-10);cx.closePath();cx.stroke();cx.fill();cx.restore()}
   cx.restore();
@@ -360,7 +371,7 @@ async function start(ctx){
   if(W)return 'quit';
   C=Object.assign({minSkip:120,maxTime:300,SC:1},ctx);
   const SA=await Promise.all(C.allies.map(m=>C.getSpr(C.sprKey(m)))),SB=await C.getSpr(C.sprKey(C.boss));
-  W={tick:0,time:0,proj:[],tel:[],fx:[],delays:[],over:null,overT:0,paused:0,ff:0,touch:-99,dealt:0,bt:2.2,roar:CFG.bossRoarEvery,keys:{l:0,r:0,u:0,d:0},in:{x:0,y:0,dx:0,dy:0,fire:-1}};
+  W={tick:0,time:0,proj:[],tel:[],fx:[],delays:[],beams:[],_c:(()=>{try{window.BEAMFX&&BEAMFX.clear()}catch(er){}return 0})(),over:null,overT:0,paused:0,ff:0,touch:-99,dealt:0,bt:2.2,roar:CFG.bossRoarEvery,keys:{l:0,r:0,u:0,d:0},in:{x:0,y:0,dx:0,dy:0,fire:-1}};
   W.allies=C.allies.map((m,i)=>mkEnt(m,SA[i],0));
   W.boss=mkEnt(C.boss,SB,1);
   { // 보스 체력은 호출한 쪽이 넘긴 값 그대로 (월보 단위 ÷ SC)
