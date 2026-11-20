@@ -1621,7 +1621,7 @@ function lvCapInfo(){const c=lvCap();ovBox('레벨 제한 Lv.'+c,'지금은 Lv.'
 function candyLock(){return !!(G&&(G.rebirth||0)>=3&&!opTest())}
 function candyLockInfo(){ovBox('이상한사탕을 못 써요','<b>3번 환생</b>한 뒤에는 이상한사탕으로 레벨을 올릴 수 없어요.<br><small>직접 싸워서 키워 봐요! 사탕은 <b>한계 돌파</b> 재료로는 계속 쓸 수 있어요.</small>',[{t:'확인',main:1,v:1}])}
 async function gainLv(m,keep){const S0=stOf(m);m.lv++;if(!keep)m.exp=Math.max(m.exp,expAt(m.lv));const S1=stOf(m);m.hp+=S1[0]-S0[0];m.evoReady=1;sfx('lv');if(BS.on)bbox();try{lvShow(m,S0,S1)}catch(e){}
-  await msg('<b>'+nm(m)+'</b>(은)는 레벨 <b>'+m.lv+'</b>(으)로 올랐다!',FAST()?450:900,[m.n,'Joyous']);
+  await msg('<b>'+nm(m)+'</b>(은)는 레벨 <b>'+dLv(m)+'</b>(으)로 올랐다!',FAST()?450:900,[m.n,'Joyous']);
   for(const [l,id] of learnset(META[m.n]))if(l===m.lv&&!m.moves.includes(id)){const nmv=mv(id);if(m.moves.length<4){m.moves.push(id);await msg(nm(m)+'(은)는 새로 <b>'+nmv.name+'</b>을(를) 배웠다!')}else{const w=m.moves.filter(x=>(mv(x).pw||0)>0).sort((a,b)=>mv(a).pw-mv(b).pw)[0];if(w&&mv(w).pw<nmv.pw){m.moves[m.moves.indexOf(w)]=id;await msg(nm(m)+'(은)는 '+mv(w).name+'을(를) 잊고 <b>'+nmv.name+'</b>을(를) 배웠다!')}}}}
 async function evolveCheck(){for(const m of G.party){if(!m.evoReady)continue;m.evoReady=0;const M=META[m.n];if(M.form)continue;const E=EVC[M.dex];if(!E||!E.length){askEvo(M.dex);continue}
   const opt=E.filter(([d,l])=>m.lv>=l&&BYDEX[d]);if(!opt.length)continue;const [d]=pick(opt);const to=BYDEX[d];
@@ -5899,8 +5899,8 @@ const CHBAD=['시발','씨발','시바','씨바','ㅅㅂ','ㅆㅂ','병신','븅
 function chClean(s){let t=String(s).replace(/\s+/g,' ').trim().slice(0,60);const flat=t.replace(/[\s.\-_~!?·,]/g,'').toLowerCase();
   for(const w of CHBAD){if(flat.includes(w)){const re=new RegExp(w.split('').map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('[\\s.\\-_~!?·,]*'),'gi');t=t.replace(re,m=>'♡'.repeat(Math.min(4,m.length)))}}
   t=t.replace(/(\d[\s\-.]*){7,}/g,'(번호는 못 보내요)').replace(/https?:\/\/\S+|www\.\S+|\S+\.(com|net|kr|io|me|ly)\S*/gi,'(링크는 못 보내요)').replace(/오픈\s*채팅|카톡\s*아이디|카톡\s*id/gi,'(개인 연락은 안 돼요)');return t}
-const chKeyMon=m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+m.lv+(m.sh?'s':'')+(m.px!=null?'p'+m.px:'')+(m.fr!=null&&META[m.n]&&META[m.n].form?'r'+m.fr:'')+(m.ax?'x'+(m.ax|0):'')+(m.aw?'w'+(m.aw|0):'')+(()=>{try{return 't'+stOf(m).map(v=>Math.round(v).toString(36)).join('-')}catch(e){return ''}})();
-const chDecMon=s=>{const m=/^(.+?)\.(\d+)(s?)(?:p(\d+))?(?:r(\d))?(?:x(\d+))?(?:w(\d+))?(?:t([0-9a-z-]+))?$/.exec(s||'');if(!m)return null;const n='sc:'+m[1].replace(/_/g,'/');return META[n]?{n,lv:+m[2],sh:!!m[3],px:m[4]!=null?+m[4]:null,fr:m[5]!=null?+m[5]:null,ax:m[6]!=null?+m[6]:0,aw:m[7]!=null?+m[7]:0,st:m[8]?m[8].split('-').map(x=>parseInt(x,36)||0):null}:null};
+const chKeyMon=m=>String(m.n).replace(/^sc:/,'').replace(/\//g,'_')+'.'+m.lv+(m.sh?'s':'')+(m.px!=null?'p'+m.px:'')+(m.fr!=null&&META[m.n]&&META[m.n].form?'r'+m.fr:'')+(m.ax?'x'+(m.ax|0):'')+(m.aw?'w'+(m.aw|0):'')+((m.moves||[]).length?'V'+(m.moves||[]).filter(x=>/^[a-z0-9]+$/.test(x)).slice(0,4).join(','):'')+(()=>{try{return 't'+stOf(m).map(v=>Math.round(v).toString(36)).join('-')}catch(e){return ''}})();
+const chDecMon=s=>{const m=/^(.+?)\.(\d+)(s?)(?:p(\d+))?(?:r(\d))?(?:x(\d+))?(?:w(\d+))?(?:V([a-z0-9,]+))?(?:t([0-9a-z-]+))?$/.exec(s||'');if(!m)return null;const n='sc:'+m[1].replace(/_/g,'/');return META[n]?{n,lv:+m[2],sh:!!m[3],px:m[4]!=null?+m[4]:null,fr:m[5]!=null?+m[5]:null,ax:m[6]!=null?+m[6]:0,aw:m[7]!=null?+m[7]:0,mv:m[8]?m[8].split(','):null,st:m[9]?m[9].split('-').map(x=>parseInt(x,36)||0):null}:null};
 async function chParse(d){try{const id=decodeURIComponent(d.name.split('/').pop()),f=d.fields||{};const name=(f.name||{}).stringValue||'',v=+((f.v||{}).integerValue||0),t=+((f.t||{}).integerValue||0);
   const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1),tr=(p[1].split('.')[1]||''),rkm=/^(\d{1,3})([da]?)$/.exec(tr),rk=rkm?+rkm[1]:0,rb=rkm?rkm[2]:'';
   if(BANS.has(pid))return null;const o={id,pid,name,v,tier:rk?(rkTier(rk-1)||''):CHTIERS.includes(tr)?tr:'',rk,rb,ms:parseInt(p[1],36)||v*60000,ty};if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}else if(ty==='p'){o.m=chDecMon(body);if(!o.m)return null;o.x=p[4]?chClean(new TextDecoder().decode(acUb64(p[4]))):''}else return null;return o}catch(e){return null}}
@@ -8699,7 +8699,7 @@ async function rtGo(){
   try{
     try{sfx('tap')}catch(e){}
     await loadRtb();await rzMovesLoad();
-    const m0=(G.party||[]).find(x=>x&&x.hp>0)||G.party[0];if(!m0){toast('파티에 포켓몬이 없어요');return}
+    const m0=window.__rtMe||(G.party||[]).find(x=>x&&x.hp>0)||G.party[0];window.__rtMe=null;if(!m0){toast('파티에 포켓몬이 없어요');return}
     const me=Object.assign({},m0,{moves:m0.moves.slice()});
     const keys=Object.keys(META).filter(k=>META[k]&&!META[k].form&&!/^sc:/.test(k)||META[k]&&!META[k].form);
     let foe=null;for(let i=0;i<20&&!foe;i++){const n=keys[Math.floor(Math.random()*keys.length)];try{foe=mkMon(n,Math.max(1,Math.min(100,(m0.lv||5)+ri(-2,2))))}catch(e){}}
@@ -9031,6 +9031,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112048,date:'11월 21일',t:'자랑 카드 상세 · 써 보기',items:[{img:'',h:'💬 자랑 카드를 누르면',p:['그 친구 포켓몬의 <b>초월 등급 · 각성 별 · 능력치 · 기술 4개</b>가 나와요.','<b>「이 포켓몬으로 써 보기」</b>를 누르면 그 포켓몬으로 시험 전투를 해 볼 수 있어요 (저장 · 보상 없음).','칭호만 있던 친구도 왼쪽 휘장 · 순위 배지가 보여요.','레벨업 글이 「레벨 3」처럼 환생 전 숫자로 나오던 걸 고쳤어요 (Lv.103처럼).']}]},
  {v:2026112047,date:'11월 21일',t:'도감 「잡으러 이동」',items:[{img:'',h:'🎯 잡으러 이동',p:['도감에서 포켓몬을 누르면 <b>「잡으러 이동」</b> 버튼이 생겼어요.','누르면 월드맵에서 갈 곳이 확대되고, 동그랗게 닫히며 들어간 다음 <b>내 캐릭터가 진짜 걸어서</b> 그곳으로 가요.']}]},
  {v:2026112046,date:'11월 21일',t:'채팅 자랑 카드',items:[{img:'',h:'💬 포켓몬 자랑이 진짜 모습으로',p:['자랑 카드에 <b>초월 등급</b>(불멸 · 태초 · 만제), <b>각성 별 개수</b>, <b>실제 능력치</b>(체력 · 공격 · 방어 · 특공 · 특방 · 스피드)가 나와요.','순위 칭호가 「1d 1위」처럼 이상하게 나오던 걸 「획득 1위」로 고쳤어요.','업데이트 후 새로 자랑한 것부터 보여요.']}]},
  {v:2026112045,date:'11월 21일',t:'화면 정리',items:[{img:'',h:'🧹 오른쪽 위 동그라미 정리',p:['퀘스트 줄 뒤에 가려져 있던 배지 · 골드 작은 아이콘을 없앴어요. (골드는 가방 · 상점에서 볼 수 있어요)']}]},
@@ -10027,5 +10028,42 @@ async function goCatch(n){if(!G||!G.party.length){toast('먼저 첫 포켓몬을
 window.goCatch=goCatch;
 const _dd=dexDev;dexDev=async function(n){const r=await _dd.apply(this,arguments);try{const o=document.getElementById('pdx');const bx=o&&o.querySelector('.pdxbtns');if(bx&&!bx.querySelector('[data-go9]')&&!(META[n]&&META[n].form)){const b=document.createElement('button');b.dataset.go9='1';b.textContent='잡으러 이동';b.style.cssText='background:#ffd75e;color:#2a1a00';b.onclick=e=>{e.stopPropagation();try{sfx('tap')}catch(er){}goCatch(n)};bx.insertBefore(b,bx.firstChild)}}catch(e){}return r};
 }catch(e){console.warn('b9bp',e)}})();
+</script>
+<script id="b9bq">
+// 9BQ 채팅: 칭호(획득/진행 n위)만 있고 순위 정보가 없는 옛 메시지도 왼쪽 휘장 · 순위 배지 보이기 · 자랑 카드 누르면 그 사람 포켓몬 상세(초월 · 각성 · 능력치 · 기술) + 시험 전투로 써 보기
+(function(){try{
+const _p=chParse;chParse=async function(){const o=await _p.apply(this,arguments);try{if(o&&!o.rk&&o.tk){const q=/^(\d{1,3})([da])$/.exec(o.tk);if(q){o.rk=+q[1];o.rb=q[2];o.tier=rkTier(o.rk-1)||''}}}catch(e){}return o};
+for(const o of CHM)try{if(!o.rk&&o.tk){const q=/^(\d{1,3})([da])$/.exec(o.tk);if(q){o.rk=+q[1];o.rb=q[2];o.tier=rkTier(o.rk-1)||''}}}catch(e){}
+const css=document.createElement('style');css.textContent=`
+#cmv{position:fixed;inset:0;z-index:99990;background:#05081acc;display:flex;align-items:center;justify-content:center;padding:10px}
+#cmv .w{width:min(640px,96vw);max-height:92vh;overflow:auto;background:#fdf6e3;border:4px solid #1c2550;box-shadow:0 6px 0 #0b0f24;border-radius:6px;padding:12px;font-family:Galmuri11,sans-serif;color:#1c2550}
+#cmv .hd{display:flex;gap:12px;align-items:center}
+#cmv .hd img{width:96px;height:96px;image-rendering:pixelated;background:#1c2550;border:3px solid var(--rc);border-radius:6px}
+#cmv .rr{display:inline-block;background:var(--rc);color:#fff;font-weight:900;padding:2px 8px;border-radius:4px;text-shadow:0 1px 0 #0006}
+#cmv .st{color:#d89b00;font-size:18px;letter-spacing:1px}
+#cmv h3{margin:4px 0;font-size:20px}
+#cmv .sg{display:grid;grid-template-columns:4.5em 1fr 4em;gap:4px 8px;align-items:center;margin:10px 0}
+#cmv .sg u{display:block;height:10px;background:#1c2550;border-radius:5px;overflow:hidden}#cmv .sg u i{display:block;height:100%;background:linear-gradient(90deg,#4ade80,#b6ffcf)}
+#cmv .sg em{font-style:normal;font-weight:900;text-align:right}
+#cmv .mv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#cmv .mv div{border:3px solid #1c2550;border-left:8px solid var(--tc);padding:6px 8px;background:#fff;box-shadow:0 2px 0 #1c2550}
+#cmv .mv b{display:block}#cmv .mv small{font-size:11px;color:#555}
+#cmv .bt{display:flex;gap:8px;margin-top:12px}
+#cmv .bt div{flex:1;text-align:center;padding:12px 6px;font-weight:900;border:3px solid #0b0f24;box-shadow:0 4px 0 #0b0f24;cursor:pointer;border-radius:4px;background:#ffd75e}
+#cmv .bt div.g{background:#e8e4d4}
+#cmv .nt{font-size:11px;color:#777;margin-top:6px}`;document.head.appendChild(css);
+const SN6=['체력','공격','방어','특공','특방','스피드'];
+function view(m,who){const M=META[m.n];if(!M)return;const r=rarM(m),aw=m.aw|0,st=m.st&&m.st.length===6?m.st:(()=>{try{return stOf(Object.assign(mkMon(m.n,m.lv),{ax:m.ax,aw:m.aw,px:m.px}))}catch(e){return null}})();
+  const mv=(m.mv||[]).filter(id=>MOVES[id]);const mx=st?Math.max(...st):1;
+  const o=document.createElement('div');o.id='cmv';o.innerHTML=`<div class="w" style="--rc:${RARC[r]}"><div class="hd"><img src="${THUMB[m.n]||''}" alt=""><div><span class="rr">${RAR[r]}</span> ${aw?`<span class="st">${'★'.repeat(Math.min(6,aw))}</span> <small>각성 ${aw}단계</small>`:'<small>각성 없음</small>'}<h3>${esc((m.px!=null&&window.PX&&PX[m.px]?PX[m.px].n+' ':'')+M.name)}</h3><small>${esc(who||'')}의 포켓몬 · Lv.${dLv(m)}${m.sh?' · 반짝':''} · ${M.types.map(t=>TN[t]).join(' · ')}</small></div></div>
+   ${st?`<h4 style="margin:10px 0 0">능력치${m.st?'':' <small>(예전 자랑이라 대략)</small>'}</h4><div class="sg">${st.map((v,i)=>`<span>${SN6[i]}</span><u><i style="width:${Math.round(v/mx*100)}%"></i></u><em>${v.toLocaleString()}</em>`).join('')}</div>`:''}
+   <h4 style="margin:6px 0">기술</h4>${mv.length?`<div class="mv">${mv.map(id=>{const x=MOVES[id];return `<div style="--tc:${TCOL[x.type]||'#888'}"><b>${esc(x.name)}</b><small>${TN[x.type]||''} · ${x.st?'변화':'위력 '+(x.pw||0)}${x.acc?' · 명중 '+x.acc:''}</small></div>`}).join('')}</div>`:'<p class="nt">예전 자랑이라 기술 정보가 없어요. 다시 자랑하면 보여요.</p>'}
+   <div class="bt"><div id="cmvT">⚔ 이 포켓몬으로 써 보기</div><div class="g" id="cmvD">도감</div><div class="g" id="cmvX">닫기</div></div><p class="nt">써 보기는 시험 전투예요. 저장되지 않고 보상도 없어요. (장비 효과는 빠져요)</p></div>`;
+  document.body.appendChild(o);o.onclick=e=>{if(e.target===o)o.remove()};
+  o.querySelector('#cmvX').onclick=()=>{sfx('tap');o.remove()};o.querySelector('#cmvD').onclick=()=>{sfx('tap');o.remove();dexDev(m.n)};
+  o.querySelector('#cmvT').onclick=()=>{sfx('tap');if(SCENE!=='over'){toast('밖에서만 할 수 있어요');return}try{const t=mkMon(m.n,Math.min(100,m.lv||50));t.ax=m.ax|0;t.aw=m.aw|0;if(m.px!=null)t.px=m.px;t.sh=!!m.sh;if(m.fr!=null)t.fr=m.fr;if(mv.length)t.moves=mv.slice(0,4);t.hp=stOf(t)[0];window.__rtMe=t;o.remove();try{closePanel(1)}catch(e){}const cw=document.getElementById('chWin');if(cw)cw.remove();rtGo()}catch(er){console.warn(er);toast('시험 전투를 열지 못했어요')}}}
+window.chMonView=view;
+const _d=chDraw;chDraw=function(){const r=_d.apply(this,arguments);try{document.querySelectorAll('#chList .chmon').forEach(b=>{b.onclick=()=>{sfx('tap');const id=b.closest('.chr')&&b.closest('.chr').dataset.id;const o=CHM.find(x=>x.id===id)||CHM.find(x=>x.id===id);if(o&&o.m)view(o.m,rkSplit(o.name).name);else dexDev(decodeURIComponent(b.dataset.n))}})}catch(e){}return r};
+}catch(e){console.warn('b9bq',e)}})();
 </script>
 </body></html>
