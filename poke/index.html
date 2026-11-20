@@ -5327,7 +5327,7 @@ setInterval(async()=>{try{if(!G||GMOK||GMASK||!gmNumIs()||SCENE!=='over'||DLG.on
 const gmBoard=off=>{const d=new Date(Date.now()+9*36e5);d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()-(off||0));return 'gift-'+d.toISOString().slice(0,7)};
 async function gmMac(id,name,v,sec){const h=await sha(GBSEC+'|GMG|'+id+'|'+name+'|'+v+'|'+sec);return ((h[0]<<12)|(h[1]<<4)|(h[2]>>4))>>>0}
 async function gmSend(to,kind,key,v){const c=wbCfg();if(!c){toast('서버 연결 전이에요');return false}if(!isGM()){toast('운영자만 보낼 수 있어요');return false}
-  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'~'+kind+'~'+key,name=String(to).slice(0,12),sec=Math.floor(Date.now()/1000),t=sec*1048576+await gmMac(id,name,v,sec);
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'~'+kind+'~'+key,name=String(to).startsWith('@')?String(to).slice(0,40):String(to).slice(0,12),sec=Math.floor(Date.now()/1000),t=sec*1048576+await gmMac(id,name,v,sec);
   try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${gmBoard(0)}/players/${encodeURIComponent(id)}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:name},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});if(!r.ok)throw 0;return true}catch(e){toast('보내기 실패 · 인터넷을 확인해 주세요');return false}}
 const gmLabel=(kind,key,v)=>kind==='x'?window.GMXL(key):kind==='m'?(META[key]?META[key].name:key)+' Lv.'+(v&127)+((v>>7)&1?' 이로치':'')+((v>>8)?' ['+(PX[(v>>8)-1]||{}).n+']':''):kind==='i'?(ITEMS[key]?ITEMS[key].n:key)+' ×'+v:kind==='p'?(PKT[key]?PKT[key].n:key)+' ×'+v:kind==='g'?v.toLocaleString()+'원':'?';
 async function gmApply(kind,key,v){if(kind==='m'&&META[key]){const FM=META[key].form&&META[key].base&&META[META[key].base];const m=mkMon(FM?META[key].base:key,Math.max(1,Math.min(100,v&127)));if(FM){m.n=key;G.forms=G.forms||{};G.forms[key]=1}if((v>>7)&1)m.sh=1;if(v>>8)m.px=(v>>8)-1;m.gift=1;m.hp=stOf(m)[0];const M=META[key];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;if(typeof monCapOk==='function'&&!monCapOk(m))soulFrom(m);else if(G.party.length<6)G.party.push(m);else G.box.push(m);try{await CardPack.open({rar:rarOf(key),sh:m.sh?1:0,kind:'P',name:M.name,img:faceUrl(key,'Joyous')})}catch(e){}}
@@ -5336,7 +5336,7 @@ let GMBUSY=0;
 async function gmRecv(){if(GMBUSY||!G||!G.name||!navigator.onLine)return;const c=wbCfg();if(!c)return;GMBUSY=1;G.gmg=G.gmg||{};const got=[];
   try{for(const off of [0,1]){const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/${gmBoard(off)}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)continue;const j=await r.json();
     for(const d of j.documents||[]){const id=decodeURIComponent(d.name.split('/').pop());if(G.gmg[id])continue;const name=(d.fields.name||{}).stringValue||'',v=+((d.fields.v||{}).integerValue||0),t=+((d.fields.t||{}).integerValue||0);
-      const all=name==='*모두';if(!all&&name.split('#')[0].trim()!==String(G.name).split('#')[0].slice(0,12))continue;const sec=Math.floor(t/1048576),mac=t%1048576;if(Date.now()/1000-sec>45*86400)continue;if(all&&G.t0&&sec*1000<G.t0-86400e3)continue;
+      const all=name==='*모두';if(name.startsWith('@')){if(name.slice(1)!==G.pid)continue}else if(!all&&name.split('#')[0].trim()!==String(G.name).split('#')[0].slice(0,12))continue;const sec=Math.floor(t/1048576),mac=t%1048576;if(Date.now()/1000-sec>45*86400)continue;if(all&&G.t0&&sec*1000<G.t0-86400e3)continue;
       if(await gmMac(id,name,v,sec)!==mac)continue;const [,kind,key]=id.split('~');G.gmg[id]=1;got.push([kind,key,v])}}}catch(e){}
   if(got.length){save();closePanel(1);const L=[];for(const [kind,key,v] of got){try{
       const lb=await gmApply(kind,key,v);if(lb)L.push(lb)}catch(e){}}
@@ -5346,7 +5346,7 @@ setInterval(()=>{try{if(G&&SCENE==='over'&&!DLG.on&&!PANEL)gmRecv()}catch(e){}},
 const GMF={to:'',all:0,self:0,tab:'m',sel:null,q:'',lv:50,sh:0,px:0,n:1,names:null,opn:'',opw:'',ops:null};
 async function gmOpen(){if(!isGM()&&!isOp()){toast('운영자만 쓸 수 있어요');return}if(!isGM()){GMF.self=1;if(!['m','p','g'].includes(GMF.tab))GMF.tab='m'}
   if(isGM()&&!GMF.names){GMF.names=[];try{const L=await rankFetch('dex');GMF.names=[...new Set((L||[]).map(x=>rkSplit(x.name).name.split('#')[0].trim()).filter(n=>n&&!isGMName(n)))].slice(0,60)}catch(e){}}gmDraw()}
-const gmTarget=()=>GMF.self?'나':GMF.all?'모두':GMF.to.trim();
+const gmTarget=()=>GMF.self?'나':GMF.all?'모두':(GMF.to.startsWith('@')?(GMF.toLab||'고른 친구'):GMF.to.trim());
 function gmDraw(){const F=GMF,gm=isGM();let list='';const q=F.q.trim();const TB=gm?[['m','포켓몬'],['i','아이템'],['p','카드팩'],['g','돈'],['op','운영자 임명']]:[['m','포켓몬'],['p','카드팩'],['g','돈']];
   const tabs=`<div class="tabs">${TB.map(([k,n])=>`<button data-tb="${k}" class="${F.tab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(F.tab==='op'){opDraw(tabs);return}
@@ -5393,8 +5393,8 @@ async function opDraw(tabs){const F=GMF;if(F.ops===null){F.ops=await opList()||[
     p.querySelectorAll('[data-off]').forEach(b=>b.onclick=()=>{const num=b.dataset.off;itAsk(fmt(num)+' 운영자를 해제할까요?','해제하면 그 번호는 운영자 도구를 못 써요.',async()=>{if(await opSet(num,'',0)){toast('해제했어요');F.ops=null;gmDraw()}else toast('해제 실패 · 인터넷을 확인해 주세요')})})})}
 // ---------- 내가 임명된 운영자인지 (번호 + 비밀번호 한 번) ----------
 let OPREC=null,OPOK=false,OPASK=0,OPCHK=0;
-const isOp=()=>!!(G&&OPREC&&opNorm(G.num)===OPREC.num&&!isGM());
-async function opCheck(){if(!G||!G.num||!navigator.onLine||!wbCfg())return;const num=opNorm(G.num);if(num===GMNUM)return;const L=await opList();if(!L)return;const o=L.find(x=>x.num===num);
+const isOp=()=>!!(G&&OPREC&&(opNorm(G.num)===OPREC.num||OPREC.num==='@'+G.pid)&&!isGM());
+async function opCheck(){if(!G||!navigator.onLine||!wbCfg())return;const num=opNorm(G.num||'');if(num&&num===GMNUM)return;if(isGM())return;const L=await opList();if(!L)return;const o=L.find(x=>(num&&x.num===num)||(G.pid&&x.num==='@'+G.pid));if(o&&o.on&&o.num[0]==='@'){OPREC=o;OPOK=true;return}
   OPREC=o&&o.on?o:null;if(!OPREC){OPOK=false;LS.set('pka-opok','');return}OPOK=LS.get('pka-opok','')===OPREC.h+'|'+num}
 function opPw(){return new Promise(done=>{const o=document.createElement('div');o.id='gmPw';o.innerHTML=`<div class="gmw"><div class="gmt">운영자로 임명됐어요!</div><p>관장님께 받은 <b>운영자 비밀번호</b>를 넣어 주세요.</p><input type="password" id="gmIn" autocomplete="off" placeholder="운영자 비밀번호"><p class="gme"></p><div class="gmb"><button id="gmNo">나중에</button><button id="gmYes" class="main">들어가기</button></div></div>`;document.body.appendChild(o);
   const inp=o.querySelector('#gmIn');setTimeout(()=>{try{inp.focus()}catch(e){}},50);
@@ -9031,6 +9031,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112051,date:'11월 21일',t:'운영자 관리 · 사람 고르기',items:[{img:'',h:'👤 사람 골라서 관리',p:['GM 선물 창에 <b>「사람 고르기」</b>가 생겼어요. 채팅 · 랭킹에 나온 친구를 진행도 · 자랑한 포켓몬을 보면서 골라요.','고른 사람에게만 선물이 가요. <b>이름이 같아도 그 한 명만</b> 받아요.','번호 없이 <b>그 사람을 바로 운영자로 임명 · 해제</b>할 수 있어요.']}]},
  {v:2026112050,date:'11월 21일',t:'채팅 진행도 꾸미기',items:[{img:'',h:'💬 채팅 진행도',p:['채팅 이름 옆 진행도가 <b>랭킹 진행도와 같은 모양</b>으로 나와요. 환생 횟수 · 난이도 배지(지옥부터 반짝반짝) · 진행 단계.','각성 별도 게임과 같은 보라색 별로 나와요.']}]},
  {v:2026112049,date:'11월 21일',t:'자랑 카드 보완',items:[{img:'',h:'💬 자랑 카드',p:['진행도 꼬리표(○환생 · 난이도 · 배지)가 빠진 메시지도 그 사람의 진행도가 나와요.','기술 중 <b>따로 배운 기술</b>(기본 기술이 아닌 것)은 주황 표시가 붙어요. 써 보기에서 그 기술 그대로 써 볼 수 있어요.','옛 버전 자랑은 「영웅」 대신 <b>등급 · 각성 모름</b>으로 나와요. 다시 자랑하면 진짜 모습이 보여요.']}]},
  {v:2026112048,date:'11월 21일',t:'자랑 카드 상세 · 써 보기',items:[{img:'',h:'💬 자랑 카드를 누르면',p:['그 친구 포켓몬의 <b>초월 등급 · 각성 별 · 능력치 · 기술 4개</b>가 나와요.','<b>「이 포켓몬으로 써 보기」</b>를 누르면 그 포켓몬으로 시험 전투를 해 볼 수 있어요 (저장 · 보상 없음).','칭호만 있던 친구도 왼쪽 휘장 · 순위 배지가 보여요.','레벨업 글이 「레벨 3」처럼 환생 전 숫자로 나오던 걸 고쳤어요 (Lv.103처럼).']}]},
@@ -10067,5 +10068,43 @@ function view(m,who){const M=META[m.n];if(!M)return;const old=!m.st;const r=rarM
 window.chMonView=view;
 const _d=chDraw;chDraw=function(){const r=_d.apply(this,arguments);try{document.querySelectorAll('#chList .chmon').forEach(b=>{b.onclick=()=>{sfx('tap');const id=b.closest('.chr')&&b.closest('.chr').dataset.id;const o=CHM.find(x=>x.id===id)||CHM.find(x=>x.id===id);if(o&&o.m)view(o.m,rkSplit(o.name).name);else dexDev(decodeURIComponent(b.dataset.n))}})}catch(e){}return r};
 }catch(e){console.warn('b9bq',e)}})();
+</script>
+<script id="b9br">
+// 9BR 운영자 관리: 번호 · 닉네임 입력 대신 「사람 고르기」 — 채팅 · 랭킹에 나온 사람을 포켓몬 기록 보며 골라서 선물 · 운영자 임명 (같은 이름이어도 그 사람 한 명만)
+(function(){try{
+const css=document.createElement('style');css.textContent=`
+#opPick{position:fixed;inset:0;z-index:99995;background:#05081acc;display:flex;align-items:center;justify-content:center;padding:10px}
+#opPick .w{width:min(680px,96vw);max-height:92vh;overflow:auto;background:#fdf6e3;border:4px solid #1c2550;box-shadow:0 6px 0 #0b0f24;padding:12px;font-family:Galmuri11,sans-serif;color:#1c2550}
+#opPick h3{margin:0 0 6px}#opPick input{width:100%;font:700 16px Galmuri11;padding:8px;border:3px solid #1c2550;margin-bottom:8px;box-sizing:border-box}
+#opPick .p{display:flex;gap:8px;align-items:center;border:3px solid #1c2550;background:#fff;padding:6px 8px;margin-bottom:6px;box-shadow:0 2px 0 #1c2550}
+#opPick .p>img{width:40px;height:40px;image-rendering:pixelated}
+#opPick .p .i{flex:1;min-width:0}#opPick .p .i b{font-size:15px}#opPick .p .i small{display:block;color:#666;font-size:11px}
+#opPick .mons{display:flex;gap:2px;margin-top:2px}#opPick .mons img{width:26px;height:26px;image-rendering:pixelated;background:#eee;border-radius:3px}
+#opPick .p .bt{display:flex;flex-direction:column;gap:4px}
+#opPick .p .bt div{padding:6px 10px;font-weight:900;font-size:12px;border:2px solid #0b0f24;box-shadow:0 2px 0 #0b0f24;cursor:pointer;background:#ffd75e;text-align:center;white-space:nowrap}
+#opPick .p .bt div.o{background:#c9b6ff}#opPick .p .bt div.off{background:#ffb3b3}
+#opPick .x{margin-top:8px;text-align:center;padding:10px;border:3px solid #0b0f24;background:#e8e4d4;font-weight:900;cursor:pointer}`;document.head.appendChild(css);
+function people(){const P=new Map();const add=(pid,name,o)=>{if(!pid||pid===G.pid)return;const r=rkSplit(name||'');const p=P.get(pid)||{pid,name:r.name.replace(/^\[GM\]/,''),rep:r.rep,adv:0,mons:new Set(),seen:0};if(o){if(o.adv)p.adv=o.adv;if(o.m&&o.m.n)p.mons.add(o.m.n);p.seen=Math.max(p.seen,o.ms||0)}if(r.rep)p.rep=r.rep;P.set(pid,p)};
+  try{for(const o of CHM)add(o.pid,o.name,o)}catch(e){}try{for(const x of (WBC.list||[]))add(x.id,x.name)}catch(e){}
+  return [...P.values()].sort((a,b)=>b.seen-a.seen)}
+async function pick(){if(!isGM()){toast('관장님만 쓸 수 있어요');return}let ops=[];try{ops=await opList()||[]}catch(e){}
+  const opOn=new Set(ops.filter(x=>x.on&&x.num[0]==='@').map(x=>x.num.slice(1)));
+  const L=people();const o=document.createElement('div');o.id='opPick';
+  const row=p=>{const rr=p.adv?advS({adv:p.adv,pid:p.pid}):'';return `<div class="p" data-q="${esc(p.name)}"><img src="${p.rep&&THUMB[p.rep]?THUMB[p.rep]:''}" alt=""><div class="i"><b>${esc(p.name)}</b> ${rr}<small>고유번호 …${esc(p.pid.slice(-6))}${opOn.has(p.pid)?' · <b style="color:#7a2ad8">운영자</b>':''}</small>${p.mons.size?`<div class="mons">${[...p.mons].slice(0,8).map(n=>`<img src="${THUMB[n]||''}" title="${esc(META[n]?META[n].name:'')}">`).join('')}</div>`:''}</div>
+    <div class="bt"><div data-gift="${p.pid}" data-n="${esc(p.name)}">🎁 선물</div>${opOn.has(p.pid)?`<div class="off" data-opoff="${p.pid}" data-n="${esc(p.name)}">운영자 해제</div>`:`<div class="o" data-opon="${p.pid}" data-n="${esc(p.name)}">⭐ 운영자 임명</div>`}</div></div>`};
+  o.innerHTML=`<div class="w"><h3>사람 고르기</h3><p style="font-size:12px;margin:0 0 6px">채팅 · 월드보스 랭킹에 나온 친구들이에요. 이름이 같아도 <b>고른 그 사람 한 명</b>에게만 가요. (포켓몬 그림 = 채팅에서 자랑한 포켓몬)</p><input placeholder="이름으로 찾기"><div class="L">${L.map(row).join('')||'<p>아직 목록에 사람이 없어요. 채팅을 한 번 열어 주세요.</p>'}</div><div class="x">닫기</div></div>`;
+  document.body.appendChild(o);o.querySelector('.x').onclick=()=>o.remove();o.onclick=e=>{if(e.target===o)o.remove()};
+  o.querySelector('input').oninput=e=>{const q=e.target.value.trim();o.querySelectorAll('.p').forEach(r=>r.style.display=!q||r.dataset.q.includes(q)?'':'none')};
+  o.querySelectorAll('[data-gift]').forEach(b=>b.onclick=()=>{sfx('tap');GMF.self=0;GMF.all=0;GMF.to='@'+b.dataset.gift;GMF.toLab=b.dataset.n+' (…'+b.dataset.gift.slice(-4)+')';if(GMF.tab==='op')GMF.tab='m';o.remove();gmOpen()});
+  o.querySelectorAll('[data-opon]').forEach(b=>b.onclick=()=>{const pid=b.dataset.opon,n=b.dataset.n;itAsk(esc(n)+'을(를) 운영자로 임명할까요?','번호 없이 <b>이 사람 한 명</b>만 운영자가 돼요. 이름 앞에 [GM]이 붙고, 나에게 골드 · 포켓몬 · 카드팩을 줄 수 있어요. 랭킹에는 안 올라가요.',async()=>{if(await opSetPid(pid,1)){sfx('badge');toast(n+' 운영자 임명!');o.remove();pick()}else toast('임명 실패 · 인터넷을 확인해 주세요')})});
+  o.querySelectorAll('[data-opoff]').forEach(b=>b.onclick=()=>{const pid=b.dataset.opoff,n=b.dataset.n;itAsk(esc(n)+' 운영자를 해제할까요?','',async()=>{if(await opSetPid(pid,0)){toast('해제했어요');o.remove();pick()}else toast('해제 실패')})})}
+async function opSetPid(pid,on){const c=wbCfg();if(!c||!isGM())return false;const id='op~@'+pid,name=on?'pid':'',v=on?1:0,sec=Math.floor(Date.now()/1000),t=sec*1048576+await gmMac(id,name,v,sec);
+  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/gmop/players/${encodeURIComponent(id)}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:name},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});return r.ok}catch(e){return false}}
+window.opPick=pick;
+// 운영자 창에 「사람 고르기」 버튼
+setInterval(()=>{try{if(!isGM())return;const p=document.querySelector('.panel');if(!p)return;const to=p.querySelector('.gmto');if(to&&!to.querySelector('[data-pk9]')){const b=document.createElement('button');b.dataset.pk9=1;b.textContent='👤 사람 고르기';b.style.cssText='background:#ffd75e;font-weight:900';b.onclick=()=>{sfx('tap');pick()};to.appendChild(b);const inp=to.querySelector('#gmTo');if(inp&&GMF.to.startsWith('@')){inp.value=GMF.toLab||'';inp.disabled=true}}}catch(e){}},400);
+// 채팅 자랑 상세에서도
+{const _v=window.chMonView;if(_v)window.chMonView=function(){_v.apply(this,arguments)}}
+}catch(e){console.warn('b9br',e)}})();
 </script>
 </body></html>
