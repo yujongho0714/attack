@@ -8910,6 +8910,9 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112021,date:'11월 20일',t:'천계 도전 조건 창 · 필수 가이드 퀘스트',items:[
+  {img:'',h:'⚠ 도전 조건 창 (항상 보여요)',p:['천계 · 천상계에서는 화면 오른쪽에 <b>「도전 조건」</b> 창이 떠요.','출결 캐릭터 · 장비 끼기 · 장비 공격력 · 각성 ★ · 전투력을 <b>막대 그래프</b>로 보여 줘요. 빨강 = 위험, 노랑 = 조금 부족, 초록 = 충분.','「올리기」를 누르면 바로 그 화면으로 가요. 위쪽을 누르면 작게 접혀요.','최소 조건을 다 채우면 창이 사라져요!']},
+  {img:'',h:'📋 필수 퀘스트',p:['천계 가이드 퀘스트 1번 = <b>[필수] 출결 캐릭터 가져오기</b> (출석 앱 「QR로 한 번에 받기」 → 게임 「QR 옮기기」), 2번 = <b>[필수] 장비 4부위 끼기</b>.','장비가 있어야 천계 상대를 이길 수 있어요!']}]},
  {v:2026112020,date:'11월 20일',t:'월드보스 연습 모드!',items:[
   {img:'',h:'🎯 연습 모드',p:['월드보스 화면 「보스에게 도전!」 <b>바로 밑</b>에 「연습 모드」가 생겼어요.','도전 횟수를 안 쓰고, 랭킹 · 보상에도 안 들어가요. 싸운 뒤 포켓몬 체력도 그대로예요.','편성을 바꿔 가며 몇 데미지가 나오는지 마음껏 연습해요. 내 연습 최고 기록도 보여요!','카오스 월드보스 카드도 연습 모드 바로 밑으로 올라왔어요.']},
   {img:'',h:'🍀 관장 재대결 행운은 하루 1번',p:['천계 · 천상계 관장 재대결 5% 보상(불멸의 핵 · 태초의 숨결)은 <b>하루 1개</b>까지 나와요.']}]},
@@ -9363,7 +9366,10 @@ const fcN=(d,p)=>Object.keys(G.fc||{}).filter(k=>k.startsWith(d+':'+p)).length;
 const cDmg=()=>{try{const w=(G.wbK||'n')==='c'?G.wb:G.wb_c;return w&&w.wk===wbWeekB()?(w.dmg|0):0}catch(e){return 0}};
 const fm=n=>n>=1e8?(n/1e8).toFixed(n%1e8?1:0)+'억':n>=1e4?Math.round(n/1e4).toLocaleString()+'만':n.toLocaleString();
 // id · 할 일 · [지금 값, 목표] · 보상 · 가기
+const eqN=()=>{try{return Object.values((G.me&&G.me.eq)||{}).filter(Boolean).length}catch(e){return 0}};
 const Q={6:[
+ ['6q','[필수] 출결 캐릭터 가져오기 (QR로 장비 받기)',()=>[G.me?1:0,1],{cube:3},'qr'],
+ ['6r','[필수] 장비 4부위 끼기',()=>[eqN(),4],{cube:3},'gr'],
  ['6a','낮은 난이도에서 골드 50만 모으기',()=>[G.money|0,500000],{cube:2},'df'],
  ['6b','포켓몬 1마리 각성하기 (★1)',()=>[awN(1),1],{gem:3},'aw'],
  ['6c','장비 강화 · 공격력 +10%',()=>[gAtk(),10],{cube:3},'gr'],
@@ -9402,8 +9408,41 @@ function tgOpen(tab){if(!G)return;G.tgq=G.tgq||{};tab=tab||(reach(7)?7:6);const 
    p.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);tgOpen(+b.dataset.tb)});
    p.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>{if(lock)return;const q=Q[tab].find(x=>x[0]===b.dataset.rw);if(!q||G.tgq[q[0]]||!st(q).done)return;G.tgq[q[0]]=1;give(q[3]);save();try{hud()}catch(e){}try{sfx('badge')}catch(e){}toast('퀘스트 보상: '+rwT(q[3]));closePanel(1);tgOpen(tab)});
    p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);const g=b.dataset.go;
-     try{if(g==='df')diffOpen();else if(g==='aw')awOpen();else if(g==='gr')gearOpen();else if(g==='tr')window.trOpen&&trOpen();else if(g==='wb')wbOpen(window.WBOPEN&&WBOPEN('c')?'c':'n');else if(g==='lg'){toast('난이도를 '+nm+'으로 하고, 지도에서 체육관 · 포켓몬 리그로 가서 도전해요!');diffOpen()}}catch(e){}})})}
+     try{if(g==='qr'){toast('출석 앱의 「QR로 한 번에 받기」 화면을 찍어요!');xferOpen()}else if(g==='df')diffOpen();else if(g==='aw')awOpen();else if(g==='gr')gearOpen();else if(g==='tr')window.trOpen&&trOpen();else if(g==='wb')wbOpen(window.WBOPEN&&WBOPEN('c')?'c':'n');else if(g==='lg'){toast('난이도를 '+nm+'으로 하고, 지도에서 체육관 · 포켓몬 리그로 가서 도전해요!');diffOpen()}}catch(e){}})})}
 window.tgOpen=tgOpen;
+// ===== 9AS 도전 조건 창: 천계 · 천상계에서 '무엇이 낮은지' 항상 보여요 (최소 조건 다 채우면 사라져요) =====
+const party6=()=>(G.party||[]).slice(0,6);
+const awSum=()=>party6().reduce((a,m)=>a+((m.aw|0)),0);
+const refCP=(aw,ax,n)=>{try{const k=SPECIES.find(x=>META[x].dex===n)||SPECIES[0];const m=mkMon(k,100);m.aw=aw;if(ax)m.ax=ax;m.rbx=G.rebirth|0;return CP.mon(m)*6}catch(e){return 0}};
+let RC={};const rcp=(d)=>{const k=d+':'+(G.rebirth|0);if(RC[k]==null)RC[k]=d>=7?refCP(3,5,249):refCP(1,0,249);return RC[k]};
+const REQ={6:[
+  ['출결 캐릭터 (장비)',()=>[G.me?1:0,1],'qr','없음!','있음'],
+  ['장비 끼기',()=>[eqN(),4],'gr','부위','부위'],
+  ['장비 공격력',()=>[gAtk(),20],'gr','%','%'],
+  ['파티 각성 ★ 합',()=>[awSum(),6],'aw','개','개'],
+  ['파티 전투력',()=>[(()=>{try{return CP.list(party6())}catch(e){return 0}})(),rcp(6)],'aw','','']],
+ 7:[
+  ['출결 캐릭터 (장비)',()=>[G.me?1:0,1],'qr','없음!','있음'],
+  ['장비 끼기',()=>[eqN(),6],'gr','부위','부위'],
+  ['장비 공격력',()=>[gAtk(),50],'gr','%','%'],
+  ['파티 각성 ★ 합',()=>[awSum(),18],'aw','개','개'],
+  ['신화 이상 포켓몬',()=>[rarN(4),2],'tr','마리','마리'],
+  ['파티 전투력',()=>[(()=>{try{return CP.list(party6())}catch(e){return 0}})(),rcp(7)],'aw','','']]};
+const fmS=v=>v>=1e4?fm(Math.round(v)):String(Math.round(v));
+function reqNow(){const d=Math.max(DIFF(),G.rbd|0);if(d<6||DIFF()<6)return null;const k=d>=7&&DIFF()>=7?7:6;
+  const L=REQ[k].map(r=>{let v=[0,1];try{v=r[1]()}catch(e){}return{n:r[0],cur:v[0],need:v[1],ok:v[0]>=v[1],go:r[2],u:r[3],uo:r[4]}});return{k,L,bad:L.filter(x=>!x.ok)}}
+let RH=null,RHc=0;
+function reqDraw(){try{const on=G&&SCENE==='over'&&!document.getElementById('rtbRoot')&&!document.body.classList.contains('wbsw');const q=on?reqNow():null;
+  if(!q||!q.bad.length){if(RH)RH.style.display='none';return}
+  if(!RH){RH=document.createElement('div');RH.id='reqHud';document.body.appendChild(RH);RH.onclick=e=>{const g=e.target.closest('[data-rg]');if(g){e.stopPropagation();sfx('tap');const x=g.dataset.rg;try{if(x==='qr')xferOpen();else if(x==='gr')gearOpen();else if(x==='aw')awOpen();else if(x==='tr')window.trOpen&&trOpen()}catch(er){}return}if(e.target.closest('.rqh')){RHc^=1;reqDraw();return}tgOpen()}}
+  RH.style.display='block';const nm=DNAME[q.k],ok=q.L.length-q.bad.length;
+  RH.className=RHc?'mini':'';
+  RH.innerHTML=`<div class="rqh">⚠ ${nm} 도전 조건 <b>${ok}/${q.L.length}</b><i>${RHc?'▼':'▲'}</i></div>${RHc?`<div class="rqw">${q.bad[0].n} 너무 낮아요!</div>`:`<div class="rqw">너무 낮아서 <b>위험해요!</b> 지금은 ${nm} 상대를 이기기 어려워요</div>`+
+    q.L.map(x=>{const p=Math.max(0,Math.min(1,x.cur/x.need)),col=p>=1?'#3ddc84':p>=.6?'#ffc83d':'#ff3b4e',lv=p>=1?'충분':p>=.6?'조금 부족':'위험';
+      return `<div class="rqr ${x.ok?'ok':'no'}"><div class="rqt"><span>${x.ok?'✔':'✖'} ${x.n}</span><em style="color:${col}">${lv}</em>${x.ok?'':`<button data-rg="${x.go}">올리기</button>`}</div>
+       <div class="rqb"><u style="width:${(p*100).toFixed(0)}%;background:${col}"></u><s></s><small>${x.need===1&&x.u==='없음!'?(x.ok?x.uo:'없음 → 꼭 필요!'):'내 '+fmS(x.cur)+(x.u?x.u:'')+' · 권장 '+fmS(x.need)+(x.u?x.u:'')}</small></div></div>`}).join('')+`<div class="rqf">탭하면 가이드 퀘스트 · 낮은 난이도에서 골드 · 영혼을 모아요</div>`}`}catch(e){}}
+setInterval(reqDraw,1500);
+const css2=document.createElement('style');css2.textContent="#reqHud{position:fixed;right:6px;top:108px;z-index:40;width:250px;max-height:calc(100vh - 190px);overflow:auto;background:linear-gradient(#3a0d18,#1e0710);border:3px solid #ff3b4e;box-shadow:0 0 0 2px #0b0f24,0 4px 0 #0b0f24,0 0 18px #ff3b4e88;color:#fff;font:900 11px 'Galmuri11',monospace;cursor:pointer;animation:rqp 1.6s infinite}#reqHud.mini{width:auto;min-width:170px}@keyframes rqp{50%{box-shadow:0 0 0 2px #0b0f24,0 4px 0 #0b0f24,0 0 4px #ff3b4e44}}#reqHud .rqh{background:#ff3b4e;color:#fff;padding:4px 6px;font-size:12px;display:flex;gap:6px;align-items:center}#reqHud .rqh b{color:#ffe14a}#reqHud .rqh i{margin-left:auto;font-style:normal}#reqHud .rqw{padding:4px 6px;color:#ffd0d6;font-size:11px}#reqHud .rqw b{color:#ff6a7a}#reqHud .rqr{padding:4px 6px;border-top:1px solid #ffffff22}#reqHud .rqt{display:flex;align-items:center;gap:4px}#reqHud .rqt span{flex:1}#reqHud .rqt em{font-style:normal;font-size:10px}#reqHud .rqb{position:relative;height:14px;margin-top:3px;background:#0b0f24;border:2px solid #000}#reqHud .rqb u{position:absolute;left:0;top:0;bottom:0}#reqHud .rqb s{position:absolute;right:0;top:-3px;bottom:-3px;width:3px;background:#fff;box-shadow:0 0 4px #fff}#reqHud .rqb small{position:relative;display:block;text-align:center;font:900 9px/10px 'Galmuri11',monospace;color:#fff;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000}#reqHud .rqr.ok{opacity:.55}#reqHud .rqr.ok span{color:#7dffb0}#reqHud .rqr.no span{color:#ff8a96}#reqHud .rqr button{padding:2px 5px;border:2px solid #0b0f24;background:#ffd23f;color:#1c2550;font:900 10px 'Galmuri11',monospace}#reqHud .rqf{padding:3px 6px;color:#ffb3bd;font-size:10px;border-top:1px solid #ffffff22}";document.head.appendChild(css2);
 const css=document.createElement('style');css.textContent=".tgq{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:8px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 3px 0 #0b0f24}.tgq.rd{background:#fff1b8;border-color:#e0a000}.tgq.got{opacity:.6}.tgq i{font-style:normal;width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;background:#3a1f5c;color:#ffd23f;font:900 16px 'Galmuri11',monospace;border:3px solid #0b0f24}.tgq.got i{background:#2e8b57;color:#fff}.tgq span{flex:1;min-width:0}.tgq span>b{display:block;color:#1c2550;font-size:14px}.tgq small{color:#3c4262;font-size:12px}.tgb{position:relative;height:16px;margin:4px 0;background:#d9d4bf;border:2px solid #1c2550}.tgb u{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#ffd23f,#e09a00)}.tgb em{position:relative;display:block;text-align:center;font:900 11px/12px 'Galmuri11',monospace;font-style:normal;color:#1c2550}.tgq button{flex:none;padding:8px 10px;border:3px solid #0b0f24;background:#fff;color:#1c2550;font:900 12px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24}.tgq button.main{background:#ffd23f;animation:tgp 1s infinite}@keyframes tgp{50%{transform:scale(1.06)}}.tglk{filter:grayscale(.7);pointer-events:none}";document.head.appendChild(css);
 // 컨텐츠 목록: 월드보스 바로 밑
 try{const card={k:'tg',n:'🌌 천계 · 천상계 가이드 퀘스트',d:'천계부터는 상대가 엄청 세요! 낮은 난이도에서 골드 · 영혼 모으기 → 각성 → 장비 강화 → 승급 → 카오스 월드보스 → 관장 · 사천왕 · 챔피언. 하나씩 하면 보상을 받아요.',
