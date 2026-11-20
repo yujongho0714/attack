@@ -71,7 +71,11 @@ function moveInfo(id){
   let d=id==='struggle'?STRUGGLE:((C.RZM&&C.RZM[id])||(C.SGD&&C.SGD[id]));   // 7F: 직접 만든 전설 기술(sg_*)은 host가 준 SGD 정의
   if(!d){const g=C.mv(id)||{};d={n:g.name||id,t:g.type||'NORMAL',c:g.ph?0:1,p:g.pw||0,a:g.acc||100,pr:g.pri||0,k:g.ph?'melee':'projectile',kd:'',sb:'',aim:'direction',ef:[],f:''};}
   const st=d.c===2||!(d.p>0);
-  const k=d.k, exec=isExecute(d), fx=(d.ef||[]).find(x=>x.op==='fixed'&&x.mode!=='execute')||null;
+  const _mm=window.BEAMFX?BEAMFX.meleeMode(d.n,d.t):'',_qk=d.k==='pulse'&&d.t==='GROUND'&&!C.meleeClose;   // 9V-5: 땅 타입 퍼지는 기술(지진·땅고르기·땅가르기·매그니튜드)
+  const _pvx=!!(C.net||C.pvp||C.meTeam),_bl=_pvx&&d.k==='melee';   // 9X: 사람끼리 대전이면 근접 기술은 못 날림 → 순간이동해서 붙어 때리고, 맞으면 경직
+  const _sk=window.BEAMFX&&BEAMFX.sprKind&&!C.meleeClose&&!_bl?BEAMFX.sprKind(d.n,d.t,d.k):null;   // 9W: 그림 이펙트 기술(지진·번개·바위 떨어뜨리기 → 상대 몸에서, 파도 → 날아감)
+  const k=_bl?'target':_sk?_sk.k:_qk?'target':(d.k==='melee'&&!C.meleeClose)?((_mm==='slash'||_mm==='bite'||_mm==='claw')?'target':'projectile'):d.k, exec=isExecute(d),   // 베기·할퀴기·깨물기·지진은 상대 몸에서 바로 터짐(target), 주먹만 날아감   // 9V-4: 베기 기술은 상대 몸에서 바로 X자로 터짐(target), 나머지 근접은 날아감   // 9V: 붙어서 때리는 기술도 날아가는 기술로
+   _k0=d.k, fx=(d.ef||[]).find(x=>x.op==='fixed'&&x.mode!=='execute')||null;
   const p=st?0:exec?200:d.p<=1?60:d.p, g=gradeOf(p); // 즉사기=위력200, 위력1짜리(고정피해 등)=기본 60
   const melee=!!MELEE_K[k];
   let su=(melee?ST_MELEE:ST_RANGE)[g];
@@ -82,7 +86,8 @@ function moveInfo(id){
   const cdi=cooldownOf(d,k,p,st);
   const cd=cdi.sec;
   const mh=(d.ef||[]).find(x=>x.op==='multiHit')||null,li=(d.ef||[]).find(x=>x.op==='lockIn')||null;
-  const o={id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,hasted:cdi.hasted,phys:d.c===0,exec,fx,selfko:opsOf(d).includes('selfKO'),rech:opsOf(d).includes('recharge'),hits:hitsOf(d),mh};
+  const o={id,d,name:d.n,type:d.t,p,st,k,kd:d.kd,g,melee,su:Math.round(su),cd,hasted:cdi.hasted,phys:d.c===0,exec,fx,selfko:opsOf(d).includes('selfKO'),rech:opsOf(d).includes('recharge'),hits:hitsOf(d),mh};if(_k0==='melee'&&k==='target'&&_mm==='slash')o.sl=1;   // 9Y: 베기 = 그어지는 획 수만큼 여러 번 맞음
+if(_bl)o.blink=1;if(_sk){o.spr=_sk.spr;if(_sk.spr==='wave')o.mel=1}if(_qk)o.quake=1;if(_k0==='melee'&&k==='projectile')o.mel=1;
   // 6C-4 다단 기술 = 충전(charges): 한 번 누르면 한 대, 충전이 하나씩 다시 참 (원본 multiHit.charges)
   if(mh&&!st){const five=mh.n==null&&mh.min!=null,n=five?0:Math.round(mh.n||0);
     if(five||n>=2){const mx=five?CHG.max5:Math.min(CHG.cap,n),typ=five?CHG.canon:n;
@@ -107,6 +112,7 @@ function skillFx(e,m,a,b,opt){
     const key=m.id,now=W.time;
     if(!opt.force&&e._fxK===key&&now-(e._fxT||0)<.4)return;   // 같은 기술 연속 재생 방지(구르기·연타)
     e._fxK=key;e._fxT=now;
+    if(NFX()&&(!opt.force||m.k==='target')&&/^(melee|roll|target|vanish)$/.test(m.k)){const _ht=HT(e,m);if(_ht.aw)BEAMFX.crackle(b.x,b.y-30,(e.r||40)*1.6,_ht.aw,.5);if(m.spr&&m.spr!=='wave'&&m.spr!=='quake'){BEAMFX.sprite(m.spr,b.x,b.y+30,m.spr==='thunder'?380:340);return}if(m.quake){BEAMFX.quake(m.type,b.x,b.y-10,Math.max(.9,Math.min(1.4,(e.r||40)/36)));return}const mm=BEAMFX.meleeMode(m.name,m.type),n=mm==='slash'?1+_ht.n:Math.min(3,_ht.n),sz=mm==='slash'?Math.max(1.15,Math.min(1.6,(e.r||40)/30)):mm==='punch'?Math.max(.55,Math.min(1,(e.r||40)/48)):Math.max(1,Math.min(1.4,(e.r||40)/34));BEAMFX.melee(m.type,mm,a.x,a.y-30,b.x,b.y-30,n,sz);return}   // 9U
     const F=C.fxe,S=opt.S||fxS(m),g=C.mv(m.id)||{id:m.id,name:m.name,type:m.type,pw:m.p};
     const tg=foeOf(e);
     const x={A:fxActor(e),B:fxActor(tg),fa:{x:a.x,y:a.y},fb:{x:b.x,y:b.y},S,d:b.x>=a.x?1:-1,a:{x:a.x,y:a.y-S*.6},b:{x:b.x,y:b.y-S*.55},pose:()=>{},hit:()=>{}};
@@ -121,6 +127,14 @@ const PSKIN={FIRE:['pa2d/ember',{row:2,sc:26,fps:12}],WATER:['pa2d/pulsoagua',{r
   FIGHTING:['pa2d/aurasphere',{row:2,sc:14,fps:12,blend:'lighter'}],FAIRY:['fairy/moonblast_sheet',{sc:12,fps:10,blend:'lighter'}],ROCK:['pa2d/roca',{row:1,sc:22,fps:8}],
   GROUND:['pa2d/lodo',{row:0,sc:30,fps:12}],POISON:['pa2d/lodo',{row:0,sc:30,fps:12,filter:'hue-rotate(250deg)'}],FLYING:['pa2d/aeroanillo',{sc:30,fps:14}],
   DRAGON:['polished-20/dracometeor',{sc:30,fps:10}],BUG:['pa2d/cuchilla',{row:0,sc:16,fps:20}],STEEL:['pa2d/cuchilla',{row:0,sc:16,fps:20,filter:'saturate(0)'}],NORMAL:['pa2d/cuchilla',{row:0,sc:16,fps:20,filter:'saturate(.2) brightness(1.3)'}]};
+// 9U: 유도 · 기술 레벨
+//  HOM: 내 포켓몬이 '야생·트레이너·보스(사람 아닌 상대)'에게 쏠 때만 유도 (친구 대전·난투전·상대가 나에게 쏠 땐 유도 없음)
+const HOM=e=>!!e&&e.side===0&&!C.pvp&&!C.net&&!C.meTeam&&!C.noHome;
+const MLV=(e,m)=>{try{return e&&e.side===0&&C.mlvOf?((C.mlvOf(e.mon,m.id)|0)||1):1}catch(er){return 1}};
+const NFX=()=>!!(window.BEAMFX&&fxOn());
+// 9Z: 타수·각성 — 보통 기술은 환생 횟수만큼 타수(0회 1 · 1회 2 · 2회 3 · 3회+ 4), 각성 ★마다 기운(테두리·번개)
+//     전설 기술(sg_*)은 많이 쓸수록 오르는 기술 레벨로 타수·기운 (난투전은 모두 1타·기운 없음)
+const HT=(e,m)=>{try{if(!e||!m||e.side!==0||C.net||!C.hitTier)return{n:1,aw:0};e._ht=e._ht||{};return e._ht[m.id]||(e._ht[m.id]=C.hitTier(e.mon,m.id))}catch(er){return{n:1,aw:0}}};
 function projSkin(p,m){
   if(!fxOn())return null;
   try{const d=PSKIN[m.type]||PSKIN.NORMAL,S=fxS(m)*(m.p>=110?1.25:1);
@@ -298,7 +312,7 @@ function dealDamage(att,def,mi,opt){
   else{
     if(dc)cancelCast(def,!!(interrupt||buffBreak||beamBreak));
     const mine=true;   // 9J: 내 포켓몬은 맞아도 덜 굳고 덜 밀려요(조작이 안 막히게)
-    def.stun=Math.max(def.stun,mine?Math.round(STUN[m.g]*.3):STUN[m.g]);
+    def.stun=Math.max(def.stun,mine?Math.round(STUN[m.g]*.3):STUN[m.g]);if(opt.blink)def.stun=Math.max(def.stun,30);   // 9X: 순간이동 근접에 맞으면 0.5초 경직
     def.kx+=dirv.x*kb*(mine?4:8);def.ky+=dirv.y*kb*(mine?4:8);
   }
   def.sleepWake=1; if(def.ail.sleep){delete def.ail.sleep}
@@ -435,10 +449,11 @@ function fire(e,c){
   } else if(k==='projectile'){
     const special=!m.phys;
     const nF=Math.max(1,m.d.fan|0);   // 7F: fan=여러 발을 부채꼴로 한 번에(한 발 위력은 나눔)
-    for(let fj=0;fj<nF;fj++){const fa=c.aim+(fj-(nF-1)/2)*.22,fu={x:Math.cos(fa),y:Math.sin(fa)};
-    W.proj.push({o:e,mi:c.mi,pm:nF>1?1.6/nF:0,x:e.x+fu.x*e.r,y:e.y+fu.y*e.r,dx:fu.x,dy:fu.y,sp:(special?480:430)*(.9)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(1.15)*(m.d.sb==='bolt'?1.25:1)*szMul(e,0),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
-      hm:/^homing/.test(m.d.sb||'')?60:0});
-    {const P=W.proj[W.proj.length-1];P.fxa=projSkin(P,m)}}
+    const nB=window.BEAMFX?HT(e,m).n:1,bpm=(1+.2*(nB-1))/nB,pmA=(nF>1?1.6/nF:1)*bpm;   // 9U: 기술 레벨이 오르면 여러 발 (Lv.3·5·7마다 1발 더, 한 발 위력은 나눔 + 조금 보너스)
+    for(let bj=0;bj<nB;bj++)for(let fj=0;fj<nF;fj++){const fa=c.aim+(fj-(nF-1)/2)*.22+(bj?(rnd()-.5)*.14:0),fu={x:Math.cos(fa),y:Math.sin(fa)};
+    W.proj.push({o:e,mi:c.mi,pm:pmA===1?0:pmA,wait:bj*7,mel:m.mel?(m.spr==='wave'?'wave':window.BEAMFX?BEAMFX.meleeMode(m.name,m.type):'slash'):0,x:e.x+fu.x*e.r,y:e.y+fu.y*e.r,dx:fu.x,dy:fu.y,sp:(special?480:430)*(.9)*(m.d.sb==='bolt'?1.1:/^homing/.test(m.d.sb||'')?.85:1),r:(m.st?16:heavy?20:13)*(1.15)*(m.d.sb==='bolt'?1.25:1)*szMul(e,0),range:690,tr:0,col:C.TCOL[m.type]||'#fff',st:m.st,
+      hm:HOM(e)?(/^homing/.test(m.d.sb||'')?75:45):0,hr:/^homing/.test(m.d.sb||'')?220:130});
+    {const P=W.proj[W.proj.length-1];P.fxa=NFX()?null:projSkin(P,m);P.aw=HT(e,m).aw}}
     toRecovery(e,c);
   } else if(k==='beam'){
     const T=clamp(m.p/150,1.1,1.8);phaseTo(e,'active',Math.round(T*60));c.L=0;c.maxL=clamp(360+m.p*1.5,360,690);
@@ -466,9 +481,13 @@ function fire(e,c){
     toRecovery(e,c);
   } else if(k==='target'){
     if(tgt.hp>0&&len(tgt.x-e.x,tgt.y-e.y)<=550+tgt.r){
-      W.fx.push({k:'beamline',x:e.x,y:e.y,x2:tgt.x,y2:tgt.y,t:0,life:.25,c:C.TCOL[m.type]||'#fff'});
+      if(m.blink){const d0=norm(tgt.x-e.x,tgt.y-e.y),x0=e.x,y0=e.y,gap=e.r*.6+tgt.r*.6+18,nx=tgt.x-d0.x*gap,ny=tgt.y-d0.y*gap;   // 9X 순간이동: 지나간 길에 잔상 7개
+        for(let i=0;i<7;i++){const u=i/6;W.fx.push({k:'ghost',o:e,x:x0+(nx-x0)*u,y:y0+(ny-y0)*u,t:0,life:.28+u*.14,a:.25+u*.35})}
+        e.x=nx;e.y=ny;e.face=d0;e.row=dirRow(d0.x,d0.y);e.kx=0;e.ky=0}
+      else W.fx.push({k:'beamline',x:e.x,y:e.y,x2:tgt.x,y2:tgt.y,t:0,life:.25,c:C.TCOL[m.type]||'#fff'});
       skillFx(e,m,{x:e.x,y:e.y},{x:tgt.x,y:tgt.y},{force:1});
-      dealDamage(e,tgt,c.mi);if(m.st)applyEf(e,tgt,m,true)}
+      if(m.sl){const n=1+HT(e,m).n,pm=(1+.2*(n-1))/n;const d1=dealDamage(e,tgt,c.mi,{pm,blink:m.blink?1:0});if(d1>0&&n>1){W.chain.push({o:e,mi:c.mi,n:n-1,t:8,iv:8,melee:false,pm,sl:1,bl:m.blink?1:0});W._more=1}}   // 9Y 베기 다단: X 획마다 한 대씩
+      else dealDamage(e,tgt,c.mi,m.blink?{blink:1}:undefined);if(m.st)applyEf(e,tgt,m,true)}
     toRecovery(e,c);
   } else {toRecovery(e,c)}
 }
@@ -503,10 +522,10 @@ function activeTick(e,c,tgt){
     if(c.t>=c.len){e.hidden=false;W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.3,r:56,c:C.TCOL[m.type]||'#fff'});circleHit(e,c,e.x,e.y,56,tgt);toRecovery(e,c);c.len=18}
   } else if(k==='beam'){
     // 천천히 조준 회전
-    if(tgt.hp>0){const want=Math.atan2(tgt.y-e.y,tgt.x-e.x);c.aim+=clamp(angDiff(c.aim,want),-1.1*TICK,1.1*TICK)}
+    if(tgt.hp>0&&HOM(e)){const want=Math.atan2(tgt.y-e.y,tgt.x-e.x);c.aim+=clamp(angDiff(c.aim,want),-1.1*TICK,1.1*TICK)}   // 9U: 내 빔(야생·트레이너 상대)만 천천히 따라감 — 상대 빔은 쏜 방향 그대로
     c.L=Math.min(c.maxL,c.L+1100*TICK);
     e.row=dirRow(Math.cos(c.aim),Math.sin(c.aim));
-    e.beam={a:c.aim,L:c.L,col:C.TCOL[m.type]||'#fff',type:m.type,full:c.L>=c.maxL-1};
+    e.beam={a:c.aim,L:c.L,col:C.TCOL[m.type]||'#fff',type:m.type,full:c.L>=c.maxL-1,aw:HT(e,m).aw};
     if(c.t%12===0&&tgt.hp>0){
       const u=aimVec(c);const dx=tgt.x-e.x,dy=tgt.y-e.y;const al=dx*u.x+dy*u.y,pe=Math.abs(-dx*u.y+dy*u.x);
       if(al>=0&&al<=c.L+tgt.r&&pe<=tgt.r*1.1+32*szMul(e,0)){dealDamage(e,tgt,c.mi,{mult:c.dmgMul||.25,pm:1})}}
@@ -582,13 +601,14 @@ function update(){
   // 발사체
   for(const p of W.proj){
     const tgt=foeOf(p.o);
-    if(p.hm>0&&tgt.hp>0){p.hm--;const a=Math.atan2(p.dy,p.dx),w=angDiff(a,Math.atan2(tgt.y-p.y,tgt.x-p.x)),mx=200*Math.PI/180*TICK,na=a+clamp(w,-mx,mx);p.dx=Math.cos(na);p.dy=Math.sin(na)}  // 유도: 초당 200도, 1초
+    if(p.wait>0){p.wait--;const o=p.o;p.x=o.x+p.dx*o.r;p.y=o.y+p.dy*o.r;if(o.hp<=0)p.dead=1;continue}   // 9U: 연사 — 차례가 올 때까지 손에서 대기
+    if(p.hm>0&&tgt.hp>0){p.hm--;const a=Math.atan2(p.dy,p.dx),w=angDiff(a,Math.atan2(tgt.y-p.y,tgt.x-p.x)),mx=(p.hr||200)*Math.PI/180*TICK,na=a+clamp(w,-mx,mx);p.dx=Math.cos(na);p.dy=Math.sin(na)}  // 유도: 초당 200도, 1초
     const st=p.sp*TICK;p.x+=p.dx*st;p.y+=p.dy*st;p.tr+=st;
     if(p.fxa){p.fxa.x=p.x;p.fxa.y=p.y-24;p.fxa.rot=Math.atan2(p.dy,p.dx)}
     const HT=enemiesOf(p.o).find(t=>len(t.x-p.x,t.y-p.y)<=p.r*1.25+t.r*1.0);if(HT){const tgt=HT;   // 9E 판정 넓힘
       const d=dealDamage(p.o,tgt,p.mi,p.pm?{pm:p.pm}:undefined);if(p.st)applyEf(p.o,tgt,p.o.moves[p.mi],true);
-      p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});skillFx(p.o,p.o.moves[p.mi],{x:p.x,y:p.y},{x:p.x,y:p.y},{force:1});
-    } else if(p.tr>p.range||p.x<WALL||p.x>AW-WALL||p.y<WALL||p.y>AH-WALL){p.dead=1;W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.2,r:p.r*1.5,c:p.col})}
+      p.dead=1;if(NFX()&&p.mel==='wave'){BEAMFX.waveCrash(p.x,p.y+10,200,p.dx<0)}else if(NFX()){if(p.mel)BEAMFX.melee((p.o.moves[p.mi]||{}).type,p.mel,p.x-p.dx*60,p.y-24-p.dy*60,p.x,p.y-24,p.mel==='slash'?2:1,.7);else BEAMFX.pimpact((p.o.moves[p.mi]||{}).type,p.x,p.y-24,1)}else{W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.25,r:p.r*2.2,c:p.col});skillFx(p.o,p.o.moves[p.mi],{x:p.x,y:p.y},{x:p.x,y:p.y},{force:1})}
+    } else if(p.tr>p.range||p.x<WALL||p.x>AW-WALL||p.y<WALL||p.y>AH-WALL){p.dead=1;if(NFX())BEAMFX.pimpact((p.o.moves[p.mi]||{}).type,p.x,p.y-24,.55);else W.fx.push({k:'burst',x:p.x,y:p.y,t:0,life:.2,r:p.r*1.5,c:p.col})}
   }
   // 9F 태초 분신: 주인 옆을 돌며 가장 센 기술을 60% 위력으로 쏨 (주인이 나가거나 쓰러지면 사라짐)
   for(const c of W.clones){c.t-=TICK;const o=c.o;if(o.hp<=0||!W.ents.includes(o)){c.t=0;continue}
@@ -616,7 +636,7 @@ function update(){
     if(h.o.hp<=0||t.hp<=0||h.o.stun>0||h.o.hidden){h.dead=1;continue}
     h.t--;if(h.t>0)continue;
     const m=h.o.moves[h.mi];
-    if(!h.melee||len(t.x-h.o.x,t.y-h.o.y)<=h.o.r+t.r+140){dealDamage(h.o,t,h.mi,{chain:1,last:h.n<=1});if(m&&!h.melee)W.fx.push({k:'burst',x:t.x,y:t.y-20,t:0,life:.2,r:24,c:C.TCOL[m.type]||'#fff'})}
+    if(!h.melee||len(t.x-h.o.x,t.y-h.o.y)<=h.o.r+t.r+140){dealDamage(h.o,t,h.mi,{chain:1,last:h.n<=1,pm:h.pm,blink:h.bl});if(m&&!h.melee&&!h.sl)W.fx.push({k:'burst',x:t.x,y:t.y-20,t:0,life:.2,r:24,c:C.TCOL[m.type]||'#fff'})}
     h.n--;h.t=h.iv;if(h.n<=0)h.dead=1}
   W.chain=W.chain.filter(h=>!h.dead);
   // 효과 시간
@@ -845,7 +865,7 @@ function render(){
     // 조준 예고 (준비 중, 내 것만)
     if(e.cast&&e.cast.phase==='startup'&&e===me){const c=e.cast;cx.globalAlpha=.25;cx.strokeStyle='#fff';cx.lineWidth=3;cx.setLineDash([10,8]);cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+Math.cos(c.aim)*220,e.y+Math.sin(c.aim)*220);cx.stroke();cx.setLineDash([]);cx.globalAlpha=1}
     if(e.cast&&e.cast.phase==='startup'&&e!==me){const c=e.cast;cx.globalAlpha=.3;cx.strokeStyle='#ff6a5a';cx.lineWidth=4;cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+Math.cos(c.aim)*200,e.y+Math.sin(c.aim)*200);cx.stroke();cx.globalAlpha=1}
-    if(e.beam&&window.BEAMFX&&fxOn()){const b=e.beam,ox=e.x,oy=e.y-(e.lift||0)-20;BEAMFX.live(e,b.type,ox,oy,ox+Math.cos(b.a)*b.L,oy+Math.sin(b.a)*b.L,b.full,1)}   // 9T: 사용자 빔 엔진(18속성 블룸)
+    if(e.beam&&window.BEAMFX&&fxOn()){const b=e.beam,ox=e.x,oy=e.y-(e.lift||0)-20;BEAMFX.live(e,b.type,ox,oy,ox+Math.cos(b.a)*b.L,oy+Math.sin(b.a)*b.L,b.full,1,b.aw)}   // 9T: 사용자 빔 엔진(18속성 블룸)
     else if(e.beam){const b=e.beam;cx.save();cx.translate(e.x,e.y-(e.lift||0)-20);cx.rotate(b.a);const gg=cx.createLinearGradient(0,0,b.L,0);gg.addColorStop(0,'#fff');gg.addColorStop(1,b.col);cx.globalAlpha=fxOn()?.14:.85;cx.fillStyle=gg;cx.fillRect(0,-18,b.L,36);cx.globalAlpha=fxOn()?.2:.9;cx.fillStyle='#fff';cx.fillRect(0,-6,b.L,12);cx.restore();cx.globalAlpha=1}
     const st=e.anim;
     const TR=e.eng&&e.tier>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
@@ -867,7 +887,7 @@ function render(){
     try{const S=window.TFX?TFX.spr(o.S,o.tier):o.S;C.drawPm(cx,S,'idle',o.row,o.at,c.x,c.y-18,o.sc*.85,{loop:true,alpha:a})}catch(er){}
     cx.globalAlpha=a*.8;cx.strokeStyle='#ffe14a';cx.lineWidth=2;cx.beginPath();cx.ellipse(c.x,c.y,26,9,0,0,7);cx.stroke();
     cx.globalAlpha=1;cx.font='bold 12px sans-serif';cx.textAlign='center';cx.fillStyle='#ffe14a';cx.fillText('분신 '+Math.ceil(c.t)+'초',c.x,c.y+22)}
-  for(const p of W.proj){cx.globalAlpha=p.fxa?.3:.9;cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y-24,p.r,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y-24,p.r*.5,0,7);cx.fill();cx.globalAlpha=1}
+  for(const p of W.proj){if(p.wait>0)continue;if(NFX()&&p.mel==='wave'){BEAMFX.waveLive(p,p.x,p.y+10,Math.atan2(p.dy,p.dx),170);continue}if(NFX()){BEAMFX.proj(p,(p.o.moves[p.mi]||{}).type,p.x,p.y-24,Math.atan2(p.dy,p.dx),p.r,p.sp,p.mel,p.aw);continue}cx.globalAlpha=p.fxa?.3:.9;cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y-24,p.r,0,7);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y-24,p.r*.5,0,7);cx.fill();cx.globalAlpha=1}
   // 볼(6F-1)
   if(W.ball&&W.ball.ph!=='done'||W.over==='catch'&&W.ball){const B=W.ball;cx.save();cx.translate(B.x,B.y);cx.rotate(B.rot||0);
     cx.fillStyle=B.col;cx.beginPath();cx.arc(0,0,16,Math.PI,0);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(0,0,16,0,Math.PI);cx.fill();
@@ -888,6 +908,7 @@ function render(){
     else if(f.k==='ring'){cx.strokeStyle=f.c;cx.lineWidth=8;cx.beginPath();cx.ellipse(f.x,f.y,f.r*(.3+u*.7),f.r*(.3+u*.7)*.7,0,0,7);cx.stroke()}
     else if(f.k==='cone'){cx.fillStyle=f.c;cx.beginPath();cx.moveTo(f.x,f.y);cx.arc(f.x,f.y,f.r*(.4+u*.6),f.a-Math.PI/3,f.a+Math.PI/3);cx.closePath();cx.fill()}
     else if(f.k==='slash'){cx.strokeStyle=f.c;cx.lineWidth=14;cx.beginPath();cx.arc(f.x,f.y,f.r*.8,f.a-.9+u*.5,f.a+.9+u*.5);cx.stroke()}
+    else if(f.k==='ghost'){const o=f.o;cx.globalAlpha=Math.max(0,(1-u))*f.a;try{const S=window.TFX?TFX.spr(o.S,o.tier):o.S;C.drawPm(cx,S,'idle',o.row,o.at,f.x,f.y-18,o.sc,{loop:true,white:true,alpha:cx.globalAlpha})}catch(er){}}
     else if(f.k==='beamline'){cx.strokeStyle=f.c;cx.lineWidth=10;cx.beginPath();cx.moveTo(f.x,f.y-20);cx.lineTo(f.x2,f.y2-20);cx.stroke()}
     cx.restore()}
   // ---- 화면 고정 HUD ----

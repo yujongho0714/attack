@@ -8538,7 +8538,7 @@ const rtWildOn=()=>{try{return !!(G&&G.opt&&G.opt.rtWild!==false&&!BS.on)}catch(
 // 7D: 숫자 배율 K = 10^(표시레벨/200) → Lv.1 ×1 · Lv.100 ×3 · 환생3(Lv.400) ×100 · 환생9(Lv.1000) ×10만 (체력·데미지 숫자만, 승패 밸런스와 무관)
 const rtNumK=m=>{try{return Math.min(1e9,Math.pow(10,dLv(m)/200)*(DIFF()>=7?100:DIFF()>=6?10:1))}catch(e){return 1}};   // 9C: 천계 숫자 ×10 · 천상계 ×100 (보이는 숫자만)
 // 7D: 예전 전투와 같은 보정 — 기술 레벨(+8%/레벨) · 난이도별 상대 데미지(DDMG)
-const rtDmgMul=(a,d,id)=>{let k=1;try{if(a&&a.moves&&a.moves.includes(id))k*=1+.08*(mlv(a,id)-1)}catch(e){}try{if(!isMine(a))k*=DDMG[DIFF()]}catch(e){}
+const rtDmgMul=(a,d,id)=>{let k=1;try{k*=awDmgOf(a,id)}catch(e){}try{if(a&&a.moves&&a.moves.includes(id))k*=1+.08*(mlv(a,id)-1)}catch(e){}try{if(!isMine(a))k*=DDMG[DIFF()]}catch(e){}
   // 환생하면 체력이 ×(1+0.4×환생)으로 커지는데 데미지는 그대로라 실시간 전투가 너무 길어짐(환생9 트레이너 74초) → 데미지도 같은 배율(양쪽 똑같이, 밸런스 그대로)
   try{if((G.rebirth||(a.gmrb!=null&&opAny()))&&(isMine(a)||a.rbf))k*=1+REBSTAT*rbOf(a)}catch(e){}
   // 7G: 예전 전투에만 있던 위력 보너스도 새 전투에 — 부적(타입 +5%/개) · 등급 위력(신화 +15% … 태초 +70%)
@@ -8580,7 +8580,7 @@ const RT_SKMV={sg_mortalslash:1,sg_xenonsmasher:2,sg_baekho:3,sg_heukryong:4,sg_
 const rtDmgSkin=(m,id)=>{if(RT_SKMV[id]!=null)return RT_SKMV[id];try{return isMine(rtReal(m))?((G.opt&&G.opt.dskin)|0):0}catch(e){return 0}};
 // 8F: 장비 옵션(공격력·체력·방어력·회피·크리티컬) — 내 포켓몬만, 새 전투 전부 (예전 전투는 그대로 월드보스에서만)
 const rtGearOf=m=>{try{if(!isMine(rtReal(m))||typeof gearStats!=='function')return null;const T=gearStats();return (T.atk||T.hp||T.def||T.eva||T.crt||T.cdm)?T:null}catch(e){return null}};
-const rtCommon=()=>({SGD,dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
+const rtCommon=()=>({SGD,hitTier:(m,id)=>{try{return hitTierOf(rtReal(m),id)}catch(e){return{n:1,aw:0}}},mlvOf:(m,id)=>{try{return mlv(rtReal(m),id)}catch(e){return 1}},dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
 const rtBgOf=()=>{try{if(BS.bg==='stadium'&&typeof STAD!=='undefined'&&STAD.complete&&STAD.naturalWidth)return STAD;return bgImg(STG[BS.bg]||'grass')}catch(e){return null}};   // 7B: 새 전투 배경
 async function rtWild(o){
   if(!rtWildOn()||!o||o.wb||o.pvp||!o.foes||!o.foes.length)return undefined;
@@ -8753,6 +8753,20 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112005,date:'11월 20일',t:'환생하면 여러 발! 각성하면 번개 파지직! 지진·번개·바위·파도 새 그림',items:[
+  {img:'ui/news/n20_sprfx.webp',h:'🌋⚡🪨🌊 지진 · 번개 · 바위 · 파도',p:['<b>지진</b>(땅고르기 · 땅가르기 · 매그니튜드): 상대 발밑 땅이 갈라지며 용암이 터져요.','<b>번개 · 방전 · 번개폭풍</b>: 하늘에서 상대에게 벼락이 떨어져요.','<b>스톤샤워 · 스톤에지 · 돌떨구기 …</b>: 하늘에서 큰 바위가 떨어져 부서져요.','<b>파도타기 · 탁류 …</b>: 파도가 상대에게 밀려가서 부서져요.']},
+  {img:'',h:'🔄 환생 = 여러 발 · ⭐ 각성 = 기운 + 데미지',p:['<b>환생</b>할수록 기술이 여러 번 나가요: 0회 1발 · 1회 2발 · 2회 3발 · 3회 이상 4발 (베기는 X 획이 1개 더). 한 발씩 따로 맞아요!','<b>각성 ★</b>마다 기술에 기운이 둘러져요: ★1~2 하늘색 테두리 · ★3~4 보라색 + 번개 파지직 · ★5~6 금색 + 번개 가득. 데미지도 ★마다 +3%.','<b>전설 기술</b>(직접 만든 기술)은 많이 쓸수록 오르는 기술 레벨로 발 수와 기운이 올라요.']},
+  {img:'',h:'⚔ 친구끼리 대전: 근접 기술은 순간이동!',p:['난투전 · 친구 대전에서는 근접 기술을 멀리서 못 날려요. 대신 <b>잔상을 남기며 순간이동</b>해서 붙어 때려요.','근접 기술에 맞으면 <b>0.5초 경직</b>돼요.','베기는 X 획 수만큼 여러 번 맞아요.']}]},
+ {v:2026112004,date:'11월 20일',t:'지진 · 깨물기 · 할퀴기도 상대 몸에서 바로 터져요',items:[
+  {img:'ui/news/n19_bite.webp',h:'🦷 깨물기 · 🐾 할퀴기 · 🌋 지진',p:['<b>깨물기</b>(사이코팽 · 깨물어부수기 …)는 상대 몸에서 송곳니가 <b>콱!</b> 하고 물어요.','<b>할퀴기</b>(섀도크로 · 손톱 기술 …)는 상대 몸에 3줄 발톱 자국이 그어져요.','<b>지진 · 땅고르기 · 땅가르기 · 매그니튜드</b>는 상대 발밑에서 땅이 터지고 바위 조각이 튀어요. (멀리서도 맞아요!)','날아가는 건 이제 <b>주먹 기술</b>과 원래 쏘는 기술(불꽃 · 물 · 섀도볼 …)만이에요.']}]},
+ {v:2026112003,date:'11월 20일',t:'베기 기술 = 상대 몸에서 X자 먹물 베기!',items:[
+  {img:'ui/news/n18_xslash.webp',h:'⚔ 베기는 날아가지 않고 상대에게 바로 터져요',p:['시저크로스 · 리프블레이드 · 깜짝베기 같은 <b>베기 기술</b>은 멀리서 눌러도 <b>상대 몸에서 바로 X자 먹물 베기</b>가 터져요.','기술 레벨이 오르면 X가 더 많이 겹쳐요 (최대 3번).','주먹 · 발톱 · 깨물기 기술은 그대로 날아가요.']}]},
+ {v:2026112002,date:'11월 20일',t:'붙어서 때리던 기술도 이제 날아가요!',items:[
+  {img:'ui/news/n17_mshot.webp',h:'👊 주먹 · ⚔ 검기 · 🐾 발톱 · 🦷 턱이 날아가요',p:['폭발펀치 · 시저크로스 · 깨물기 같은 <b>붙어서 때리던 기술</b>도 이제 멀리서 쏘는 기술이에요. 붙지 않아도 돼요!','기술 이름에 맞게 <b>날아가는 주먹 · 초승달 칼날 · 3줄 발톱 · 송곳니 턱</b>이 날아가고, 맞으면 그 자리에서 베기·할퀴기·주먹·깨물기가 터져요.','다른 발사체처럼 <b>기술 레벨</b>이 오르면 여러 발 (Lv.3·5·7마다 1발 더) · 내가 야생·트레이너·보스에게 쏘면 살짝 유도돼요.']}]},
+ {v:2026112001,date:'11월 20일',t:'기술 이펙트 전부 새로! 기술 레벨이 오르면 여러 발 · 연타',items:[
+  {img:'ui/news/n15_proj.webp',h:'🔥 날아가는 기술: 기술 레벨이 오르면 여러 발!',p:['불꽃 · 물 · 섀도볼 같은 날아가는 기술이 타입마다 새 모양(불덩이 · 물방울 · 잎날 · 얼음 조각 · 별 · 초승달 검기…)으로 나가요.','<b>기술 레벨</b>이 오를수록 한 번에 나가는 수가 늘어요: Lv.1~2 <b>1발</b> · Lv.3~4 <b>2발</b> · Lv.5~6 <b>3발</b> · Lv.7~8 <b>4발</b> (한 발 위력은 나눠지고 조금 더 세져요)','내가 <b>야생 · 트레이너 · 보스</b>에게 쏘면 살짝 따라가는 <b>유도탄</b>이에요. 상대가 나에게 쏘는 것, 친구 대전 · 난투전에서는 유도가 없어요 — 피할 수 있어요!']},
+  {img:'ui/news/n16_melee.webp',h:'⚔ 붙어서 때리는 기술: 베기 · 할퀴기 · 주먹 · 깨물기',p:['기술 이름에 맞게 <b>먹물 베기 · 3줄 발톱 · 거대 주먹 · 송곳니</b>로 나와요. (예: 깨물기 → 송곳니, 폭발펀치 → 주먹)','기술 레벨이 오르면 <b>연타</b>로 보여요 (최대 3연타).']},
+  {img:'',h:'🌊 빔은 이제 안 따라와요',p:['상대가 쏜 빔은 <b>쏜 방향 그대로</b> 나가요. 옆으로 피하면 돼요!','내 빔은 야생 · 트레이너 · 보스 상대로만 천천히 따라가요.','예전 이펙트(Empress)는 모두 새 이펙트로 바꿨어요.']}]},
  {v:2026111909,date:'11월 19일 밤',t:'빔 기술이 화려해졌어요 · 실시간 난투전(시험판)',items:[
   {img:'ui/news/n13_beam.webp',h:'🌊🔥⚡ 빔 기술 새 이펙트 (18타입)',p:['하이드로펌프 · 화염방사 · 10만볼트 · 냉동빔 · 솔라빔 · 파괴광선 같은 <b>빔 기술 48개</b>가 새 빔으로 바뀌었어요.','타입마다 모양이 달라요: 물은 소용돌이 고리, 불은 일렁이는 불길, 전기는 갈라지는 번개, 드래곤은 두 줄 나선…','맞는 곳에 충격파와 파편이 튀고 빛이 번져요.']},
   {img:'ui/news/n14_brawl.webp',h:'⚔ 실시간 난투전 (시험판)',p:['컨텐츠 → <b>「⚔ 실시간 난투전」</b> → 싸울 포켓몬 고르기 → <b>「🔍 상대 찾기」</b>','같은 시간에 「상대 찾기」를 누른 친구끼리 만나요. <b>2명이 모이면 3초 뒤 시작</b>, 그 사이에 더 들어오면 최대 6명까지!','모두 Lv.50으로 공평하게 싸워요. 직접 움직이고 기술을 써서 <b>마지막까지 살아남으면 1등</b>. 하루 10판, 등수만큼 PVP 코인과 돈을 받아요.','📶 같은 와이파이(도장)에서 제일 잘 돼요. 집에서 데이터로 하면 연결이 안 될 수도 있어요.']}]},
@@ -9002,23 +9016,70 @@ const c=document.createElement('style');c.textContent=`#brBox{font-family:"Galmu
 .brRes{font-family:"Galmuri11",sans-serif;text-align:center}.brBig{font-size:40px;font-weight:900;color:#ffd23f;text-shadow:0 3px 0 #1c2550;margin:6px}.brRes ol{list-style:none;padding:0;margin:6px auto;max-width:280px}.brRes li{background:#fffaf0;border:2px solid #1c2550;margin:3px;padding:4px 8px;text-align:left}.brRes li.me{background:#ffd23f}`;document.head.appendChild(c);
 }catch(e){console.warn('9Q 난투전',e)}})();
 </script>
+<script id="b9z">
+// ===== 9Z 타수·각성 규칙 =====
+// 보통 기술: 환생 0회 1타 · 1회 2타 · 2회 3타 · 3회+ 4타 (베기는 +1획) · 각성 ★마다 기운(★1~2 하늘 · ★3~4 보라+번개 · ★5~6 금색) + 데미지 +3%
+// 전설 기술(sg_*): 많이 쓸수록 오르는 기술 레벨로 — Lv.1~2 1타 · 3~4 2타 · 5~6 3타 · 7~8 4타, 기운은 Lv-2 단계 (데미지는 원래 기술 레벨 보너스)
+function hitTierOf(m,id){if(!m||!isMine(m))return{n:1,aw:0};
+  if(/^sg_/.test(String(id||''))){const L=mlv(m,id)|0;return{n:Math.max(1,Math.min(4,1+Math.floor((L-1)/2))),aw:Math.max(0,Math.min(6,L-2))}}
+  let rb=0;try{rb=rbOf(m)|0}catch(e){rb=(G&&G.rebirth)|0}return{n:Math.max(1,Math.min(4,1+rb)),aw:Math.max(0,Math.min(6,m.aw|0))}}
+function awDmgOf(a,id){if(!a||!isMine(a)||/^sg_/.test(String(id||'')))return 1;return 1+.03*Math.max(0,Math.min(6,a.aw|0))}
+window.hitTierOf=hitTierOf;window.awDmgOf=awDmgOf;
+{const _d=dmgCalc;dmgCalc=function(a,d,m,crit){const r=_d.apply(this,arguments);try{const k=awDmgOf(a,m&&m.id);if(k!==1&&r&&r.d)r.d=Math.max(1,Math.floor(r.d*k))}catch(e){}return r}}
+</script>
 <script id="b9t">
-// ===== 9T 빔 기술 = 사용자 빔 엔진(beamfx.js, 18속성 블룸) — 턴제 전투에도 (실시간 전투는 rtbattle.js 안에서) =====
+// ===== 9T·9U 기술 이펙트 = 사용자 엔진 3종(beamfx.js: 빔 · 발사체 · 근접) — 턴제·액션 전투 (실시간 전투는 rtbattle.js 안에서) =====
+// · 예전 Empress 이펙트(관리자가 기술에 붙여 둔 emp|…)는 더 이상 안 씀 → 새 엔진/기본 이펙트로
+// · 기술 레벨이 오르면 발사체는 여러 발, 근접은 연타 (Lv.1~2: 1 · 3~4: 2 · 5~6: 3 · 7~8: 4)
 (function(){try{
 if(!window.BEAMFX&&!document.getElementById('beamfxJs')){const sc=document.createElement('script');sc.id='beamfxJs';sc.src='beamfx.js';document.head.appendChild(sc)}
-const isBeam=m=>{if(!m)return false;if(m.rk)return m.rk==='beam';const r=typeof RZM!=='undefined'&&RZM[m.id];if(r&&r.k)return r.k==='beam';return /빔|광선|레이저|캐논|방사|펌프/.test(m.name||'')};
+const kOf=m=>{if(!m)return '';if(m.rk)return m.rk;const r=typeof RZM!=='undefined'&&RZM[m.id];return r&&r.k||''};
+const isBeam=m=>{const k=kOf(m);if(k)return k==='beam';return /빔|광선|레이저|캐논|방사|펌프/.test(m&&m.name||'')};
 window.isBeamMv=isBeam;
+// Empress 끄기: GMFX가 Empress 이펙트를 고르면 없는 것으로 (다른 관리자 이펙트는 그대로)
+{const _ov=GMFX.ov;GMFX.ov=function(){const r=_ov.apply(this,arguments);if(r&&(r.key==='emp'||(r.sk&&/Empress/i.test(String(r.sk.type||'')+String(r.pack&&r.pack.name||'')))))return null;return r}}
 {const _r=SKFX.run;SKFX.run=async function(x,id,m,L,mine,adv){
-  try{if(window.BEAMFX&&x&&x.a&&x.b&&isBeam(m)&&!(G&&G.opt&&G.opt.beamOld)){
+  try{if(window.BEAMFX&&x&&x.a&&x.b&&m&&!(G&&G.opt&&G.opt.beamOld)){
     let ov=null;try{ov=(typeof GMFX!=='undefined')?GMFX.ov(m&&m.id,GMFX.tierOf(x,mine),{L:L|0,aw:((x&&x.A&&x.A.m&&x.A.m.aw)|0)}):null}catch(e){}
-    if(!ov){const E=BEAMFX.engine,t=String(m.type||'NORMAL').toLowerCase(),sp=BEAMFX.TYPE_SPECS.find(s=>s.id===t)||BEAMFX.TYPE_SPECS[BEAMFX.TYPE_SPECS.length-1];
+    const k=kOf(m),fr=16.667,HT=mine&&x.A&&x.A.m?hitTierOf(x.A.m,m.id):{n:1,aw:0};if(HT.aw)setTimeout(()=>{try{BEAMFX.crackle(x.b.x,x.b.y,(x.S||70)*.9,HT.aw,.6)}catch(e){}},260);
+    if(!ov&&isBeam(m)){const E=BEAMFX.engine,t=String(m.type||'NORMAL').toLowerCase(),sp=BEAMFX.TYPE_SPECS.find(s=>s.id===t)||BEAMFX.TYPE_SPECS[BEAMFX.TYPE_SPECS.length-1];
       try{x.pose&&x.pose(x.A,'shoot')}catch(e){}try{sfx('atk')}catch(e){}
       const ws=E.config.widthScale;E.config.widthScale=Math.max(.7,Math.min(1.6,(x.S||70)/60));E.fire(sp.id,x.a.x,x.a.y,x.b.x,x.b.y);
-      const fr=16.667,tHit=(sp.chargeDur+sp.fireDur*.18)*fr;await sleep(tHit);E.config.widthScale=ws;try{x.hit&&x.hit(1)}catch(e){}
-      await sleep(Math.max(200,(sp.fireDur*.82)*fr));return}}}catch(e){console.warn('beam turn',e)}
+      await sleep((sp.chargeDur+sp.fireDur*.18)*fr);E.config.widthScale=ws;try{x.hit&&x.hit(1)}catch(e){}
+      await sleep(Math.max(200,(sp.fireDur*.82)*fr));return}
+    if(!ov&&k==='projectile'){   // 발사체: 기술 레벨만큼 연사, 한 발 맞을 때마다 데미지를 나눠 보여 줌
+      const n=HT.n,gap=155,dist=Math.max(80,Math.hypot(x.b.x-x.a.x,x.b.y-x.a.y)),fly=Math.max(10,Math.ceil(dist/15.5))*fr;
+      try{x.pose&&x.pose(x.A,'shoot')}catch(e){}try{sfx('atk')}catch(e){}
+      BEAMFX.burst(m.type,'projectile',x.a.x,x.a.y,x.b.x,x.b.y,n);
+      for(let i=0;i<n;i++){await sleep(i?gap:fly);try{x.hit&&x.hit(1/n)}catch(e){}}
+      await sleep(260);return}
+    {const sk=!ov&&BEAMFX.sprKind?BEAMFX.sprKind(m.name,m.type,k):null;   // 9W 그림 이펙트 (지진·번개·바위 → 상대 자리, 파도 → 날아감)
+     if(sk){const S=x.S||70;try{x.pose&&x.pose(x.A,sk.spr==='wave'?'shoot':'attack')}catch(e){}try{sfx('atk')}catch(e){}
+      let hit=0;const H=()=>{if(!hit){hit=1;try{x.hit&&x.hit(1)}catch(e){}}};
+      if(sk.spr==='wave')BEAMFX.waveShot(x.a.x,x.a.y+S*.5,x.b.x,x.b.y+S*.5,S*2.6,.55,H);
+      else if(sk.spr==='quake')BEAMFX.quake(m.type,x.b.x,x.b.y+S*.3,Math.max(.8,Math.min(1.3,S/70)));
+      else BEAMFX.sprite(sk.spr,x.b.x,x.b.y+S*.55,S*(sk.spr==='thunder'?3:3.2),H);
+      await sleep(sk.spr==='wave'?700:sk.spr==='quake'?420:380);H();await sleep(520);return}}
+    if(!ov&&k==='pulse'&&String(m.type).toUpperCase()==='GROUND'){   // 9V-5 지진류: 상대 발밑에서 땅이 터짐
+      try{x.pose&&x.pose(x.A,'attack')}catch(e){}try{sfx('atk')}catch(e){}await sleep(120);
+      BEAMFX.quake(m.type,x.b.x,x.b.y+(x.S||70)*.3,Math.max(.8,Math.min(1.3,(x.S||70)/70)));await sleep(90);try{x.hit&&x.hit(1)}catch(e){}await sleep(520);return}
+    if(!ov&&k==='melee'){   // 9V: 근접 기술도 날아감 — 베기 검기·발톱·주먹·턱이 날아가 맞는 곳에서 터짐 (기술 레벨만큼 여러 발)
+      const n=HT.n,mode=BEAMFX.meleeMode(m.name,m.type);
+      try{x.pose&&x.pose(x.A,'attack')}catch(e){}try{sfx('atk')}catch(e){}
+      if(mode!=='punch'){const n2=mode==='slash'?1+HT.n:Math.min(3,HT.n);BEAMFX.melee(m.type,mode,x.a.x,x.a.y,x.b.x,x.b.y,n2,Math.max(.5,Math.min(1,(x.S||70)/90)));   // 9V-4·5: 베기(X자)·할퀴기·깨물기 = 상대 몸에서 바로 터짐, 주먹만 날아감
+        for(let i=0;i<n2;i++){await sleep(i?125:60);try{x.hit&&x.hit(1/n2)}catch(e){}}await sleep(380);return}
+      const fly=BEAMFX.meleeShot(m.type,mode,x.a.x,x.a.y,x.b.x,x.b.y,n,Math.max(.5,Math.min(1,(x.S||70)/90)),155);
+      for(let i=0;i<n;i++){await sleep(i?155:fly);try{x.hit&&x.hit(1/n)}catch(e){}}
+      await sleep(330);return}
+    if(!ov&&(k==='roll'||k==='vanish'||k==='target')){   // 근접(구르기·사라졌다 때리기·바로 맞히기): 베기·할퀴기·주먹·깨물기, 기술 레벨만큼 연타
+      const n=Math.min(3,HT.n),mode=BEAMFX.meleeMode(m.name,m.type),late=(mode==='punch'||mode==='bite')?140:20;
+      try{x.pose&&x.pose(x.A,'attack')}catch(e){}try{sfx('atk')}catch(e){}
+      BEAMFX.melee(m.type,mode,x.a.x,x.a.y,x.b.x,x.b.y,n,Math.max(.45,Math.min(1,(x.S||70)/90)));
+      for(let i=0;i<n;i++){await sleep(i?125:late);try{x.hit&&x.hit(1/n)}catch(e){}}
+      await sleep(330);return}}}catch(e){console.warn('skill fx',e)}
   return _r.apply(this,arguments)}}
-{const _f=CINE.front;CINE.front=function(cx,dt){const r=_f.apply(this,arguments);try{if(window.BEAMFX&&BEAMFX.engine.busy)BEAMFX.render(cx)}catch(e){}return r}}
+{const _f=CINE.front;CINE.front=function(cx,dt){const r=_f.apply(this,arguments);try{if(window.BEAMFX&&BEAMFX.busy&&!document.getElementById('rtbRoot'))BEAMFX.render(cx)}catch(e){}   /* 실시간 전투 중엔 실시간 화면이 그림 */return r}}
 try{rzMovesLoad()}catch(e){}
-}catch(e){console.warn('9T 빔',e)}})();
+}catch(e){console.warn('9T 이펙트',e)}})();
 </script>
 </body></html>
