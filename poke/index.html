@@ -1477,7 +1477,9 @@ const REBSTAT=.4;
 function isMine(m){return !!(G&&m&&((G.party&&G.party.indexOf(m)>=0)||(G.box&&G.box.indexOf(m)>=0)))}
 // 거래로 받은 포켓몬(m.rbx): 내 환생이 더 높아도 보낸 친구의 환생 기준(레벨·능력치)을 그대로 써요
 function rbOf(m){const r=(G&&G.rebirth)||0;if(m&&m.gmrb!=null&&opAny())return Math.max(0,Math.min(9,+m.gmrb||0));return(m&&m.rbx!=null)?Math.min(+m.rbx||0,r):r}
-function dLv(m){if(!m)return 0;return m.lv+((G&&(G.rebirth||(m.gmrb!=null&&opAny()))&&(isMine(m)||m.rbf))?100*rbOf(m):0)}
+function dLv(m){if(!m)return 0;const mine=isMine(m)||m.rbf;if(mine)return m.lv+((G&&(G.rebirth||(m.gmrb!=null&&opAny())))?100*rbOf(m):0);return m.lv+LVO()}
+// 9BD: 화면에 보이는 레벨은 모두 환생 단계에 맞춰 (+100 × 환생) — 상대 · 추천 · 목표 레벨도 같게
+function LVO(){return G&&G.rebirth?100*G.rebirth:0}
 function resetAllLv(){if(!G)return;for(const m of [...(G.party||[]),...(G.box||[])]){if(!m||!m.n)continue;delete m.rbx;m.lv=1;m.exp=expAt(1);try{m.hp=stOf(m)[0]}catch(e){}}}
 let stOf=m=>{const s=statsOf(META[m.n],m.lv,m.iv);const b=(RSTAT[rarM(m)]||0)+(m.lb||0)*.04;if(b){s[0]=Math.round(s[0]*(1+b/2));for(let i=1;i<6;i++)s[i]=Math.round(s[i]*(1+b))}if(m.st){const t=m.st;if(t.hp)s[0]=Math.round(s[0]*(1+t.hp/100));if(t.atk){s[1]=Math.round(s[1]*(1+t.atk/100));s[3]=Math.round(s[3]*(1+t.atk/100))}if(t.def){s[2]=Math.round(s[2]*(1+t.def/100));s[4]=Math.round(s[4]*(1+t.def/100))}}if(m.hpx){s[0]=Math.round(s[0]*m.hpx)}if(G&&(G.rebirth||(m.gmrb!=null&&opAny()))&&(isMine(m)||m.rbf)){const f=1+REBSTAT*rbOf(m);for(let i=0;i<6;i++)s[i]=Math.round(s[i]*f)}return s};
 const alive=()=>G.party.filter(m=>m.hp>0);
@@ -1959,7 +1961,7 @@ function firstClr(key,n,who){try{const d=DIFF();if(d<6||!window.trmAdd)return;G.
   toast('🎉 '+(who||'')+' 최초 격파! '+(d===6?'<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵':'<img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결')+' ×'+n)}catch(e){}}
 function rmDrop(){try{const d=DIFF();if(d<6||!window.trmAdd||G.rmDD===dayKey()||R()>=.05)return;G.rmDD=dayKey();const mk=d===6?'core':'breath';trmAdd(mk,1);save();try{sfx('badge')}catch(e){}toast('✨ 행운! 재대결 보상으로 '+(d===6?'<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵':'<img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결')+' ×1 (5%)')}catch(e){}}
 async function gym(k){const g=GYM[k-1];if(G.badges>=k){await say([g.n+': 너는 이미 내 배지를 가졌지! 다음 체육관으로 가렴.']);return}if(G.badges<k-1){await say(['체육관 안내원: 먼저 '+TOWNS[G.badges+1]+' 체육관부터 도전해 봐!']);return}
-  const ace=gymAce(k-1);await say(['체육관 안내원: 여기는 '+TOWNS[k]+' 체육관! <b>'+TN[g.t]+'</b> 타입 포켓몬을 쓰는 '+g.n+'이(가) 기다려요.','상성이 좋은 포켓몬을 데려가면 유리해요! (추천 Lv.'+(ace-1)+')']);
+  const ace=gymAce(k-1);await say(['체육관 안내원: 여기는 '+TOWNS[k]+' 체육관! <b>'+TN[g.t]+'</b> 타입 포켓몬을 쓰는 '+g.n+'이(가) 기다려요.','상성이 좋은 포켓몬을 데려가면 유리해요! (추천 Lv.'+(ace-1+LVO())+')']);
   const ap=typeTeam(g.t,330+38*(k-1),2,[ace-5,ace-4],G.seed+k*11);let r=await battle({scaled:1,gym:k,trainer:'체육관 수련생',foes:ap,money:ace*20,lose:'관장님은 나보다 훨씬 강해!',bg:'town'});if(r!=='win'){if(r==='lose')await blackout();return}
   await trainerScene(TRS.gym[k-1],g.n,GLINE[k-1].pre);const n=Math.min(6,(DIFF()?3:2)+Math.floor(k/2));const lv=[];for(let i=0;i<n;i++)lv.push(ace-(n-1-i)*1-(i<n-1?2:0));
   r=await battle({scaled:1,gym:k,trainer:g.n,foes:typeTeam(g.t,360+40*k,n,lv,G.seed+k*17),money:ace*120,lose:'훌륭하다! 너의 실력을 인정하마.',bg:'town'});
@@ -1978,8 +1980,8 @@ async function areaEvent(){if(!G.party.length)return;if(G.a===1&&!G.flags.r1){G.
 // ---------- 목표 · 자동 진행 ----------
 const topLv=()=>Math.max(0,...G.party.map(m=>m.lv));
 function objective(){if(!G.party.length)return{t:'🧪 연구소에서 첫 포켓몬 받기',g:{a:0,door:'lab'}};const b=G.badges;
-  if(b<8){const ace=gymAce(b),rec=ace-1;if(topLv()<rec-1)return{t:'🌿 '+RTN[b]+'에서 레벨 올리기 (Lv.'+topLv()+' → '+rec+')',hunt:{a:2*b+1},until:()=>topLv()>=rec};return{t:'🏟️ '+TOWNS[b+1]+' 체육관 도전 · '+TN[GYM[b].t]+' 타입 (추천 Lv.'+rec+')',g:{a:2*(b+1),door:'gym'}}}
-  if(!G.champ){if(topLv()<CHL()-8)return{t:'🌿 챔피언 로드에서 레벨 올리기 (Lv.'+topLv()+' → '+(CHL()-8)+')',hunt:{a:17},until:()=>topLv()>=CHL()-8};return{t:'🏆 포켓몬 리그 도전!',g:{a:18,door:'league'}}}
+  if(b<8){const ace=gymAce(b),rec=ace-1;if(topLv()<rec-1)return{t:'🌿 '+RTN[b]+'에서 레벨 올리기 (Lv.'+(topLv()+LVO())+' → '+(rec+LVO())+')',hunt:{a:2*b+1},until:()=>topLv()>=rec};return{t:'🏟️ '+TOWNS[b+1]+' 체육관 도전 · '+TN[GYM[b].t]+' 타입 (추천 Lv.'+(rec+LVO())+')',g:{a:2*(b+1),door:'gym'}}}
+  if(!G.champ){if(topLv()<CHL()-8)return{t:'🌿 챔피언 로드에서 레벨 올리기 (Lv.'+(topLv()+LVO())+' → '+(CHL()-8+LVO())+')',hunt:{a:17},until:()=>topLv()>=CHL()-8};return{t:'🏆 포켓몬 리그 도전!',g:{a:18,door:'league'}}}
   const c=Object.keys(G.dex.c).length;const nx=nextDexTarget();return{t:'📖 도감 채우기 '+c+'/'+SPECIES.length+(nx?' · 다음: '+META[nx.n].name:''),hunt:nx?{a:nx.a,n:nx.n}:null}}
 function nextDexTarget(){let best=null;const LG=window.LOCG||LOC;for(const n of SPECIES){const d=META[n].dex;if(G.dex.c[d])continue;const L=(LG[n]||[]).filter(x=>{try{return areaOpen(x)}catch(e){return true}});if(!L.length)continue;for(const a of L){const dd=Math.abs(a-G.a);if(!best||dd<best.d)best={n,a,d:dd}}}return best}   // 9AV: 풀숲에서 걸어서 만나고 · 갈 수 있는 곳만
 function needHeal(){if(!G.party.length)return false;const A=alive();if(!A.length)return true;const S=G.party.reduce((s,m)=>s+m.hp/stOf(m)[0],0)/G.party.length;return S<.45||A[0].hp/stOf(A[0])[0]<.2&&!['potion','spotion','hpotion'].some(k=>G.bag[k]>0)}
@@ -2071,7 +2073,7 @@ function dexOpen(f){if(SCENE!=='over')return;const c=Object.keys(G.dex.c).length
     p.querySelectorAll('[data-f]').forEach(x=>x.onclick=()=>dexOpen(x.dataset.f));p.querySelectorAll('[data-n]').forEach(x=>x.onclick=()=>dexOne(decodeURIComponent(x.dataset.n)))})}
 function dexOne(n){const M=META[n],cc=G.dex.c[M.dex],L=LOC[n]||[];const evFrom=SPECIES.find(s=>(EVC[META[s].dex]||[]).some(e=>e[0]===M.dex));
   openPanel('📖 No.'+M.dex+' '+M.name,`<div class="d1"><img src="${THUMB[n]||''}"><div><div>${M.types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')}</div><small>체력 ${M.stats[0]} · 공격 ${M.stats[1]} · 방어 ${M.stats[2]} · 특공 ${M.stats[3]} · 특방 ${M.stats[4]} · 스피드 ${M.stats[5]}</small><div>${RARS(n)} <small>등급 보너스 능력치 +${Math.round(rstat(n)*100)}%</small></div><div>${cc?'잡았어요':'아직 못 잡았어요'}</div><small>기술: ${(M.moves||[]).map(m=>m.name).join(', ')||'-'}</small></div></div>
-  <h4>나오는 곳</h4>${L.length?L.map(a=>`<div class="row"><span>🌿 ${areaName(a)} <small>(Lv.${areaLv(a).join('~')}${genArea(a).enc.w.some(e=>e.n===n)&&!genArea(a).enc.g.some(e=>e.n===n)?' · 물 위':''})</small></span>${areaOpen(a)?'':`<small class="lkx">배지 ${areaNeed(a)}개 필요 · 먼저 ${(navSteps(a)[0]||{t:''}).t}</small>`}<button data-go="${a}">${areaOpen(a)?'잡으러 자동 이동':'목표로 정하기'}</button></div>`).join(''):`<small>${evFrom?META[evFrom].name+'(을)를 키워서 진화시키면 얻을 수 있어요':'풀숲에서는 안 나와요 (진화로 얻거나 다른 세이브에서 나와요)'}</small>`}<div class="wbt"><button id="dWm">월드맵에서 보기</button></div>`,()=>dexOpen(),p=>{
+  <h4>나오는 곳</h4>${L.length?L.map(a=>`<div class="row"><span>🌿 ${areaName(a)} <small>(Lv.${areaLv(a).map(v=>v+LVO()).join('~')}${genArea(a).enc.w.some(e=>e.n===n)&&!genArea(a).enc.g.some(e=>e.n===n)?' · 물 위':''})</small></span>${areaOpen(a)?'':`<small class="lkx">배지 ${areaNeed(a)}개 필요 · 먼저 ${(navSteps(a)[0]||{t:''}).t}</small>`}<button data-go="${a}">${areaOpen(a)?'잡으러 자동 이동':'목표로 정하기'}</button></div>`).join(''):`<small>${evFrom?META[evFrom].name+'(을)를 키워서 진화시키면 얻을 수 있어요':'풀숲에서는 안 나와요 (진화로 얻거나 다른 세이브에서 나와요)'}</small>`}<div class="wbt"><button id="dWm">월드맵에서 보기</button></div>`,()=>dexOpen(),p=>{
     p.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>{const a=+x.dataset.go;if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}if(SCENE!=='over')return;closePanel(1);navSet(a,n,'auto')});const wb=p.querySelector('#dWm');if(wb)wb.onclick=()=>{WM.pk=n;WM.hl=n;const L=LOC[n]||[];WM.sel=L.length?L.slice().sort((a,b)=>(areaOpen(b)-areaOpen(a))||Math.abs(a-G.a)-Math.abs(b-G.a))[0]:G.a;worldOpen()}})}
 function buildLoc(){LOC={};window.LOCG={};for(let a=1;a<NA;a+=2){if(a===18)continue;const T=encTable(a);for(const e of T.g.concat(T.w)){(LOC[e.n]=LOC[e.n]||[]);if(!LOC[e.n].includes(a))LOC[e.n].push(a)}for(const e of T.g){(LOCG[e.n]=LOCG[e.n]||[]);if(!LOCG[e.n].includes(a))LOCG[e.n].push(a)}}}
 // ---------- 저장 ----------
@@ -2720,7 +2722,7 @@ function leaderCard(i){if(!G)return;const g=GYM[i],got=i<G.badges,ace=BYDEX[GACE
   openPanel(town+' 체육관',`<div class="ldC"><div class="ldL"><img class="ldT" src="trainers/${TRS.gym[i]}.png"><div class="ldN">${g.n}</div><div class="ldTy"><u class="tyl" style="${tyLab(g.t)}"></u> 타입 전문</div></div>
     <div class="ldR">${badgeHtml(i,got,0)}<b>${town} 배지</b><small>${got?'획득했어요!':'아직 못 받았어요'}</small><div class="ldP"><span>파트너</span>${ace?`<img src="${faceUrl(ace,'Normal')}"><b>${META[ace].name}</b>`:''}</div>
     <p class="ldQ">"${GLINE[i].pre[1]||GLINE[i].pre[0]}"</p></div></div>
-    ${got?`<button class="it" id="ldRe" style="width:100%" ${done?'disabled':''}>${done?'오늘 재대결 5번을 다 했어요 (내일 다시!)':'재대결하기 ('+rmLeft(i)+'/5 남음) · 관장 Lv.'+lv+' · 이기면 상금 + 카드팩'+(DIFF()>=6?' · 5% 확률로 '+(G.rmDD===dayKey()?'(오늘 받음) ':'')+(DIFF()===6?'<img class="tri" src="ui/tr/core.png" alt=""> 핵':'🌟 숨결'):'')}</button>`:`<p style="text-align:center;font-weight:800">${town}에서 ${g.n}을(를) 이기면 배지를 받아요</p>`}`,null,p=>{
+    ${got?`<button class="it" id="ldRe" style="width:100%" ${done?'disabled':''}>${done?'오늘 재대결 5번을 다 했어요 (내일 다시!)':'재대결하기 ('+rmLeft(i)+'/5 남음) · 관장 Lv.'+(lv+LVO())+' · 이기면 상금 + 카드팩'+(DIFF()>=6?' · 5% 확률로 '+(G.rmDD===dayKey()?'(오늘 받음) ':'')+(DIFF()===6?'<img class="tri" src="ui/tr/core.png" alt=""> 핵':'🌟 숨결'):'')}</button>`:`<p style="text-align:center;font-weight:800">${town}에서 ${g.n}을(를) 이기면 배지를 받아요</p>`}`,null,p=>{
     const b=p.querySelector('#ldRe');if(b)b.onclick=()=>{closePanel(1);rematch(i)}})}
 async function rematch(i){if(SCENE!=='over'){toast('마을이나 길에서만 할 수 있어요');return}if(rmLeft(i)<=0){toast('오늘 재대결은 다 했어요 (배지마다 하루 5번)');return}rmUse(i);const g=GYM[i],lv=Math.max(gymAce(i),topLv()+2);
   await trainerScene(TRS.gym[i],g.n,['다시 왔구나! 그동안 나도 더 강해졌다.','이번엔 진심으로 간다. 준비됐겠지?']);
@@ -2895,7 +2897,7 @@ function worldOpen(sel){if(!G)return;if(sel!=null)WM.sel=sel;if(WM.sel==null)WM.
 function worldInfo(a){const open=areaOpen(a),E=encAt(a),lv=areaLv(a),pk=WM.pk&&(LOC[WM.pk]||[]).includes(a)?WM.pk:null;
   const mons=[...E.g.map(e=>[e.n,0]),...E.w.filter(e=>!E.g.some(g=>g.n===e.n)).map(e=>[e.n,1])];
   const can=canFly()&&G.visit&&G.visit[a]&&G.a!==a;
-  let h=`<div class="wi"><div class="wih"><b>${areaName(a)}</b><small>${isTown(a)?(a>0?'체육관 '+TN[GYM[a/2-1].t]+' 타입':'출발 마을'):a===18?'사천왕 · 챔피언':'야생 Lv.'+lv.join('~')}</small>${G.a===a?'<em>지금 여기</em>':''}</div>`;
+  let h=`<div class="wi"><div class="wih"><b>${areaName(a)}</b><small>${isTown(a)?(a>0?'체육관 '+TN[GYM[a/2-1].t]+' 타입':'출발 마을'):a===18?'사천왕 · 챔피언':'야생 Lv.'+lv.map(x=>x+LVO()).join('~')}</small>${G.a===a?'<em>지금 여기</em>':''}</div>`;
   h+=townHtml(a);
   if(!open){const st=navSteps(a);h+=`<div class="wlk"><b>아직 못 가요 · 배지 ${areaNeed(a)}개 필요 (지금 ${G.badges}개)</b><ol>${st.map(s=>`<li>${s.t} <small>추천 Lv.${dLv(s)}</small></li>`).join('')}</ol><small>위 순서대로 깨면 길이 열려요. 목표로 정하면 노란 선이 다음 할 일로 안내해요.</small></div>`}
   if(mons.length)h+=`<div class="wmons">${mons.map(([n,w])=>{const M=META[n],c=G.dex.c[M.dex],s=G.dex.s[M.dex];return `<div class="wmo${c?' c':''}${n===pk?' pk':''}"><img src="${THUMB[n]||''}" style="${c||s?'':'filter:brightness(0) opacity(.45)'}"><b>${M.name}</b>${RARS(n)}${w?'<small>물 위</small>':''}${c?'<small class="ok">잡음</small>':''}</div>`}).join('')}</div>`;
@@ -3017,7 +3019,7 @@ function safariOpen(){const B=mgOpen('연분홍시티 사파리존','stages/fore
   B.querySelector('#sGo').onclick=()=>{if(G.money<1500){toast('돈이 모자라요');return}G.money-=1500;save();safariRun(B,{balls:20,left:8,got:[]})}}
 function safariRun(B,S){if(S.balls<=0||S.left<=0){B.innerHTML=`<div class="mgwin"><p class="mgt">사파리 끝!</p><p>잡은 포켓몬 ${S.got.length}마리</p><div class="sgot">${S.got.map(n=>`<span><img src="${THUMB[n]||''}">${META[n].name}</span>`).join('')||'<small>다음엔 꼭 잡아요!</small>'}</div><button class="main mgbig" id="sOk">나가기</button></div>`;B.querySelector('#sOk').onclick=mgClose;return}
   S.left--;const L=SPECIES.filter(n=>!META[n].form&&rarOf(n)<=3&&bst(META[n].stats)<600),n=wpickW(L,L.map(n=>[1,2.2,1.6,.12][rarOf(n)]));const r=rarOf(n),lv=Math.max(5,topLv()-ri(0,3));let ck=1,fl=1;
-  const draw=(msg)=>{B.innerHTML=`<div class="saf"><div class="sinfo">사파리볼 <b>${S.balls}</b> · 남은 만남 <b>${S.left}</b> · 잡음 <b>${S.got.length}</b></div><div class="smon"><img src="${THUMB[n]||''}"><b>${META[n].name}</b> ${RARS(n)} <small>Lv.${lv}</small></div><p class="mgt">${msg}</p>
+  const draw=(msg)=>{B.innerHTML=`<div class="saf"><div class="sinfo">사파리볼 <b>${S.balls}</b> · 남은 만남 <b>${S.left}</b> · 잡음 <b>${S.got.length}</b></div><div class="smon"><img src="${THUMB[n]||''}"><b>${META[n].name}</b> ${RARS(n)} <small>Lv.${lv+LVO()}</small></div><p class="mgt">${msg}</p>
     <div class="sact"><button class="main" data-s="ball">사파리볼 던지기</button><button data-s="bait">먹이 주기<small>도망 덜 감 · 조금 덜 잡힘</small></button><button data-s="rock">돌 던지기<small>잘 잡힘 · 도망 잘 감</small></button><button data-s="run">다음으로</button></div></div>`;
     B.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>act(b.dataset.s))};
   const act=async s=>{sfx('tap');if(s==='run'){safariRun(B,S);return}
@@ -3035,7 +3037,7 @@ const TWWK=[[10,'포켓몬팩 3장',[{multi:['P','P','P']}]],[20,'포켓몬팩 3
 function twWeek(T){const wk=typeof wbWeek==='function'?wbWeek():dayKey();if(T.wk!==wk){T.wk=wk;T.f=1;T.wb=0;T.got={}}}
 function towerOpen(){const S=mgS();S.tw=S.tw||{f:1,best:0};const T=S.tw;twWeek(T);const B=mgOpen('노랑시티 격투 탑','stages/gym_psychic.webp');const lv=twLv(T.f);
   B.innerHTML=`<div class="twr"><div class="twf"><small>지금</small><b>${T.f}층</b><small>이번 주 최고 ${T.wb||0}층 · 역대 ${T.best}층</small></div><p class="mgt">층마다 트레이너가 기다려요. 이기면 다음 층!<br><small>5층마다 회복 + 카드팩 · 지면 1층부터 · <b>매주 월요일 1층부터 다시</b></small></p><div class="twk">${TWWK.map(([f,t])=>`<span class="${(T.got||{})[f]?'on':''}"><b>${f}층</b>${t}${(T.got||{})[f]?' · 받음':''}</span>`).join('')}</div>
-   <div class="twn">다음 상대: Lv.${lv} · ${twCnt(T.f)}마리</div><button class="main mgbig" id="tGo">${T.f}층 도전!</button><div class="wbt"><button id="tRk">랭킹 등록하기 (이번 주 최고 ${T.wb||0}층)</button><button id="tRv">랭킹 보기</button></div></div>`;B.querySelector('#tRk').onclick=()=>{try{rankPush('tower')}catch(e){}};B.querySelector('#tRv').onclick=()=>{mgClose();try{rankOpen('tower')}catch(e){}};
+   <div class="twn">다음 상대: Lv.${lv+LVO()} · ${twCnt(T.f)}마리</div><button class="main mgbig" id="tGo">${T.f}층 도전!</button><div class="wbt"><button id="tRk">랭킹 등록하기 (이번 주 최고 ${T.wb||0}층)</button><button id="tRv">랭킹 보기</button></div></div>`;B.querySelector('#tRk').onclick=()=>{try{rankPush('tower')}catch(e){}};B.querySelector('#tRv').onclick=()=>{mgClose();try{rankOpen('tower')}catch(e){}};
   B.querySelector('#tGo').onclick=async()=>{if(!G.party.some(m=>m.hp>0)){toast('먼저 치료하고 와요');return}const [spr,name]=pick(TWR);const f=T.f,lv=twLv(f),n=twCnt(f);
     const L=SPECIES.filter(s=>!META[s].form&&bst(META[s].stats)<=360+f*14&&bst(META[s].stats)>=260+f*8);const foes=Array.from({length:n},()=>mkMon(pick(L.length>4?L:SPECIES),lv+ri(-1,1)));mgClose();
     try{await trainerScene(spr,name+' ('+f+'층)',[pick(['격투 탑에 온 걸 환영해!','여기까지 오다니 제법인데?','내 포켓몬이 더 강해!','한 층 한 층이 시험이야!'])])}catch(e){}
@@ -3387,7 +3389,7 @@ function itRec(k){const it=ITEMS[k];if(!it||!G)return null;const all=[...G.party
       add(m,(1-r)*100+(pi(m)===0?8:0)+rarM(m)*2-(small?30:0),'체력 '+Math.round(r*100)+'%'+(r<.3?' · 제일 위험해요':r<.6?' · 많이 다쳤어요':' · 조금 다쳤어요')+(small?' · 이 약은 아까워요':''))}}
   else if(it.lv){const cap=lvCap();for(const m of G.party){if(m.lv>=cap)continue;const M=META[m.n];let sc=rarM(m)*12+(pi(m)===0?6:0)+Math.min(10,(cap-m.lv)/5),w=RAR[rarM(m)]+' 등급 · Lv.'+dLv(m);
       const ev=M&&!M.form?(EVC[M.dex]||[]).filter(([d,l])=>BYDEX[d]&&l>m.lv).sort((a,b)=>a[1]-b[1])[0]:null;
-      if(ev){const need=ev[1]-m.lv;if(need<=Math.max(1,G.bag.candy||0)){sc+=200-need;w='Lv.'+ev[1]+'에 진화해요 · 사탕 '+need+'개면 진화!'}else if(need<=5){sc+=60-need;w+=' · 진화(Lv.'+ev[1]+')까지 '+need+'레벨'}}
+      if(ev){const need=ev[1]-m.lv;if(need<=Math.max(1,G.bag.candy||0)){sc+=200-need;w='Lv.'+(ev[1]+LVO())+'에 진화해요 · 사탕 '+need+'개면 진화!'}else if(need<=5){sc+=60-need;w+=' · 진화(Lv.'+(ev[1]+LVO())+')까지 '+need+'레벨'}}
       else if(m.lv<cap-10)w+=' · 레벨이 낮아서 키우기 좋아요';
       add(m,sc,w)}}
   else if(it.charm){const ty=it.charm,tn=TN[ty];for(const m of G.party){if(chFed(m)>=chMax())continue;const mv2=(m.moves||[]).map(mvf).filter(x=>x&&x.type===ty),M=META[m.n],stab=M&&M.types.includes(ty),pw=mv2.reduce((a,x)=>a+(x.pw||0),0);
@@ -3421,7 +3423,7 @@ function buyAsk(k,n,price,ok,fixed){const it=ITEMS[k];let q=n||1;const d=documen
 
 // ===== 사이드메뉴: 배지 · 컨텐츠 (뭐가 있는지 · 마을별로 바로 가기) =====
 function badgeOpen(){if(!G)return;const rows=GYM.slice(0,8).map((g,i)=>{const got=i<G.badges,now=i===G.badges,a=2*(i+1),rm=rmLeft(i)<=0;
-  return `<div class="hrow ${got?'ok':now?'now':'lk'}"><i class="tyi" style="${tyIco(g.t)}"></i><span><b>${TOWNS[i+1]} · ${g.n}</b><small>${TN[g.t]} 타입 · ${got?'배지 획득'+(rm?' · 오늘 재대결 5번 끝':' · 재대결 '+rmLeft(i)+'/5번 남음'):now?'지금 도전할 차례 · 추천 Lv.'+(gymAce(i)-1):'배지 '+i+'개 모으면 도전'}</small></span>
+  return `<div class="hrow ${got?'ok':now?'now':'lk'}"><i class="tyi" style="${tyIco(g.t)}"></i><span><b>${TOWNS[i+1]} · ${g.n}</b><small>${TN[g.t]} 타입 · ${got?'배지 획득'+(rm?' · 오늘 재대결 5번 끝':' · 재대결 '+rmLeft(i)+'/5번 남음'):now?'지금 도전할 차례 · 추천 Lv.'+(gymAce(i)-1+LVO()):'배지 '+i+'개 모으면 도전'}</small></span>
   <button data-lc="${i}">관장 보기</button>${got||now?`<button data-gg="${a}">${now?'도전하러 가기':'가기'}</button>`:''}</div>`}).join('');
   openPanel('배지 · 관장',`<p class="hhint">배지를 누르면 관장과 파트너 포켓몬을 볼 수 있어요. 이긴 관장은 배지마다 하루 5번 재대결! (상대 레벨이 내 레벨을 따라와요)</p>${badgeCase()}${rows}`,null,p=>{
     p.querySelectorAll('[data-lc]').forEach(b=>b.onclick=()=>{sfx('tap');leaderCard(+b.dataset.lc)});
@@ -3463,7 +3465,7 @@ function lbOpen(){if(!G)return;const L=[...G.party,...G.box].filter(m=>m.lv>=100
   const body=L.length?L.map((m,i)=>{const lb=m.lb||0,need=lb+1,d=lbDupes(m),c=G.bag.candy||0,max=lb>=LBMAX;
     return `<div class="hrow ${max?'ok':''}"><img src="${THUMB[m.n]||''}" style="width:48px;height:48px;object-fit:contain"><span><b>${nm(m)} <u class="lbs">${'★'.repeat(lb)}${'☆'.repeat(LBMAX-lb)}</u></b><small>지금 능력치 +${lb*4}% · ${max?'최대!':'다음 ★'+(lb+1)+' → +'+(lb+1)*4+'%'}</small><small>재료: 같은 포켓몬 중복 카드 ${need}장 (가진 것 ${d}) 또는 이상한사탕 ${need*5}개 (가진 것 ${c})</small></span>
      ${max?'':`<button data-lbd="${i}" ${d>=need?'':'disabled'}>카드로</button><button data-lbc="${i}" ${c>=need*5?'':'disabled'}>사탕으로</button>`}</div>`}).join(''):'<p class="hhint">아직 Lv.100 포켓몬이 없어요. 레벨 제한은 배지를 모을수록 올라가고, 배지 8개를 모으면 Lv.100까지 키울 수 있어요.</p>';
-  openPanel('한계 돌파',`<p class="hhint">Lv.100이 끝이 아니에요! 한계 돌파 ★ 하나마다 모든 능력치 +4% (최대 ★${LBMAX} = +40%). 중복 카드는 카드팩·사파리·도감 사냥으로 모아요.</p><p class="hhint">지금 레벨 제한: <b>Lv.${lvCap()}</b> ${(G.champ||(G.badges||0)>=8)?'':'(배지를 더 모으면 올라가요)'}</p>${body}`,null,p=>{
+  openPanel('한계 돌파',`<p class="hhint">Lv.100이 끝이 아니에요! 한계 돌파 ★ 하나마다 모든 능력치 +4% (최대 ★${LBMAX} = +40%). 중복 카드는 카드팩·사파리·도감 사냥으로 모아요.</p><p class="hhint">지금 레벨 제한: <b>Lv.${lvCap()+LVO()}</b> ${(G.champ||(G.badges||0)>=8)?'':'(배지를 더 모으면 올라가요)'}</p>${body}`,null,p=>{
     const go=(i,kind)=>{const m=L[i],need=(m.lb||0)+1;if(kind==='d'){let n=need;G.dupes=G.dupes.filter(x=>{if(n>0&&x.kind==='P'&&x.id===META[m.n].dex){n--;return false}return true})}else G.bag.candy-=need*5;
       m.lb=need;m.hp=stOf(m)[0];sfx('badge');toast(nm(m)+' 한계 돌파 ★'+m.lb+'! 능력치 +'+m.lb*4+'%');save();lbOpen()};
     p.querySelectorAll('[data-lbd]').forEach(b=>b.onclick=()=>go(+b.dataset.lbd,'d'));p.querySelectorAll('[data-lbc]').forEach(b=>b.onclick=()=>go(+b.dataset.lbc,'c'))})}
@@ -3647,7 +3649,7 @@ async function ugym(i){const g=GYM[9+i],town=TOWNS[10+i],ub=G.ub||0;
   if(ub>i){await say([g.n+': 상위 배지는 이미 줬단다. 다음 섬으로 가 보렴.']);return}
   if(ub<i){await say(['안내원: 먼저 '+TOWNS[10+ub]+' 상위 체육관부터 도전해 봐!']);return}
   const lv=Math.min(100,Math.max(topLv()+2,74+i*7));
-  await say(['안내원: 여기는 '+town+' <b>상위 체육관</b>! <b>'+TN[g.t]+'</b> 타입 전설 포켓몬을 쓰는 '+g.n+'이(가) 기다려요.','추천 Lv.'+(lv-2)+' · 이기면 <b>상위 배지</b>와 높은 등급 카드팩!']);
+  await say(['안내원: 여기는 '+town+' <b>상위 체육관</b>! <b>'+TN[g.t]+'</b> 타입 전설 포켓몬을 쓰는 '+g.n+'이(가) 기다려요.','추천 Lv.'+(lv-2+LVO())+' · 이기면 <b>상위 배지</b>와 높은 등급 카드팩!']);
   let r=await battle({scaled:1,trainer:'상위 수련생',foes:upTeam(g.t,3,[lv-6,lv-5,lv-4],G.seed+i*31),money:lv*40,lose:'관장님은 전설을 다뤄!',bg:'town'});if(r!=='win'){if(r==='lose')await blackout();return}
   await trainerScene(g.spr,g.n,ULINE[i].pre);
   r=await battle({scaled:1,trainer:g.n,foes:upTeam(g.t,6,[lv-4,lv-3,lv-2,lv-1,lv,lv+1],G.seed+i*57),money:lv*220,lose:'훌륭하다…',bg:'town'});
@@ -5643,12 +5645,12 @@ function lossGuide(F,o){const ace=F.slice().sort((a,b)=>b.lv-a.lv)[0],AT=META[ac
   const first=gap>=5?'lv':mine.length?'rec':c0?'catch':'gear';
   const tile=(k,t,sub,act)=>`<button class="lgk${first===k?' best':''}" data-k="${k}">${first===k?'<i class="lgbest">먼저 이거!</i>':''}<b>${t}</b><small>${sub}</small><em>${act}</em></button>`;
   openPanel('이길 방법 찾기',`<div class="lgh"><img src="${THUMB[ace.n]||''}" alt=""><div><b>${esc(META[ace.n].name)} Lv.${dLv(ace)}</b><small>${AT.map(t=>TN[t]).join(' · ')} · 상대 ${F.length}마리 · ${gap>0?'내 제일 센 포켓몬보다 <b>'+gap+'레벨</b> 높아요':'레벨은 비슷해요 · 상성을 맞춰요'}</small><p>상성 좋은 타입: ${good.map(t=>`<span class="lgt" style="background:${TCOL[t]}">${TN[t]}</span>`).join(' ')||'없음'}</p></div></div>
-   <div class="lgk4">${tile('lv','레벨 올리기',r0?esc(areaName(r0.a))+' · 야생 Lv.'+r0.lv[0]+'~'+r0.lv[1]:'사냥터 없음','여기서 자동 사냥')}${tile('rec','상성 맞춰 편성',mine.length?'보관함에 좋은 포켓몬 '+mine.length+'마리 · '+esc(nm(mine[0])):'자동으로 제일 센 편성','추천 편성 열기')}
+   <div class="lgk4">${tile('lv','레벨 올리기',r0?esc(areaName(r0.a))+' · 야생 Lv.'+(r0.lv[0]+LVO())+'~'+(r0.lv[1]+LVO()):'사냥터 없음','여기서 자동 사냥')}${tile('rec','상성 맞춰 편성',mine.length?'보관함에 좋은 포켓몬 '+mine.length+'마리 · '+esc(nm(mine[0])):'자동으로 제일 센 편성','추천 편성 열기')}
     ${tile('catch','잡으러 가기',c0?esc(META[c0.n].name)+' · '+esc(areaName(c0.a)):'근처에 없어요',c0?'바로 가기':'—')}${tile('gear','장비 강화','공격 · 체력을 올려요','강화하러 가기')}</div>
    <div class="lgbar"><button class="lgrt${G.opt&&G.opt.retry?' on':''}" id="lgRt"><i class="ck"></i><span><b>계속 도전하기</b><small>켜면 져도 치료하고 다시 도전</small></span></button><button data-auto="q" class="main">퀘스트 자동사냥</button><button data-auto="h">그냥 자동사냥</button></div>
    <details class="lgd"><summary>자세히 보기 · 다른 사냥터 · 잡을 포켓몬 · 보관함 추천</summary>
    ${mine.length?`<h4>보관함의 상성 좋은 포켓몬</h4><div class="lgl">${mine.map(m=>`<div class="lgr"><img src="${THUMB[m.n]||''}" alt=""><span><b>${esc(nm(m))}</b><small>Lv.${dLv(m)} · ${META[m.n].types.map(t=>TN[t]).join('·')}</small></span></div>`).join('')}</div>`:''}
-   <h4>사냥터</h4><div class="lgl">${R.map(x=>`<div class="lgr"><span><b>${esc(areaName(x.a))}</b><small>야생 Lv.${x.lv[0]}~${x.lv[1]} · ${x.best.map(n=>META[n].name).join(', ')}</small></span><button data-hunt="${x.a}">자동 사냥</button></div>`).join('')}</div>
+   <h4>사냥터</h4><div class="lgl">${R.map(x=>`<div class="lgr"><span><b>${esc(areaName(x.a))}</b><small>야생 Lv.${x.lv[0]+LVO()}~${x.lv[1]+LVO()} · ${x.best.map(n=>META[n].name).join(', ')}</small></span><button data-hunt="${x.a}">자동 사냥</button></div>`).join('')}</div>
    ${catchTop.length?`<h4>잡으면 좋은 포켓몬</h4><div class="lgl">${catchTop.map(x=>`<div class="lgr"><img src="${THUMB[x.n]||''}" alt=""><span><b>${esc(META[x.n].name)}</b><small>${META[x.n].types.map(t=>TN[t]).join('·')} · ${esc(areaName(x.a))}</small></span><button data-catch="${x.n}" data-a="${x.a}">잡으러 가기</button></div>`).join('')}</div>`:''}
    <div class="lgb"><button data-go="team">편성 보기</button><button data-go="shop">회복약 사기</button><button data-go="px">접두사</button></div></details>`,null,p=>{
    p.querySelector('#lgRt').onclick=()=>{G.opt=G.opt||{};G.opt.retry=G.opt.retry?0:1;save();sfx('tap');p.querySelector('#lgRt').classList.toggle('on',!!G.opt.retry);toast('계속 도전하기 '+(G.opt.retry?'켜짐':'꺼짐'))};
@@ -8959,7 +8961,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
- {v:2026112029,date:'11월 20일',t:'레벨 제한 없앰',items:[{img:'',h:'⬆ 배지 없어도 계속 레벨 업',p:['배지별 레벨 제한을 없앴어요. 이제 <b>사냥만 해도 Lv.100까지</b> 계속 올라가요.','Lv.100 다음은 예전처럼 한계 돌파 ★로 더 강해져요.']}]},
+ {v:2026112029,date:'11월 20일',t:'레벨 제한 없앰 · 레벨 표시 맞춤',items:[{img:'',h:'🔢 레벨 표시를 내 단계에 맞춤',p:['환생하면 내 포켓몬 레벨이 101 · 201 · 301…로 보이는데, 이제 <b>상대 · 야생 · 관장 · 추천 · 목표 레벨</b>도 똑같이 맞춰서 보여요.','예: 201레벨인데 「67까지 레벨업」 대신 「267까지 레벨업」처럼.']},{img:'',h:'⬆ 배지 없어도 계속 레벨 업',p:['배지별 레벨 제한을 없앴어요. 이제 <b>사냥만 해도 Lv.100까지</b> 계속 올라가요.','Lv.100 다음은 예전처럼 한계 돌파 ★로 더 강해져요.']}]},
  {v:2026112028,date:'11월 20일',t:'조작감 개선 · PVP 한곳에',items:[{img:'ui/news/n14_brawl.webp',h:'⚔ PVP 한곳에',p:['PVP 버튼을 누르면 <b>실시간 난투전 · 3대3 자동 대전 · 친구 대전</b>이 그림 카드로 한 화면에 나와요.','PVP 상점 · 실시간 교환 · 랭킹도 바로 아래에 있어요.']},{img:'',h:'💨 구르기는 화면을 쓱!',p:['구르기 버튼이 없어졌어요. 전투 중 <b>화면 아무 데나 손가락으로 쓱 밀면</b> 그 방향으로 굴러요.','처음 전투에서 구르기 연습 3번을 꼭 해요 (건너뛸 수 없어요).']},{img:'',h:'🎮 전투 버튼 정리',p:['기술 버튼을 오른쪽 아래에 모았어요. 첫 기술은 크게, 나머지 3개는 그 둘레에.','나가기 · 교대 · 약 · 볼을 왼쪽 아래 한 줄에 붙였어요.']},{img:'',h:'🕹 필드 이동',p:['조이스틱을 대각선으로 밀면 두 방향을 번갈아 걸어서 대각선으로 가요. 벽에 막히면 옆으로 미끄러져요.']}]},
  {v:2026112027,date:'11월 20일',t:'자동 볼 낭비 고침',items:[{img:'',h:'🎯 자동 사냥 볼 낭비 고침',p:['자동 사냥에서 포켓몬 체력이 아직 많은데 볼을 계속 던지던 것을 고쳤어요.','이제 <b>잡힐 만큼 체력이 낮아질 때까지</b> 먼저 때리고 그다음에 던져요. 일반 35% · 희귀 28% · 영웅 22% · 전설 이상 15% 아래.']}]},
  {v:2026112026,date:'11월 20일',t:'컨텐츠 화면 새로 정리',items:[{img:'',h:'🗂 컨텐츠 화면이 깔끔해졌어요',p:['컨텐츠를 누르면 먼저 <b>큰 분류 6개</b>(매일 할 것 · 배틀·도전 · 친구랑 · 키우기 · 모으기·탐험 · 설정·소식)가 나와요.','분류를 누르면 <b>섹션별로</b> 그림과 설명이 함께 나와요. 설명은 「더 보기」를 누르면 다 보여요. ◀ 분류로 돌아갈 수 있어요.']}]},
@@ -9580,7 +9582,7 @@ try{RKB.ctower={n:'천계 탑 (이번 주)',k:()=>'ctower-'+wbWeek(),v:()=>{cons
 function ctOpen(){if(!G)return;const T=ctS(),f=T.f,c=CTF(f);const lock=!reach(6);
   openPanel('🗼 천계 탑',`<p class="hhint">층마다 강해지는 천계의 트레이너! <b>5층마다</b> 결정 · <b>10층마다</b> 큐브 · 지면 그 10층 묶음 처음부터 (예: 23층에서 지면 21층). 매주 월요일 1층부터.</p>
    ${lock?'<p class="hhint">🔒 천계에 가면 열려요.</p>':''}
-   <div class="rdb"><div style="flex:1"><b>지금 ${f}층</b><div>이번 주 최고 ${T.wb||0}층 · 역대 ${T.best||0}층</div><small>다음 상대: Lv.100 ${c.n}마리 · 체력 ×${c.hx.toFixed(2)}</small></div></div>
+   <div class="rdb"><div style="flex:1"><b>지금 ${f}층</b><div>이번 주 최고 ${T.wb||0}층 · 역대 ${T.best||0}층</div><small>다음 상대: Lv.${100+LVO()} ${c.n}마리 · 체력 ×${c.hx.toFixed(2)}</small></div></div>
    <button class="nxbig" id="ctGo" ${lock?'disabled':''}>${f}층 도전!</button>
    ${card('🗼 층마다 기다리는 상대 (이번 주)',Array.from({length:10},(_,i)=>{const R1=ctRoster(f+i);return `<div class="ctr${i?'':' now'}${R1.boss?' boss':''}"><b>${R1.f}층</b><span>${R1.boss?'👑 ':''}${R1.name}</span><em>${R1.team.map(n=>`<img src="${THUMB[n]||''}" title="${META[n].name}">`).join('')}</em></div>`}).join('')+'<small>10층마다 보스! 보스 포켓몬은 체력이 더 많아요 (×1.5) · 상대는 이번 주 내내 같아요</small>')}<div class="wbt"><button id="ctRk">랭킹 등록 (이번 주 ${T.wb||0}층)</button><button id="ctRv">랭킹 보기</button></div>`,null,p=>{
    p.querySelector('#ctRk').onclick=()=>{try{rankPush('ctower')}catch(e){}};p.querySelector('#ctRv').onclick=()=>{closePanel(1);try{rankOpen('ctower')}catch(e){}};
