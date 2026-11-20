@@ -3703,7 +3703,7 @@ function wbS(){if(!G.wb||G.wb.wk!==wbWeekB()){const old=G.wb;G.wb={wk:wbWeekB(),
 // ---------- 서버 ----------
 const WBC={list:null,t:0,err:''};
 async function wbFetch(wk,force){const c=wbCfg();if(!c){WBC.err='local';return null}if(WBC.list&&WBC.wk===wk&&Date.now()-WBC.t<(force?15000:60000))return WBC.list;   /* 9N 읽기 줄이기: 월보 목록 1분(새로고침도 15초) 재사용 */
-  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeBoss/${wk}${WBSUF}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok)throw new Error(r.status);const j=await r.json();
+  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeBoss/${wk}${WBSUF}/players?pageSize=300&key=${c.apiKey}`);if(!r.ok){WBC.code=r.status;throw new Error(r.status)}WBC.code=0;const j=await r.json();
     const L=(j.documents||[]).map(d=>({id:d.name.split('/').pop(),name:(d.fields.name||{}).stringValue||'?',dmg:+((d.fields.dmg||{}).integerValue||0)})).sort((a,b)=>b.dmg-a.dmg);WBC.list=L;WBC.wk=wk;WBC.t=Date.now();WBC.err='';return L}catch(e){WBC.err=String(e.message||e);return null}}
 async function wbPush(){const c=wbCfg(),w=wbS();if(!c||!w.dmg)return false;try{const u=`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeBoss/${w.wk}${WBSUF}/players/${G.pid}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=dmg&updateMask.fieldPaths=t`;
   const r=await fetch(u,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:(G.name||'트레이너').slice(0,12)},dmg:{integerValue:String(Math.floor(w.dmg))},t:{integerValue:String(Date.now())}}})});w.pend=!r.ok;save();return r.ok}catch(e){w.pend=1;save();return false}}
@@ -3766,8 +3766,9 @@ async function wbOpen(){if(!G)return;const w=wbS(),n=wbBoss();const fmt=x=>x.toL
     <h4>누적 데미지 랭킹 TOP 10 <small class="wbst"></small> <button class="wbrk" onclick="rankOpen('tower')">다른 랭킹</button></h4><p class="wbpd">월드보스는 <b>인터넷이 켜져 있을 때만</b> 참여할 수 있어요. 모두의 데미지를 서버에 바로 모아서 실시간 랭킹을 만들기 때문이에요.${w.pend?' (방금 싸운 데미지가 아직 안 올라갔어요. 인터넷이 켜지면 자동으로 올라가요)':''}</p><div class="wbl">${top}</div>
     <div class="hcard"><b>주간 보상 (금요일에 자동 지급)</b><p>1~10위: 영웅~전설 카드팩 2장 + 포켓몬팩 10장 + 기술팩 10장<br>11위부터: 영웅~전설 카드팩 1장 + 포켓몬팩 5장 + 기술팩 5장<br><small>영웅~전설 카드팩은 열면 영웅 90% · 전설 10%</small><br>보스를 쓰러뜨리면: 싸운 친구 모두 전설 카드팩 1장 더!<br>쓰러뜨린 다음엔 「포획 시도」로 볼을 ${WB_THROW}번 던져서 잡을 수 있어요.</p><small>지금은 전설 보스만 나와요. 나중엔 신화 · 환상 · 유일 보스도 나와요!</small></div>`};
   openPanel('월드보스',render(WBC.wk===w.wk?WBC.list:null),null,p=>{const bind=()=>{const f=p.querySelector('#wbF');if(f)f.onclick=()=>wbFight();const c=p.querySelector('#wbC');if(c)c.onclick=()=>wbCatch();const r=p.querySelector('#wbR');if(r)r.onclick=async()=>{sfx('tap');const L=await wbFetch(w.wk,1);p.querySelector('.pb, .pbody')?0:0;const host=p.querySelector('.wbh').parentNode;host.innerHTML=render(L);bind()}};bind();
-    const upd=async f=>{const L=await wbFetch(w.wk,f);if(!document.body.contains(p))return false;const h=p.querySelector('.wbh');if(h&&L){h.parentNode.innerHTML=render(L);bind()}const st=p.querySelector('.wbst');if(st)st.textContent=!wbCfg()?'서버 연결 전 · 내 기록만':!navigator.onLine||WBC.err?'인터넷이 꺼져 있어요 · 월드보스는 인터넷이 켜져 있어야 참여할 수 있어요':'실시간 랭킹 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' 기준';return true};
-    upd(0);const iv=setInterval(async()=>{if(!(await upd(1)))clearInterval(iv)},8000)})}
+    const upd=async f=>{const L=await wbFetch(w.wk,f);if(!document.body.contains(p))return false;const h=p.querySelector('.wbh');if(h&&L){h.parentNode.innerHTML=render(L);bind()}try{let b=p.querySelector('.wberr');const msg=!WBC.err?'':WBC.code===429?'⚠ 오늘 서버 사용량(읽기 한도)을 다 써서 랭킹 · 보스 체력을 못 불러와요. 내일 오후 5시(한국 시간)쯤 다시 열려요. 도전 데미지는 저장해 두었다가 자동으로 올려요.':WBC.code===403||WBC.code===401?'⚠ 서버가 막혀 있어요 (권한 '+WBC.code+'). 선생님께 알려 주세요.':WBC.code?'⚠ 서버 오류 '+WBC.code+' · 잠시 뒤 「새로고침」을 눌러 봐요.':'⚠ 인터넷 연결이 안 돼요 · 와이파이/데이터를 켜고 「새로고침」을 눌러 봐요.';if(msg){if(!b){b=document.createElement('p');b.className='wberr';b.style.cssText='margin:6px 0;padding:8px 10px;background:#ffe0e0;border:3px solid #c0392b;color:#7a1010;font:900 12px Galmuri11,sans-serif';const h=p.querySelector('.wbh');if(h)h.parentNode.insertBefore(b,h)}b.textContent=msg}else if(b)b.remove()}catch(e){}
+    const st=p.querySelector('.wbst');if(st)st.textContent=!wbCfg()?'서버 연결 전 · 내 기록만':!navigator.onLine||WBC.err?'인터넷이 꺼져 있어요 · 월드보스는 인터넷이 켜져 있어야 참여할 수 있어요':'실시간 랭킹 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' 기준';return true};
+    upd(0);const iv=setInterval(async()=>{if(document.hidden)return;if(!(await upd(1)))clearInterval(iv)},30000)})}
 try{HUB.push({k:'wb',n:'월드보스 (매주)',d:'매주 금요일 새 전설 포켓몬 보스! 모두의 데미지를 합쳐서 쓰러뜨려요. 하루 3번 도전, 누적 데미지 랭킹으로 주간 보상. 쓰러뜨리면 포획 시도 5번!',st:()=>{const w=wbS();return '내 데미지 '+w.dmg.toLocaleString()},go:[['월드보스 열기',()=>wbOpen()]]})}catch(e){}
 (function(){const go=()=>{const b=document.getElementById('bWB');if(b)b.onclick=()=>{sfx('tap');wbOpen('n')}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // 연결 코드 넣기 (운영자): 콘솔 대신 주소 ?wb=JD1-… 로도
@@ -7119,7 +7120,7 @@ setInterval(()=>{try{chEnsure();const d=document.getElementById('pkChat');const 
   if(show){let y=0;for(const id of ['mini','wxBadge','egHud']){const e=document.getElementById(id);if(!e||getComputedStyle(e).display==='none')continue;const r=e.getBoundingClientRect();if(r.height)y=Math.max(y,r.bottom)}if(!y)y=86;const top=y+8,avail=innerHeight-190-top;
     if(avail<26)show=false;else{d.style.top=top+'px';d.style.maxHeight=Math.min(76,avail)+'px'}}
   d.style.display=show?'':'none';if(show&&!PKC.fetchT){PKC.fetchT=1;chFetch(6)}}catch(e){}},500);
-setInterval(()=>{try{if(G&&SCENE==='over'&&chBase())chFetch(6)}catch(e){}},60000);
+setInterval(()=>{try{if(G&&SCENE==='over'&&!document.hidden&&chBase())chFetch(6)}catch(e){}},300000);
 
 // ===== 전투력 화면 · 덱 프리셋 =====
 function facesOf(d){return d.map(m=>`<img src="${faceUrl(m.n,'Normal')}" alt="">`).join('')||'<small>편성 없음</small>'}
@@ -7838,6 +7839,58 @@ async function trGo(m){const r=rarM(m),nx=r+1,X=TRX[nx];if(!X)return;const t=trm
   try{sfx('badge')}catch(e){}try{A2.tone(300,1600,.9,'sawtooth',.06);A2.tone(600,2400,.7,'triangle',.08,.25)}catch(e){}
   await trShow(m,r,nx);try{refreshSpr()}catch(e){}trOpen()}
 window.trGo=trGo;
+// ===== 9BH 초월 화면 새로: 「초월이란?」 안내 + 포켓몬 고르기 + 초월 후 모습 · 능력치 · 기술 미리보기 =====
+{const css=document.createElement('style');css.textContent=`
+.panel .tg9{display:flex;gap:6px;margin:0 0 8px}.panel .tg9>div{flex:1;padding:8px;background:linear-gradient(#26305e,#141a38);border:3px solid #0b0f24;color:#fff;text-align:center;font:900 12px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24}.panel .tg9>div b{display:block;font-size:22px;color:#ffd23f}
+.panel .tl9{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:0 0 8px;padding:6px;background:#141a38;border:3px solid #0b0f24}.panel .tl9 i{font-style:normal;padding:3px 6px;border:2px solid #0b0f24;color:#fff;font:900 11px 'Galmuri11',monospace;text-shadow:0 1px 0 #000}.panel .tl9 u{text-decoration:none;color:#8fa0d0;font-size:11px}
+.panel .tw9{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.panel .tc9{position:relative;padding:6px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 4px 0 #0b0f24;cursor:pointer;text-align:center}.panel .tc9.ok{border-color:#e0a000;box-shadow:0 0 0 3px #ffd23f,0 4px 0 #0b0f24}
+.panel .tc9 img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated}.panel .tc9 b{display:block;font-size:12px;color:#1c2550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel .tc9 .rc{display:inline-block;padding:1px 6px;color:#fff;font:900 10px 'Galmuri11',monospace;border:2px solid #0b0f24;text-shadow:0 1px 0 #000}
+.panel .tc9 .pb9{position:relative;height:12px;margin-top:4px;background:#d9d4bf;border:2px solid #1c2550}.panel .tc9 .pb9 u{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#ffd23f,#e09a00)}.panel .tc9 .pb9 em{position:relative;font:900 9px/9px 'Galmuri11',monospace;font-style:normal;color:#1c2550}
+.panel .tc9 .go9{position:absolute;top:-8px;right:-8px;padding:2px 6px;background:#e8424f;color:#fff;border:2px solid #0b0f24;font:900 10px 'Galmuri11',monospace}
+.panel .tv9{display:flex;align-items:center;gap:6px;margin:0 0 8px}.panel .tv9>div{flex:1;position:relative;background:radial-gradient(circle at 50% 60%,#2a3466,#0b0f24);border:3px solid #0b0f24;box-shadow:0 4px 0 #000}.panel .tv9 canvas{display:block;width:100%;height:auto}
+.panel .tv9 small{position:absolute;left:0;right:0;top:4px;text-align:center;font:900 13px 'Galmuri11',monospace;color:#fff;text-shadow:0 2px 0 #000}.panel .tv9>b{font-size:28px;color:#ffd23f;text-shadow:0 2px 0 #000}
+.panel .tt9{width:100%;border-collapse:collapse;margin:0 0 8px;background:#fffbe8;border:3px solid #1c2550;font-size:12px}.panel .tt9 td,.panel .tt9 th{padding:4px 6px;border-bottom:2px solid #1c255022;text-align:center}.panel .tt9 th{background:#1c2550;color:#ffd23f}.panel .tt9 td:first-child{text-align:left;font-weight:900;color:#1c2550}.panel .tt9 .up{color:#1e9e5e;font-weight:900}
+.panel .ta9{padding:8px 10px;margin:0 0 8px;background:linear-gradient(90deg,var(--c),#1c2550);color:#fff;border:3px solid #0b0f24;font-size:12px;text-shadow:0 1px 0 #000}.panel .ta9 b{color:#ffd23f}`;document.head.appendChild(css)}
+window.trOpen=function(sel){if(!G)return;const t=trm(),L=trList();
+  const need=m=>{const r=rarM(m),X=TRX[r+1];if(!X)return null;const have=t[X.k]||0;return{r,nx:r+1,X,have,ok:have>=X.need&&G.money>=X.gold}};
+  if(sel!=null&&L[sel])return trDetail(L,sel);
+  const ladder=`<div class="tl9">${RAR.map((n,i)=>`<i style="background:${RARC[i]}">${n}</i>${i<9?`<u>${i<6?'▶':'▶'}</u>`:''}`).join('')}</div>`;
+  const mat=`<div class="trmat">${[1,7,8,9].map(r=>{const X=TRX[r];return `<span style="--c:${RARC[r]}"><i>${X.ic}</i><b>${X.n}</b><em>${t[X.k]||0}</em></span>`}).join('')}</div>`;
+  const guide=`<div class="hcard"><b>✨ 초월이란?</b><p>포켓몬을 <b>한 단계 더 높은 등급</b>으로 만드는 거예요. 등급이 오르면 <b>몸 색이 바뀌고</b>, 능력치와 기술 위력이 올라요. 불멸부터는 몸 뒤에서 기운이 타오르고 <b>특별한 능력</b>(부활 · 분신 · 파티 버프)이 생겨요.</p></div>
+   <div class="tg9"><div><b>①</b>포켓몬 고르기</div><div><b>②</b>재료 모으기<br><small>결정 · 핵 · 숨결 · 인장</small></div><div><b>③</b>모습 미리 보고<br>초월하기!</div></div>${ladder}`;
+  const S=L.map((m,i)=>[m,i,need(m)]).sort((a,b)=>(!!(b[2]&&b[2].ok))-(!!(a[2]&&a[2].ok)));
+  const cards=S.map(([m,i,q])=>{const r=rarM(m);return `<div class="tc9${q&&q.ok?' ok':''}" data-ti="${i}">${q&&q.ok?'<span class="go9">가능!</span>':''}<img src="${THUMB[m.n]||''}"><b>${esc(nm(m))}</b><span class="rc" style="background:${RARC[r]}">${RAR[r]}</span>${q?` → <span class="rc" style="background:${RARC[q.nx]}">${RAR[q.nx]}</span><div class="pb9"><u style="width:${Math.min(100,q.have/q.X.need*100)}%"></u><em>${q.X.ic} ${q.have}/${q.X.need}</em></div>`:'<div><small style="color:#d4142e"><b>최고 등급!</b></small></div>'}</div>`}).join('');
+  const how=`<details><summary class="hhint" style="cursor:pointer"><b>📦 재료는 어디서 모아요? (눌러서 보기)</b></summary><p class="hhint"><img class="tri" src="ui/tr/gem.png" alt=""> <b>승급의 결정</b> (유일까지): 카오스 월드보스 · 월드보스 주간 보상 · 챔피언 · 난투전 1~3등 · 오늘의 의뢰<br><img class="tri" src="ui/tr/core.png" alt=""> <b>불멸의 핵</b> (불멸 30개): 카오스 월드보스 순위 보상 · 천계 최초 격파 · 천계 관장 재대결 5%<br><img class="tri" src="ui/tr/breath.png" alt=""> <b>태초의 숨결</b> (태초 60개): 이터널 월드보스 · 천상계 최초 격파<br><img class="tri" src="ui/tr/seal.png" alt=""> <b>만제의 인장</b> (만제 9개): 이터널 월드보스 순위 보상</p></details>`;
+  openPanel('✨ 초월',guide+mat+'<h4>포켓몬을 눌러서 초월 후 모습을 미리 봐요</h4>'+(L.length?`<div class="tw9">${cards}</div>`:'<p class="hhint"><b>포켓몬이 없어요.</b></p>')+how+(opAny()?'<p><button id="trGM">운영자: 재료 한 단계씩</button></p>':''),null,p=>{
+    p.querySelectorAll('[data-ti]').forEach(b=>b.onclick=()=>{sfx('tap');trDetail(L,+b.dataset.ti)});
+    const g=p.querySelector('#trGM');if(g)g.onclick=()=>{trmAdd('gem',50);trmAdd('core',30);trmAdd('breath',60);trmAdd('seal',9);save();closePanel(1);trOpen()}})};
+async function trDetail(L,i){const m=L[i],t=trm(),r=rarM(m),nx=r+1,X=TRX[nx];const full=!X;
+  let st0=[],st1=[];try{st0=stOf(m);const c=Object.assign({},m,{ax:nx,uid:(m.uid||'')+'~pv'});st1=stOf(c)}catch(e){}
+  const SN=['체력','공격','방어','특수공격','특수방어','스피드'];
+  const stats=full?'':`<table class="tt9"><tr><th>능력치</th><th>지금</th><th>초월 후</th></tr>${SN.map((n,k)=>st0[k]!=null?`<tr><td>${n}</td><td>${(st0[k]|0).toLocaleString()}</td><td class="up">${(st1[k]|0).toLocaleString()} ▲${Math.max(0,(st1[k]|0)-(st0[k]|0)).toLocaleString()}</td></tr>`:'').join('')}</table>`;
+  const mv=(m.moves||[]).map(id=>{let o=null;try{o=typeof id==='string'?(MOVES[id]||mvOf({id})):mvOf(id)}catch(e){}return o}).filter(Boolean);
+  const moves=full?'':`<table class="tt9"><tr><th>기술</th><th>지금 위력</th><th>초월 후</th></tr>${mv.map(o=>{const a=Math.round((o.pw||0)*(1+(GPW[r]||0))),b=Math.round((o.pw||0)*(1+(GPW[nx]||0)));return `<tr><td><em class="rtg" style="background:${TCOL[o.type]||'#888'}">${TN[o.type]||''}</em> ${esc(o.name||o.id)}</td><td>${a||'-'}</td><td class="up">${b||'-'}${b>a?' ▲'+(b-a):''}</td></tr>`}).join('')}</table>`;
+  const have=X?(t[X.k]||0):0,ok=X&&have>=X.need&&G.money>=X.gold;
+  const why=!X?'':have<X.need?X.n+' '+(X.need-have)+'개 더 필요해요':G.money<X.gold?'골드 '+(X.gold-G.money).toLocaleString()+'원 더 필요해요':'';
+  openPanel('✨ 초월 · '+esc(nm(m)),`<div class="hzback" style="--c:${RARC[nx]||RARC[r]}"><button id="tdB">◀ 포켓몬 고르기</button><b>${esc(nm(m))}</b></div>
+    <div class="tv9"><div><small>지금 · ${RAR[r]}</small><canvas id="tdA" width="300" height="260"></canvas></div>${full?'':`<b>▶</b><div style="box-shadow:0 0 18px ${RARC[nx]},0 4px 0 #000"><small style="color:${RARC[nx]==='#1a1f3c'?'#8fb4ff':'#fff'}">초월 후 · ${RAR[nx]}</small><canvas id="tdC" width="300" height="260"></canvas></div>`}</div>
+    ${full?'<p class="hhint"><b>이미 최고 등급 만제예요!</b></p>':`<div class="ta9" style="--c:${RARC[nx]}">새 능력 · <b>${TAB[nx]}</b><br>능력치 +${Math.round(RSTAT[nx]*100)}% · 기술 위력 +${Math.round((GPW[nx]||0)*100)}%</div>${stats}<h4>기술 위력이 이렇게 바뀌어요</h4>${moves}
+    <div class="trmat"><span style="--c:${RARC[nx]}"><i>${X.ic}</i><b>${X.n}</b><em>${have}/${X.need}</em></span><span style="--c:#e0a000"><i>💰</i><b>골드</b><em>${X.gold.toLocaleString()}</em></span></div>
+    <button class="nxbig" id="tdGo" ${ok?'':'disabled'}>${ok?'✨ '+RAR[nx]+'(으)로 초월하기!':'🔒 '+why}</button>`}`,null,async p=>{
+    p.querySelector('#tdB').onclick=()=>{sfx('tap');trOpen()};const g=p.querySelector('#tdGo');if(g)g.onclick=()=>{closePanel(1);trGo(m)};
+    let S=null;try{S=await getSpr(sprKey(m))}catch(e){}if(!S)return;const eng=window.TFX?TFX.eng():null;const t0=performance.now();
+    const run=(cv,tier)=>{if(!cv)return;const c=cv.getContext('2d');const A=S.meta&&S.meta.anims.idle;const sc=A?Math.min(5,180/Math.max(A.w,A.h)):3;
+      const loop=now=>{if(!document.body.contains(cv))return;const T=(now-t0)/1000;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,300,260);
+        try{if(eng&&tier>=7)TFX.back(eng,c,S,150,160,sc,tier,now)}catch(e){}
+        try{const S2=window.TFX&&tier!==r?TFX.spr(S,tier):(window.TFX?TFX.spr(S,tier):S);drawPm(c,S2||S,'idle',0,T,150,160,sc,{})}catch(e){try{drawPm(c,S,'idle',0,T,150,160,sc,{})}catch(x){}}
+        try{if(eng&&tier>=7)TFX.front(eng,c,S,150,160,sc,tier,now)}catch(e){}
+        requestAnimationFrame(loop)};requestAnimationFrame(loop)};
+    run(p.querySelector('#tdA'),r);run(p.querySelector('#tdC'),nx)})}
+window.trDetail=trDetail;
+(function(){const go=()=>{const g=document.getElementById('bGear');if(g&&!document.getElementById('bTr')){const b=document.createElement('button');b.id='bTr';b.innerHTML='<img class="sic" src="ui/tr/core.png" alt=""><span>초월</span>';g.parentNode.insertBefore(b,g.nextSibling);b.onclick=()=>{sfx('tap');trOpen()}}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
+
 // 초월 연출: 원래 모습 → 하얀 빛 → 새 몸 색 + 기운 폭발
 function trShow(m,from,to){return new Promise(async done=>{const o=document.createElement('div');o.id='trOv';
   o.innerHTML=`<canvas width="720" height="560"></canvas><b class="trt" style="color:${RARC[to]==='#1a1f3c'?'#8fb4ff':RARC[to]}">${to<=6?'승급 성공!':'초월 성공!'}</b><div class="trs">${esc(nm(m))} · ${RAR[from]} → <b>${RAR[to]}</b></div><div class="trs2">새 능력: ${TAB[to]}<br>능력치 +${Math.round(RSTAT[to]*100)}% · 기술 위력 +${Math.round(GPW[to]*100)}%</div><button>확인</button>`;
@@ -8968,7 +9021,8 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
- {v:2026112031,date:'11월 20일',t:'악용 막기',items:[{img:'',h:'🛡 악용 막기',p:['폰 날짜 · 시간을 바꿔서 매일 보상을 다시 받는 것을 막았어요. 게임 시간은 뒤로 가지 않아요.','월드보스 <b>연습</b>과 전설 레이드는 시즌 패스 점수 · 업적에 안 들어가요.','레이드 방을 나갔다 다시 들어와도 도전 횟수는 그대로예요.']}]},
+ {v:2026112032,date:'11월 20일',t:'초월 버튼이 생겼어요',items:[{img:'',h:'✨ 초월',p:['옆 메뉴에 <b>「초월」</b> 버튼이 생겼어요. 포켓몬을 한 단계 높은 등급으로 만드는 거예요.','포켓몬을 누르면 <b>초월 후 모습</b>을 움직이는 그대로 미리 볼 수 있어요. 능력치 · 기술 위력이 얼마나 오르는지도 표로 보여요.','재료가 다 모인 포켓몬은 「가능!」 표시가 떠요.']}]},
+ {v:2026112031,date:'11월 20일',t:'악용 막기 · 월드보스 화면',items:[{img:'',h:'🐉 월드보스 화면 정리',p:['월드보스를 열면 <b>보스 남은 체력 · 내 데미지 · 순위 · 랭킹</b>이 맨 위에 나와요. 주간 보상표는 랭킹 아래로 옮겼어요.','서버에 연결이 안 되면 이유를 빨간 글씨로 알려 줘요.']},{img:'',h:'🛡 악용 막기',p:['폰 날짜 · 시간을 바꿔서 매일 보상을 다시 받는 것을 막았어요. 게임 시간은 뒤로 가지 않아요.','월드보스 <b>연습</b>과 전설 레이드는 시즌 패스 점수 · 업적에 안 들어가요.','레이드 방을 나갔다 다시 들어와도 도전 횟수는 그대로예요.']}]},
  {v:2026112030,date:'11월 20일',t:'챔피언 화면 자동 멈춤',items:[{img:'',h:'🏆 챔피언 화면에서 자동 멈춤',p:['챔피언 화면 · 전설 포켓몬 고르기 · 환생 물어보기가 떠 있으면 <b>자동 사냥이 멈춰요</b>.','난이도만 올렸는데 바로 「클리어」로 처리되던 것을 막았어요. 그렇게 받은 전설 포켓몬은 회수해요.']}]},
  {v:2026112029,date:'11월 20일',t:'레벨 제한 없앰 · 레벨 표시 맞춤',items:[{img:'',h:'🔢 레벨 표시를 내 단계에 맞춤',p:['환생하면 내 포켓몬 레벨이 101 · 201 · 301…로 보이는데, 이제 <b>상대 · 야생 · 관장 · 추천 · 목표 레벨</b>도 똑같이 맞춰서 보여요.','예: 201레벨인데 「67까지 레벨업」 대신 「267까지 레벨업」처럼.']},{img:'',h:'⬆ 배지 없어도 계속 레벨 업',p:['배지별 레벨 제한을 없앴어요. 이제 <b>사냥만 해도 Lv.100까지</b> 계속 올라가요.','Lv.100 다음은 예전처럼 한계 돌파 ★로 더 강해져요.']}]},
  {v:2026112028,date:'11월 20일',t:'조작감 개선 · PVP 한곳에',items:[{img:'ui/news/n14_brawl.webp',h:'⚔ PVP 한곳에',p:['PVP 버튼을 누르면 <b>실시간 난투전 · 3대3 자동 대전 · 친구 대전</b>이 그림 카드로 한 화면에 나와요.','PVP 상점 · 실시간 교환 · 랭킹도 바로 아래에 있어요.']},{img:'',h:'💨 구르기는 화면을 쓱!',p:['구르기 버튼이 없어졌어요. 전투 중 <b>화면 아무 데나 손가락으로 쓱 밀면</b> 그 방향으로 굴러요.','처음 전투에서 구르기 연습 3번을 꼭 해요 (건너뛸 수 없어요).']},{img:'',h:'🎮 전투 버튼 정리',p:['기술 버튼을 오른쪽 아래에 모았어요. 첫 기술은 크게, 나머지 3개는 그 둘레에.','나가기 · 교대 · 약 · 볼을 왼쪽 아래 한 줄에 붙였어요.']},{img:'',h:'🕹 필드 이동',p:['조이스틱을 대각선으로 밀면 두 방향을 번갈아 걸어서 대각선으로 가요. 벽에 막히면 옆으로 미끄러져요.']}]},
@@ -9793,5 +9847,10 @@ setInterval(()=>{try{if(!G||G.clrAud)return;G.clr=G.clr||{};const bad=[];const c
   const r=await fetch(B.u+'clock/players/'+encodeURIComponent(G.pid||G.name||'x')+'?key='+B.k+'&updateMask.fieldPaths=t',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{t:{integerValue:String(Math.floor(gmClock.real()/1000))}}})});
   if(!r.ok)return;const j=await r.json();const ms=Date.parse(j.updateTime);if(ms>0)gmClock.srv(ms)}catch(e){}}
  setTimeout(sync,8000);setInterval(sync,30*60e3)})();
+</script>
+<script id="b9bg">
+// 9BG 월드보스 화면: 보스 체력 · 내 데미지 · 랭킹을 맨 위로, 주간 보상표는 랭킹 아래로
+setInterval(()=>{try{const p=document.querySelector('.panel');if(!p)return;const rw=p.querySelector('.wbrw'),wbh=p.querySelector('.wbh');if(!rw||!wbh)return;
+  if(rw.compareDocumentPosition(wbh)&Node.DOCUMENT_POSITION_FOLLOWING){const after=p.querySelector('.wbl')||wbh;after.parentNode.insertBefore(rw,after.nextSibling)}}catch(e){}},300);
 </script>
 </body></html>
