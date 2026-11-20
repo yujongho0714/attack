@@ -1292,7 +1292,7 @@ function genArea(a){if(AREAS[a])return AREAS[a];if(RESOK&&RESD[a])return genRes(
     // 땅 위 아이템
     for(let i=0;i<2;i++){for(let tr=0;tr<40;tr++){const xx=2+r()*(W-4)|0,y=3+r()*(H-6)|0;if(get(xx,y)===T_.G||get(xx,y)===T_.CAVE){A.items.push({x:xx,y,it:pick(k<2?['ball','potion']:k<5?['great','spotion','ball']:['hyper','hpotion','great']),n:1+(r()*2|0),id:'i'+a+'_'+i});break}}}
     // 트레이너
-    const HO=window.REGCUR==='h',nT=HO?6+Math.floor(k/2):3+Math.floor(k/3);const enc=encTable(a);const [lo,hi]=areaLv(a);
+    const HO=window.REGCUR==='h'||window.REGCUR==='s',nT=HO?6+Math.floor(k/2):3+Math.floor(k/3);const enc=encTable(a);const [lo,hi]=areaLv(a);
     for(let i=0;i<nT;i++){const y=Math.floor(H*(i+1)/(nT+1));let px=-1;for(let xx=1;xx<W-1;xx++)if(get(xx,y)===T_.PATH||get(xx,y)===T_.CAVE||get(xx,y)===T_.TG){px=xx;break}if(px<0)continue;
       const left=r()<.5;let tx=left?px-2:px+3;if(get(tx,y)!==T_.G&&get(tx,y)!==T_.CAVE&&get(tx,y)!==T_.FLOW){tx=left?px+3:px-2}if(tx<1||tx>=W-1)continue;set(tx,y,th.cave?T_.CAVE:T_.G);
       const nm=pick(['반바지 꼬마','곤충채집 소년','등산가','아가씨','낚시꾼','엘리트 트레이너','태권 소녀','캠프 보이','초능력자']);const cnt=HO?2+(r()*Math.min(4,1+k/2)|0):k===0?1:1+(r()*Math.min(3,1+k/2)|0);
@@ -1365,7 +1365,7 @@ function genRes(a){const j=RESD[a],W=j.w,H=j.h,town=isTown(a)||a===18,r=rng(G.se
   if(A.exN&&a>=20&&a<26&&town){const g=A.exN.arr;A.guard={x:g.x,y:g.y,need:100+(a-20)/2+1,beside:1}}
   if(a===0){const lab=A.bld.find(b=>b.kind==='lab');if(lab){const s=[[1,0],[-1,0],[2,0],[-2,0]].map(([dx,dy])=>[lab.out.x+dx,lab.out.y+dy]).find(([x,y])=>walk(x,y));if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:PAL.prof,kind:'talk',lines:['포켓몬 박사: 어서 와! 연구소에서 첫 포켓몬을 골라 주렴.']})}}
   if(town&&a>0&&a<16){const c=A.bld.find(b=>b.kind==='center');if(c){const s=[[2,1],[-2,1],[3,0],[-3,0]].map(([dx,dy])=>[c.out.x+dx,c.out.y+dy]).find(([x,y])=>walk(x,y));if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:NPAL(),kind:'talk',lines:[pick(['풀숲에 들어가면 야생 포켓몬이 나와!','포켓몬센터에서 공짜로 회복할 수 있어.','상성이 좋은 기술은 2배 피해야!','비행 타입 포켓몬이 있으면 하늘을 날 수 있대!','물 타입 포켓몬이 있으면 물 위를 탈 수 있어.'])]})}}
-  if(!town){const k=(a-1)/2;A.enc=encTable(a);const enc=A.enc,[lo,hi]=areaLv(a);const HO=window.REGCUR==='h',nT=HO?6+Math.floor(k/2):3+Math.floor(k/3);const used=new Set(path.map(([x,y])=>x+','+y));
+  if(!town){const k=(a-1)/2;A.enc=encTable(a);const enc=A.enc,[lo,hi]=areaLv(a);const HO=window.REGCUR==='h'||window.REGCUR==='s',nT=HO?6+Math.floor(k/2):3+Math.floor(k/3);const used=new Set(path.map(([x,y])=>x+','+y));
     for(let i=0;i<nT&&path.length>12;i++){const [px,py]=path[Math.floor(path.length*(i+1)/(nT+1))];
       const cand=[[2,0],[-2,0],[0,2],[0,-2],[3,0],[-3,0],[1,1],[-1,1]].map(([dx,dy])=>[px+dx,py+dy]).filter(([x,y])=>walk(x,y)&&!used.has(x+','+y));if(!cand.length)continue;const [tx,ty]=cand[r()*cand.length|0];
       const nm=pick(['반바지 꼬마','곤충채집 소년','등산가','아가씨','낚시꾼','엘리트 트레이너','태권 소녀','캠프 보이','초능력자']);const cnt=HO?2+(r()*Math.min(4,1+k/2)|0):k===0?1:1+(r()*Math.min(3,1+k/2)|0);
@@ -1980,7 +1980,7 @@ function objective(){if(!G.party.length)return{t:'🧪 연구소에서 첫 포�
   if(b<8){const ace=gymAce(b),rec=ace-1;if(topLv()<rec-1)return{t:'🌿 '+RTN[b]+'에서 레벨 올리기 (Lv.'+topLv()+' → '+rec+')',hunt:{a:2*b+1},until:()=>topLv()>=rec};return{t:'🏟️ '+TOWNS[b+1]+' 체육관 도전 · '+TN[GYM[b].t]+' 타입 (추천 Lv.'+rec+')',g:{a:2*(b+1),door:'gym'}}}
   if(!G.champ){if(topLv()<CHL()-8)return{t:'🌿 챔피언 로드에서 레벨 올리기 (Lv.'+topLv()+' → '+(CHL()-8)+')',hunt:{a:17},until:()=>topLv()>=CHL()-8};return{t:'🏆 포켓몬 리그 도전!',g:{a:18,door:'league'}}}
   const c=Object.keys(G.dex.c).length;const nx=nextDexTarget();return{t:'📖 도감 채우기 '+c+'/'+SPECIES.length+(nx?' · 다음: '+META[nx.n].name:''),hunt:nx?{a:nx.a,n:nx.n}:null}}
-function nextDexTarget(){let best=null;for(const n of SPECIES){const d=META[n].dex;if(G.dex.c[d])continue;const L=LOC[n];if(!L||!L.length)continue;for(const a of L){const dd=Math.abs(a-G.a);if(!best||dd<best.d)best={n,a,d:dd}}}return best}
+function nextDexTarget(){let best=null;const LG=window.LOCG||LOC;for(const n of SPECIES){const d=META[n].dex;if(G.dex.c[d])continue;const L=(LG[n]||[]).filter(x=>{try{return areaOpen(x)}catch(e){return true}});if(!L.length)continue;for(const a of L){const dd=Math.abs(a-G.a);if(!best||dd<best.d)best={n,a,d:dd}}}return best}   // 9AV: 풀숲에서 걸어서 만나고 · 갈 수 있는 곳만
 function needHeal(){if(!G.party.length)return false;const A=alive();if(!A.length)return true;const S=G.party.reduce((s,m)=>s+m.hp/stOf(m)[0],0)/G.party.length;return S<.45||A[0].hp/stOf(A[0])[0]<.2&&!['potion','spotion','hpotion'].some(k=>G.bag[k]>0)}
 function healGoal(){let best=null;for(let a=0;a<18;a+=2){if(a/2>G.badges+1)continue;const d=Math.abs(a-G.a);if(!best||d<best.d)best={a,d}}return{a:best.a,door:best.a===0?'home':'center'}}
 function autoThink(){if(SCENE!=='over'||P.busy||EVB.n||DLG.on||PANEL)return;if(KEY.dir>=0){AUTO.manT=NOW;return}if(AUTO.manT&&NOW-AUTO.manT<1.2)return;let g=null,hunt=null;
@@ -2072,7 +2072,7 @@ function dexOne(n){const M=META[n],cc=G.dex.c[M.dex],L=LOC[n]||[];const evFrom=S
   openPanel('📖 No.'+M.dex+' '+M.name,`<div class="d1"><img src="${THUMB[n]||''}"><div><div>${M.types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')}</div><small>체력 ${M.stats[0]} · 공격 ${M.stats[1]} · 방어 ${M.stats[2]} · 특공 ${M.stats[3]} · 특방 ${M.stats[4]} · 스피드 ${M.stats[5]}</small><div>${RARS(n)} <small>등급 보너스 능력치 +${Math.round(rstat(n)*100)}%</small></div><div>${cc?'잡았어요':'아직 못 잡았어요'}</div><small>기술: ${(M.moves||[]).map(m=>m.name).join(', ')||'-'}</small></div></div>
   <h4>나오는 곳</h4>${L.length?L.map(a=>`<div class="row"><span>🌿 ${areaName(a)} <small>(Lv.${areaLv(a).join('~')}${genArea(a).enc.w.some(e=>e.n===n)&&!genArea(a).enc.g.some(e=>e.n===n)?' · 물 위':''})</small></span>${areaOpen(a)?'':`<small class="lkx">배지 ${areaNeed(a)}개 필요 · 먼저 ${(navSteps(a)[0]||{t:''}).t}</small>`}<button data-go="${a}">${areaOpen(a)?'잡으러 자동 이동':'목표로 정하기'}</button></div>`).join(''):`<small>${evFrom?META[evFrom].name+'(을)를 키워서 진화시키면 얻을 수 있어요':'풀숲에서는 안 나와요 (진화로 얻거나 다른 세이브에서 나와요)'}</small>`}<div class="wbt"><button id="dWm">월드맵에서 보기</button></div>`,()=>dexOpen(),p=>{
     p.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>{const a=+x.dataset.go;if(!G.party.length){toast('먼저 첫 포켓몬을 받아요');return}if(SCENE!=='over')return;closePanel(1);navSet(a,n,'auto')});const wb=p.querySelector('#dWm');if(wb)wb.onclick=()=>{WM.pk=n;WM.hl=n;const L=LOC[n]||[];WM.sel=L.length?L.slice().sort((a,b)=>(areaOpen(b)-areaOpen(a))||Math.abs(a-G.a)-Math.abs(b-G.a))[0]:G.a;worldOpen()}})}
-function buildLoc(){LOC={};for(let a=1;a<NA;a+=2){if(a===18)continue;const T=encTable(a);for(const e of T.g.concat(T.w)){(LOC[e.n]=LOC[e.n]||[]);if(!LOC[e.n].includes(a))LOC[e.n].push(a)}}}
+function buildLoc(){LOC={};window.LOCG={};for(let a=1;a<NA;a+=2){if(a===18)continue;const T=encTable(a);for(const e of T.g.concat(T.w)){(LOC[e.n]=LOC[e.n]||[]);if(!LOC[e.n].includes(a))LOC[e.n].push(a)}for(const e of T.g){(LOCG[e.n]=LOCG[e.n]||[]);if(!LOCG[e.n].includes(a))LOCG[e.n].push(a)}}}
 // ---------- 저장 ----------
 function save(){if(!G)return;G.x=P.x;G.y=P.y;G.dir=P.dir;G.t=Date.now();LS.set('pka-save:'+(G.name||'처음 기록'),G)}
 function newGame(){G={v:1,seed:ri(1,1e8),a:0,x:10,y:12,dir:3,party:[],box:[],bag:{},money:3000,badges:0,dex:{s:{},c:{}},beat:{},got:{},visit:{0:1},heal:{a:0,x:4,y:15},flags:{},opt:{catchNew:true},fast:0,autoBattle:0}}
@@ -2865,6 +2865,9 @@ function navClear(msg){if(!G.nav)return;G.nav=null;save();if(msg)toast(msg);guid
   return{t:'목표: '+navLabel(),hunt:{a:v.a},nav:1}}}
 // 도착 · 잡으면 목표 끝
 setInterval(()=>{try{const v=G&&G.nav;if(!v||SCENE!=='over')return;
+  if(v.n&&areaOpen(v.a)&&!G.dex.c[META[v.n].dex]){const T=encTable(v.a),inG=T.g.some(e=>e.n===v.n),inW=T.w.some(e=>e.n===v.n);
+    if(!inG&&!inW){const L=((window.LOCG||{})[v.n]||[]).filter(x=>areaOpen(x));if(L.length){G.nav.a=L[0];save();toast(META[v.n].name+'(은)는 '+areaName(L[0])+'에서 나와요 · 목표를 바꿨어요');guideUpd();return}navClear(META[v.n].name+'(은)는 지금 지방에선 안 나와요 · 목표를 지웠어요');if(AUTO.on&&AUTO.huntOnly)autoStop();return}
+    if(!inG&&inW&&!v.wh){v.wh=1;save();toast(META[v.n].name+'(은)는 '+areaName(v.a)+'의 <b>물 위</b>에서만 나와요 · 물가에서 파도타기로 다녀요!')}}
   if(v.n&&G.dex.c[META[v.n].dex]){navClear(META[v.n].name+' 잡았어요! 목표 완료');if(AUTO.on&&AUTO.huntOnly)autoStop();return}
   if(!v.n&&G.a===v.a){const st=v.stay&&!isTown(v.a)&&v.a!==18;navClear(areaName(v.a)+' 도착!'+(st?'':' 목표 완료'));if(st){AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=1;AUTO.hunt={a:v.a};AUTO.gt=null;G.autoQuest=0;hud();toast(areaName(v.a)+'에서 자동 사냥을 계속해요')}else if(AUTO.on)autoStop()}}catch(e){}},800);
 // ---------- 월드맵 ----------
@@ -5613,7 +5616,7 @@ function lgRoutes(myLv){const out=[];for(let a=1;a<NA;a+=2){if(a===18||!areaOpen
 function lossGuide(F,o){const ace=F.slice().sort((a,b)=>b.lv-a.lv)[0],AT=META[ace.n].types,foeLv=Math.max(...F.map(f=>f.lv));const my=[...G.party,...G.box],top=Math.max(1,...G.party.map(m=>m.lv));
   const good=Object.keys(TN).filter(t=>{try{return eff(t,AT)>=2}catch(e){return false}});
   const mine=my.filter(m=>META[m.n]&&META[m.n].types.some(t=>good.includes(t))&&!G.party.includes(m)).sort((a,b)=>b.lv-a.lv).slice(0,4);
-  const catchL=[];for(const n of SPECIES){const M=META[n];if(!M||!M.types||!M.types.some(t=>good.includes(t)))continue;const L=(LOC[n]||[]).filter(a=>areaOpen(a));if(!L.length)continue;catchL.push({n,a:L.sort((x,y)=>Math.abs(x-G.a)-Math.abs(y-G.a))[0],s:(M.stats||M.s||[]).reduce((p,q)=>p+q,0)})}
+  const catchL=[];for(const n of SPECIES){const M=META[n];if(!M||!M.types||!M.types.some(t=>good.includes(t)))continue;const L=((window.LOCG||LOC)[n]||[]).filter(a=>areaOpen(a));if(!L.length)continue;catchL.push({n,a:L.sort((x,y)=>Math.abs(x-G.a)-Math.abs(y-G.a))[0],s:(M.stats||M.s||[]).reduce((p,q)=>p+q,0)})}
   catchL.sort((a,b)=>b.s-a.s);const catchTop=catchL.slice(0,4);const R=lgRoutes(top);const gap=foeLv-top;const r0=R.slice().sort((x,y)=>y.lv[0]-x.lv[0]).find(x=>x.lv[0]<=top+2)||R[0];const c0=catchTop[0];
   const first=gap>=5?'lv':mine.length?'rec':c0?'catch':'gear';
   const tile=(k,t,sub,act)=>`<button class="lgk${first===k?' best':''}" data-k="${k}">${first===k?'<i class="lgbest">먼저 이거!</i>':''}<b>${t}</b><small>${sub}</small><em>${act}</em></button>`;
@@ -7852,10 +7855,13 @@ try{HUB.push({k:'trans',n:'승급 · 초월 (좋아하는 포켓몬을 만제까
 // ===== 9C 천계 새 스토리: 호연 지방 (천계·천상계 난이도에서 이야기 무대가 호연으로 바뀌어요) =====
 // 지도: maps/hNN.json + hNN_lo/hi.webp (레조넌스 호연 지도를 변환) · 관장/사천왕/챔피언 · 야생 포켓몬(호연 도감 위주) · 트레이너 2배
 (function(){try{
-window.REGCUR='m';const RESDA={m:null,h:null};
-const REGOF=()=>DIFF()>=6&&RESDA.h?'h':'m';window.REGOF=REGOF;
+window.REGCUR='m';const RESDA={m:null,h:null,s:null};
+// 9AT: 천계 = 호연 · 천상계 = 신오
+const REGOF=()=>DIFF()>=7&&RESDA.s?'s':DIFF()>=6&&RESDA.h?'h':'m';window.REGOF=REGOF;
 const XH=[[null,0],[1,0],[2,5],[2,['w',79,6]],[0,3],[2,0],[3,1],[1,7],[0,['w',12,15]],[0,1],[3,2],[0,2],[2,3],[1,8],[8,1],[7,0],[5,15],[3,6],[['w',18,41],null]];
 for(let a=19;a<=26;a++){const s=XH[UMAP[a]];XH[a]=[a===19?null:s[0],a===26?null:s[1]]}
+const XS=[[null,1],[0,3],[0,7],[0,2],[4,7],[0,3],[0,1],[0,2],[3,6],[2,3],[0,7],[0,4],[3,4],[0,2],[0,2],[0,6],[0,1],[1,4],[2,null]];
+for(let a=19;a<=26;a++){const s=XS[UMAP[a]];XS[a]=[a===19?null:s[0],a===26?null:s[1]]}
 const R={m:null,h:{
   X:XH,towns:['미로마을','금탄도시','무로마을','보라시티','용암마을','등화도시','검방울시티','이끼시티','루네시티'],
   r17:'114번도로 · 승리의 길',
@@ -7876,7 +7882,28 @@ const R={m:null,h:{
     {pre:['사천왕 일목. 세계를 돌며 에스퍼 수행을 했지.','내 초능력을 넘어설 수 있을까?'],win:['…넌 진짜다. 앞으로 가라.']},
     {pre:['사천왕 꼭두야! 귀엽다고 얕보면 큰일 나!','페어리 포켓몬의 반짝이는 힘을 보여 줄게!'],win:['힝, 졌다! 그래도 재밌었어!']},
     {pre:['사천왕의 대장, 목호다.','전설의 드래곤과 함께 천계의 끝을 보여 주마!'],win:['…훌륭하다. 챔피언이 기다리고 있다.']}],
-  ch:{spr:'CHAMPION_Wallace',n:'챔피언 윤진',dex:[321,73,272,130,350,382],pre:()=>['어서 와, '+(G.name||'친구')+'. 나는 호연 지방의 챔피언, 윤진.','물처럼 아름답고 바다처럼 깊은 승부… 천계의 마지막 시험을 시작하지!']}}};
+  ch:{spr:'CHAMPION_Wallace',n:'챔피언 윤진',dex:[321,73,272,130,350,382],pre:()=>['어서 와, '+(G.name||'친구')+'. 나는 호연 지방의 챔피언, 윤진.','물처럼 아름답고 바다처럼 깊은 승부… 천계의 마지막 시험을 시작하지!']}},
+ s:{
+  X:XS,towns:['떡잎마을','무쇠시티','영원시티','장막시티','들판시티','연고시티','운하시티','선단시티','물가시티'],
+  r17:'223번수로 · 챔피언로드',
+  gym:[{t:'ROCK',n:'관장 강석',c:'#a08848'},{t:'GRASS',n:'관장 유채',c:'#5cb85c'},{t:'FIGHTING',n:'관장 자두',c:'#c05030'},{t:'WATER',n:'관장 맥석',c:'#3a8ee8'},{t:'GHOST',n:'관장 멜리사',c:'#7a5ab8'},{t:'STEEL',n:'관장 동관',c:'#8a9ab0'},{t:'ICE',n:'관장 무청',c:'#7ad0e8'},{t:'ELECTRIC',n:'관장 전진',c:'#e8c020'}],
+  gbg:['gym_rock','gym_grass','gym_ground','gym_water','gym_psychic','gym_rock','gym_water','gym_elec'],gwx:['sand','sun',null,'rain','fog',null,'snow',null],
+  trg:['SINNOH_Roark','SINNOH_Gardenia','SINNOH_Maylene','SINNOH_Wake','SINNOH_Fantina','SINNOH_Byron','SINNOH_Candice','SINNOH_Volkner'],
+  tre:['SINNOH_Aaron','SINNOH_Bertha','SINNOH_Flint','SINNOH_Lucian'],
+  elite:[{t:'BUG',n:'사천왕 충호',lv:57},{t:'GROUND',n:'사천왕 들국화',lv:58},{t:'FIRE',n:'사천왕 대엽',lv:59},{t:'PSYCHIC',n:'사천왕 오엽',lv:61}],
+  gl:[{pre:['무쇠체육관 관장 강석이야. 탄광에서 캐낸 단단한 바위처럼 강하지!','천상계까지 온 너의 실력, 바위로 시험해 볼게!'],win:['…내 바위가 깨졌어. 정말 강하구나!','배지야! 다음은 영원시티의 유채 관장님이야!'],lose:['바위는 아직 안 깨졌어. 다시 와!']},
+    {pre:['영원체육관 관장 유채야! 풀 포켓몬의 생명력을 보여 줄게!','숲처럼 끝없이 자라나는 힘, 버틸 수 있을까?'],win:['와, 내 풀들이 다 시들었어!','배지야! 장막시티로 가 봐!'],lose:['풀은 다시 자라지! 또 와!']},
+    {pre:['장막체육관 관장 자두예요.','맨발로 단련한 격투 포켓몬, 한 방 한 방에 마음을 담았어요!'],win:['…졌어요. 더 단련할게요!','배지예요! 들판시티로 가세요!'],lose:['아직이에요! 더 힘내요!']},
+    {pre:['우하하! 들판체육관 관장 맥석이다!','거친 파도처럼 몰아치는 물 포켓몬, 휩쓸려 가지 마라!'],win:['우하하! 내가 파도에 휩쓸렸구먼!','배지다! 연고시티로 가거라!'],lose:['파도는 아직 높다! 다시 와라!']},
+    {pre:['연고체육관 관장 멜리사예요.','고스트 포켓몬의 신비한 춤, 무섭지 않나요?'],win:['오… 정말 멋진 승부였어요.','배지예요. 운하시티로 가세요!'],lose:['유령이 아직 웃고 있어요~']},
+    {pre:['운하체육관 관장 동관이다! 강철처럼 단단한 방어를 보여 주마!','천상계의 강철, 뚫을 수 있겠느냐!'],win:['허허… 내 강철이 뚫렸구나!','배지다. 북쪽 선단시티로 가거라!'],lose:['강철은 녹슬지 않는다!']},
+    {pre:['선단체육관 관장 무청이야! 눈처럼 하얗고 얼음처럼 차가운 승부!','꽁꽁 얼려 줄게!'],win:['으앗 추워… 아니 뜨거워! 내가 졌어!','배지야! 마지막은 물가시티의 전진 관장님!'],lose:['꽁꽁! 다시 와!']},
+    {pre:['물가체육관 관장 전진이다.','오랜만에 전기가 찌릿하게 오는 상대군. 전력으로 간다!'],win:['…최고의 승부였다. 정말 짜릿했어.','마지막 배지다. 포켓몬리그로 가라!'],lose:['아직 전압이 부족하군.']}],
+  el:[{pre:['사천왕 충호! 벌레 포켓몬은 작지만 아름답고 강하다!','천상계의 벌레 포켓몬을 보여 주지!'],win:['…졌다. 다음 방으로 가라!']},
+    {pre:['사천왕 들국화란다. 땅의 힘은 모든 것을 받쳐 주지.','할머니라고 얕보면 큰일 나요~'],win:['호호, 강하구나. 앞으로 가렴.']},
+    {pre:['사천왕 대엽! 내 마음은 언제나 불타고 있다!','뜨거운 승부를 시작하자!'],win:['크으… 불꽃이 꺼졌다! 대단해!']},
+    {pre:['사천왕 오엽입니다. 책을 읽듯 당신의 수를 읽어 드리죠.','에스퍼 포켓몬의 힘, 넘어설 수 있을까요?'],win:['…훌륭합니다. 챔피언이 기다리고 있어요.']}],
+  ch:{spr:'CHAMPION_Cynthia',n:'챔피언 난천',dex:[442,407,468,448,350,445],pre:()=>['어서 와, '+(G.name||'친구')+'. 나는 신오 지방의 챔피언, 난천.','천상계의 끝, 마지막 시험이야. 나의 한카리아스와 함께 전력으로 갈게!']}}};
 const cp=o=>JSON.parse(JSON.stringify(o));
 function snapM(){if(R.m)return;R.m={X:RESX.map(x=>x&&x.slice()),towns:RES_TOWNS.slice(),gym:GYM.slice(0,8).map(g=>({t:g.t,n:g.n,c:g.c})),gbg:GYMBG.slice(),gwx:GYMWX.slice(),trg:TRS.gym.slice(),tre:TRS.elite.slice(),elite:cp(ELITE),gl:cp(GLINE),el:cp(ELINE),ch:null}}
 function apply(r){const D=R[r];if(!D||!RESDA[r])return;
@@ -7891,23 +7918,23 @@ function apply(r){const D=R[r];if(!D||!RESDA[r])return;
 function fixPos(){if(!G)return;if(G.reg===REGCUR)return;const first=G.reg!=null;G.reg=REGCUR;if(!first&&REGCUR==='m')return;
   try{const A=genArea(G.a),c=A.bld.find(b=>b.kind==='center')||A.bld.find(b=>b.kind==='home')||A.bld.find(b=>b.kind==='league');const s=c?c.out:A.spawn;G.x=P.x=s.x;G.y=P.y=s.y;
     const H=genArea(G.heal&&G.heal.a!=null&&G.heal.a<19?G.heal.a:0),hc=H.bld.find(b=>b.kind==='center')||H.bld.find(b=>b.kind==='home');G.heal=hc?{a:H.a,x:hc.out.x,y:hc.out.y}:{a:0,x:H.spawn.x,y:H.spawn.y}}catch(e){console.warn('9C pos',e)}}
-window.regSync=function(){if(!RESOK)return;snapM();if(!RESDA.m)RESDA.m=RESD;if(!RESDA.h){regLoad();}const r=REGOF();if(r!==REGCUR){apply(r)}if(G&&G.reg!==REGCUR){G._regFix=1}};
+window.regSync=function(){if(!RESOK)return;snapM();if(!RESDA.m)RESDA.m=RESD;if(!RESDA.h||!RESDA.s){regLoad();}const r=REGOF();if(r!==REGCUR){apply(r)}if(G&&G.reg!==REGCUR){G._regFix=1}};
 // 지도 불러오기: 관동(원래) + 호연
-window.regLoad=async function(){if(RESDA.h)return;try{const L=await Promise.all(XH.map((_,a)=>fetch('maps/h'+String(UMAP[a]??a).padStart(2,'0')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)));
-  if(L.every(Boolean)){const D={};L.forEach((j,a)=>D[a]=j);RESDA.h=D;
+let RLB={};window.regLoad=async function(){for(const rg of ['h','s']){if(RESDA[rg]||RLB[rg])continue;RLB[rg]=1;try{const XX=rg==='s'?XS:XH;const L=await Promise.all(XX.map((_,a)=>fetch('maps/'+rg+String(UMAP[a]??a).padStart(2,'0')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)));
+  if(L.every(Boolean)){const D={};L.forEach((j,a)=>D[a]=j);RESDA[rg]=D;
     // 이미 천계 이상으로 게임 중이면 바로 호연으로 바꿔요
-    if(G&&SCENE!=='title'&&REGOF()!=='m'&&REGCUR==='m'){try{regSync();const A=genArea(G.a);place(G.a,G.x,G.y,G.dir)}catch(e){}}}}catch(e){console.warn('9C 호연 지도',e)}};
+    if(G&&SCENE!=='title'&&REGOF()!==REGCUR){try{regSync();const A=genArea(G.a);place(G.a,G.x,G.y,G.dir)}catch(e){}}}else RLB[rg]=0}catch(e){RLB[rg]=0;console.warn('9C 지도 '+rg,e)}}};
 regLoad();
 // 지도 그림: 지금 지방 글자(m/h)로
 {const _ri=resImg;resImg=function(a,k){if(REGCUR==='m')return _ri(a,k);const key=REGCUR+a+k;if(!RIMG[key]){const src='maps/'+REGCUR+String(UMAP[a]??a).padStart(2,'0')+'_'+k+'.webp';const i=new Image();i.decoding='async';
   if(UTINT[a]){const o=new Image();o.onload=()=>{try{const c=document.createElement('canvas');c.width=o.naturalWidth;c.height=o.naturalHeight;const g=c.getContext('2d');g.filter=UTINT[a];g.drawImage(o,0,0);c.toBlob(b=>{i.src=URL.createObjectURL(b)},'image/webp',.9)}catch(e){i.src=src}};o.src=src}else i.src=src;RIMG[key]=i}return RIMG[key]}}
 {const _ga=genArea;genArea=function(a){try{regSync()}catch(e){}const A=_ga(a);if(G&&G._regFix&&a===G.a&&A){delete G._regFix;fixPos()}return A}}
 // 야생 포켓몬: 호연에선 호연 도감(252~386번) 포켓몬이 주로 나와요
-{const _et=encTable;encTable=function(a){const T=_et(a);if(REGCUR!=='h')return T;try{const r=rng(G.seed*7+a*313);const HO=SPECIES.filter(s=>{const d=META[s].dex;return d>=252&&d<=386&&!META[s].form&&(RARS?true:true)});
-  const sw=(L,water)=>L.map(e=>{const b=bst(META[e.n].stats),d=META[e.n].dex;if(d>=252&&d<=386||r()>.8)return e;const C=HO.filter(s=>Math.abs(bst(META[s].stats)-b)<=70&&(!water||META[s].types.includes('WATER'))&&rarOf(s)<=Math.max(2,rarOf(e.n)));return C.length?{n:C[r()*C.length|0],w:e.w}:e});
+{const _et=encTable;encTable=function(a){const T=_et(a);if(REGCUR!=='h'&&REGCUR!=='s')return T;try{const r=rng(G.seed*7+a*313);const D0=REGCUR==='s'?387:252,D1=REGCUR==='s'?493:386;const HO=SPECIES.filter(s=>{const d=META[s].dex;return d>=D0&&d<=D1&&!META[s].form});
+  const sw=(L,water)=>L.map(e=>{const b=bst(META[e.n].stats),d=META[e.n].dex;if(d>=D0&&d<=D1||r()>.8)return e;const C=HO.filter(s=>Math.abs(bst(META[s].stats)-b)<=70&&(!water||META[s].types.includes('WATER'))&&rarOf(s)<=Math.max(2,rarOf(e.n)));return C.length?{n:C[r()*C.length|0],w:e.w}:e});
   return{g:sw(T.g,0),w:sw(T.w,1)}}catch(e){return T}}}
 // 챔피언: 호연에선 윤진 (에이스 가이오가)
-window.regChamp=function(){if(REGCUR!=='h')return null;const C=R.h.ch;return{spr:C.spr,n:C.n,pre:C.pre(),team:(n,lvs)=>C.dex.slice(-n).map((d,i)=>mkMon(BYDEX[d]||SPECIES[0],lvs[i]))}};
+window.regChamp=function(){if(REGCUR!=='h'&&REGCUR!=='s')return null;const C=R[REGCUR].ch;return{spr:C.spr,n:C.n,pre:C.pre(),team:(n,lvs)=>C.dex.slice(-n).map((d,i)=>mkMon(BYDEX[d]||SPECIES[0],lvs[i]))}};
 }catch(e){console.warn('9C 호연',e)}})();
 </script>
 
@@ -8910,6 +8937,13 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112024,date:'11월 20일',t:'신오 관장 · 사천왕 그림 + 퀘스트 점검',items:[
+  {img:'',h:'🎨 신오 관장 · 사천왕 새 그림',p:['강석 · 유채 · 자두 · 맥석 · 멜리사 · 동관 · 무청 · 전진, 사천왕 충호 · 들국화 · 대엽 · 오엽 모두 진짜 신오 모습으로 바뀌었어요!']},
+  {img:'',h:'🔧 퀘스트 점검',p:['챔피언 다음 「도감 채우기 · 다음: ○○」도 이제 <b>풀숲에서 걸어서 만나고 · 갈 수 있는 곳</b>의 포켓몬만 골라요 (물 위에서만 나오는 포켓몬이 목표로 나와서 끝나지 않던 것 고침).','모든 난이도(관동 · 호연 · 신오)에서 퀘스트 목표가 다 갈 수 있는 곳인지 확인했어요.']}]},
+ {v:2026112023,date:'11월 20일',t:'「○○ 잡기」 목표 고침',items:[
+  {img:'',h:'🎯 잡기 목표가 안 끝나던 것 고침',p:['진 뒤 「이길 방법 찾기」에서 추천하는 포켓몬은 이제 <b>풀숲에서 걸어서 만나는 포켓몬</b>만 나와요 (예전엔 물 위에서만 나오는 마릴리 같은 포켓몬도 나와서 자동 사냥으로 못 잡았어요).','목표 포켓몬이 물 위에서만 나오면 「물 위에서만 나와요 · 파도타기로 다녀요」 하고 알려 줘요.','지방이 바뀌어서 그 지역에 안 나오면, 나오는 곳으로 목표를 바꾸거나 목표를 지워 줘요.']}]},
+ {v:2026112022,date:'11월 20일',t:'천상계 = 신오 지방!',items:[
+  {img:'ui/news/n31_sinnoh.webp',h:'🗻 천상계 새 이야기: 신오 지방',p:['난이도 <b>천상계</b>에서는 이야기 무대가 <b>신오 지방</b>으로 바뀌어요 (천계는 호연 그대로).','떡잎마을 → 무쇠시티(강석 · 바위) → 영원시티(유채 · 풀) → 장막시티(자두 · 격투) → 들판시티(맥석 · 물) → 연고시티(멜리사 · 고스트) → 운하시티(동관 · 강철) → 선단시티(무청 · 얼음) → 물가시티(전진 · 전기) → 포켓몬리그.','사천왕 충호 · 들국화 · 대엽 · 오엽, 그리고 <b>챔피언 난천</b> (한카리아스)!','야생에는 신오 포켓몬이 많이 나와요. 223번수로는 파도타기로 건너요.']}]},
  {v:2026112021,date:'11월 20일',t:'천계 도전 조건 창 · 필수 가이드 퀘스트',items:[
   {img:'',h:'⚠ 도전 조건 창 (항상 보여요)',p:['천계 · 천상계에서는 화면 오른쪽에 <b>「도전 조건」</b> 창이 떠요.','출결 캐릭터 · 장비 끼기 · 장비 공격력 · 각성 ★ · 전투력을 <b>막대 그래프</b>로 보여 줘요. 빨강 = 위험, 노랑 = 조금 부족, 초록 = 충분.','「올리기」를 누르면 바로 그 화면으로 가요. 위쪽을 누르면 작게 접혀요.','최소 조건을 다 채우면 창이 사라져요!']},
   {img:'',h:'📋 필수 퀘스트',p:['천계 가이드 퀘스트 1번 = <b>[필수] 출결 캐릭터 가져오기</b> (출석 앱 「QR로 한 번에 받기」 → 게임 「QR 옮기기」), 2번 = <b>[필수] 장비 4부위 끼기</b>.','장비가 있어야 천계 상대를 이길 수 있어요!']}]},
