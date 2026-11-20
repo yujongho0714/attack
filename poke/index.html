@@ -9031,6 +9031,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112043,date:'11월 21일',t:'월보 6번 · 원시디아루가 · 환생 안내',items:[{img:'',h:'🛠 고친 것',p:['<b>오늘(11/21) 월드보스 도전 6번</b> (어제 오류 보상).','챔피언전의 <b>원시디아루가</b>가 안 보이던 문제를 고쳤어요.','챕터를 다 깨면 목표 줄에 <b>「환생」 안내</b>가 나와요.']}]},
  {v:2026112042,date:'11월 21일',t:'그림 기술 효과는 불멸 이상만',items:[{img:'',h:'✨ 초월하면 기술 모습이 바뀌어요',p:['새 그림 기술 효과(72개)는 이제 <b>불멸 · 태초 · 만제</b> 포켓몬만 써요.','그 아래 등급은 원래 기술 효과 그대로예요. 초월해서 멋진 기술 효과를 얻어 보세요!']}]},
  {v:2026112041,date:'11월 21일',t:'기술 그림 효과 2개 더',items:[{img:'',h:'🎨 그림 효과 72개',p:['새로 들어간 기술: 리벤지 · 짓밟기.']}]},
  {v:2026112040,date:'11월 21일',t:'기술 그림 효과 7개 더',items:[{img:'',h:'🎨 그림 효과 70개',p:['새로 들어간 기술: 치근거리기 · 죽기살기 · 탁쳐서떨구기 · 메가드레인 · 누르기 · 제비반환 · 구르기.']}]},
@@ -9922,7 +9923,7 @@ setInterval(()=>{try{fix()}catch(e){}},300);
 <script id="b9bj">
 // 9BJ 보상: 11/20 월드보스 데미지가 0으로 날아간 문제 → 오늘(11/20) 쓴 도전 횟수를 한 번만 모두 되돌려 줘요 (노말·카오스·이터널)
 (function(){try{const iv=setInterval(()=>{try{if(!window.G||!G.pid&&!G.name)return;clearInterval(iv);if(G.wbComp1120)return;
-  const day='2026-11-20';let n=0;for(const w of [G.wb,G.wb_n,G.wb_c,G.wb_e])if(w&&w.tries&&w.wk==='2026-11-20'){n+=w.tries[day]||0;w.tries[day]=0;w.tries['2026-11-21']=(w.tries['2026-11-21']||0)-3}
+  const day='2026-11-20';let n=0;for(const w of [G.wb,G.wb_n,G.wb_c,G.wb_e])if(w&&w.tries&&w.wk==='2026-11-20'){n+=w.tries[day]||0;w.tries[day]=0}
   G.wbComp1120=1;save();if(n>=0)setTimeout(()=>{try{toast('월드보스 오류 보상: 오늘 도전 '+n+'번을 돌려드렸고, 내일(11/21)은 도전 3번 더 (6번)!')}catch(e){}},3000)}catch(e){}},1000)}catch(e){}})();
 </script>
 <script id="b9bk">
@@ -9973,5 +9974,15 @@ window.gachaOpen=open;
 // 출석 앱 QR로 캐릭터를 다시 받아도 뽑은 장비는 남기기
 {const _m=meApply;meApply=async function(){const keep=(G&&G.meGacha)||[];const r=await _m.apply(this,arguments);try{if(r&&G.me&&keep.length){const S=new Set(G.me.own),T=new Set((G.gtrash||[]).map(x=>x.k));for(const k of keep)if(!S.has(k)&&!T.has(k))G.me.own.push(k);save()}}catch(e){}return r}}
 }catch(e){console.warn('b9bk',e)}})();
+</script>
+<script id="b9bo">
+// 9BO ① 월보 오류 보상: 11/21 하루는 모두 도전 6번 ② 챔피언 된 뒤 환생할 수 있으면 목표에 「환생」 안내
+(function(){try{
+const T=()=>{try{const d=dayKey();WB_TRY=d==='2026-11-21'?6:3;if(window.G)for(const w of [G.wb,G.wb_n,G.wb_c,G.wb_e])if(w&&w.tries&&w.tries['2026-11-21']<0)w.tries['2026-11-21']=0}catch(e){}};T();setInterval(T,30000);
+const rbReady=()=>{try{if(!G||!G.champ)return false;const cb=G.champD!=null&&G.champD>=0?G.champD:DIFF();return cb>=(G.rbd||0)&&cb<7}catch(e){return false}};
+window.rbReady=rbReady;
+const _o=objective;objective=function(){const o=_o.apply(this,arguments);try{if(o&&rbReady())return Object.assign({},o,{t:'🔁 챕터 완료! 환생해서 다음 난이도로 (사이드메뉴 「환생」)'})}catch(e){}return o};
+let told=0;setInterval(()=>{try{if(told||!rbReady()||document.querySelector('.panel')||(window.DLG&&DLG.on))return;told=1;toast('🔁 이번 챕터를 다 깼어요! 사이드메뉴 「환생」에서 다음 난이도로 넘어가요');}catch(e){}},5000);
+}catch(e){console.warn('b9bo',e)}})();
 </script>
 </body></html>
