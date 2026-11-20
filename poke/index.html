@@ -1783,7 +1783,7 @@ function modeToggle(){G.mode=G.mode==='turn'?'adv':'turn';try{localStorage.setIt
 function actPilot(fr){const me=BS.me,f=BS.foe,ai=ACT.ai,st=ACT.stick;ACT.pt=(ACT.pt||0)+fr;
   // 잡기 · 회복은 턴제 자동과 같은 판단
   if(!ACT.busy&&ACT.pt>.8){const S=stOf(f.m);
-    if(!BS.trainer&&wantCatch(f.m)&&BR().auto){const ball=autoBallFor(f.m);if(ball&&(f.m.hp/S[0]<.3||(ACT.t>25&&f.m.hp/S[0]<.55))){BS.catchK=1;actEnd({t:'item',k:ball});return}}
+    if(!BS.trainer&&wantCatch(f.m)&&BR().auto){const ball=autoBallFor(f.m);if(ball&&(f.m.hp/S[0]<(rarM(f.m)<=0?.3:rarM(f.m)<=2?.22:.15)||(ACT.t>25&&f.m.hp/S[0]<.35))){BS.catchK=1;actEnd({t:'item',k:ball});return}}
     const M=stOf(me.m);if(me.m.hp/M[0]<.25&&BS.healUsed<2){const p=['hpotion','spotion','potion'].find(k=>G.bag[k]>0);if(p){BS.healUsed++;actEnd({t:'item',k:p});return}}}
   const dx=f.ax-me.ax,dy=f.ay-me.ay,d=Math.hypot(dx,dy)||1,want=VW*.26;
   if(ai.tel>0&&ai.tel<.32&&ACT.dcd<=0){st.x=-dy/d;st.y=dx/d;actRoll();return}
@@ -8734,7 +8734,7 @@ async function rtWild(o){
         useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;const L=POTLIM();if(L&&(BS.potN||0)>=L)return{deny:'물약은 전투 1번에 '+L+'개까지!'};G.bag[k]--;BS.potN=(BS.potN||0)+1;return{heal:it.heal}},sfx,
         loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:autoActive()?'자동으로 계속해요':'화면을 누르면 계속해요',
         // 7A: 자동전투 — 내 포켓몬도 AI(T4). 야생은 잡고 싶은 포켓몬이면 자동 볼(예전 자동 규칙 wantCatch·autoBallFor 그대로)
-        autoMe:autoActive()?1:0,autoTier:'T4',autoBall:()=>{try{return(!tr&&autoActive()&&wantCatch(f)&&!capFull(f))?autoBallFor(f):null}catch(e){return null}}},
+        autoMe:autoActive()?1:0,autoTier:'T4',catchAt:()=>{try{const r=rarM(f);return r<=0?.35:r===1?.28:r===2?.22:.15}catch(e){return .25}},autoBall:()=>{try{return(!tr&&autoActive()&&wantCatch(f)&&!capFull(f))?autoBallFor(f):null}catch(e){return null}}},
         tr?{noQuit:1,maxTime:300}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
       const L=window.RTB.last||{};
       // 6F-4b: 교대로 여러 마리가 싸웠을 수 있음 → 체력은 uid별로 저장, 마지막에 싸운 포켓몬이 cur
@@ -8958,6 +8958,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112027,date:'11월 20일',t:'자동 볼 낭비 고침',items:[{img:'',h:'🎯 자동 사냥 볼 낭비 고침',p:['자동 사냥에서 포켓몬 체력이 아직 많은데 볼을 계속 던지던 것을 고쳤어요.','이제 <b>잡힐 만큼 체력이 낮아질 때까지</b> 먼저 때리고 그다음에 던져요. 일반 35% · 희귀 28% · 영웅 22% · 전설 이상 15% 아래.']}]},
  {v:2026112026,date:'11월 20일',t:'컨텐츠 화면 새로 정리',items:[{img:'',h:'🗂 컨텐츠 화면이 깔끔해졌어요',p:['컨텐츠를 누르면 먼저 <b>큰 분류 6개</b>(매일 할 것 · 배틀·도전 · 친구랑 · 키우기 · 모으기·탐험 · 설정·소식)가 나와요.','분류를 누르면 <b>섹션별로</b> 그림과 설명이 함께 나와요. 설명은 「더 보기」를 누르면 다 보여요. ◀ 분류로 돌아갈 수 있어요.']}]},
  {v:2026112025,date:'11월 20일',t:'천계 새 컨텐츠 5개!',items:[
   {img:'',h:'🗼 천계 탑',p:['층마다 강해지는 천계 트레이너와 연속 배틀! <b>몇 층에 누가 어떤 포켓몬으로 기다리는지</b> 미리 볼 수 있어요. 10층마다 👑 보스!','5층마다 결정, 10층마다 큐브 · 지면 그 10층 묶음 처음부터 · 주간 랭킹 · 매주 1층부터.']},

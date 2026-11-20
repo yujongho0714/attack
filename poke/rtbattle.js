@@ -818,8 +818,10 @@ function autoMe(me,foe){
   // 잡고 싶은 포켓몬이면(host가 볼 종류를 알려 줌) 체력을 깎다가 낮아지면 공격을 멈추고 볼을 던짐
   let bk=null;if(C.autoBall&&!W.ball&&foe.hp>0){try{bk=C.autoBall()}catch(e){}}
   const ratio=foe.max?foe.hp/foe.max:1;
-  ai.noAtk=!!(bk||W.ball)&&ratio<=.45;
-  if(bk&&(ratio<=.45||bk==='master'||W.time>45&&ratio<=.6)&&!(W.ballCd>0)&&!me.cast&&me.rollT<=0&&me.stun<=0){
+  // 9AZ: 잡힐 만큼 체력이 낮을 때만 던져요 (등급이 높을수록 더 낮게). 그 전엔 계속 공격, 잡을 체력이면 공격 멈춤
+  const cat=C.catchAt?C.catchAt():.45,late=W.time>60?cat+.1:cat;
+  ai.noAtk=!!(bk||W.ball)&&ratio<=cat;
+  if(bk&&(ratio<=late||bk==='master')&&!(W.ballCd>0)&&!me.cast&&me.rollT<=0&&me.stun<=0){
     const L=ballList(),j=L.findIndex(x=>x.k===bk);if(j>=0){W.ballSel=j;tryThrow()}}
   // 체력 25% 아래면 약(제일 센 것부터, 한 전투 2번까지)
   if(me.hp<me.max*.25&&(W.autoHeal||0)<2&&!(W.itCd>0)&&C.useItem){const L=itemList();const it=L[L.length-1];if(it&&useItemNow(it.k))W.autoHeal=(W.autoHeal||0)+1}
