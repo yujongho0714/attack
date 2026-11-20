@@ -4654,7 +4654,7 @@ setInterval(()=>{try{if(!G||(G._expFix&&G._lvReset))return;if(!G._lvReset){if((G
 // ===== 난이도 클리어 연출: 챔피언이 되면 새 장이 열리듯 멋지게 + 전설 포켓몬 하나 고르기 =====
 const CLRN=['쉬움','보통','어려움','지옥','나이트메어','종말'];
 function clrKey(){return DIFF()+'-'+(G.rebirth||0)}
-setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over'||DLG.on||PANEL||document.getElementById('clrOv'))return;G.clr=G.clr||{};const k=clrKey();if(G.clr[k])return;clearScene(DIFF(),k)}catch(e){}},2500);
+setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over'||DLG.on||PANEL||document.getElementById('clrOv'))return;G.clr=G.clr||{};const k=clrKey();if(G.clr[k])return;if(window.clrLegit&&!clrLegit(DIFF()))return;clearScene(DIFF(),k)}catch(e){}},2500);
 async function clearScene(d,ck){const nx=d<5?CLRN[d+1]:null;const o=document.createElement('div');o.id='clrOv';
   o.innerHTML=`<div class="clrbg"></div><div class="clrray"></div><i class="clrbar t"></i><i class="clrbar b"></i><div class="clrp"></div>
    <div class="clrc"><small class="clr1">${CLRN[d]} 난이도</small><h1 class="clr2">CHAMPION</h1><p class="clr3">${esc(G.name||'')}, 챔피언이 됐어요!</p>
@@ -8961,6 +8961,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112030,date:'11월 20일',t:'챔피언 화면 자동 멈춤',items:[{img:'',h:'🏆 챔피언 화면에서 자동 멈춤',p:['챔피언 화면 · 전설 포켓몬 고르기 · 환생 물어보기가 떠 있으면 <b>자동 사냥이 멈춰요</b>.','난이도만 올렸는데 바로 「클리어」로 처리되던 것을 막았어요. 그렇게 받은 전설 포켓몬은 회수해요.']}]},
  {v:2026112029,date:'11월 20일',t:'레벨 제한 없앰 · 레벨 표시 맞춤',items:[{img:'',h:'🔢 레벨 표시를 내 단계에 맞춤',p:['환생하면 내 포켓몬 레벨이 101 · 201 · 301…로 보이는데, 이제 <b>상대 · 야생 · 관장 · 추천 · 목표 레벨</b>도 똑같이 맞춰서 보여요.','예: 201레벨인데 「67까지 레벨업」 대신 「267까지 레벨업」처럼.']},{img:'',h:'⬆ 배지 없어도 계속 레벨 업',p:['배지별 레벨 제한을 없앴어요. 이제 <b>사냥만 해도 Lv.100까지</b> 계속 올라가요.','Lv.100 다음은 예전처럼 한계 돌파 ★로 더 강해져요.']}]},
  {v:2026112028,date:'11월 20일',t:'조작감 개선 · PVP 한곳에',items:[{img:'ui/news/n14_brawl.webp',h:'⚔ PVP 한곳에',p:['PVP 버튼을 누르면 <b>실시간 난투전 · 3대3 자동 대전 · 친구 대전</b>이 그림 카드로 한 화면에 나와요.','PVP 상점 · 실시간 교환 · 랭킹도 바로 아래에 있어요.']},{img:'',h:'💨 구르기는 화면을 쓱!',p:['구르기 버튼이 없어졌어요. 전투 중 <b>화면 아무 데나 손가락으로 쓱 밀면</b> 그 방향으로 굴러요.','처음 전투에서 구르기 연습 3번을 꼭 해요 (건너뛸 수 없어요).']},{img:'',h:'🎮 전투 버튼 정리',p:['기술 버튼을 오른쪽 아래에 모았어요. 첫 기술은 크게, 나머지 3개는 그 둘레에.','나가기 · 교대 · 약 · 볼을 왼쪽 아래 한 줄에 붙였어요.']},{img:'',h:'🕹 필드 이동',p:['조이스틱을 대각선으로 밀면 두 방향을 번갈아 걸어서 대각선으로 가요. 벽에 막히면 옆으로 미끄러져요.']}]},
  {v:2026112027,date:'11월 20일',t:'자동 볼 낭비 고침',items:[{img:'',h:'🎯 자동 사냥 볼 낭비 고침',p:['자동 사냥에서 포켓몬 체력이 아직 많은데 볼을 계속 던지던 것을 고쳤어요.','이제 <b>잡힐 만큼 체력이 낮아질 때까지</b> 먼저 때리고 그다음에 던져요. 일반 35% · 희귀 28% · 영웅 22% · 전설 이상 15% 아래.']}]},
@@ -9757,6 +9758,25 @@ window.pvMenuOpen=pvNew;{const go=()=>{const a=document.getElementById('bPvp');i
 // 컨텐츠 화면 친구랑: 세 대전을 「PVP」 한 섹션으로
 try{const h=H('brawl');if(h&&h.go&&!h.go.some(g=>g[0]==='PVP 전체 보기'))h.go.push(['PVP 전체 보기',()=>pvNew()])}catch(e){}
 }catch(e){console.warn('b9bb',e)}})();
+</script>
+
+<script id="b9be">
+// ===== 9BE 챔피언 화면에서 자동 멈춤 · 이긴 적 없는 난이도 「클리어」 막기 + 되돌리기 =====
+(function(){try{
+// ① 챔피언 · 전설 고르기 · 환생 물어보기 화면이 떠 있으면 자동 사냥/이동 멈춤
+const blocked=()=>!!document.querySelector('#clrOv,#lgOv,#gAsk,#rbPk');
+{const _a=autoThink;autoThink=function(){if(blocked()){try{P.queue=null}catch(e){}return}return _a.apply(this,arguments)}}
+setInterval(()=>{try{if(blocked()){P.queue=null;if(typeof KEY!=='undefined'&&!document.querySelector('#joyZ.on'))KEY.dir=-1}}catch(e){}},300);
+// ② 진짜로 챔피언이 된 난이도만 (난이도만 올려서 바로 「클리어」 되던 것 막기)
+window.clrLegit=d=>{if(!G)return false;if(G.champD!=null)return d<=G.champD;return d<dMax()};
+}catch(e){console.warn('b9be',e)}})();
+// ③ 되돌리기: 이긴 적 없는 난이도로 받은 클리어 보상(전설 포켓몬)을 회수
+setInterval(()=>{try{if(!G||G.clrAud)return;G.clr=G.clr||{};const bad=[];const ch7=!!(G.crowns&&G.crowns.ch7);
+  for(const k of Object.keys(G.clr)){const [d,rb]=k.split('-').map(Number);const legit=d<dMax()||(d===7&&(ch7||G.champD>=7))||(rb===(G.rebirth||0)&&G.champD!=null&&d<=G.champD);if(!legit)bad.push(k)}
+  let took=[];if(bad.length){const L=[...G.box.map(m=>['box',m]),...G.party.map(m=>['party',m])].filter(([w,m])=>m&&m.gift&&rarOf(m.n)===3);
+    for(const k of bad){delete G.clr[k];const x=L.pop();if(x){const A=x[0]==='box'?G.box:G.party;const i=A.indexOf(x[1]);if(i>=0&&!(x[0]==='party'&&G.party.length<=1)){A.splice(i,1);took.push(META[x[1].n].name)}}}}
+  G.clrAud=1;save();
+  if(bad.length){console.log('clrAud',bad,took);setTimeout(()=>{try{say(['⚠ 이긴 적 없는 난이도가 「클리어」로 처리된 기록 '+bad.length+'개를 되돌렸어요.',took.length?'그때 받은 전설 포켓몬('+took.join(' · ')+')을 회수했어요.':'회수할 전설 포켓몬은 없었어요.','진짜로 챔피언이 되면 다시 받을 수 있어요!'])}catch(e){}},4000)}}catch(e){}},5000);
 </script>
 
 </body></html>

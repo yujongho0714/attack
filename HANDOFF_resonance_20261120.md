@@ -738,3 +738,8 @@
 
 ## 9BD 레벨 표시 통일
 - LVO()=100*G.rebirth. dLv(m): 내 포켓몬은 예전대로(+100*rbOf), 내 것이 아닌 포켓몬(야생·관장·상대)은 +LVO(). 목표(objective)·추천·관장 재대결·야생 범위·격투 탑·천계 탑 표시에 +LVO(). 실제 계산 레벨(m.lv)은 그대로.
+
+## 9BE 챔피언 악용
+- 원인: 챔피언(G.champ) 뒤 난이도 메뉴에서 높은 난이도로 바꾸면 clearScene 인터벌이 DIFF()-환생 키로 바로 「CHAMPION」+전설 고르기를 줌. 수정: clrLegit(d)=champD 있으면 d<=champD, 없으면 d<dMax(). 
+- 자동 멈춤: #clrOv/#lgOv/#gAsk/#rbPk 떠 있으면 autoThink 중단 · P.queue 비움.
+- 되돌리기 G.clrAud: d<dMax() 또는 (d==7 & ch7/champD>=7) 또는 (이번 환생 & d<=champD)가 아닌 G.clr 키 삭제 + 키마다 gift 전설(rar3) 하나 회수(보관함부터).
