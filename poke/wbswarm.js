@@ -312,6 +312,7 @@ function setMoveBtns(){
 }
 function hud(){
   const U=W.ui,B=W.boss,SC=C.SC||1;
+  if(C.onProg&&W.time-(W._pt||0)>=5){W._pt=W.time;try{C.onProg(W.dealt)}catch(e){}}
   const r=clamp(B.hp/B.max,0,1);U.b.style.width=(r*100)+'%';U.h.textContent=Math.round(B.hp*SC).toLocaleString('en-US')+' / '+Math.round(B.max*SC).toLocaleString('en-US')+(W.dealt>0?'   (이번 전투 -'+Math.round(W.dealt*SC).toLocaleString('en-US')+')':'');
   if(U.n._t!==C.bossName){U.n._t=C.bossName;U.n.textContent=C.bossName}
   const al=W.allies.filter(e=>e.hp>0).length;U.a.textContent='🐾 '+al+' / '+W.allies.length;
@@ -363,7 +364,7 @@ function quitAsk(){
 }
 
 function stop(r){
-  if(!W||W.stopped)return;W.stopped=1;cancelAnimationFrame(W.raf);
+  if(!W||W.stopped)return;W.stopped=1;try{C.onProg&&C.onProg(W.dealt)}catch(e){}cancelAnimationFrame(W.raf);
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
   const hpBy={};for(const e of W.allies)hpBy[e.mon.uid]=Math.max(0,e.hp/(e.max/(e.st[0]||1)));   // 장비 전 체력으로 되돌려 저장
   window.WBSW.last={r,bossHp:W.boss.hp,bossMax:W.boss.max,time:W.time,hpBy,meUid:W.me&&W.me.mon.uid,dealt:W.dealt,timeout:W.timeout};

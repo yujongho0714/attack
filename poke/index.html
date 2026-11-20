@@ -3718,9 +3718,9 @@ async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY
   w.tries[day]=(w.tries[day]||0)+1;save();closePanel(1);const n=wbBoss(),boss=mkMon(n,Math.min(100,Math.max(30,topLv()+8)));const left=KO?WB_HP:Math.max(1000,WB_HP-wbTotal(L));boss.hpx=1;boss.hpx=Math.max(1,left/stOf(boss)[0]);boss.hp=stOf(boss)[0];const hp0=boss.hp;BS.wbHp0=hp0;
   const keepP=G.party;G.party=SQ;BS.wbT=0;BS.wb=1;BS.wbKeep=keepP;
   try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','월드보스 '+META[n].name,['이번 주의 '+(window.WBNM?WBNM():'월드보스')+', '+(window.WBLB?WBLB():'전설')+' 등급 '+META[n].name+'(이)가 나타났다!','모두의 데미지를 합쳐서 쓰러뜨리자! 내 포켓몬 '+SQ.length+'마리 · 시간 제한 없음 · 다 쓰러질 때까지!'])}catch(e){}
-  let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}finally{G.party=keepP;BS.wb=0;BS.wbKeep=null}
+  BS.wbRecd=0;BS.wbPushT=0;let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}catch(e){console.warn('wbFight',e);r='lose'}finally{G.party=keepP;BS.wb=0;BS.wbKeep=null}
   if(r==='run'){w.tries[day]=Math.max(0,(w.tries[day]||1)-1);save();toast('도중에 나왔어요 · 도전 횟수는 그대로예요');wbOpen();return}
-  const dmg=Math.max(0,hp0-Math.max(0,boss.hp));w.dmg+=dmg;w.best=Math.max(w.best||0,dmg);save();
+  const dmg=Math.max(BS.wbRecd||0,hp0-Math.max(0,boss.hp));w.dmg+=Math.max(0,dmg-(BS.wbRecd||0));BS.wbRecd=0;w.best=Math.max(w.best||0,dmg);save();
   const ok=await wbPush();try{WBC.t=0}catch(e){}sfx('badge');await say(['월드보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!','이번 주 내 누적 데미지 '+w.dmg.toLocaleString()+(wbCfg()?(ok?' · 랭킹에 올렸어요':' · 인터넷이 되면 자동으로 올려요'):'')]);wbOpen()}
 // 시간 제한: 지나면 보스가 날아가 버려요 (내 포켓몬은 다치지 않게 되돌려요)
 {const _u=actUpdate;actUpdate=function(dt){_u(dt);try{if(BS.wb&&ACT.on&&!ACT.pause){BS.wbT=(BS.wbT||0)+dt;if(BS.wbT>WB_TLIM&&!BS.wbEnd){BS.wbEnd=1;toast('10분이 지나서 보스가 하늘로 날아갔다');for(const m of G.party)m.hp=0}}else if(!BS.wb)BS.wbEnd=0}catch(e){}}}
@@ -9022,6 +9022,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112034,date:'11월 20일',t:'월드보스 데미지 저장 고침',items:[{img:'',h:'🛠 데미지가 0으로 나오던 문제',p:['예전에는 싸움이 <b>끝까지 끝나야</b> 데미지가 저장됐어요. 중간에 앱을 닫거나 화면이 꺼지면 <b>도전만 줄고 데미지는 0</b>이 됐어요.','이제는 싸우는 동안 <b>5초마다</b> 데미지를 저장하고 서버에도 올려요. 중간에 꺼져도 넣은 데미지는 남아요.']}]},
  {v:2026112033,date:'11월 20일',t:'월드보스 랭킹 · 기술 크기',items:[{img:'',h:'🏆 월드보스 랭킹',p:['한 판만 싸워도 <b>내 이름이 바로 랭킹에</b> 나와요.','참여한 친구 <b>전체 순위</b>가 도전 버튼 바로 밑에 나와요. 보상표는 오른쪽 위 <b>「보상 보기」</b>를 누르면 보여요.','<b>지난 보스 랭킹</b>: 지난주 보스를 누르면 그 주에 누가 데미지를 제일 많이 넣었는지 볼 수 있어요.']},{img:'',h:'⚔ 월드보스 전투',p:['보스 체력이 <b>정확한 숫자</b>로 나오고, 옆에 <b>이번 전투에서 넣은 데미지</b>가 올라가요.','작은 포켓몬들이 쓰는 <b>기술 효과 크기를 절반쯤</b>으로 줄였어요.','<b>조작이 빨라졌어요</b>: 내 캐릭터 이동 속도 1.5배 · 조이스틱을 누르고 있으면 자동으로 바뀌지 않아요 · <b>왼쪽 화면 아무 데나</b> 누르면 그 자리에 조이스틱이 생겨요.']}]},
  {v:2026112032,date:'11월 20일',t:'초월 버튼이 생겼어요',items:[{img:'',h:'✨ 초월',p:['옆 메뉴에 <b>「초월」</b> 버튼이 생겼어요. 포켓몬을 한 단계 높은 등급으로 만드는 거예요.','포켓몬을 누르면 <b>초월 후 모습</b>을 움직이는 그대로 미리 볼 수 있어요. 능력치 · 기술 위력이 얼마나 오르는지도 표로 보여요.','재료가 다 모인 포켓몬은 「가능!」 표시가 떠요.']}]},
  {v:2026112031,date:'11월 20일',t:'악용 막기 · 월드보스 화면',items:[{img:'',h:'🐉 월드보스 화면 정리',p:['월드보스를 열면 <b>보스 남은 체력 · 내 데미지 · 순위 · 랭킹</b>이 맨 위에 나와요. 주간 보상표는 랭킹 아래로 옮겼어요.','서버에 연결이 안 되면 이유를 빨간 글씨로 알려 줘요.']},{img:'',h:'🛡 악용 막기',p:['폰 날짜 · 시간을 바꿔서 매일 보상을 다시 받는 것을 막았어요. 게임 시간은 뒤로 가지 않아요.','월드보스 <b>연습</b>과 전설 레이드는 시즌 패스 점수 · 업적에 안 들어가요.','레이드 방을 나갔다 다시 들어와도 도전 횟수는 그대로예요.']}]},
@@ -9461,7 +9462,7 @@ async function rtSwarmWB(o){
   let r='lose';
   try{r=await WBSW.start(Object.assign({},rtCtxBase(),{allies:team,boss:f,bossMax:H0,SC,thumb:n=>THUMB[n]||'',toast,
     bossHit:(window.WBHIT&&WBHIT())||.08,bossName:(typeof wbPre==='function'?wbPre():'')+META[f.n].name,bossLook:k==='c'?7:k==='e'?8:0,
-    minSkip:SW.minSkip,maxTime:SW.maxTime,quitText:'그만 싸울까요? (지금까지 넣은 데미지는 기록되고, 도전 1번을 써요)'}))}
+    minSkip:SW.minSkip,maxTime:SW.maxTime,onProg:d=>{try{if(BS.wbPr||!BS.wb)return;const real=Math.round(d*SC),w=wbS(),add=real-(BS.wbRecd||0);if(add>0){w.dmg+=add;w.best=Math.max(w.best||0,real);BS.wbRecd=real;save();if(Date.now()-(BS.wbPushT||0)>20000){BS.wbPushT=Date.now();wbPush()}}}catch(e){}},quitText:'그만 싸울까요? (지금까지 넣은 데미지는 기록되고, 도전 1번을 써요)'}))}
   finally{document.body.classList.remove('wbsw')}
   const L=window.WBSW.last||{};
   if(L.hpBy){for(const q of G.party){const hb=L.hpBy[q.uid];if(hb!=null)q.hp=hb>0?Math.max(1,Math.round(hb)):0}}
