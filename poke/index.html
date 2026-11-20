@@ -1953,10 +1953,10 @@ async function blackout(){G.money=Math.floor(G.money/2);healAll();const h=G.heal
 // 타입 포켓몬 고르기
 function typeTeam(t,maxB,n,lvs,seed){const r=rng(seed);let L=SPECIES.filter(s=>META[s].types.includes(t)&&bst(META[s].stats)<=maxB+60);if(L.length<n)L=L.concat(SPECIES.filter(s=>bst(META[s].stats)<=maxB&&!L.includes(s)).sort(()=>r()-.5).slice(0,n));
   L.sort((a,b)=>bst(META[a].stats)-bst(META[b].stats));const out=[];const top=L.slice(-Math.max(n*2,6));for(let i=0;i<n;i++)out.push(top[Math.floor(r()*top.length)]);out.sort((a,b)=>bst(META[a].stats)-bst(META[b].stats));return out.map((s,i)=>mkMon(s,lvs[i]))}
-// 9AJ 천계 · 천상계 최초 격파 보상: 관장 1 · 사천왕 2 · 챔피언 3 (천계 = 💠 불멸의 핵, 천상계 = 🌟 태초의 숨결) · 난이도마다 한 번씩
+// 9AJ 천계 · 천상계 최초 격파 보상: 관장 1 · 사천왕 2 · 챔피언 3 (천계 = <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵, 천상계 = <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결) · 난이도마다 한 번씩
 function firstClr(key,n,who){try{const d=DIFF();if(d<6||!window.trmAdd)return;G.fc=G.fc||{};const kk=d+':'+key;if(G.fc[kk])return;G.fc[kk]=1;const mk=d===6?'core':'breath';trmAdd(mk,n);save();try{sfx('badge')}catch(e){}
-  toast('🎉 '+(who||'')+' 최초 격파! '+(d===6?'💠 불멸의 핵':'🌟 태초의 숨결')+' ×'+n)}catch(e){}}
-function rmDrop(){try{const d=DIFF();if(d<6||!window.trmAdd||R()>=.05)return;const mk=d===6?'core':'breath';trmAdd(mk,1);save();try{sfx('badge')}catch(e){}toast('✨ 행운! 재대결 보상으로 '+(d===6?'💠 불멸의 핵':'🌟 태초의 숨결')+' ×1 (5%)')}catch(e){}}
+  toast('🎉 '+(who||'')+' 최초 격파! '+(d===6?'<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵':'<img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결')+' ×'+n)}catch(e){}}
+function rmDrop(){try{const d=DIFF();if(d<6||!window.trmAdd||R()>=.05)return;const mk=d===6?'core':'breath';trmAdd(mk,1);save();try{sfx('badge')}catch(e){}toast('✨ 행운! 재대결 보상으로 '+(d===6?'<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵':'<img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결')+' ×1 (5%)')}catch(e){}}
 async function gym(k){const g=GYM[k-1];if(G.badges>=k){await say([g.n+': 너는 이미 내 배지를 가졌지! 다음 체육관으로 가렴.']);return}if(G.badges<k-1){await say(['체육관 안내원: 먼저 '+TOWNS[G.badges+1]+' 체육관부터 도전해 봐!']);return}
   const ace=gymAce(k-1);await say(['체육관 안내원: 여기는 '+TOWNS[k]+' 체육관! <b>'+TN[g.t]+'</b> 타입 포켓몬을 쓰는 '+g.n+'이(가) 기다려요.','상성이 좋은 포켓몬을 데려가면 유리해요! (추천 Lv.'+(ace-1)+')']);
   const ap=typeTeam(g.t,330+38*(k-1),2,[ace-5,ace-4],G.seed+k*11);let r=await battle({scaled:1,gym:k,trainer:'체육관 수련생',foes:ap,money:ace*20,lose:'관장님은 나보다 훨씬 강해!',bg:'town'});if(r!=='win'){if(r==='lose')await blackout();return}
@@ -2719,7 +2719,7 @@ function leaderCard(i){if(!G)return;const g=GYM[i],got=i<G.badges,ace=BYDEX[GACE
   openPanel(town+' 체육관',`<div class="ldC"><div class="ldL"><img class="ldT" src="trainers/${TRS.gym[i]}.png"><div class="ldN">${g.n}</div><div class="ldTy"><u class="tyl" style="${tyLab(g.t)}"></u> 타입 전문</div></div>
     <div class="ldR">${badgeHtml(i,got,0)}<b>${town} 배지</b><small>${got?'획득했어요!':'아직 못 받았어요'}</small><div class="ldP"><span>파트너</span>${ace?`<img src="${faceUrl(ace,'Normal')}"><b>${META[ace].name}</b>`:''}</div>
     <p class="ldQ">"${GLINE[i].pre[1]||GLINE[i].pre[0]}"</p></div></div>
-    ${got?`<button class="it" id="ldRe" style="width:100%" ${done?'disabled':''}>${done?'오늘 재대결 5번을 다 했어요 (내일 다시!)':'재대결하기 ('+rmLeft(i)+'/5 남음) · 관장 Lv.'+lv+' · 이기면 상금 + 카드팩'+(DIFF()>=6?' · 5% 확률로 '+(DIFF()===6?'💠 핵':'🌟 숨결'):'')}</button>`:`<p style="text-align:center;font-weight:800">${town}에서 ${g.n}을(를) 이기면 배지를 받아요</p>`}`,null,p=>{
+    ${got?`<button class="it" id="ldRe" style="width:100%" ${done?'disabled':''}>${done?'오늘 재대결 5번을 다 했어요 (내일 다시!)':'재대결하기 ('+rmLeft(i)+'/5 남음) · 관장 Lv.'+lv+' · 이기면 상금 + 카드팩'+(DIFF()>=6?' · 5% 확률로 '+(DIFF()===6?'<img class="tri" src="ui/tr/core.png" alt=""> 핵':'🌟 숨결'):'')}</button>`:`<p style="text-align:center;font-weight:800">${town}에서 ${g.n}을(를) 이기면 배지를 받아요</p>`}`,null,p=>{
     const b=p.querySelector('#ldRe');if(b)b.onclick=()=>{closePanel(1);rematch(i)}})}
 async function rematch(i){if(SCENE!=='over'){toast('마을이나 길에서만 할 수 있어요');return}if(rmLeft(i)<=0){toast('오늘 재대결은 다 했어요 (배지마다 하루 5번)');return}rmUse(i);const g=GYM[i],lv=Math.max(gymAce(i),topLv()+2);
   await trainerScene(TRS.gym[i],g.n,['다시 왔구나! 그동안 나도 더 강해졌다.','이번엔 진심으로 간다. 준비됐겠지?']);
@@ -3682,10 +3682,11 @@ let WB_HP=50000,WB_TRY=3,WB_THROW=5,WB_TLIM=600,WB_SQ=20;   // 9G: 시간 제한
 let WBSUF='';   // 9H: 카오스 -C · 이터널 -E
 let WB_TIER=3,WB_DEX=[150,249,250,384,382,383,483,484,487,643,644,716,717,791,792,888,889,146,145,144,243,244,245,380,381,385,386,638,639,640,800];
 function wbCfg(){if(FBOFF)return null;try{const c=WBCODE||localStorage.getItem('pka-wbcode')||'';if(!c.startsWith('JD1-'))return null;const [projectId,apiKey]=atob(c.slice(4).replace(/-/g,'+').replace(/_/g,'/')).split('|');return projectId&&apiKey?{projectId,apiKey}:null}catch(e){return null}}
+function wbWeekB(off){const n=new Date(Date.now()+9*36e5-(off||0)*7*864e5);const A=Date.UTC(2026,10,20),d=Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate());return new Date(A+Math.floor((d-A)/(7*864e5))*7*864e5).toISOString().slice(0,10)}   // 월보 전용: 2026-11-20(금)부터 7일 단위 (다른 주간 기능은 그대로 월요일)
 function wbWeek(off){const n=new Date(Date.now()+9*36e5-(off||0)*7*864e5);const d=(n.getUTCDay()+6)%7;const m=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()-d));return m.toISOString().slice(0,10)}
-function wbNextReset(){const k=wbWeek();const t=Date.parse(k+'T00:00:00+09:00')+7*864e5;return t-Date.now()}
-function wbBoss(wk){const L=WB_DEX.filter(d=>BYDEX[d]&&META[BYDEX[d]]&&rarOf(BYDEX[d])===WB_TIER);const i=Math.floor(Date.parse(wk||wbWeek())/(7*864e5));return BYDEX[(L.length?L:[150])[((i%L.length)+L.length)%L.length]]}
-function wbS(){if(!G.wb||G.wb.wk!==wbWeek()){const old=G.wb;G.wb={wk:wbWeek(),dmg:0,tries:{},throws:0,done:0,caught:0,paid:(old&&old.paid)||{}};if(old&&old.dmg>0&&!G.wb.paid[old.wk])G.wb.last=old}if(!G.pid)G.pid=(Date.now().toString(36)+Math.random().toString(36).slice(2,8));return G.wb}
+function wbNextReset(){const k=wbWeekB();const t=Date.parse(k+'T00:00:00+09:00')+7*864e5;return t-Date.now()}
+function wbBoss(wk){const L=WB_DEX.filter(d=>BYDEX[d]&&META[BYDEX[d]]&&rarOf(BYDEX[d])===WB_TIER);const i=Math.floor(Date.parse(wk||wbWeekB())/(7*864e5));return BYDEX[(L.length?L:[150])[((i%L.length)+L.length)%L.length]]}
+function wbS(){if(!G.wb||G.wb.wk!==wbWeekB()){const old=G.wb;G.wb={wk:wbWeekB(),dmg:0,tries:{},throws:0,done:0,caught:0,paid:(old&&old.paid)||{}};if(old&&old.dmg>0&&!G.wb.paid[old.wk])G.wb.last=old}if(!G.pid)G.pid=(Date.now().toString(36)+Math.random().toString(36).slice(2,8));return G.wb}
 // ---------- 서버 ----------
 const WBC={list:null,t:0,err:''};
 async function wbFetch(wk,force){const c=wbCfg();if(!c){WBC.err='local';return null}if(WBC.list&&WBC.wk===wk&&Date.now()-WBC.t<(force?15000:60000))return WBC.list;   /* 9N 읽기 줄이기: 월보 목록 1분(새로고침도 15초) 재사용 */
@@ -3718,7 +3719,7 @@ async function wbCatch(){const w=wbS();if(!navigator.onLine){await say(['포획 
     B.innerHTML=`<div class="saf"><div class="sinfo">남은 기회 <b>${left}</b> / ${WB_THROW}</div><div class="smon"><img src="${THUMB[n]||''}"><b>${typeof wbPre==='function'?wbPre():''}${META[n].name}</b> ${RARS(n)} <small>쓰러진 월드보스</small></div><p class="mgt">${msg}</p>
     <div class="sact"><button class="main" data-b="free">보스볼 던지기<small>공짜 · 잡히는 정도 ×1</small></button>${balls.map(k=>`<button data-b="${k}">${ITEMS[k].n}<small>가진 것 ${G.bag[k]} · ×${ITEMS[k].ball>=100?'무조건':ITEMS[k].ball}</small></button>`).join('')}</div></div>`;
     B.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>thr(b.dataset.b))};
-  const fin=async(ok)=>{w.done=1;save();await sleep(400);B.innerHTML=`<div class="mgwin"><p class="mgt">${ok?'<b>'+META[n].name+'</b>(을)를 잡았다!':'아쉬워요… '+META[n].name+'(이)가 날아가 버렸어요'}</p><img src="${THUMB[n]||''}" style="${ok?'':'filter:grayscale(1);opacity:.6'}"><p>${ok?(window.WBLB?WBLB():'전설')+' 포켓몬이 동료가 됐어요!':'다음 주 보스에 또 도전해요!'}<br><small>이번 주 월드보스는 여기서 끝이에요. 주간 보상은 월요일에 받아요.</small></p><button class="main mgbig" id="wOk">확인</button></div>`;B.querySelector('#wOk').onclick=()=>{mgClose();wbOpen()}};
+  const fin=async(ok)=>{w.done=1;save();await sleep(400);B.innerHTML=`<div class="mgwin"><p class="mgt">${ok?'<b>'+META[n].name+'</b>(을)를 잡았다!':'아쉬워요… '+META[n].name+'(이)가 날아가 버렸어요'}</p><img src="${THUMB[n]||''}" style="${ok?'':'filter:grayscale(1);opacity:.6'}"><p>${ok?(window.WBLB?WBLB():'전설')+' 포켓몬이 동료가 됐어요!':'다음 주 보스에 또 도전해요!'}<br><small>이번 주 월드보스는 여기서 끝이에요. 주간 보상은 금요일에 받아요.</small></p><button class="main mgbig" id="wOk">확인</button></div>`;B.querySelector('#wOk').onclick=()=>{mgClose();wbOpen()}};
   let busy=0;const thr=async k=>{if(busy||w.throws>=WB_THROW)return;busy=1;if(k!=='free'){if(!(G.bag[k]>0)){busy=0;return}G.bag[k]--}w.throws++;save();
     B.querySelector('.mgt').textContent='타이밍 맞춰서!';const t=await mgBar(B.querySelector('.saf'),.2,4.6);const mul=k==='free'?1:ITEMS[k].ball;
     B.querySelector('.smon').classList.add('shake');B.querySelector('.mgt').textContent='흔들… 흔들…';await sleep(1200);
@@ -3744,17 +3745,17 @@ setInterval(()=>{try{if(G&&G.party.length&&SCENE==='over'){wbS();if(G.wb.last)wb
 async function wbOpen(){if(!G)return;const w=wbS(),n=wbBoss();const fmt=x=>x.toLocaleString();const day=dayKey(),left=WB_TRY-(w.tries[day]||0);
   const render=L=>{const tot=wbTotal(L),dead=tot>=WB_HP,hpL=Math.max(0,WB_HP-tot);const me=L?L.findIndex(x=>x.id===G.pid):-1;const ms=wbNextReset(),dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);
     const top=(L||[]).slice(0,10).map((x,i)=>{const r=rkSplit(x.name);return `<div class="wbr${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${r.rep&&THUMB[r.rep]?`<img class="wbrp" src="${THUMB[r.rep]}">`:''}${esc(r.name)}</span><em>${fmt(x.dmg)}<small> · ${(x.dmg/WB_HP*100).toFixed(x.dmg/WB_HP>=.1?0:1)}%</small></em></div>`}).join('')||`<small>${wbCfg()?'아직 아무도 안 싸웠어요. 첫 데미지를 넣어 봐요!':'서버 연결 전이에요 · 내 기록만 보여요'}</small>`;
-    return `<div class="wbh" style="--c:${TCOL[META[n].types[0]]}"><img src="${THUMB[n]||''}"><div><small>이번 주 ${window.WBNM?WBNM():'월드보스'} · ${window.WBLB?WBLB():'전설'}</small><b>${typeof wbPre==='function'?wbPre():''}${META[n].name}</b><div class="wbhp"><i style="width:${hpL/WB_HP*100}%"></i><span>${dead?'처치 완료!':fmt(hpL)+' / '+fmt(WB_HP)}</span></div><div class="wbcd"><span><small>남은 체력</small><b>${dead?'0':fmt(hpL)}</b><small>${dead?'처치 완료':Math.ceil(hpL/WB_HP*100)+'%'}</small></span><span><small>남은 날</small><b class="wbD">${dd}일</b><small>월요일 초기화</small></span><span><small>남은 시간</small><b class="wbT">${String(Math.floor(ms%864e5/36e5)).padStart(2,'0')}:${String(Math.floor(ms%36e5/6e4)).padStart(2,'0')}:${String(Math.floor(ms%6e4/1e3)).padStart(2,'0')}</b><small>시:분:초</small></span></div></div></div>
+    return `<div class="wbh" style="--c:${TCOL[META[n].types[0]]}"><img src="${THUMB[n]||''}"><div><small>이번 주 ${window.WBNM?WBNM():'월드보스'} · ${window.WBLB?WBLB():'전설'}</small><b>${typeof wbPre==='function'?wbPre():''}${META[n].name}</b><div class="wbhp"><i style="width:${hpL/WB_HP*100}%"></i><span>${dead?'처치 완료!':fmt(hpL)+' / '+fmt(WB_HP)}</span></div><div class="wbcd"><span><small>남은 체력</small><b>${dead?'0':fmt(hpL)}</b><small>${dead?'처치 완료':Math.ceil(hpL/WB_HP*100)+'%'}</small></span><span><small>남은 날</small><b class="wbD">${dd}일</b><small>금요일 초기화</small></span><span><small>남은 시간</small><b class="wbT">${String(Math.floor(ms%864e5/36e5)).padStart(2,'0')}:${String(Math.floor(ms%36e5/6e4)).padStart(2,'0')}:${String(Math.floor(ms%6e4/1e3)).padStart(2,'0')}</b><small>시:분:초</small></span></div></div></div>
     <div class="wbme"><span>내 누적 데미지 <b>${fmt(w.dmg)}</b> <small>(보스 체력의 ${(w.dmg/WB_HP*100).toFixed(1)}%)</small></span><span>내 순위 <b>${me>=0?(me+1)+'위':'-'}</b></span><span>오늘 도전 <b>${Math.max(0,left)}/${WB_TRY}</b></span></div>
     <div class="wbt">${dead?(w.done?`<button disabled>${w.caught?'포획 성공! 이번 주 끝':'포획 시도 끝 · 다음 주에 또!'}</button>`:w.dmg?`<button class="main" id="wbC">처치 완료! 포획 시도 (${WB_THROW-w.throws}번 남음)</button>`:'<button disabled>처치 완료 · 한 번만 싸우면 포획 기회!</button>'):''}<button class="${dead?'':'main'}" id="wbF" ${left>0?'':'disabled'}>${left>0?(dead?'추가 데미지 도전! (랭킹·보상에 그대로 들어가요)':'보스에게 도전! (시간 제한 없음)'):'오늘 도전 끝 · 내일 또!'}</button><button id="wbR">새로고침</button></div>${dead&&!w.dmg?'<p class="wbpd">보스는 쓰러졌지만 아직 끝이 아니에요! 한 번만 싸우면 포획 시도 '+WB_THROW+'번 + 주간 보상을 받아요.</p>':''}
-    <h4>월드보스 시간표 <small>이번 주 + 앞으로 3주</small></h4><div class="wbtt">${[0,1,2,3].map(i=>{const wk=wbWeek(-i),b=wbBoss(wk),d0=new Date(wk+'T00:00:00+09:00'),d1=new Date(d0.getTime()+6*864e5),f=d=>(d.getMonth()+1)+'/'+d.getDate();return `<div class="wbtr${i?'':' now'}"><img src="${THUMB[b]||''}"><div><small>${i?i+'주 뒤':'이번 주'} · ${f(d0)}(월) ~ ${f(d1)}(일)</small><b>${META[b].name}</b><span>${META[b].types.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')}</span></div></div>`}).join('')}</div>
+    <h4>월드보스 시간표 <small>이번 주 + 앞으로 3주</small></h4><div class="wbtt">${[0,1,2,3].map(i=>{const wk=wbWeekB(-i),b=wbBoss(wk),d0=new Date(wk+'T00:00:00+09:00'),d1=new Date(d0.getTime()+6*864e5),f=d=>(d.getMonth()+1)+'/'+d.getDate();return `<div class="wbtr${i?'':' now'}"><img src="${THUMB[b]||''}"><div><small>${i?i+'주 뒤':'이번 주'} · ${f(d0)}(월) ~ ${f(d1)}(일)</small><b>${META[b].name}</b><span>${META[b].types.map(t=>`<em class="rtg" style="background:${TCOL[t]}">${TN[t]}</em>`).join(' ')}</span></div></div>`}).join('')}</div>
     <p class="hhint">약한 타입을 미리 보고 포켓몬을 키워 두세요!</p>
     <h4>누적 데미지 랭킹 TOP 10 <small class="wbst"></small> <button class="wbrk" onclick="rankOpen('tower')">다른 랭킹</button></h4><p class="wbpd">월드보스는 <b>인터넷이 켜져 있을 때만</b> 참여할 수 있어요. 모두의 데미지를 서버에 바로 모아서 실시간 랭킹을 만들기 때문이에요.${w.pend?' (방금 싸운 데미지가 아직 안 올라갔어요. 인터넷이 켜지면 자동으로 올라가요)':''}</p><div class="wbl">${top}</div>
-    <div class="hcard"><b>주간 보상 (월요일에 자동 지급)</b><p>1~10위: 영웅~전설 카드팩 2장 + 포켓몬팩 10장 + 기술팩 10장<br>11위부터: 영웅~전설 카드팩 1장 + 포켓몬팩 5장 + 기술팩 5장<br><small>영웅~전설 카드팩은 열면 영웅 90% · 전설 10%</small><br>보스를 쓰러뜨리면: 싸운 친구 모두 전설 카드팩 1장 더!<br>쓰러뜨린 다음엔 「포획 시도」로 볼을 ${WB_THROW}번 던져서 잡을 수 있어요.</p><small>지금은 전설 보스만 나와요. 나중엔 신화 · 환상 · 유일 보스도 나와요!</small></div>`};
+    <div class="hcard"><b>주간 보상 (금요일에 자동 지급)</b><p>1~10위: 영웅~전설 카드팩 2장 + 포켓몬팩 10장 + 기술팩 10장<br>11위부터: 영웅~전설 카드팩 1장 + 포켓몬팩 5장 + 기술팩 5장<br><small>영웅~전설 카드팩은 열면 영웅 90% · 전설 10%</small><br>보스를 쓰러뜨리면: 싸운 친구 모두 전설 카드팩 1장 더!<br>쓰러뜨린 다음엔 「포획 시도」로 볼을 ${WB_THROW}번 던져서 잡을 수 있어요.</p><small>지금은 전설 보스만 나와요. 나중엔 신화 · 환상 · 유일 보스도 나와요!</small></div>`};
   openPanel('월드보스',render(WBC.wk===w.wk?WBC.list:null),null,p=>{const bind=()=>{const f=p.querySelector('#wbF');if(f)f.onclick=()=>wbFight();const c=p.querySelector('#wbC');if(c)c.onclick=()=>wbCatch();const r=p.querySelector('#wbR');if(r)r.onclick=async()=>{sfx('tap');const L=await wbFetch(w.wk,1);p.querySelector('.pb, .pbody')?0:0;const host=p.querySelector('.wbh').parentNode;host.innerHTML=render(L);bind()}};bind();
     const upd=async f=>{const L=await wbFetch(w.wk,f);if(!document.body.contains(p))return false;const h=p.querySelector('.wbh');if(h&&L){h.parentNode.innerHTML=render(L);bind()}const st=p.querySelector('.wbst');if(st)st.textContent=!wbCfg()?'서버 연결 전 · 내 기록만':!navigator.onLine||WBC.err?'인터넷이 꺼져 있어요 · 월드보스는 인터넷이 켜져 있어야 참여할 수 있어요':'실시간 랭킹 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' 기준';return true};
     upd(0);const iv=setInterval(async()=>{if(!(await upd(1)))clearInterval(iv)},8000)})}
-try{HUB.push({k:'wb',n:'월드보스 (매주)',d:'매주 월요일 새 전설 포켓몬 보스! 모두의 데미지를 합쳐서 쓰러뜨려요. 하루 3번 도전, 누적 데미지 랭킹으로 주간 보상. 쓰러뜨리면 포획 시도 5번!',st:()=>{const w=wbS();return '내 데미지 '+w.dmg.toLocaleString()},go:[['월드보스 열기',()=>wbOpen()]]})}catch(e){}
+try{HUB.push({k:'wb',n:'월드보스 (매주)',d:'매주 금요일 새 전설 포켓몬 보스! 모두의 데미지를 합쳐서 쓰러뜨려요. 하루 3번 도전, 누적 데미지 랭킹으로 주간 보상. 쓰러뜨리면 포획 시도 5번!',st:()=>{const w=wbS();return '내 데미지 '+w.dmg.toLocaleString()},go:[['월드보스 열기',()=>wbOpen()]]})}catch(e){}
 (function(){const go=()=>{const b=document.getElementById('bWB');if(b)b.onclick=()=>{sfx('tap');wbOpen('n')}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // 연결 코드 넣기 (운영자): 콘솔 대신 주소 ?wb=JD1-… 로도
 try{const q=new URLSearchParams(location.search).get('wb');if(q&&q.startsWith('JD1-')){localStorage.setItem('pka-wbcode',q);history.replaceState(null,'',location.pathname)}}catch(e){}
@@ -5054,7 +5055,7 @@ async function qrUnpack(t){return JSON.parse(await unzipStr(ub64u(t.slice(5))))}
 function qrShow(title,txt,lines,btns){xfClose();const o=document.createElement('div');o.id='xfOv';o.innerHTML=`<div class="xfq"></div><div class="xfs"><b>${title}</b>${lines}<div class="wbt">${btns.map((b,i)=>`<button data-qb="${i}" class="${b[2]||''}">${b[0]}</button>`).join('')}</div></div>`;document.body.appendChild(o);
   o.querySelector('.xfq').appendChild(qrCanvas(txt));o.querySelectorAll('[data-qb]').forEach(x=>x.onclick=()=>{sfx('tap');btns[+x.dataset.qb][1]()});try{noSleep&&noSleep()}catch(e){}return o}
 function tradeOpen(){if(!G)return;const all=[...G.party.map((m,i)=>({m,w:'p',i})),...G.box.map((m,i)=>({m,w:'b',i}))];
-  openPanel('포켓몬 교환 · 친구에게 보내기',`<p class="hhint">보낼 포켓몬을 골라요. QR이 뜨면 친구가 자기 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 비추면 받아요. <b>보내면 내 쪽에서는 사라져요.</b> (같은 QR은 한 번만 받을 수 있어요)<br>🔒 <b>불멸 · 태초 · 만제</b> 포켓몬과 초월 재료(💠 핵 · 🌟 숨결 · 🔱 인장)는 교환할 수 없어요.</p>
+  openPanel('포켓몬 교환 · 친구에게 보내기',`<p class="hhint">보낼 포켓몬을 골라요. QR이 뜨면 친구가 자기 게임에서 <b>QR 옮기기 → 카메라로 QR 찍기</b>로 비추면 받아요. <b>보내면 내 쪽에서는 사라져요.</b> (같은 QR은 한 번만 받을 수 있어요)<br>🔒 <b>불멸 · 태초 · 만제</b> 포켓몬과 초월 재료(<img class="tri" src="ui/tr/core.png" alt=""> 핵 · 🌟 숨결 · <img class="tri" src="ui/tr/seal.png" alt=""> 인장)는 교환할 수 없어요.</p>
    <div class="wbt"><button class="main" id="trScan">친구가 보낸 QR 받기 (카메라)</button></div>
    <div class="trg">${all.map((x,k)=>`<button class="trc" data-k="${k}" ${(x.w==='p'&&G.party.length<=1)||rarM(x.m)>=7?'disabled':''}><img src="${THUMB[x.m.n]||''}" alt=""><b>${nm(x.m)}</b><small>${rarM(x.m)>=7?'🔒 '+RAR[rarM(x.m)]+' · 교환 불가':'Lv.'+dLv(x.m)+(x.w==='p'?' · 출전 중':'')}</small></button>`).join('')}</div>`,null,p=>{
     p.querySelector('#trScan').onclick=()=>{closePanel(1);xferScan()};
@@ -5393,7 +5394,7 @@ setInterval(()=>{try{let b=document.getElementById('gmBtn');const on=G&&(isGM()|
 // ===== 포켓몬 분해 · 잠금 =====
 // 받은 포켓몬은 분해해서 영혼으로 바꿔야 합성에 써요 · 분해하면 그 포켓몬의 영혼 10개
 // 중복만 분해돼요 (같은 포켓몬이 2마리 이상일 때 · 마지막 1마리는 안 돼요) · 출전 중 · 자물쇠 채운 포켓몬은 분해 안 돼요
-const BXSOUL=10;
+const BXSOUL=10,BXGEM=.05;   // 월보 개편: 분해할 때 5% 확률로 승급의 결정 1개
 const bxDex=m=>{try{return META[m.n].dex}catch(e){return -1}};
 const bxScore=m=>{let s=(m.lv||1)+rarM(m)*100000;try{if(m.px!=null&&PX[m.px])s+=(PX[m.px].g+1)*1000}catch(e){}if(m.sh)s+=600;s+=(m.lb||0)*60;return s};
 // 같은 포켓몬 = 같은 종류 · 같은 폼 (메가·거다이맥스·원시 폼은 기본 포켓몬과 다른 포켓몬으로 봐요)
@@ -5403,12 +5404,12 @@ const bxCan=m=>!!(m&&!m.lock&&G.box.includes(m)&&bxCnt(bxKey(m))>=2);
 // 일괄 분해할 포켓몬: 같은 포켓몬끼리 묶어서 출전 중 · 잠금 · 제일 좋은 1마리는 남겨요
 function bxAllList(){const grp=new Map();for(const m of [...G.party,...G.box]){const d=bxKey(m);if(!grp.has(d))grp.set(d,[]);grp.get(d).push(m)}const out=[];
   for(const L of grp.values()){if(L.length<2)continue;const keep=new Set(L.filter(m=>m.lock||G.party.includes(m)));if(!keep.size)keep.add(L.slice().sort((a,b)=>bxScore(b)-bxScore(a))[0]);for(const m of L)if(!keep.has(m)&&G.box.includes(m))out.push(m)}return out}
-function bxDo(list){if(!list.length)return 0;G.dupes=G.dupes||[];for(const m of list){const i=G.box.indexOf(m);if(i<0||m.lock||m.aw)continue;G.box.splice(i,1);const d=bxDex(m),r=rarM(m);for(let k=0;k<BXSOUL;k++)G.dupes.push({kind:'P',id:d,rar:r,lv:m.lv,sh:0,soul:1})}save();try{refreshSpr()}catch(e){}return list.length}
+function bxDo(list){if(!list.length)return 0;let lucky=0;G.dupes=G.dupes||[];for(const m of list){const i=G.box.indexOf(m);if(i<0||m.lock||m.aw)continue;G.box.splice(i,1);const d=bxDex(m),r=rarM(m);for(let k=0;k<BXSOUL;k++)G.dupes.push({kind:'P',id:d,rar:r,lv:m.lv,sh:0,soul:1});if(Math.random()<BXGEM)lucky++}if(lucky){try{trmAdd('gem',lucky);sfx('badge');toast('<img class="tri" src="ui/tr/gem.png" alt=""> 운이 좋아요! 승급의 결정 +'+lucky)}catch(e){}}save();try{refreshSpr()}catch(e){}return list.length}
 const bxWarn=L=>{const sh=L.filter(m=>m.sh).length,px=L.filter(m=>m.px!=null).length;return (sh||px)?`<br><b style="color:#c0304a">주의! ${[sh?'이로치 '+sh+'마리':'',px?'접두사 '+px+'마리':''].filter(Boolean).join(' · ')}가 들어 있어요.</b> 지키고 싶으면 자물쇠를 먼저 채워요.`:''};
 function bxOne(m){if(!bxCan(m)){toast(m&&m.lock?'자물쇠가 채워져 있어요':'같은 포켓몬이 1마리뿐이라 분해할 수 없어요');return}
-  itAsk('<b>'+nm(m)+'</b> Lv.'+dLv(m)+'을(를) 정말 분해할까요?','분해하면 되돌릴 수 없어요. '+META[m.n].name+'의 영혼 '+BXSOUL+'개를 받아요.'+bxWarn([m]),()=>{bxDo([m]);sfx('get');toast(META[m.n].name+'의 영혼 +'+BXSOUL);teamOpen()})}
+  itAsk('<b>'+nm(m)+'</b> Lv.'+dLv(m)+'을(를) 정말 분해할까요?','분해하면 되돌릴 수 없어요. '+META[m.n].name+'의 영혼 '+BXSOUL+'개를 받아요. 운이 좋으면(5%) 승급의 결정도 1개!'+bxWarn([m]),()=>{bxDo([m]);sfx('get');toast(META[m.n].name+'의 영혼 +'+BXSOUL);teamOpen()})}
 function bxAll(){const L=bxAllList();if(!L.length){toast('분해할 중복 포켓몬이 없어요');return}
-  itAsk('중복 포켓몬 <b>'+L.length+'마리</b>를 정말 분해할까요?','같은 포켓몬끼리 제일 좋은 1마리 · 출전 중 · 자물쇠 채운 포켓몬은 남겨요. 영혼 '+(L.length*BXSOUL)+'개를 받아요. 되돌릴 수 없어요.'+bxWarn(L),()=>{const n=bxDo(L);sfx('badge');toast(n+'마리 분해 · 영혼 +'+n*BXSOUL);teamOpen()})}
+  itAsk('중복 포켓몬 <b>'+L.length+'마리</b>를 정말 분해할까요?','같은 포켓몬끼리 제일 좋은 1마리 · 출전 중 · 자물쇠 채운 포켓몬은 남겨요. 영혼 '+(L.length*BXSOUL)+'개를 받아요. 마리마다 5% 확률로 승급의 결정도 1개! 되돌릴 수 없어요.'+bxWarn(L),()=>{const n=bxDo(L);sfx('badge');toast(n+'마리 분해 · 영혼 +'+n*BXSOUL);teamOpen()})}
 const LOCKI='<svg class="lki" viewBox="0 0 10 12" aria-hidden="true"><path d="M3 5V3.5a2 2 0 0 1 4 0V5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="1.5" y="5" width="7" height="6" fill="currentColor"/></svg>';
 {const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel');if(!p)return;const tgs=p.querySelectorAll('.tg');if(tgs.length<2)return;
   const deco=(card,m)=>{if(!m||card.querySelector('.bxb'))return;card.classList.toggle('lk',!!m.lock);const f=card.querySelector('.tmf');if(f&&m.lock&&!f.querySelector('.lkb'))f.insertAdjacentHTML('beforeend','<span class="lkb">'+LOCKI+'</span>');
@@ -7069,7 +7070,7 @@ function chCfg(){const c=chCfgOf(),me=chMe();const seen=new Set(),L=[...G.party,
   const cr=CP.crowns();
   openPanel('⚙ 채팅 설정',`<div class="chpv">${chLine({...me,type:'t',text:'미리보기예요!',t:0,cpl:me.mode?CP.name(me.mode):'',pid:G.pid})}</div>
    <h4>프로필 사진 <small>(가진 포켓몬 · 전투력 높은 순)</small></h4><div class="chav">${L.map(m=>`<button data-a="${m.n}" class="${me.ava===m.n?'on':''}"><img src="${faceUrl(m.n,'Normal')}" alt=""></button>`).join('')}</div>
-   <h4>칭호 <small>(순위 1위 = 7일 · 천계 · 천상계 챔피언 = 영원히)</small></h4><div class="chtl"><button data-t="" class="${!me.tkey?'on':''}">없음</button>${cr.map(k=>`<button data-t="${k}" class="${me.tkey===k?'on':''}">${CP.title(k)}</button>`).join('')}</div>${cr.length?'':'<small>아직 1위 칭호가 없어요 · 🏆 랭킹에서 1등을 노려 봐요</small>'}
+   <h4>칭호 <small>(순위 1위 = 7일 · 천계 · 천상계 챔피언 = 영원히)</small></h4><div class="chtl"><button data-t="" class="${!me.tkey?'on':''}">없음</button>${cr.map(k=>`<button data-t="${k}" class="${me.tkey===k?'on':''}">${window.CPH?CPH(k):CP.title(k)}</button>`).join('')}</div>${cr.length?'':'<small>아직 1위 칭호가 없어요 · 🏆 랭킹에서 1등을 노려 봐요</small>'}
    <h4>내 이름 옆에 보일 전투력</h4><div class="chtl">${[['','안 보임'],['all','총합'],...CP.C.map(([k,n])=>[k,n])].map(([k,n])=>`<button data-m="${k}" class="${(me.mode||'')===k?'on':''}">${n}</button>`).join('')}</div>
    <div class="wbt"><button data-sh="1">${c.show===0?'채팅창 켜기':'화면 채팅창 끄기'}</button><button class="main" id="chBack">채팅으로</button></div>`,()=>pkcOpen(),p=>{
     p.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{sfx('tap');c.ava=b.dataset.a;save();chCfg()});
@@ -7771,8 +7772,8 @@ try{HUB.push({k:'awake',n:'각성',d:'포켓몬 아래 ★은 환생할 때마�
 <script id="b9tr">
 // ===== 9B 초월 승급: 유일 → 불멸 → 태초 → 만제 (m.ax) · 재료(G.trm) · 특수능력 · 기운(오라) 모습 =====
 (function(){try{
-const TRX={1:{k:'gem',n:'승급의 결정',ic:'✨',need:3,gold:5000},2:{k:'gem',n:'승급의 결정',ic:'✨',need:6,gold:20000},3:{k:'gem',n:'승급의 결정',ic:'✨',need:10,gold:60000},4:{k:'gem',n:'승급의 결정',ic:'✨',need:16,gold:150000},5:{k:'gem',n:'승급의 결정',ic:'✨',need:24,gold:300000},6:{k:'gem',n:'승급의 결정',ic:'✨',need:35,gold:500000},
-  7:{k:'core',n:'불멸의 핵',ic:'💠',need:30,gold:800000},8:{k:'breath',n:'태초의 숨결',ic:'🌟',need:60,gold:1500000},9:{k:'seal',n:'만제의 인장',ic:'🔱',need:9,gold:3000000}};   // 9AB: 어떤 포켓몬이든 일반 → … → 만제까지 한 단계씩 (애정하는 포켓몬!)
+const TRX={1:{k:'gem',n:'승급의 결정',ic:'<img class="tri" src="ui/tr/gem.png" alt="">',need:3,gold:5000},2:{k:'gem',n:'승급의 결정',ic:'<img class="tri" src="ui/tr/gem.png" alt="">',need:6,gold:20000},3:{k:'gem',n:'승급의 결정',ic:'<img class="tri" src="ui/tr/gem.png" alt="">',need:10,gold:60000},4:{k:'gem',n:'승급의 결정',ic:'<img class="tri" src="ui/tr/gem.png" alt="">',need:16,gold:150000},5:{k:'gem',n:'승급의 결정',ic:'<img class="tri" src="ui/tr/gem.png" alt="">',need:24,gold:300000},6:{k:'gem',n:'승급의 결정',ic:'<img class="tri" src="ui/tr/gem.png" alt="">',need:35,gold:500000},
+  7:{k:'core',n:'불멸의 핵',ic:'<img class="tri" src="ui/tr/core.png" alt="">',need:30,gold:800000},8:{k:'breath',n:'태초의 숨결',ic:'<img class="tri" src="ui/tr/breath.png" alt="">',need:60,gold:1500000},9:{k:'seal',n:'만제의 인장',ic:'<img class="tri" src="ui/tr/seal.png" alt="">',need:9,gold:3000000}};   // 9AB: 어떤 포켓몬이든 일반 → … → 만제까지 한 단계씩 (애정하는 포켓몬!)
 const TAB={1:'능력치·기술 위력이 올라요',2:'능력치·기술 위력이 올라요',3:'능력치·기술 위력이 올라요',4:'능력치·기술 위력이 올라요',5:'능력치·기술 위력이 올라요',6:'능력치·기술 위력이 크게 올라요',7:'쓰러지면 1번 부활(체력 50%) · 각성하면 부활 뒤 무적 10초, 각성마다 +3초',8:'분신을 불러 같이 공격 20초 · 각성마다 +5초',9:'파티 전체 공격 +30% · 20초 동안 데미지 +30% 버프(재사용 30초, 각성마다 −3초)'};
 const TAURA={6:'하얀 기운',7:'황금 기운',8:'푸른 기운',9:'진홍 기운'};
 window.TRX=TRX;window.TAB=TAB;
@@ -7792,8 +7793,8 @@ window.trOpen=function(){if(!G)return;const t=trm(),L=trList();
       <small>${r>=7?'능력: '+abil(r).join(' · '):r>rarB(m)?'승급 '+(r-rarB(m))+'단계 (원래 '+RAR[rarB(m)]+')':'원래 등급 '+RAR[r]}</small>
       ${full?'<small><b style="color:#d4142e">최고 등급 만제!</b></small>':`<small>다음 <b style="color:${RARC[nx]}">${RAR[nx]}</b>: 능력치 +${Math.round(RSTAT[nx]*100)}% · 기술 위력 +${Math.round(GPW[nx]*100)}% · 새 능력 「${TAB[nx]}」</small><small>재료 ${X.ic} ${X.n} ${have}/${X.need} · 💰 ${X.gold.toLocaleString()}원</small>`}</span>
       ${full?'':`<button data-tr="${i}" ${can?'':'disabled'}>초월하기</button>`}</div>`}).join('');
-  const how=`<p class="hhint"><b>어떤 포켓몬이든</b> 한 단계씩 올라가요: 일반 → 희귀 → 영웅 → 전설 → 신화 → 환상 → 유일 → <b>불멸 → 태초 → 만제</b>. 높은 단계일수록 재료가 많이 들어요. 유일까지는 ✨ 승급의 결정, 그 위는 초월 재료예요. 몸 색이 바뀌고, 몸 뒤에서 ${TAURA[7]} · ${TAURA[8]} · ${TAURA[9]}이 타올라요.</p>
-    <p class="hhint">✨ <b>승급의 결정</b>: 카오스 월드보스(도전할 때마다 + 주간 보상) · 일반 월드보스 주간 보상 · 챔피언 · 난투전 1~3등<br>💠 <b>불멸의 핵</b> (불멸 = 30개): 카오스 월드보스 주간 순위 보상 18~4개 · 보스를 쓰러뜨리면 모두 +12 · <b>천계</b> 최초 격파(관장 1 · 사천왕 2 · 챔피언 3) · 천계 관장 재대결 5%<br>🌟 <b>태초의 숨결</b> (태초 = 60개): 이터널 월드보스 주간 순위 보상 18~4개 · 쓰러뜨리면 모두 +12 · <b>천상계</b> 최초 격파(관장 1 · 사천왕 2 · 챔피언 3) · 천상계 관장 재대결 5%<br>🔱 <b>만제의 인장</b> (만제 = 9개): 이터널 월드보스 주간 순위 보상 2~0개 · 쓰러뜨리면 모두 +1<br><small>보스를 다 같이 쓰러뜨려야 빨리 모여요!</small></p>`;
+  const how=`<p class="hhint"><b>어떤 포켓몬이든</b> 한 단계씩 올라가요: 일반 → 희귀 → 영웅 → 전설 → 신화 → 환상 → 유일 → <b>불멸 → 태초 → 만제</b>. 높은 단계일수록 재료가 많이 들어요. 유일까지는 <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정, 그 위는 초월 재료예요. 몸 색이 바뀌고, 몸 뒤에서 ${TAURA[7]} · ${TAURA[8]} · ${TAURA[9]}이 타올라요.</p>
+    <p class="hhint"><img class="tri" src="ui/tr/gem.png" alt=""> <b>승급의 결정</b>: 카오스 월드보스(도전할 때마다 + 주간 보상) · 일반 월드보스 주간 보상 · 챔피언 · 난투전 1~3등<br><img class="tri" src="ui/tr/core.png" alt=""> <b>불멸의 핵</b> (불멸 = 30개): 카오스 월드보스 주간 순위 보상 18~4개 · 보스를 쓰러뜨리면 모두 +12 · <b>천계</b> 최초 격파(관장 1 · 사천왕 2 · 챔피언 3) · 천계 관장 재대결 5%<br><img class="tri" src="ui/tr/breath.png" alt=""> <b>태초의 숨결</b> (태초 = 60개): 이터널 월드보스 주간 순위 보상 18~4개 · 쓰러뜨리면 모두 +12 · <b>천상계</b> 최초 격파(관장 1 · 사천왕 2 · 챔피언 3) · 천상계 관장 재대결 5%<br><img class="tri" src="ui/tr/seal.png" alt=""> <b>만제의 인장</b> (만제 = 9개): 이터널 월드보스 주간 순위 보상 2~0개 · 쓰러뜨리면 모두 +1<br><small>보스를 다 같이 쓰러뜨려야 빨리 모여요!</small></p>`;
   openPanel('승급 · 초월',mat+how+(L.length?rows:'<p class="hhint"><b>포켓몬이 없어요.</b></p>')+(opAny()?'<p><button id="trGM">운영자: 재료 한 단계씩</button></p>':''),null,p=>{
     p.querySelectorAll('[data-tr]').forEach(b=>b.onclick=()=>trGo(L[+b.dataset.tr]));
     const g=p.querySelector('#trGM');if(g)g.onclick=()=>{trmAdd('gem',50);trmAdd('core',30);trmAdd('breath',60);trmAdd('seal',9);save();closePanel(1);trOpen()}})};
@@ -7819,7 +7820,7 @@ function trShow(m,from,to){return new Promise(async done=>{const o=document.crea
   setTimeout(()=>o.classList.add('on'),1400);
   o.querySelector('button').onclick=()=>{alive=0;o.remove();done()}})}
 // 천계 · 천상계 챔피언을 이기면 재료
-{const _lg=league;league=async function(){const c0=(G&&G.champ)||0;const r=await _lg.apply(this,arguments);try{if(G&&(G.champ||0)>c0){const d=DIFF();const gm=2+d*2;trmAdd('gem',gm);let tx='✨ 승급의 결정 ×'+gm;save();
+{const _lg=league;league=async function(){const c0=(G&&G.champ)||0;const r=await _lg.apply(this,arguments);try{if(G&&(G.champ||0)>c0){const d=DIFF();const gm=2+d*2;trmAdd('gem',gm);let tx='<img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 ×'+gm;save();
   await say(['승급 재료를 얻었어요! '+tx,'「컨텐츠」 → 「승급 · 초월」에서 좋아하는 포켓몬을 한 단계씩 올릴 수 있어요.']);
   if(d===6||d===7){G.champOn=G.champOn||{};G.champOn[d]=1;chTitleChk(1)}}}catch(e){console.warn('9B',e)}return r}}
 // 9AH-2 천계 · 천상계 챔피언 칭호 (영원히 · 채팅 이름 옆) — 예전에 이미 이긴 친구도 자동으로 받아요
@@ -7828,7 +7829,7 @@ const CTP=9e15;
 async function chTitleChk(talk){if(!G)return;G.crowns=G.crowns||{};const o=G.champOn||{};let nw=null;
   for(const [d,k] of [[6,'ch6'],[7,'ch7']])if(o[d]&&G.crowns[k]!==CTP){G.crowns[k]=CTP;nw=k}
   if(!nw)return;try{const c=chCfgOf();if(!c.title||c.title==='ch6')c.title=nw}catch(e){}save();try{sfx('badge')}catch(e){}
-  if(talk)await say(['칭호 <b>'+CP.title(nw)+'</b>을(를) 얻었어요!','채팅에서 내 이름 옆에 보여요. 「채팅 설정 → 칭호」에서 바꿀 수 있어요. (이 칭호는 사라지지 않아요)']);else toast('칭호 획득: '+CP.title(nw))}
+  if(talk)await say(['칭호 <b>'+(window.CPH?CPH(nw):CP.title(nw))+'</b>을(를) 얻었어요!','채팅에서 내 이름 옆에 보여요. 「채팅 설정 → 칭호」에서 바꿀 수 있어요. (이 칭호는 사라지지 않아요)']);else toast('칭호 획득: '+(window.CPH?CPH(nw):CP.title(nw)))}
 setInterval(()=>{try{if(G&&SCENE==='over')chTitleChk(0)}catch(e){}},4000);
 const css=document.createElement('style');css.textContent=`
 .trmat{display:flex;gap:6px;margin:4px 0 8px}.trmat span{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 2px;background:#141a30;border:3px solid var(--c);box-shadow:inset 0 0 0 2px #0008;color:#fff;font:900 11px 'Galmuri11',monospace}
@@ -7842,7 +7843,7 @@ const css=document.createElement('style');css.textContent=`
 #trOv .trs{font:900 16px 'Galmuri11',monospace}#trOv .trs2{font:12px 'Galmuri11',monospace;color:#cfd6ff}
 #trOv button{margin-top:6px;padding:9px 30px;font:900 16px 'Galmuri11',monospace;border:3px solid #1c2550;border-radius:0;background:#ffd23f;color:#1c2550;box-shadow:0 4px 0 #1c2550}`;document.head.appendChild(css);
 try{HUB.push({k:'trans',n:'승급 · 초월 (좋아하는 포켓몬을 만제까지!)',d:'어떤 포켓몬이든 한 단계씩 올려요: 일반 → 희귀 → 영웅 → 전설 → 신화 → 환상 → 유일 → 불멸 → 태초 → 만제. 높을수록 재료가 많이 들어요. 등급마다 몸 색이 바뀌고 기운이 타오르며, 특수 능력이 생겨요. 불멸: 1번 부활(각성하면 무적) · 태초: 분신 소환 · 만제: 파티 공격 +30% + 데미지 버프.',
-  st:()=>{const t=trm();return '💠'+t.core+' 🌟'+t.breath+' 🔱'+t.seal},
+  st:()=>{const t=trm();return '<img class="tri" src="ui/tr/core.png" alt="">'+t.core+' 🌟'+t.breath+' <img class="tri" src="ui/tr/seal.png" alt="">'+t.seal},
   go:[['초월하기',()=>trOpen()],['기운 효과 켜기 / 끄기',()=>{G.opt=G.opt||{};G.opt.tfx=G.opt.tfx===0?1:0;save();toast('기운 효과 '+(G.opt.tfx===0?'꺼짐':'켜짐'));closePanel(1)}]]})}catch(e){}
 }catch(e){console.warn('9B 초월',e)}})();
 </script>
@@ -7949,7 +7950,7 @@ chSend=async function(ty,text,mon,ex){if(!G||!G.pid){toast('먼저 게임을 시
   CHLAST=ms;const er=await chPut(CMo.bd,id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
   const o=await chParse({name:'x/'+encodeURIComponent(id),fields:{name:{stringValue:name},v:{integerValue:String(vm)},t:{integerValue:String(t)}}});if(o){o.bd=CMo.bd;chMerge([o]);chDraw()}setTimeout(chPoll,1500);return true};
 // 보이는 모양: 칭호 · 전투력 · 덱 얼굴
-const ttl=o=>o.tk?`<u class="cptk">${esc(CP.title(o.tk))}</u>`:'',cpe=o=>o.pm?`<em class="cpv">⚡${o.pv>=1e4?(o.pv/1e4).toFixed(1)+'만':fmtN(o.pv)}</em>`:'';
+const ttl=o=>o.tk?`<u class="cptk">${o.tk==='ch6'||o.tk==='ch7'?(window.CPH?CPH(o.tk):esc(CP.title(o.tk))):esc(CP.title(o.tk))}</u>`:'',cpe=o=>o.pm?`<em class="cpv">⚡${o.pv>=1e4?(o.pv/1e4).toFixed(1)+'만':fmtN(o.pv)}</em>`:'';
 {const _n=chName;chName=function(o){let h=_n.apply(this,arguments);try{h=h.replace('<span class="chhd">','<span class="chhd">'+ttl(o));h=h.replace(/<\/b><\/span>$/,'</b>'+cpe(o)+'</span>')}catch(e){}return h}}
 const advS=o=>{if(!o.adv)return'';const v=o.adv,rb=Math.floor(v/1e6),d=Math.floor(v/1e5)%10,S=Math.floor(v/1e3)%100;const st=S===0?'시작':S<8?'배지 '+S:S===8?'리그':S===9?'챔피언':'상위 '+(S-9);return `<em class="chadv" style="--dc:${DCOL[d]||'#888'}">${rb?rb+'환생 · ':''}${DNAME[d]||''} ${st}</em>`};   /* 9H 진행도 꼬리표 */
 {const _r=chRow;chRow=function(o){let h=_r.apply(this,arguments);if(!h)return h;try{h=h.replace('<small class="cht">',advS(o)+ttl(o)+cpe(o)+'<small class="cht">');
@@ -8795,43 +8796,44 @@ setInterval(()=>{try{
 // 기존 월보 코드를 그대로 쓰고 「지금 종류」만 바꿔 끼워요: G.wb(지금 종류 기록) ↔ G.wb_n/G.wb_c/G.wb_e, WB_HP, 서버 주 이름 뒤에 -C/-E (같은 pokeBoss 칸이라 서버 규칙 그대로)
 // 일반 월보는 11/23(월) 주부터 새 단위(새 실시간 전투·화면 숫자). 그 전 주는 예전 그대로(예전 전투·5만)
 (function(){try{
-const NEWWK='2026-11-23';
+const NEWWK='2026-11-20';   // 오늘(11/20 금)부터 새 월보 · 주 단위도 금요일 시작
+
 const KD={n:{nm:'월드보스',lb:'전설',suf:'',hp:300000000,sc:100,ai:'T2',pack:3,mat:null,hit:.07},
           c:{nm:'카오스 월드보스',lb:'신화',suf:'-C',hp:600000000,sc:100,ai:'G4',pack:4,mat:'core',hit:.10},
           e:{nm:'이터널 월드보스',lb:'환상',suf:'-E',hp:900000000,sc:100,ai:'G4',pack:5,mat:'breath',hit:.13}};
 window.WBKD=KD;const HP0=WB_HP;
-const cur=()=>(G&&G.wbK)||'n';const old=k=>k==='n'&&wbWeek()<NEWWK;
+const cur=()=>(G&&G.wbK)||'n';const old=k=>k==='n'&&wbWeekB()<NEWWK;
 function apply(k){WB_HP=old(k)?HP0:KD[k].hp;WBSUF=KD[k].suf;try{WBC.list=null;WBC.wk=null}catch(e){}}
 window.wbKind=function(k){if(!G||!KD[k])return;const c=cur();if(k!==c){G['wb_'+c]=G.wb||null;G.wb=G['wb_'+k]||null;delete G['wb_'+k];G.wbK=k}apply(k)};
 window.WBSC=()=>old(cur())?1:KD[cur()].sc;window.WBNEW=()=>!old(cur());window.WBAI=()=>KD[cur()].ai;window.WBHIT=()=>KD[cur()].hit;
 window.WBNM=()=>KD[cur()].nm;window.WBLB=()=>KD[cur()].lb;
-const stOfK=k=>{const w=k===cur()?G.wb:G['wb_'+k];return w&&w.wk===wbWeek()?w:{dmg:0}};
+const stOfK=k=>{const w=k===cur()?G.wb:G['wb_'+k];return w&&w.wk===wbWeekB()?w:{dmg:0}};
 // 보스 고르기: 카오스 = 메가 폼 중 센 것, 이터널 = 거다이맥스 폼 (주마다 바뀜)
 {const _b=wbBoss;wbBoss=function(wk){const k=cur();if(k==='n')return _b(wk);
   const L=Object.keys(META).filter(x=>META[x].form===(k==='c'?'mega':'gmax')).sort((a,b)=>bst(META[b].stats)-bst(META[a].stats)).slice(0,24).sort();
-  if(!L.length)return _b(wk);const i=Math.floor(Date.parse(wk||wbWeek())/(7*864e5))*(k==='c'?5:7)+(k==='c'?3:11);return L[((i%L.length)+L.length)%L.length]}}
+  if(!L.length)return _b(wk);const i=Math.floor(Date.parse(wk||wbWeekB())/(7*864e5))*(k==='c'?5:7)+(k==='c'?3:11);return L[((i%L.length)+L.length)%L.length]}}
 // 화면 열기: wbOpen('c') 처럼 종류를 줄 수 있어요 + 위에 종류 탭
 {const _o=wbOpen;wbOpen=async function(k){if(G){wbKind(k||cur())}const r=await _o.apply(this,[]);try{const pb=PANEL&&PANEL.d&&PANEL.d.querySelector('.pb');if(pb&&!pb.querySelector('.wbk')){const t=document.createElement('div');t.className='wbk';
-  t.innerHTML=['n','c','e'].map(x=>`<button data-k="${x}" class="${x===cur()?'on':''}"><b>${KD[x].nm}</b><small>${KD[x].lb}${x==='n'?'':' · 초월 재료'}</small></button>`).join('');pb.insertBefore(t,pb.firstChild);
+  t.innerHTML=['n','c','e'].filter(x=>!window.WBOPEN||WBOPEN(x)).map(x=>`<button data-k="${x}" class="${x===cur()?'on':''}"><b>${KD[x].nm}</b><small>${KD[x].lb}${x==='n'?'':' · 초월 재료'}</small></button>`).join('');pb.insertBefore(t,pb.firstChild);
   {const k=cur(),W=WBRW[k],kill=k==='n'?'처치하면 전설 카드팩 +1':k==='c'?'처치하면 모두 불멸의 핵 +12 · 결정 +10':'처치하면 모두 태초의 숨결 +12 · 인장 +1';
-   const cell=i=>k==='n'?`<i>🎴${W.pk[i]}</i><i>📦${W.mp[i]}+${W.mp[i]}</i><i>✨${W.gem[i]}</i>`:k==='c'?`<i>🎴${W.pk[i]}</i><i>💠${W.mat[i]}</i><i>✨${W.gem[i]}</i>`:`<i>🎴${W.pk[i]}</i><i>🌟${W.mat[i]}</i><i>🔱${W.seal[i]}</i>`;
+   const cell=i=>k==='n'?`<i>🎴${W.pk[i]}</i><i>📦${W.mp[i]}+${W.mp[i]}</i><i><img class="tri" src="ui/tr/gem.png" alt="">${W.gem[i]}</i>`:k==='c'?`<i>🎴${W.pk[i]}</i><i><img class="tri" src="ui/tr/core.png" alt="">${W.mat[i]}</i><i><img class="tri" src="ui/tr/gem.png" alt="">${W.gem[i]}</i>`:`<i>🎴${W.pk[i]}</i><i><img class="tri" src="ui/tr/breath.png" alt="">${W.mat[i]}</i><i><img class="tri" src="ui/tr/seal.png" alt="">${W.seal[i]}</i>`;
    const q=document.createElement('div');q.className='wbrw';const HD={n:['카드팩','포켓몬·기술팩','승급 결정'],c:['신화 카드팩','불멸의 핵','승급 결정'],e:['환상 카드팩','태초의 숨결','만제의 인장']}[k];q.innerHTML=`<div class="wbrwh">🏆 주간 순위 보상 <small>${kill}</small></div><div class="wbrwr hd"><b>순위</b>${HD.map(x=>`<i>${x}</i>`).join('')}</div>`+WBTN.map((x,i)=>`<div class="wbrwr r${i}"><b>${x}</b>${cell(i)}</div>`).join('');
    t.after(q)}
   t.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);wbOpen(b.dataset.k)})}}catch(e){}return r}}
 // 싸움: 새 전투로 (일반 월보는 새 주부터)
-{const _bt=battle;battle=async function(o){if(o&&o.wb&&window.rtWB&&WBNEW()){const r=await rtWB(o);if(r!==undefined){try{if(cur()==='c'&&BS.wbLast&&BS.wbLast.dmg>0){trmAdd('gem',2);save();toast('✨ 승급의 결정 +2 (카오스 도전)')}}catch(e){}return r}}return _bt.apply(this,arguments)}}
+{const _bt=battle;battle=async function(o){if(o&&o.wb&&window.rtWB&&WBNEW()){const r=await rtWB(o);if(r!==undefined){try{if(cur()==='c'&&BS.wbLast&&BS.wbLast.dmg>0){trmAdd('gem',2);save();toast('<img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +2 (카오스 도전)')}}catch(e){}return r}}return _bt.apply(this,arguments)}}
 // 주간 보상: 종류마다 따로 받기 + 카오스·이터널 추가 보상(카드팩 등급·초월 재료)
-{const _p=wbPayout;wbPayout=async function(){const k0=cur();try{for(const k of ['n','c','e']){wbKind(k);const w=wbS(),o=w.last;if(!o||w.paid[o.wk])continue;
+{const _p=wbPayout;wbPayout=async function(){const k0=cur();try{for(const k of ['n','c','e']){wbKind(k);const w=wbS(),o=w.last;if(!o||w.paid[o.wk])continue;if(k==='n'&&o.wk<NEWWK)WB_HP=HP0;/* 개편 전 주(5만 단위)는 예전 체력으로 격파 판정 */
     let L=null;try{L=await wbFetch(o.wk,1)}catch(e){}const i=L?L.findIndex(x=>x.id===G.pid):-1,rank=i>=0?i+1:null,killed=L?wbTotal(L)>=WB_HP:false;
-    await _p.apply(this,arguments);if(w.paid[o.wk]&&k==='n'&&!w['gem_'+o.wk]){w['gem_'+o.wk]=1;const g=WBRW.n.gem[wbTier(rank)];trmAdd('gem',g);save();toast('월드보스 보상: ✨ 승급의 결정 ×'+g)}if(!w.paid[o.wk]||k==='n')continue;const D=KD[k],T=wbTier(rank),RW=WBRW[k];
+    await _p.apply(this,arguments);if(w.paid[o.wk]&&k==='n'&&!w['gem_'+o.wk]){w['gem_'+o.wk]=1;const g=WBRW.n.gem[wbTier(rank)];trmAdd('gem',g);save();toast('월드보스 보상: <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 ×'+g)}if(!w.paid[o.wk]||k==='n')continue;const D=KD[k],T=wbTier(rank),RW=WBRW[k];
     for(let j=0;j<RW.pk[T];j++)REWQ.push({kind:'P',rar:D.pack,msg:D.nm+' 주간 보상 · '+D.lb+' 카드팩 ('+WBTN[T]+(rank?' · '+rank+'위':'')+')',why:D.nm+' 보상'});
-    const n=RW.mat[T]+(killed?12:0);trmAdd(D.mat,n);let t=D.nm+' 보상: '+(k==='c'?'💠 불멸의 핵':'🌟 태초의 숨결')+' ×'+n;   // 9AB 재료 많이
-    if(k==='c'){const g=RW.gem[T]+(killed?10:0);trmAdd('gem',g);t+=' · ✨ 승급의 결정 ×'+g}
-    if(k==='e'){const sl=RW.seal[T]+(killed?1:0);if(sl)trmAdd('seal',sl);t+=' · 🔱 만제의 인장 ×'+sl+(rank?' ('+rank+'위)':'')}save();toast(t)}}finally{wbKind(k0)}}}
+    const n=RW.mat[T]+(killed?12:0);trmAdd(D.mat,n);let t=D.nm+' 보상: '+(k==='c'?'<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵':'<img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결')+' ×'+n;   // 9AB 재료 많이
+    if(k==='c'){const g=RW.gem[T]+(killed?10:0);trmAdd('gem',g);t+=' · <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 ×'+g}
+    if(k==='e'){const sl=RW.seal[T]+(killed?1:0);if(sl)trmAdd('seal',sl);t+=' · <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장 ×'+sl+(rank?' ('+rank+'위)':'')}save();toast(t)}}finally{wbKind(k0)}}}
 // 들어가는 곳: 허브에 카오스·이터널 · 원래 월보 버튼은 일반으로
 try{const h=HUB.find(x=>x.k==='wb');if(h){h.go=[['월드보스 열기',()=>wbOpen('n')]];h.st=()=>'내 데미지 '+stOfK('n').dmg.toLocaleString()}
-  HUB.push({k:'wbc',n:'카오스 월드보스 (매주)',d:'메가진화한 신화 등급 보스! 일반 월보보다 훨씬 세요. 쓰러뜨리면 참여한 사람 모두(쓰러진 뒤에 때린 사람도) 포획 기회 5번 — 잡으면 신화 등급! 도전할 때마다 ✨ 승급의 결정 +2 · 주간 순위 보상(1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지): 신화 카드팩 3~1 + 💠 불멸의 핵 18~4 + ✨ 승급의 결정 35~15. 보스를 쓰러뜨리면 모두 💠+12 ✨+10! (불멸 승급 = 핵 30개)',st:()=>'내 데미지 '+stOfK('c').dmg.toLocaleString(),go:[['카오스 월드보스 열기',()=>wbOpen('c')]]},
-    {k:'wbe',n:'이터널 월드보스 (매주)',d:'거다이맥스 환상 등급 보스! 가장 강한 월드보스예요. 쓰러뜨리면 참여한 사람 모두(쓰러진 뒤에 때린 사람도) 포획 기회 5번 — 잡으면 환상 등급! 주간 순위 보상(1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지): 환상 카드팩 3~1 + 🌟 태초의 숨결 18~4 + 🔱 만제의 인장 2~0. 보스를 쓰러뜨리면 모두 🌟+12 🔱+1! (태초 = 숨결 60개 · 만제 = 인장 9개)',st:()=>'내 데미지 '+stOfK('e').dmg.toLocaleString(),go:[['이터널 월드보스 열기',()=>wbOpen('e')]]})}catch(e){}
+  HUB.push({k:'wbc',n:'카오스 월드보스 (매주)',d:'메가진화한 신화 등급 보스! 일반 월보보다 훨씬 세요. 쓰러뜨리면 참여한 사람 모두(쓰러진 뒤에 때린 사람도) 포획 기회 5번 — 잡으면 신화 등급! 도전할 때마다 <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +2 · 주간 순위 보상(1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지): 신화 카드팩 3~1 + <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 18~4 + <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 35~15. 보스를 쓰러뜨리면 모두 <img class="tri" src="ui/tr/core.png" alt="">+12 <img class="tri" src="ui/tr/gem.png" alt="">+10! (불멸 승급 = 핵 30개)',st:()=>'내 데미지 '+stOfK('c').dmg.toLocaleString(),go:[['카오스 월드보스 열기',()=>wbOpen('c')]]},
+    {k:'wbe',n:'이터널 월드보스 (매주)',d:'거다이맥스 환상 등급 보스! 가장 강한 월드보스예요. 쓰러뜨리면 참여한 사람 모두(쓰러진 뒤에 때린 사람도) 포획 기회 5번 — 잡으면 환상 등급! 주간 순위 보상(1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지): 환상 카드팩 3~1 + <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 18~4 + <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장 2~0. 보스를 쓰러뜨리면 모두 <img class="tri" src="ui/tr/breath.png" alt="">+12 <img class="tri" src="ui/tr/seal.png" alt="">+1! (태초 = 숨결 60개 · 만제 = 인장 9개)',st:()=>'내 데미지 '+stOfK('e').dmg.toLocaleString(),go:[['이터널 월드보스 열기',()=>wbOpen('e')]]})}catch(e){}
 const css=document.createElement('style');css.textContent=`.wbk{display:flex;gap:5px;margin:0 0 8px}.wbk button{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:3px solid #1c2550;border-radius:0;background:#2a3256;color:#cfd6ff;font:900 12px 'Galmuri11',monospace;box-shadow:0 3px 0 #1c2550}
 .wbk button small{font-size:10px;opacity:.8}.wbrw{margin:0 0 8px;border:3px solid #1c2550;background:#141a38;box-shadow:0 3px 0 #0b0f24;font:900 11px 'Galmuri11',monospace;color:#dfe5ff}.wbrwh{background:#2a3256;padding:4px 6px;color:#ffd23f}.wbrwh small{float:right;color:#9fb0ff;font-size:10px}.wbrwr{display:flex;align-items:center;gap:4px;padding:3px 6px;border-top:2px solid #1c2550}.wbrwr b{width:62px;color:#cfd6ff}.wbrwr i{flex:1;font-style:normal;text-align:center}.wbrwr.r0 b{color:#ffd23f}.wbrwr.r1 b{color:#e6ecff}.wbrwr.r2 b{color:#ffa45c}.wbrwr.r0{background:#2b2a1a}.wbrwr.hd{background:#1c2550;color:#9fb0ff;font-size:10px}.wbrwr.hd i,.wbrwr.hd b{color:#9fb0ff}.wbk button.on{background:#ffd23f!important;color:#1c2550!important;border-color:#fff!important;transform:translateY(-2px)}.wbk button.on{background:#ffd23f;color:#1c2550}.wbk button[data-k="c"].on{background:#ff4060;color:#fff}.wbk button[data-k="e"].on{background:#14c8b8;color:#fff}`;document.head.appendChild(css);
 // 처음: 저장된 종류 맞추기
@@ -8903,6 +8905,11 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112017,date:'11월 20일',t:'월드보스 새 개편! 오늘부터 시작 (노말 · 카오스)',items:[
+  {img:'',h:'⚔ 20마리가 다 같이 싸워요',p:['내 포켓몬 <b>최대 20마리</b>가 작게 나와서 보스와 한꺼번에 싸워요.','내 캐릭터는 <b>▼ 화살표</b>, 나머지는 반투명으로 자동 전투예요.','<b>「교체」</b>를 누르면 일시정지하고 다른 포켓몬으로 바꿀 수 있어요.','<b>2분</b>이 지나면 「건너뛰기」가 열려요. 시간 제한은 최대 <b>5분</b>이에요.']},
+  {img:'',h:'📅 오늘부터 금요일 시작 · 7일 단위',p:['<b>노말</b>과 <b>카오스</b> 월드보스가 <b>오늘(11/20)부터</b> 새로 시작해요.','둘 다 <b>금요일 0시</b>에 새 보스로 바뀌는 7일 단위예요. 다음 초기화는 11/27(금)!','지난주(월~목) 기록은 오늘 한 번 정산해서 보상이 와요.','사이드 메뉴 월드보스: 위가 노말, 아래가 카오스예요. 이터널은 아직 잠겨 있어요.']},
+  {img:'',h:'👑 카오스 보스를 잡으면 신화!',p:['카오스 보스는 메가 폼 <b>신화</b> 포켓몬이고, 불멸처럼 빛나요.','쓰러뜨린 뒤 싸운 친구 모두 <b>포획 시도 5번</b>! 잡으면 신화 등급이에요.']},
+  {img:'',h:'💎 분해하면 5% 확률로 승급의 결정',p:['포켓몬을 분해하면 영혼과 함께 <b>5% 확률</b>로 <img class=\"tri\" src=\"ui/tr/gem.png\" alt=\"\"> 승급의 결정 1개가 나와요.','재료 그림(<img class=\"tri\" src=\"ui/tr/core.png\" alt=\"\"> <img class=\"tri\" src=\"ui/tr/seal.png\" alt=\"\"> <img class=\"tri\" src=\"ui/tr/gem.png\" alt=\"\"> <img class=\"tri\" src=\"ui/tr/breath.png\" alt=\"\">)과 천계 · 천상계 챔피언 그림도 새로 들어갔어요.']}]},
  {v:2026112016,date:'11월 20일',t:'천계 · 천상계 포켓몬은 빛나요!',items:[
   {img:'ui/news/n29_difflook.webp',h:'✨ 천계 = 불멸 모습 · 천상계 = 태초 모습',p:['<b>천계</b> 난이도에서 만나는 상대 포켓몬은 <b>불멸</b>처럼, <b>천상계</b>에서는 <b>태초</b>처럼 빛나요.','모습만 바뀌어요. 부활 · 분신 같은 특수 능력은 없어요.','친구와 하는 대전(실시간 · 난투전)은 그대로예요.']}]},
  {v:2026112015,date:'11월 20일',t:'환생 별을 난이도에 맞췄어요',items:[
@@ -8910,13 +8917,13 @@ const NEWS=[
  {v:2026112014,date:'11월 20일',t:'환생 규칙: 내 난이도 이상에서 이긴 챔피언만!',items:[
   {img:'',h:'🔁 환생은 진짜 실력으로',p:['환생하려면 <b>지금 환생한 난이도 이상</b>에서 챔피언을 이겨야 해요.','난이도를 낮춰서 챔피언을 이기면 환생할 수 없어요 (낮은 난이도는 연습 · 사냥용).','챔피언을 이긴 뒤 난이도를 올려도 그 난이도 챔피언으로 치지 않아요. 직접 이겨야 다음 난이도와 칭호가 열려요.']}]},
  {v:2026112013,date:'11월 20일',t:'천계 · 천상계 최초 격파 보상 + 재대결 행운',items:[
-  {img:'ui/news/n26_rebal.webp',h:'🎉 최초 격파하면 초월 재료',p:['<b>천계</b>: 관장을 처음 이기면 💠 불멸의 핵 1개 · 사천왕 한 명마다 2개 · 챔피언 3개.','<b>천상계</b>: 관장 🌟 태초의 숨결 1개 · 사천왕 2개 · 챔피언 3개.','난이도마다 <b>딱 한 번</b>만 받아요. 환생해서 다시 깨도 또 받지는 않아요.','천계 · 천상계에서 관장 재대결을 이기면 <b>5% 확률</b>로 핵(천계) · 숨결(천상계) 1개!']}]},
+  {img:'ui/news/n26_rebal.webp',h:'🎉 최초 격파하면 초월 재료',p:['<b>천계</b>: 관장을 처음 이기면 <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 1개 · 사천왕 한 명마다 2개 · 챔피언 3개.','<b>천상계</b>: 관장 <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 1개 · 사천왕 2개 · 챔피언 3개.','난이도마다 <b>딱 한 번</b>만 받아요. 환생해서 다시 깨도 또 받지는 않아요.','천계 · 천상계에서 관장 재대결을 이기면 <b>5% 확률</b>로 핵(천계) · 숨결(천상계) 1개!']}]},
  {v:2026112012,date:'11월 20일',t:'천계 · 천상계 챔피언 칭호!',items:[
-  {img:'ui/news/n28_title.webp',h:'🏆 챔피언 칭호 (영원히)',p:['<b>천계</b>에서 챔피언이 되면 칭호 <b>「🏆 천계 챔피언」</b>, <b>천상계</b>에서 챔피언이 되면 <b>「👑 천상계 챔피언」</b>을 받아요.','채팅에서 내 이름 앞에 보여요. 랭킹 1위 칭호(7일)와 달리 <b>사라지지 않아요</b>.','바꾸려면 채팅 → ⚙ 채팅 설정 → 칭호에서 골라요.','예전에 이미 천계 · 천상계 챔피언이 된 친구도 자동으로 받아요!']}]},
+  {img:'ui/news/n28_title.webp',h:'🏆 챔피언 칭호 (영원히)',p:['<b>천계</b>에서 챔피언이 되면 칭호 <b>「<img class="tri" src="ui/tr/ch6.png" alt=""> 천계 챔피언」</b>, <b>천상계</b>에서 챔피언이 되면 <b>「<img class="tri" src="ui/tr/ch7.png" alt=""> 천상계 챔피언」</b>을 받아요.','채팅에서 내 이름 앞에 보여요. 랭킹 1위 칭호(7일)와 달리 <b>사라지지 않아요</b>.','바꾸려면 채팅 → ⚙ 채팅 설정 → 칭호에서 골라요.','예전에 이미 천계 · 천상계 챔피언이 된 친구도 자동으로 받아요!']}]},
  {v:2026112011,date:'11월 20일',t:'불멸 이상은 교환할 수 없어요',items:[
-  {img:'ui/news/n27_notrade.webp',h:'🔒 초월 재료 · 불멸 이상 포켓몬 교환 불가',p:['💠 불멸의 핵 · 🌟 태초의 숨결 · 🔱 만제의 인장은 친구에게 줄 수 없어요. 내가 직접 모아야 해요.','<b>불멸 · 태초 · 만제</b> 포켓몬도 교환 목록에서 잠겨 있어요 (🔒 교환 불가).','유일까지 승급한 포켓몬은 교환하면 승급 단계 그대로 친구에게 가요.']}]},
+  {img:'ui/news/n27_notrade.webp',h:'🔒 초월 재료 · 불멸 이상 포켓몬 교환 불가',p:['<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 · <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 · <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장은 친구에게 줄 수 없어요. 내가 직접 모아야 해요.','<b>불멸 · 태초 · 만제</b> 포켓몬도 교환 목록에서 잠겨 있어요 (🔒 교환 불가).','유일까지 승급한 포켓몬은 교환하면 승급 단계 그대로 친구에게 가요.']}]},
  {v:2026112010,date:'11월 20일',t:'불멸 · 태초 · 만제는 더 귀하게! 보스를 다 같이 쓰러뜨려요',items:[
-  {img:'ui/news/n26_rebal.webp',h:'💠🌟🔱 초월 재료가 귀해졌어요',p:['<b>불멸</b> = 💠 불멸의 핵 30개 · <b>태초</b> = 🌟 태초의 숨결 60개 · <b>만제</b> = 🔱 만제의 인장 9개.','핵은 카오스 월드보스, 숨결 · 인장은 이터널 월드보스 주간 순위 보상에서만 나와요 (챔피언 보상에서는 빠졌어요).','<b>보스를 쓰러뜨리면 참가한 모두</b> 핵 · 숨결 +12, 인장 +1을 더 받아요. 다 같이 힘을 모아 쓰러뜨려야 빨리 모여요!','1위 + 처치 기준: 불멸 1주 · 태초 2주 · 만제 3주에 하나 정도예요.']}]},
+  {img:'ui/news/n26_rebal.webp',h:'<img class="tri" src="ui/tr/core.png" alt="">🌟<img class="tri" src="ui/tr/seal.png" alt=""> 초월 재료가 귀해졌어요',p:['<b>불멸</b> = <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 30개 · <b>태초</b> = <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 60개 · <b>만제</b> = <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장 9개.','핵은 카오스 월드보스, 숨결 · 인장은 이터널 월드보스 주간 순위 보상에서만 나와요 (챔피언 보상에서는 빠졌어요).','<b>보스를 쓰러뜨리면 참가한 모두</b> 핵 · 숨결 +12, 인장 +1을 더 받아요. 다 같이 힘을 모아 쓰러뜨려야 빨리 모여요!','1위 + 처치 기준: 불멸 1주 · 태초 2주 · 만제 3주에 하나 정도예요.']}]},
  {v:2026112009,date:'11월 20일',t:'월드보스 공격 피하기! 빨간 장판 3초 경고',items:[
   {img:'ui/news/n25_warn.webp',h:'⚠ 빨간 장판이 뜨면 피해요',p:['월드보스가 공격하기 <b>3초 전</b>에 바닥에 빨간 원이 떠요. 가운데 숫자가 3 → 2 → 1 줄어들어요.','원이 꽉 차면 펑! 그때 원 밖에 있으면 <b>안 맞아요</b> (「피했다!」).','몸으로 치는 기술은 보스 주변 전체가 빨개져요. 보스에게서 멀리 도망가요!','자동 전투일 때도 내 포켓몬이 알아서 장판 밖으로 피해요.']},
   {img:'',h:'👑 카오스 · 이터널 보스 모습',p:['이름 앞에 <b>「카오스」 · 「이터널」</b>이 붙어요.','카오스 보스는 <b>불멸</b>, 이터널 보스는 <b>태초</b> 등급처럼 빛나요 (모습만 바뀌고 능력은 그대로).']}]},
@@ -8927,8 +8934,8 @@ const NEWS=[
   {img:'ui/news/n23_giant.webp',h:'👹 카오스 · 이터널 보스는 거대해요!',p:['카오스 · 이터널 월드보스는 싸움이 시작되면 <b>「거대화!!」</b> 하면서 화면이 흔들리고 엄청 커져요.','대신 내 포켓몬은 작아 보여요. 압도적인 보스에 맞서 봐요!','보스가 아무리 커도 화면 밖으로는 안 나가요.']},
   {img:'',h:'🎯 쓰러진 보스 포획 기회',p:['보스가 쓰러지면 <b>한 번이라도 싸운 사람 모두</b> 포획 기회 5번!','보스가 쓰러진 뒤에 처음 때려도 돼요 (추가 데미지 도전 → 포획 시도 버튼).','잡으면 <b>카오스 보스는 신화 등급</b>, <b>이터널 보스는 환상 등급</b> 포켓몬이 돼요.']}]},
  {v:2026112006,date:'11월 20일',t:'좋아하는 포켓몬을 만제까지! 승급 · 초월 + 카오스 · 이터널 월드보스',items:[
-  {img:'ui/news/n21_promo.webp',h:'⬆ 어떤 포켓몬이든 만제까지 (승급 · 초월)',p:['컨텐츠 → <b>「승급 · 초월」</b>에서 피카츄 같은 일반 포켓몬도 한 단계씩 올릴 수 있어요.','일반 → 희귀 → 영웅 → 전설 → 신화 → 환상 → 유일 → <b>불멸 → 태초 → 만제</b>. 높은 단계일수록 재료가 많이 들어요.','유일까지는 <b>✨ 승급의 결정</b>, 불멸부터는 💠 불멸의 핵 · 🌟 태초의 숨결 · 🔱 만제의 인장.','불멸부터는 특수 능력도 생겨요 (부활 · 분신 · 파티 공격 업).']},
-  {img:'',h:'👹 카오스 · 이터널 월드보스',p:['월드보스 화면 위에서 <b>일반 · 카오스 · 이터널</b>을 골라요.','<b>카오스</b>(메가진화 보스): 도전할 때마다 ✨ 승급의 결정 +2, 주간 보상 💠 불멸의 핵 + ✨ 결정 듬뿍.','<b>이터널</b>(거다이맥스 보스): 주간 보상 🌟 태초의 숨결 + 🔱 만제의 인장 (참가만 해도 1개!).','챔피언이 되면 ✨ 승급의 결정, 난투전 1~3등도 ✨ 결정을 받아요.']}]},
+  {img:'ui/news/n21_promo.webp',h:'⬆ 어떤 포켓몬이든 만제까지 (승급 · 초월)',p:['컨텐츠 → <b>「승급 · 초월」</b>에서 피카츄 같은 일반 포켓몬도 한 단계씩 올릴 수 있어요.','일반 → 희귀 → 영웅 → 전설 → 신화 → 환상 → 유일 → <b>불멸 → 태초 → 만제</b>. 높은 단계일수록 재료가 많이 들어요.','유일까지는 <b><img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정</b>, 불멸부터는 <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 · <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 · <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장.','불멸부터는 특수 능력도 생겨요 (부활 · 분신 · 파티 공격 업).']},
+  {img:'',h:'👹 카오스 · 이터널 월드보스',p:['월드보스 화면 위에서 <b>일반 · 카오스 · 이터널</b>을 골라요.','<b>카오스</b>(메가진화 보스): 도전할 때마다 <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +2, 주간 보상 <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 + ✨ 결정 듬뿍.','<b>이터널</b>(거다이맥스 보스): 주간 보상 <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 + <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장 (참가만 해도 1개!).','챔피언이 되면 <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정, 난투전 1~3등도 ✨ 결정을 받아요.']}]},
  {v:2026112005,date:'11월 20일',t:'환생하면 여러 발! 각성하면 번개 파지직! 지진·번개·바위·파도 새 그림',items:[
   {img:'ui/news/n20_sprfx.webp',h:'🌋⚡🪨🌊 지진 · 번개 · 바위 · 파도',p:['<b>지진</b>(땅고르기 · 땅가르기 · 매그니튜드): 상대 발밑 땅이 갈라지며 용암이 터져요.','<b>번개 · 방전 · 번개폭풍</b>: 하늘에서 상대에게 벼락이 떨어져요.','<b>스톤샤워 · 스톤에지 · 돌떨구기 …</b>: 하늘에서 큰 바위가 떨어져 부서져요.','<b>파도타기 · 탁류 …</b>: 파도가 상대에게 밀려가서 부서져요.']},
   {img:'',h:'🔄 환생 = 여러 발 · ⭐ 각성 = 기운 + 데미지',p:['<b>환생</b>할수록 기술이 여러 번 나가요: 0회 1발 · 1회 2발 · 2회 3발 · 3회 이상 4발 (베기는 X 획이 1개 더). 한 발씩 따로 맞아요!','<b>각성 ★</b>마다 기술에 기운이 둘러져요: ★1~2 하늘색 테두리 · ★3~4 보라색 + 번개 파지직 · ★5~6 금색 + 번개 가득. 데미지도 ★마다 +3%.','<b>전설 기술</b>(직접 만든 기술)은 많이 쓸수록 오르는 기술 레벨로 발 수와 기운이 올라요.']},
@@ -8963,7 +8970,7 @@ const NEWS=[
   {img:'ui/news/n02_mode.webp',h:'⚔ 실시간 / 🎴 턴제 고르기',p:['컨텐츠 → <b>「전투 방식 (실시간 / 턴제)」</b> → 「전투 방식 바꾸기」','<b>실시간</b>: 조이스틱으로 움직이며 피하고 버튼으로 공격해요.','<b>턴제</b>: 예전처럼 기술을 골라 차례대로 싸워요. 언제든 다시 바꿀 수 있어요.']},
   {img:'ui/news/n03_skin.webp',h:'💥 데미지 스킨',p:['컨텐츠 → <b>「💥 데미지 스킨」</b> → 「데미지 스킨 고르기」','실시간 전투 6가지, 턴제 전투 9가지 중에 골라요.','안 고른 친구는 <b>황제 골드(실시간) · 황금(턴제)</b>이 자동으로 나와요.']},
   {img:'ui/news/n04_battle.webp',h:'실시간 전투가 쉬워졌어요',p:['컴퓨터가 늦게 반응하고 거의 안 피해요. 상대 기술은 준비 동작이 길어서 보고 피할 수 있어요.','내 장판 · 내려찍기 · 발사체가 <b>훨씬 크고</b> 잘 맞아요.','맞아도 몸이 덜 굳어서 바로 다시 움직일 수 있어요.']},
-  {img:'ui/news/n05_trans.webp',h:'✨ 초월 승급 (불멸 · 태초 · 만제)',p:['컨텐츠 → <b>「초월 승급」</b> → 유일 포켓몬 옆 「초월하기」','재료: 💠 불멸의 핵 · 🌟 태초의 숨결 · 🔱 만제의 인장 (천계·천상계 챔피언, 카오스·이터널 월드보스에서 얻어요)','불멸 = 1번 부활 · 태초 = 분신 소환 · 만제 = 파티 공격 +30% + 데미지 버프']},
+  {img:'ui/news/n05_trans.webp',h:'✨ 초월 승급 (불멸 · 태초 · 만제)',p:['컨텐츠 → <b>「초월 승급」</b> → 유일 포켓몬 옆 「초월하기」','재료: <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 · <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 · <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장 (천계·천상계 챔피언, 카오스·이터널 월드보스에서 얻어요)','불멸 = 1번 부활 · 태초 = 분신 소환 · 만제 = 파티 공격 +30% + 데미지 버프']},
   {img:'ui/news/n06_hoenn.webp',h:'🌏 천계부터 새 이야기: 호연 지방',p:['난이도 <b>천계 · 천상계</b>로 환생하면 이야기 무대가 호연으로 바뀌어요.','미로마을 → 체육관 8개 → 그랜드시티 포켓몬리그 · 챔피언 윤진']},
   {img:'ui/news/n07_first.webp',h:'🏆 난이도 최초 정복자',p:['각 난이도에서 <b>가장 먼저 챔피언</b>이 된 친구는 특별 접두사(최초 정복 등급)를 받아요.','컨텐츠 → 「난이도 최초 정복자」에서 누가 처음 깼는지 볼 수 있어요.']},
   {img:'',h:'그 밖에',p:['채팅에서 이름 옆에 <b>진행도</b>(난이도 · 배지)가 보여요.','카드팩에서 포켓몬 그림 대신 ?가 나오던 문제를 고쳤어요.','종말 · 천계 · 천상계는 전투 1번에 물약 10개까지 쓸 수 있어요.']}]}];
@@ -9044,7 +9051,7 @@ const IT=k=>ITEMS&&ITEMS[k]?ITEMS[k].n:k;
   const sfx2=Object.keys(d.sf||{}).filter(k=>d.sf[k]>0).map(k=>k+' ★'+d.sf[k]).join(' · ');
   openPanel('계정 상세 · '+esc(name||d.nm||''),`<p class="hhint">${new Date(d.t).toLocaleString('ko-KR')} 기준 (3시간마다 올라와요) · 이 화면을 보고 「선물」로 복구해 줄 수 있어요</p>
    <div class="iv3s"><span>💰 돈 <b>${(d.money||0).toLocaleString()}</b></span><span>🪙 PVP 코인 <b>${d.coin||0}</b></span><span>🔄 환생 <b>${d.rb}</b>회</span><span>난이도 <b>${DNAME[d.df]||d.df}</b> (최고 ${DNAME[Math.max(0,(d.dmax||2)-1)]||''})</span><span>🏅 배지 <b>${d.bd}</b> · 상위 ${d.ub}</span><span>🏆 챔피언 <b>${d.ch}</b>회</span><span>📖 도감 <b>${d.dex}</b></span><span>포켓몬 <b>${d.mons}</b>마리</span>
-    ${d.mepx!==''&&PX[d.mepx]?`<span>캐릭터 접두사 <b>${PX[d.mepx].n}</b></span>`:''}<span>💠 핵 <b>${(d.trm||{}).core||0}</b> · 🌟 숨결 <b>${(d.trm||{}).breath||0}</b> · 🔱 인장 <b>${(d.trm||{}).seal||0}</b></span>${d.rbf?`<span style="color:#ff6a5a">⚠ 환생 환수 <b>${d.rbf}</b></span>`:''}<span>각성 재료 <b>${d.dupes}</b>장</span><span>장비 <b>${d.gear}</b>개${sfx2?' · '+sfx2:''}</span></div>
+    ${d.mepx!==''&&PX[d.mepx]?`<span>캐릭터 접두사 <b>${PX[d.mepx].n}</b></span>`:''}<span><img class="tri" src="ui/tr/core.png" alt=""> 핵 <b>${(d.trm||{}).core||0}</b> · 🌟 숨결 <b>${(d.trm||{}).breath||0}</b> · <img class="tri" src="ui/tr/seal.png" alt=""> 인장 <b>${(d.trm||{}).seal||0}</b></span>${d.rbf?`<span style="color:#ff6a5a">⚠ 환생 환수 <b>${d.rbf}</b></span>`:''}<span>각성 재료 <b>${d.dupes}</b>장</span><span>장비 <b>${d.gear}</b>개${sfx2?' · '+sfx2:''}</span></div>
    <h4>🎒 가방</h4><div class="iv3k">${kv(d.bag,IT)}</div><h4>🃏 카드팩</h4><div class="iv3k">${kv(d.packs)}</div>
    <h4>포켓몬 전부 (등급 높은 순)</h4><div class="ivc">${RAR.map((n,i)=>cnt[i]?`<span style="color:${RARC[i]}">${n} <b>${cnt[i]}</b></span>`:'').join('')}</div>
    <div class="ivg">${M.map(x=>{const r=rr(x);return `<div class="ivr" style="--c:${RARC[r]}"><img src="${THUMB[x.n]||''}" alt="" loading="lazy"><b>${META[x.n].name}${x.pt?' ⭐':''}</b><small>[${RAR[r]}] Lv.${x.lv}${x.sh?' · 이로치':''}</small><small>각성 ${x.aw} · 한계돌파 ${x.lb}${x.rbx!=null?' · 받은 환생 '+x.rbx:''}</small>${x.px!=null&&PX[x.px]?`<small>[${PX[x.px].n}]</small>`:''}</div>`}).join('')}</div><p class="hhint">⭐ = 파티 · 환생은 계정 전체(${d.rb}회)가 모든 포켓몬에 적용돼요</p>`)}}
@@ -9165,7 +9172,7 @@ async function brPlay(net,seed){if(!M)return;M.playing=1;closePanel(1);clearInte
   if(r==='quit'&&!net.host){try{net.tx({k:'q'})}catch(e){}}
   try{FX2.clear()}catch(e){}showBattleUI(0);SCENE='over';BS.on=0;try{await refreshSpr()}catch(e){}hud();try{BGM.area()}catch(e){}
   const place=last.place||0,names=(last.rank||[]).map(j=>net.players[j]?net.players[j].name:'?');
-  let coin=0,money=0;if(place&&r!=='quit'){coin=[0,6,4,3,2,1,1][place]||1;money=(n-place+1)*1500*(1+Math.max(0,DIFF()));G.pvpCoin=(G.pvpCoin||0)+coin;G.money=(G.money||0)+money;if(place===1)s.w++;if(place<=3&&window.trmAdd){trmAdd('gem',[0,3,2,1][place]);toast('✨ 승급의 결정 +'+[0,3,2,1][place])}save()}
+  let coin=0,money=0;if(place&&r!=='quit'){coin=[0,6,4,3,2,1,1][place]||1;money=(n-place+1)*1500*(1+Math.max(0,DIFF()));G.pvpCoin=(G.pvpCoin||0)+coin;G.money=(G.money||0)+money;if(place===1)s.w++;if(place<=3&&window.trmAdd){trmAdd('gem',[0,3,2,1][place]);toast('<img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +'+[0,3,2,1][place])}save()}
   setTimeout(()=>brClean(),4000);
   openPanel('⚔ 난투전 결과',`<div class="brRes">${place?`<div class="brBig">${place===1?'🏆 1등!':place+'등'}</div>`:'<div class="brBig">나갔어요</div>'}
     <ol>${names.map((x,i)=>`<li class="${(last.rank||[])[i]===net.me?'me':''}"><b>${i+1}등</b> ${esc(x)}</li>`).join('')}</ol>
@@ -9258,4 +9265,69 @@ window.isBeamMv=isBeam;
 try{rzMovesLoad()}catch(e){}
 }catch(e){console.warn('9T 이펙트',e)}})();
 </script>
+<script id="wb20">
+// ===== 월보 개편 2단계 =====
+//  ① 재료·챔피언 그림(ui/tr/*.png)  ② 월드보스 메뉴: 노말 위 · 카오스 아래 · 이터널은 잠김  ③ 떼전투(wbswarm.js): 20마리 · 교체 · 건너뛰기(2분 뒤) · 최대 5분
+//  ④ 분해 5% 승급의 결정(위 bxDo)
+(function(){try{
+// ▼▼ 월드보스 열기/닫기 — 1 = 열림, 0 = 잠김. 노말·카오스·이터널 각각 따로예요.
+//    이터널을 열 때는 e:0 → e:1 로만 바꾸면 돼요 ("이터널 월보 열어줘" 하고 클로드에게 부탁)
+const WB_OPEN={n:1,c:1,e:0};
+window.WB_OPEN=WB_OPEN;window.WBOPEN=k=>!!WB_OPEN[k];
+// ▼▼ 떼전투 조정값 (건너뛰기 가능 시간 · 최대 시간 · 한 번에 나오는 수)
+const SW={minSkip:120,maxTime:300};
+window.WBSWCFG=SW;
+const css=document.createElement('style');
+css.textContent='.tri{height:1.2em;width:auto;vertical-align:-.22em;image-rendering:pixelated}.trmat .tri{height:26px}.trrow .tri{height:1.1em}body.wbsw #wbHud{display:none!important}';
+document.head.appendChild(css);
+// 챔피언 칭호 그림 (HTML 로 보여 주는 곳에서만)
+window.CPH=k=>k==='ch6'?'<img class="tri" src="ui/tr/ch6.png" alt=""> 천계 챔피언':k==='ch7'?'<img class="tri" src="ui/tr/ch7.png" alt=""> 천상계 챔피언':CP.title(k);
+// ----- ② 메뉴 -----
+{const _o=wbOpen;wbOpen=async function(k){if(k&&!WB_OPEN[k]){toast('이터널 월드보스는 아직 열리지 않았어요');k=WB_OPEN.n?'n':'c'}return _o.apply(this,[k])}}
+{const h=HUB.find(x=>x.k==='wb');
+ if(h){
+  h.n='월드보스 (매주)';
+  Object.defineProperty(h,'d',{configurable:true,get(){
+    let t='내 포켓몬 최대 20마리가 작게 나와서 보스와 다 같이 싸워요! 내 캐릭터는 ▼ 화살표 · 나머지는 반투명 자동 · 「교체」를 누르면 일시정지하고 다른 포켓몬으로 바꿀 수 있어요. 2분이 지나면 「건너뛰기」 · 시간 제한 최대 5분. 모두의 데미지를 합쳐서 쓰러뜨리고, 하루 3번 도전 · 주간 순위 보상 · 쓰러뜨리면 포획 시도 5번!';
+    t+='<br><b>노말</b>(전설) · <b>카오스</b>(신화·메가: 승급의 결정 + 불멸의 핵)'+(WB_OPEN.e?' · <b>이터널</b>(환상·거다이맥스: 태초의 숨결 + 만제의 인장)':'');
+    return t}});
+  h.st=()=>['n','c','e'].filter(k=>WB_OPEN[k]).map(k=>({n:'노말',c:'카오스',e:'이터널'}[k])+' '+stOfK(k).dmg.toLocaleString()).join(' · ');
+  Object.defineProperty(h,'go',{configurable:true,get(){const L=[['노말 월드보스 열기',()=>wbOpen('n')],['카오스 월드보스 열기',()=>wbOpen('c')],['이터널 월드보스 열기',()=>wbOpen('e')]];return L.filter((x,i)=>WB_OPEN['nce'[i]])}});
+ }
+ for(const k of ['wbc','wbe']){const i=HUB.findIndex(x=>x.k===k);if(i>=0)HUB.splice(i,1)}}
+function stOfK(k){const w=(G&&((G.wbK||'n')===k?G.wb:G['wb_'+k]));return w&&w.wk===wbWeekB()?w:{dmg:0}}
+// ----- ③ 떼전투 -----
+const loadSwarm=()=>window.WBSW?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='wbswarm.js?v='+Date.now();s.onload=ok;s.onerror=()=>no(new Error('wbswarm.js'));document.head.appendChild(s)});
+async function rtSwarmWB(o){
+  if(!o||!o.wb||!o.foes||!o.foes[0]||!window.rtCtxBase)return undefined;
+  try{await rzMovesLoad();await loadSwarm()}catch(e){console.warn('swarm load',e);return undefined}
+  const f=o.foes[0];if(!META[f.n]||!alive().length)return undefined;
+  const SC=Math.max(1,(window.WBSC&&WBSC())||1),hp0=f.hp,hx=f.hpx||1;
+  SCENE='battle';BS.on=1;BS.trainer='월드보스';BS.bg=o.bg||'worldboss';BS.turn=0;BS.potN=0;BS.fx=[];BS.me=BS.foe=null;BS.foes=[f];
+  try{FX2.clear()}catch(e){}try{BGM.battle(o)}catch(e){}try{sfx('enc')}catch(e){}
+  f.hpx=hx/SC;const H0=stOf(f)[0];f.hp=Math.max(1,Math.min(H0,hp0/SC));
+  const team=alive().filter(m=>META[m.n]).slice(0,WB_SQ).map(m=>Object.assign({},m,{moves:m.moves.slice()}));
+  const k=(G&&G.wbK)||'n';
+  document.body.classList.add('wbsw');
+  let r='lose';
+  try{r=await WBSW.start(Object.assign({},rtCtxBase(),{allies:team,boss:f,bossMax:H0,SC,thumb:n=>THUMB[n]||'',toast,
+    bossHit:(window.WBHIT&&WBHIT())||.08,bossName:(typeof wbPre==='function'?wbPre():'')+META[f.n].name,bossLook:k==='c'?7:k==='e'?8:0,
+    minSkip:SW.minSkip,maxTime:SW.maxTime,quitText:'그만 싸울까요? (이번 판 데미지는 없어지고 도전 횟수는 돌려받아요)'}))}
+  finally{document.body.classList.remove('wbsw')}
+  const L=window.WBSW.last||{};
+  if(L.hpBy){for(const q of G.party){const hb=L.hpBy[q.uid];if(hb!=null)q.hp=hb>0?Math.max(1,Math.round(hb)):0}}
+  const res=r==='quit'?'run':r==='win'?'win':'lose';
+  if(L.bossHp!=null)f.hp=Math.max(0,L.bossHp);
+  f.hpx=hx;f.hp=res==='run'?hp0:Math.max(0,f.hp*SC);
+  BS.wbLast={dmg:res==='run'?0:Math.max(0,hp0-f.hp),time:L.time||0};
+  try{FX2.clear()}catch(e){}showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();save();try{BGM.area()}catch(e){}
+  try{if(k==='c'&&BS.wbLast.dmg>0){trmAdd('gem',2);save();toast('<img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +2 (카오스 도전)')}}catch(e){}
+  return res}
+window.rtSwarmWB=rtSwarmWB;
+{const _bt=battle;battle=async function(o){
+  if(o&&o.wb&&window.WBSW_OFF!==true){try{const r=await rtSwarmWB(o);if(r!==undefined)return r}catch(e){console.warn('swarm',e);try{document.body.classList.remove('wbsw')}catch(x){}SCENE='over';BS.on=0}}
+  return _bt.apply(this,arguments)}}
+}catch(e){console.warn('wb20',e)}})();
+</script>
+
 </body></html>
