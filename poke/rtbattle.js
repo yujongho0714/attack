@@ -232,6 +232,7 @@ function hitFx(def,col,fin){
   /* 9R: 막타 화면 뒤집힘(검게 번쩍) 없앰 — 정신없다는 요청 */
 }
 function dealDamage(att,def,mi,opt){
+  if(W&&W.tut)return 0;   // 9BA: 구르기 연습 중엔 아무도 안 다침
   opt=opt||{};
   if(def.hp<=0)return 0;
   const m=att.moves[mi]||opt.mi;
@@ -706,7 +707,7 @@ function playerInput(me){
   const L=len(mx,my);
   me.wish=L>.15?{x:mx/Math.min(1,L)*Math.min(1,L),y:my/Math.min(1,L)*Math.min(1,L)}:{x:0,y:0};
   if(L>1){me.wish={x:mx/L,y:my/L}}
-  if(IN.roll){IN.roll=0;doRoll(me)}
+  if(IN.roll){IN.roll=0;if(IN.rollDir){me.wish={x:IN.rollDir.x,y:IN.rollDir.y};IN.rollDir=null}doRoll(me)}
   while(IN.press.length){const p=IN.press.shift();me.buf={i:p.i,aim:p.aim,dist:p.dist,t:9}}
 }
 function doRoll(e){
@@ -716,6 +717,7 @@ function doRoll(e){
   e.cast=null;e.beam=null;e.hidden=false;
   e.rollT=14;e.rdx=d.x;e.rdy=d.y;e.rc-=1;e.perfect=0;e.row=dirRow(d.x,d.y);
   W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.2,r:40,c:'#ffffff'});
+  if(W.tut&&e===W.me){e.rc=2;tutRoll()}
 }
 function aimFor(e,manual){
   const f=foeOf(e);
@@ -748,6 +750,7 @@ const gauss=()=>(rnd()+rnd()+rnd()+rnd()-2)*1.732;
 const tokCost=m=>m.st?.5:m.p<=60?.5:m.p<=90?.75:1;
 const rr=(a,b)=>a+rnd()*(b-a);
 function aiUpdate(a,ai0,p0){
+  if(W&&W.tut){a.wish={x:0,y:0};return}
   if(a.capt){a.wish={x:0,y:0};return}
   const ai=ai0||W.ai,T=ai.T,p=p0||W.me;
   if(a.hp<=0){a.wish={x:0,y:0};return}
@@ -809,7 +812,7 @@ function aiUpdate(a,ai0,p0){
 // ---------- 7A: 자동전투(AUTO) — 내 포켓몬도 AI가 조종 · 화면을 만지면 2.5초 동안 직접 조작 ----------
 const MAN_SEC=2.5;
 function touchedNow(){return IN.stick.on||IN.press.length>0||IN.roll||Object.keys(IN.hold).length>0||Object.values(IN.keys).some(Boolean)}
-function autoNow(){if(!W||!W.autoOn)return false;if(touchedNow())W.manT=W.time;return W.manT==null||W.time-W.manT>MAN_SEC}
+function autoNow(){if(!W||!W.autoOn||W.tut)return false;if(touchedNow())W.manT=W.time;return W.manT==null||W.time-W.manT>MAN_SEC}
 function aiRange(e){const b=e.moves.filter(m=>m&&m.p>0).sort((x,y)=>y.p-x.p)[0];return b?(b.k==='melee'?120:b.k==='pulse'?150:b.k==='leap'?170:300):240}
 function mkAi(tier){const AT=AI_T[tier]||AI_T.G4;return{T:AT,tier,sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)}}
 function autoMe(me,foe){
@@ -1136,7 +1139,7 @@ function buildUI(){
   for(let i=0;i<4;i++){const m=W.me.moves[i];const b=mk(m?m.name:'-',m?(C.TCOL[m.type]||'#456'):'#333');btns.push(b)}
   // 배치: 2x2 + 구르기
   const place=(b,r,bt)=>{b.style.right=r+'px';b.style.bottom=bt+'px'};
-  place(btns[0],110,20);place(btns[1],24,52);place(btns[2],24,140);place(btns[3],110,108);
+  place(btns[0],12,12);place(btns[1],118,10);place(btns[2],104,98);place(btns[3],28,118);/* 9BA B배치: 큰 기본기 + 둘러싸기 */btns.forEach((b,i)=>{const z=i?68:92;b.style.width=b.style.height=z+'px'});
   const rb=mk('🌀','#37506e');place(rb,198,28);rb.style.width=rb.style.height='62px';
   const rcnt=document.createElement('div');rcnt.style.cssText='position:absolute;right:198px;bottom:96px;width:62px;text-align:center;color:#fff;font:bold 12px sans-serif;text-shadow:0 1px 3px #000';ui.appendChild(rcnt);
   let bb=null,bsw=null;
@@ -1147,14 +1150,14 @@ function buildUI(){
     bsw.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();W.ballSel=((W.ballSel||0)+1)%Math.max(1,ballList().length)});
   }
   // 9R: 나가기 · 교대 · 약 버튼을 크고 알아보기 쉽게 (게임 버튼 모양, 왼쪽 아래 한 줄)
-  const SB=(ic,lb,bg)=>{const b=document.createElement('div');b.style.cssText='position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));width:78px;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;background:'+bg+';border:3px solid #0a0d18;box-shadow:0 4px 0 #0a0d18,inset 0 0 0 2px rgba(255,255,255,.35),inset 0 -6px 0 rgba(0,0,0,.18);color:#fff;font:900 14px "Galmuri11",sans-serif;text-shadow:0 2px 0 #0a0d18;z-index:3';
+  const SB=(ic,lb,bg)=>{const b=document.createElement('div');b.style.cssText='position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));width:66px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;background:'+bg+';border:3px solid #0a0d18;box-shadow:0 4px 0 #0a0d18,inset 0 0 0 2px rgba(255,255,255,.35),inset 0 -6px 0 rgba(0,0,0,.18);color:#fff;font:900 14px "Galmuri11",sans-serif;text-shadow:0 2px 0 #0a0d18;z-index:3';
     const i=document.createElement('div');i.textContent=ic;i.style.cssText='font-size:24px;line-height:26px';const t=document.createElement('div');t.textContent=lb;t.style.cssText='font-size:13px;line-height:15px;white-space:nowrap';
     const n=document.createElement('div');n.style.cssText='position:absolute;right:-8px;top:-10px;min-width:22px;padding:1px 5px;background:#ffd23f;color:#1c2550;border:2px solid #0a0d18;font:900 11px "Galmuri11",sans-serif;text-shadow:none;display:none;text-align:center';
     b.append(i,t,n);b._i=i;b._t=t;b._n=n;b._lb=lb;
     b.addEventListener('pointerdown',()=>{b.style.transform='translateY(3px)';b.style.boxShadow='0 1px 0 #0a0d18,inset 0 0 0 2px rgba(255,255,255,.35)'});
     const up=()=>{b.style.transform='';b.style.boxShadow='0 4px 0 #0a0d18,inset 0 0 0 2px rgba(255,255,255,.35),inset 0 -6px 0 rgba(0,0,0,.18)'};b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
     ui.appendChild(b);return b};
-  let sx=10;const place2=b=>{b.style.left='calc('+sx+'px + env(safe-area-inset-left))';sx+=88};
+  let sx=10;const place2=b=>{b.style.left='calc('+sx+'px + env(safe-area-inset-left))';sx+=72};
   const qb=SB('🏃',C.noQuit?'도망 불가':'나가기',C.noQuit?'#59607a':'#c0392b');place2(qb);W.qBtn=qb;
   // 6F-4a: 교대 버튼 + 파티 보기 패널(전투 일시정지). 실제 교체는 6F-4b
   if(C.party&&C.party().length>1){
@@ -1168,6 +1171,16 @@ function buildUI(){
   }
   document.body.appendChild(root);
   W.root=root;W.cv=cv;W.ctx=cv.getContext('2d');W.ui={jb,jk,btns,rb,rcnt,bb,bsw};
+  // 9BA: 구르기 버튼 대신 화면 아무 데나 쓱 밀면 그 방향으로 구르기 · 볼 버튼은 왼쪽 아래 줄로
+  rb.style.display='none';
+  rcnt.style.cssText='position:absolute;left:calc(10px + env(safe-area-inset-left));bottom:calc(82px + env(safe-area-inset-bottom));padding:3px 8px;background:rgba(10,13,24,.75);border:2px solid #ffd23f;color:#fff;font:900 12px "Galmuri11",sans-serif;pointer-events:none;white-space:nowrap';
+  if(bb){bb.style.right='auto';bb.style.left='calc('+sx+'px + env(safe-area-inset-left))';bb.style.bottom='calc(10px + env(safe-area-inset-bottom))';bb.style.width=bb.style.height='58px';
+    if(bsw){bsw.style.right='auto';bsw.style.left='calc('+(sx+40)+'px + env(safe-area-inset-left))';bsw.style.bottom='calc(56px + env(safe-area-inset-bottom))'}}
+  {const SW={};const free=t=>t===cv||t===root||t===ui||jb.contains(t);
+   root.addEventListener('pointerdown',ev=>{SW[ev.pointerId]={x:ev.clientX,y:ev.clientY,t:performance.now(),ok:free(ev.target)}},true);
+   const end=ev=>{const s0=SW[ev.pointerId];delete SW[ev.pointerId];if(!s0||!s0.ok||W.over||W.paused)return;const dx=ev.clientX-s0.x,dy=ev.clientY-s0.y,d=Math.hypot(dx,dy),dt=performance.now()-s0.t;
+     if(d>55&&dt<260){IN.rollDir={x:dx/d,y:dy/d};IN.roll=1}};
+   root.addEventListener('pointerup',end,true);root.addEventListener('pointercancel',ev=>{delete SW[ev.pointerId]},true)}
   // 포인터
   const bindBtn=(b,i)=>{
     b.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();try{b.setPointerCapture(ev.pointerId)}catch(e){}
@@ -1229,7 +1242,7 @@ function updBtns(){updSide();
   if(U.bb){const L=ballList(),sel=L[Math.min(W.ballSel||0,L.length-1)];
     const tx=sel?(sel.e||'⚪')+'\n'+(sel.count!=null?sel.count:''):'볼\n0';if(U.bb._tx!==tx){U.bb._tx=tx;U.bb.style.whiteSpace='pre';U.bb.innerHTML=tx.replace('\n','<br>');if(U.bb._cd)U.bb.insertBefore(U.bb._cd,U.bb.firstChild)}
     U.bb.style.opacity=(W.ball||W.ballCd>0||!sel)?.5:1;U.bsw.style.display=L.length>1?'flex':'none'}
-  U.rb._cd.style.height=(me.rc>=1?0:(1-(me.rc%1))*100)+'%';U.rcnt.textContent='🌀 '+Math.floor(me.rc)+'/2';
+  U.rb._cd.style.height=(me.rc>=1?0:(1-(me.rc%1))*100)+'%';U.rcnt.textContent='💨 구르기 '+Math.floor(me.rc)+'/2 · 화면을 쓱!';
 }
 
 // ---------- 실행 ----------
@@ -1242,6 +1255,17 @@ function stop(r){
   try{const hpBy=Object.assign({},W.hpBy);hpBy[W.me.mon.uid]=W.me.hp/(W.me.hm||1);window.RTB.last={r,meHp:W.me.hp/(W.me.hm||1),meMax:W.me.max/(W.me.hm||1),foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time,meUid:W.me.mon.uid,hpBy,used:W.used.slice()}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
   const res=W.res;W=null;res(r);
 }
+// ===== 9BA 구르기 연습 (처음 한 번, 건너뛰기 없음) =====
+const TUTN=3;
+function tutStart(){W.tut={n:0};const o=document.createElement('div');o.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:calc(88px + env(safe-area-inset-top))';
+  o.innerHTML='<style>@keyframes tutsw{0%{transform:translateX(-70px);opacity:0}15%{opacity:1}70%{transform:translateX(70px);opacity:1}100%{transform:translateX(70px);opacity:0}}@keyframes tutpop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}</style>'+
+   '<div style="background:rgba(10,13,24,.88);border:4px solid #ffd23f;box-shadow:0 5px 0 #000;padding:10px 18px;text-align:center;color:#fff;font:900 16px Galmuri11,sans-serif;max-width:86vw"><div style="color:#ffd23f;font-size:20px;margin-bottom:4px">💨 구르기 연습</div>화면 아무 데나 손가락으로 <b style="color:#7dff8a">쓱!</b> 밀면 그 방향으로 굴러요<br><small style="opacity:.85">구르는 순간엔 공격을 피할 수 있어요 · 전투 전에 꼭 연습해요</small>'+
+   '<div class="tutc" style="margin-top:6px;font-size:22px;color:#ffd23f">0 / '+TUTN+'</div></div>'+
+   '<div style="position:relative;width:200px;height:70px;margin-top:10px"><div style="position:absolute;left:50%;top:6px;margin-left:-26px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ffe9a8);border:4px solid #1c2550;box-shadow:0 0 18px #ffd23f;animation:tutsw 1.2s ease-in-out infinite"></div></div>';
+  W.root.appendChild(o);W.tutEl=o}
+function tutRoll(){if(!W.tut)return;W.tut.n++;const c=W.tutEl&&W.tutEl.querySelector('.tutc');if(c){c.textContent=W.tut.n+' / '+TUTN;c.style.animation='none';void c.offsetWidth;c.style.animation='tutpop .3s'}
+  try{C.sfx&&C.sfx('tap')}catch(e){}
+  if(W.tut.n>=TUTN){const el=W.tutEl;W.tut=null;if(c)c.innerHTML='완벽해요! 이제 싸워요! ⚔';try{C.sfx&&C.sfx('badge')}catch(e){}try{C.onRollTut&&C.onRollTut()}catch(e){}setTimeout(()=>{try{el.remove()}catch(e){}},1300)}}
 async function start(ctx){
   if(W)return 'quit';
   C=ctx;
@@ -1257,6 +1281,7 @@ async function start(ctx){
   W.autoOn=!!C.autoMe;try{if(!C.autoMe&&localStorage.getItem('pka-rtauto')==='1')W.autoOn=true}catch(er){}   // 9O: 전투 안 자동 버튼(한 번 켜면 다음 전투도 켜짐)
   W.aiMe=mkAi('ME');W.aiMe.uid=W.me.mon.uid;W.aiMe.range=aiRange(W.me);
   buildUI();
+  if(C.rollTut)tutStart();
   {W.fast=false;try{W.fast=(C.fast&&C.fast())||localStorage.getItem('pka-rtfast')==='1'}catch(er){}   // 9O: 전투 안 ⏩ 2배속 버튼
    const fb=document.createElement('div');fb.style.cssText='position:absolute;left:calc(50% + 82px);top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 12px;color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #56627f;pointer-events:auto;cursor:pointer;user-select:none;z-index:4;white-space:nowrap';
    const up=()=>{fb.textContent=W.fast?'⏩ 2배속 ON':'⏩ 2배속';fb.style.background=W.fast?'#e8a020':'#2a3256'};up();

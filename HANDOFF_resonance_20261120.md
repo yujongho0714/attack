@@ -724,3 +724,14 @@
 
 ## 9AZ 자동 볼 낭비
 - rtbattle.js autoMe: C.catchAt() 임계값(일반.35/희귀.28/영웅.22/전설+.15) 아래에서만 던짐, 60초 지나면 +0.1. index: RTB.start 옵션 catchAt 추가, 턴제 자동도 같은 기준.
+
+## 9BA 조작감
+- rtbattle/rtteam(+rtbrawl 재생성): 구르기 버튼 숨김, root capture 리스너로 빠른 스와이프(>55px,<260ms)=IN.rollDir 방향 구르기. 기술 버튼 B배치(첫 기술 92px 코너 + 3개 68px 둘레), 왼쪽 아래 버튼 66x58 간격 72, 볼 버튼 그 줄 끝. 패치: tools_9C/swroll.py, btlay.py (mkbrawl.py도 맞춰 고침)
+- rtbattle 구르기 연습: C.rollTut이면 tutStart(), 3번 굴러야 끝(W.tut 동안 데미지0·AI정지·자동끔). index: rollTut:!G.rollTut, onRollTut→G.rollTut=1
+- 필드 조이스틱: KEY.dir2(대각선 보조 방향), 번갈아 걷기 + 막히면 미끄러지기, 45도 히스테리시스
+
+## 9BB PVP 한곳에
+- <script id="b9bb">: pvNew() = PVP 화면(실시간 난투전 brOpen · 3대3 자동 pvListOpen/pvDeckOpen · 친구 대전 HUB pvp.go) + 상점/교환/랭킹. v44 스크립트에서 window.pvInfo/PV 내보냄. bPvp onclick을 pvNew로 바꿈. 컨텐츠 친구랑 섹션도 PVP로 묶음.
+
+## 9BC 레벨 제한 없앰
+- lvCap() → 항상 100 (사용자 요청: 배지 없어도 사냥으로 계속 레벨업). 이상한사탕 3환생 잠금(candyLock)은 그대로.

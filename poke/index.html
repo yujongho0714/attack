@@ -214,7 +214,7 @@ body.inb #mini{display:none}
 #multiOv .fr .fk,#fuseOv .fc .fk{position:absolute;top:14%;right:4%;font-size:9px;font-weight:900;color:#fff;background:linear-gradient(90deg,#ff3b6b,#ff9a3a);padding:1px 4px;border-radius:5px;text-shadow:0 1px 0 #000}
 #fuseOv .fc{position:relative}
 </style><style>
-#joyZ{position:fixed;left:0;bottom:0;width:46vw;height:62vh;z-index:4;touch-action:none}
+#joyZ{position:fixed;left:0;bottom:0;width:48vw;height:62vh;z-index:4;touch-action:none}
 #joyB{position:absolute;left:calc(28px + env(safe-area-inset-left));bottom:calc(26px + env(safe-area-inset-bottom));width:min(34vh,140px);height:min(34vh,140px);border-radius:50%;background:radial-gradient(circle,#ffffff30 0 55%,#ffffff18 56%);border:3px solid #ffffff90;box-shadow:0 4px 0 #0005,inset 0 0 18px #0004;transition:opacity .2s;opacity:.75;pointer-events:none}
 #joyK{position:absolute;left:50%;top:50%;width:44%;height:44%;margin:-22% 0 0 -22%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#e8e4d0 60%,#bdb7a0);border:3px solid #2c3050;box-shadow:0 4px 0 #2c3050}
 #joyZ.on #joyB{opacity:1}
@@ -1459,11 +1459,11 @@ function drawPerson(pal,dir,fr,X,Y,s,mark,scl){if(pal&&pal.cs){const im=chImg(pa
 // ---------- 입력 ----------
 const DIRK={ArrowDown:0,ArrowLeft:1,ArrowRight:2,ArrowUp:3,s:0,a:1,d:2,w:3};
 addEventListener('keydown',e=>{if(e.key in DIRK){KEY.dir=DIRK[e.key];userMove();e.preventDefault()}else if(e.key==='z'||e.key==='Enter'||e.key===' '){onA();e.preventDefault()}});
-addEventListener('keyup',e=>{if(e.key in DIRK&&KEY.dir===DIRK[e.key])KEY.dir=-1});
+addEventListener('keyup',e=>{if(e.key in DIRK&&KEY.dir===DIRK[e.key]){KEY.dir=-1;KEY.dir2=-1}});
 function userMove(){if(AUTO.on){P.queue=null;if(!AUTO.manT||NOW-AUTO.manT>3)toast('직접 움직이는 중 · 손 떼면 자동 계속');AUTO.manT=NOW}}
 function onA(){if(DLG.on){DLG.next();return}if(SCENE!=='over'||P.busy||P.mv)return;const A=curA();const d=P.dir,X=P.x+[0,-1,1,0][d],Y=P.y+[1,0,0,-1][d];const np=A.npc.find(n=>n.x===X&&n.y===Y&&!n.gone);if(np){talk(np);return}if(A.M[Y]&&A.M[Y][X]===T_.SIGN){say([A.sign.t]);return}meSwing()}
 function updOver(dt){meTick(dt);if(P.mv){P.mv.t+=dt;if(P.mv.t>=P.mv.d){P.mv=null;afterStep()}}
-  if(!P.mv&&!P.busy&&!EVB.n&&!DLG.on&&SCENE==='over'&&!document.getElementById('trScene')){if(KEY.dir>=0)tryStep(KEY.dir);else if(P.queue&&P.queue.length){const [x,y]=P.queue[0];const d=x<P.x?1:x>P.x?2:y<P.y?3:0;if(Math.abs(x-P.x)+Math.abs(y-P.y)!==1&&!(y<0||y>=curA().H||x<0||x>=curA().W)){P.queue=null}else{const ok=tryStep(d);if(ok)P.queue.shift();else{P.queue=null}}}
+  if(!P.mv&&!P.busy&&!EVB.n&&!DLG.on&&SCENE==='over'&&!document.getElementById('trScene')){if(KEY.dir>=0){/* 9BA: 대각선이면 두 방향을 번갈아 · 막히면 옆으로 미끄러지기 */const d2=KEY.dir2>=0?KEY.dir2:-1,a0=d2>=0&&KEY.tg?d2:KEY.dir,b0=a0===KEY.dir?d2:KEY.dir;if(tryStep(a0)){if(d2>=0)KEY.tg=!KEY.tg}else if(b0>=0&&!DLG.on&&!P.busy&&!P.mv&&!PANEL)tryStep(b0)}else if(P.queue&&P.queue.length){const [x,y]=P.queue[0];const d=x<P.x?1:x>P.x?2:y<P.y?3:0;if(Math.abs(x-P.x)+Math.abs(y-P.y)!==1&&!(y<0||y>=curA().H||x<0||x>=curA().W)){P.queue=null}else{const ok=tryStep(d);if(ok)P.queue.shift();else{P.queue=null}}}
     else if(AUTO.on)autoThink()}}
 
 // ===== 포켓몬 · 배틀 =====
@@ -1605,7 +1605,8 @@ async function caught(f){if(f.hpx){const r=f.hp/stOf(f)[0];delete f.hpx;f.hp=Mat
 async function giveExp(f,part){const M=META[f.n];const base=Math.max(1,Math.round(bst(M.stats)/4.2*f.lv/7*(BS.trainer?1.5:1)*DEXP[DIFF()]*(1+.05*(G.rebirth||0))));for(const m of G.party){if(m.hp<=0)continue;const g=part.has(m.uid)?base:Math.round(base*.5);if(m.exp<expAt(m.lv))m.exp=expAt(m.lv);m.exp+=g;if(m===BS.me.m)await msg('<b>'+nm(m)+'</b>(은)는 경험치 '+g+'을(를) 얻었다!',FAST()?400:800);
   const cap=lvCap();while(m.exp>=expAt(m.lv+1)&&m.lv<cap){await gainLv(m,1)}if(m.lv>=cap&&cap<100){m.exp=Math.min(m.exp,expAt(m.lv+1)-1);if(!BS.capMsg){BS.capMsg=1;await msg('레벨 제한 Lv.'+cap+'! 배지를 더 모으면 더 올라가요',FAST()?600:1100)}}}bbox()}
 // 배지별 레벨 제한: 배지가 늘수록 올라가요 (배지 8개를 모으면 100 · 76 제한 없음)
-function lvCap(){if(!G)return 100;if(opTest())return 100;if(G.champ)return 100;const b=G.badges;return b>=8?100:Math.round((12+6*b)*1.18)+6}
+// 9BC: 배지 레벨 제한 없앰 — 사냥만 해도 Lv.100까지 계속 올라가요
+function lvCap(){return 100}
 function lvCapInfo(){const c=lvCap();ovBox('레벨 제한 Lv.'+c,'지금은 Lv.'+c+'까지만 올릴 수 있어요.<br><small>'+((G.badges||0)>=8?'':'배지를 더 모으면 올릴 수 있어요')+(G.rebirth?'<br>환생하면 배지가 처음부터라 제한도 다시 낮아져요 (환생 '+G.rebirth+'번)':'')+'</small>',[{t:'확인',main:1,v:1}])}
 // 3환생 이후에는 이상한사탕으로 레벨을 못 올려요 · 한계 돌파 재료로는 계속 써요
 function candyLock(){return !!(G&&(G.rebirth||0)>=3&&!opTest())}
@@ -3466,7 +3467,7 @@ function lbOpen(){if(!G)return;const L=[...G.party,...G.box].filter(m=>m.lv>=100
     const go=(i,kind)=>{const m=L[i],need=(m.lb||0)+1;if(kind==='d'){let n=need;G.dupes=G.dupes.filter(x=>{if(n>0&&x.kind==='P'&&x.id===META[m.n].dex){n--;return false}return true})}else G.bag.candy-=need*5;
       m.lb=need;m.hp=stOf(m)[0];sfx('badge');toast(nm(m)+' 한계 돌파 ★'+m.lb+'! 능력치 +'+m.lb*4+'%');save();lbOpen()};
     p.querySelectorAll('[data-lbd]').forEach(b=>b.onclick=()=>go(+b.dataset.lbd,'d'));p.querySelectorAll('[data-lbc]').forEach(b=>b.onclick=()=>go(+b.dataset.lbc,'c'))})}
-try{HUB.push({k:'lb',n:'레벨 제한 · 한계 돌파',d:'배지마다 레벨 제한이 있어서 한 번에 다 키울 수 없어요. 배지 8개를 모으면 Lv.100까지! Lv.100 포켓몬은 중복 카드나 이상한사탕으로 ★ 한계 돌파 (★마다 능력치 +4%, 최대 ★10).',st:()=>'레벨 제한 Lv.'+lvCap(),go:[['한계 돌파 열기',()=>lbOpen()]]})}catch(e){}
+try{HUB.push({k:'lb',n:'레벨 제한 · 한계 돌파',d:'배지가 없어도 사냥만 하면 Lv.100까지 계속 올라가요! Lv.100 포켓몬은 중복 카드나 이상한사탕으로 ★ 한계 돌파 (★마다 능력치 +4%, 최대 ★10).',st:()=>'레벨 제한 Lv.'+lvCap(),go:[['한계 돌파 열기',()=>lbOpen()]]})}catch(e){}
 // (보상 카드 합치기는 끔: 팩마다 직접 찢어서 열어요)
 // 레벨 제한 표시: 편성·도감 팝업 등에서 쓰도록
 
@@ -4831,8 +4832,8 @@ bt('bA').addEventListener('pointerdown',e=>{e.preventDefault();onA()});
   const put=(x,y)=>{const r=B.offsetWidth/2,z=Z.getBoundingClientRect();B.style.left=(x-z.left-r)+'px';B.style.top=(y-z.top-r)+'px';B.style.bottom='auto'};
   Z.addEventListener('pointerdown',e=>{e.preventDefault();id=e.pointerId;Z.setPointerCapture(id);cx0=e.clientX;cy0=e.clientY;put(cx0,cy0);Z.classList.add('on');K.style.transform=''});
   Z.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;const dx=e.clientX-cx0,dy=e.clientY-cy0,R=B.offsetWidth/2,L=Math.hypot(dx,dy),k=Math.min(1,R*.6/Math.max(L,1));K.style.transform=`translate(${dx*k}px,${dy*k}px)`;
-    if(L<R*.2){KEY.dir=-1;return}const d=Math.abs(dx)>Math.abs(dy)?(dx<0?1:2):(dy<0?3:0);if(KEY.dir!==d){KEY.dir=d;userMove()}});
-  const up=e=>{if(e.pointerId!==id)return;id=null;KEY.dir=-1;K.style.transform='';Z.classList.remove('on');B.style.left=B.style.top='';B.style.bottom=''};Z.addEventListener('pointerup',up);Z.addEventListener('pointercancel',up)})();
+    if(L<R*.18){KEY.dir=-1;KEY.dir2=-1;return}const ax=Math.abs(dx),ay=Math.abs(dy),hx=dx<0?1:2,hy=dy<0?3:0;let d;/* 9BA: 45도 근처에서 방향이 덜덜 바뀌지 않게 */if(KEY.dir===hx&&ax*1.3>ay||KEY.dir===hy&&ay*1.3>ax)d=KEY.dir;else d=ax>ay?hx:hy;const mn=Math.min(ax,ay)/Math.max(ax,ay,1);KEY.dir2=mn>.5?(d===hx?hy:hx):-1;if(KEY.dir!==d){KEY.dir=d;userMove()}});
+  const up=e=>{if(e.pointerId!==id)return;id=null;KEY.dir=-1;KEY.dir2=-1;K.style.transform='';Z.classList.remove('on');B.style.left=B.style.top='';B.style.bottom=''};Z.addEventListener('pointerup',up);Z.addEventListener('pointercancel',up)})();
 // 오른쪽 메뉴: 가방 · 상점 · 합성 · 선물
 bt('bBag').onclick=()=>{sfx('tap');bagOpen()};
 bt('bShop').onclick=()=>{sfx('tap');shop(0,1)};bt('bTeam').onclick=()=>{sfx('tap');teamOpen()};bt('bFuse').onclick=()=>{sfx('tap');fuseOpen()};bt('bGiftS').onclick=()=>{sfx('tap');giftOpen()};
@@ -7705,7 +7706,7 @@ setInterval(()=>{try{if(G&&SCENE==='over'&&!DLG.on&&!PANEL)mgRefund()}catch(e){}
 function pvMenuOpen(){if(!G)return;
   openPanel('PVP',`<p class="hhint">${pvInfo()}</p><div class="wbt"><button class="main" id="pmL">도전하기</button><button id="pmD">방어덱 편성</button></div><div class="wbt"><button id="pmS">PVP 상점</button><button id="pmT">실시간 교환</button></div><p class="hhint">이기면 <b>+${PV.WIN}점 · 코인 ${PV.CW}</b> / 지면 <b>-${PV.LOSE}점 · 코인 ${PV.CL}</b>. 방어덱은 능력치 ×${PV.BUFF}로 싸워요.</p>`,null,p=>{
     p.querySelector('#pmL').onclick=()=>{sfx('tap');pvListOpen()};p.querySelector('#pmD').onclick=()=>{sfx('tap');pvDeckOpen()};p.querySelector('#pmS').onclick=()=>{sfx('tap');pvShopOpen()};p.querySelector('#pmT').onclick=()=>{sfx('tap');rmOpen()}})}
-window.pvMenuOpen=pvMenuOpen;
+window.pvMenuOpen=pvMenuOpen;try{window.pvInfo=pvInfo;window.PV=PV}catch(e){}
 {const go=()=>{const a=document.getElementById('bPvp');if(a)a.onclick=()=>{sfx('tap');pvMenuOpen()};const b=document.getElementById('bTrd');if(b)b.onclick=()=>{sfx('tap');rmOpen()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()}
 console.log('v202611160050 loaded')
 }catch(e){console.warn('v44 로드 실패',e)}})();
@@ -8734,7 +8735,7 @@ async function rtWild(o){
         useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;const L=POTLIM();if(L&&(BS.potN||0)>=L)return{deny:'물약은 전투 1번에 '+L+'개까지!'};G.bag[k]--;BS.potN=(BS.potN||0)+1;return{heal:it.heal}},sfx,
         loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:autoActive()?'자동으로 계속해요':'화면을 누르면 계속해요',
         // 7A: 자동전투 — 내 포켓몬도 AI(T4). 야생은 잡고 싶은 포켓몬이면 자동 볼(예전 자동 규칙 wantCatch·autoBallFor 그대로)
-        autoMe:autoActive()?1:0,autoTier:'T4',catchAt:()=>{try{const r=rarM(f);return r<=0?.35:r===1?.28:r===2?.22:.15}catch(e){return .25}},autoBall:()=>{try{return(!tr&&autoActive()&&wantCatch(f)&&!capFull(f))?autoBallFor(f):null}catch(e){return null}}},
+        autoMe:autoActive()?1:0,autoTier:'T4',rollTut:!G.rollTut,onRollTut:()=>{G.rollTut=1;save()},catchAt:()=>{try{const r=rarM(f);return r<=0?.35:r===1?.28:r===2?.22:.15}catch(e){return .25}},autoBall:()=>{try{return(!tr&&autoActive()&&wantCatch(f)&&!capFull(f))?autoBallFor(f):null}catch(e){return null}}},
         tr?{noQuit:1,maxTime:300}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
       const L=window.RTB.last||{};
       // 6F-4b: 교대로 여러 마리가 싸웠을 수 있음 → 체력은 uid별로 저장, 마지막에 싸운 포켓몬이 cur
@@ -8958,6 +8959,8 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112029,date:'11월 20일',t:'레벨 제한 없앰',items:[{img:'',h:'⬆ 배지 없어도 계속 레벨 업',p:['배지별 레벨 제한을 없앴어요. 이제 <b>사냥만 해도 Lv.100까지</b> 계속 올라가요.','Lv.100 다음은 예전처럼 한계 돌파 ★로 더 강해져요.']}]},
+ {v:2026112028,date:'11월 20일',t:'조작감 개선 · PVP 한곳에',items:[{img:'ui/news/n14_brawl.webp',h:'⚔ PVP 한곳에',p:['PVP 버튼을 누르면 <b>실시간 난투전 · 3대3 자동 대전 · 친구 대전</b>이 그림 카드로 한 화면에 나와요.','PVP 상점 · 실시간 교환 · 랭킹도 바로 아래에 있어요.']},{img:'',h:'💨 구르기는 화면을 쓱!',p:['구르기 버튼이 없어졌어요. 전투 중 <b>화면 아무 데나 손가락으로 쓱 밀면</b> 그 방향으로 굴러요.','처음 전투에서 구르기 연습 3번을 꼭 해요 (건너뛸 수 없어요).']},{img:'',h:'🎮 전투 버튼 정리',p:['기술 버튼을 오른쪽 아래에 모았어요. 첫 기술은 크게, 나머지 3개는 그 둘레에.','나가기 · 교대 · 약 · 볼을 왼쪽 아래 한 줄에 붙였어요.']},{img:'',h:'🕹 필드 이동',p:['조이스틱을 대각선으로 밀면 두 방향을 번갈아 걸어서 대각선으로 가요. 벽에 막히면 옆으로 미끄러져요.']}]},
  {v:2026112027,date:'11월 20일',t:'자동 볼 낭비 고침',items:[{img:'',h:'🎯 자동 사냥 볼 낭비 고침',p:['자동 사냥에서 포켓몬 체력이 아직 많은데 볼을 계속 던지던 것을 고쳤어요.','이제 <b>잡힐 만큼 체력이 낮아질 때까지</b> 먼저 때리고 그다음에 던져요. 일반 35% · 희귀 28% · 영웅 22% · 전설 이상 15% 아래.']}]},
  {v:2026112026,date:'11월 20일',t:'컨텐츠 화면 새로 정리',items:[{img:'',h:'🗂 컨텐츠 화면이 깔끔해졌어요',p:['컨텐츠를 누르면 먼저 <b>큰 분류 6개</b>(매일 할 것 · 배틀·도전 · 친구랑 · 키우기 · 모으기·탐험 · 설정·소식)가 나와요.','분류를 누르면 <b>섹션별로</b> 그림과 설명이 함께 나와요. 설명은 「더 보기」를 누르면 다 보여요. ◀ 분류로 돌아갈 수 있어요.']}]},
  {v:2026112025,date:'11월 20일',t:'천계 새 컨텐츠 5개!',items:[
@@ -9657,7 +9660,7 @@ const HZC=[['day','ic_gift','매일 할 것','#e09a00','출석 · 의뢰 · 포�
   ['up','ic_star','키우기','#8048e8','편성 · 장비 · 승급 · 각성'],['col','ic_dex','모으기 · 탐험','#1e9e5e','도감 · 카드팩 · 알 · 마을'],['set','ic_menu','설정 · 소식','#5b6383','화면 · 전투 방식 · 업데이트']];
 const SEC={day:[['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매일 다시 도전',['rm','portal']]],
   bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 매주 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']]],
-  fr:[['⚔ 친구와 대결',['brawl','pvp','rmroom']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
+  fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
   up:[['🐾 포켓몬 키우기',['team','trans','awake','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
   col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','wild']],['🏘 마을 · 날씨',['mg','shop','wx']]],
   set:[['📢 소식 · 정보',['news','odds']],['🖥 화면 · 전투',['vscale','btmode','dskin','hitfx','a2fx','dmeter']]]};
@@ -9718,6 +9721,40 @@ hubOpen=function(tab){if(!G)return;tab=tab||HUB.tab||'c';if(tab==='t')return _h.
   })};
 {const _c=closePanel;closePanel=function(){try{const t=document.querySelector('.panel .ph b');if(t&&/컨텐츠/.test(t.textContent)&&!arguments[0])HUB.cat=''}catch(e){}return _c.apply(this,arguments)}}
 }catch(e){console.warn('b9ay',e)}})();
+</script>
+
+<script id="b9bb">
+// ===== 9BB PVP 한곳에: 실시간 난투전 · 3대3 자동 대전 · 친구 대전 =====
+(function(){try{
+const css=document.createElement('style');css.textContent=`
+.panel .pvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px;margin-bottom:10px}
+.panel .pvc{position:relative;display:flex;flex-direction:column;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 5px 0 #0b0f24}
+.panel .pvc .pvp{position:relative;height:110px;overflow:hidden;border-bottom:3px solid #1c2550;background:var(--c)}.panel .pvc .pvp img{width:100%;height:100%;object-fit:cover}
+.panel .pvc .pvp b{position:absolute;left:0;bottom:0;right:0;padding:6px 10px;background:linear-gradient(transparent,#000c 40%);color:#fff;font:900 17px 'Galmuri11',monospace;text-shadow:0 2px 0 #000}
+.panel .pvc .pvp em{position:absolute;left:6px;top:6px;padding:2px 7px;background:var(--c);color:#fff;border:2px solid #0b0f24;font:900 11px 'Galmuri11',monospace;font-style:normal}
+.panel .pvc .pvb{flex:1;display:flex;flex-direction:column;padding:8px 10px}.panel .pvc .pvb small{align-self:flex-start;padding:1px 6px;background:#1c2550;color:#ffd23f;font:900 11px 'Galmuri11',monospace;margin-bottom:4px}
+.panel .pvc .pvb p{margin:0 0 8px;font-size:12px;line-height:1.45;color:#3c4262}
+.panel .pvc .pvbt{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap}.panel .pvc .pvbt button{flex:1 1 auto;padding:9px 10px!important;border:3px solid #0b0f24;background:#ffd23f!important;color:#1c2550;font:900 13px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24;border-radius:0!important}.panel .pvc .pvbt button+button{background:#fff!important}
+.panel .pvx{display:flex;gap:8px}.panel .pvx>div{flex:1;display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:3px solid #1c2550;box-shadow:0 3px 0 #0b0f24;cursor:pointer;font:900 13px 'Galmuri11',monospace;color:#1c2550}.panel .pvx img{width:34px;height:34px;object-fit:contain}
+.panel .pvh{margin:0 0 7px;padding:5px 10px;background:#1c2550;color:#ffd23f;font:900 14px 'Galmuri11',monospace;border-left:8px solid #2f7be8}`;document.head.appendChild(css);
+const H=k=>(typeof HUB!=='undefined'&&HUB.find(x=>x.k===k))||null;
+const st=k=>{try{const h=H(k);return h&&h.st?h.st():''}catch(e){return ''}};
+const pvNew=function(){if(!G)return;const PV=window.PV||{},pvInfo=window.pvInfo||(()=>'');
+  let pvi='';try{pvi=pvInfo()}catch(e){}
+  const fr=H('pvp');
+  const card=(c,img,tag,t,s,d,bt)=>`<div class="pvc" style="--c:${c}"><div class="pvp"><img src="${img}" alt="">${tag?`<em>${tag}</em>`:''}<b>${t}</b></div><div class="pvb">${s?`<small>${s}</small>`:''}<p>${d}</p><div class="pvbt">${bt}</div></div></div>`;
+  openPanel('⚔ PVP',`<h4 class="pvh">⚔ 대전 고르기</h4><div class="pvg">
+    ${card('#d8323f','ui/news/n14_brawl.webp','직접 조작','실시간 난투전',st('brawl'),'같은 시간에 「상대 찾기」를 누른 친구들과 한 경기장에서 <b>직접 움직이며</b> 싸워요. 2~6명.','<button data-pv="br">난투전 열기</button>')}
+    ${card('#2f7be8','ui/news/n10_pvp3.webp','자동','3대3 자동 대전',pvi.replace(/<[^>]+>/g,'').split('·').slice(0,2).join('·'),'내 파티 앞 3마리 vs 상대 방어덱 3마리가 <b>자동으로</b> 싸워요. 이기면 +'+(PV&&PV.WIN||10)+'점 · 코인!','<button data-pv="go">도전하기</button><button data-pv="deck">방어덱 편성</button>')}
+    ${fr?card('#1e9e5e','ui/news/n10_pvp3.webp','QR','친구 대전',st('pvp'),'옆에 있는 친구와 팀 QR을 서로 찍어서 대결해요.',(fr.go||[]).map((g,i)=>`<button data-pvf="${i}">${g[0]}</button>`).join('')):''}
+  </div><h4 class="pvh">🛒 그 밖에</h4><div class="pvx"><div data-pv="shop"><img src="ui/ic_shop.webp" alt="">PVP 상점</div><div data-pv="trade"><img src="ui/ic_gift.webp" alt="">실시간 교환</div><div data-pv="rank"><img src="ui/ic_rank.webp" alt="">랭킹</div></div>`,null,p=>{
+    const A={br:()=>brOpen(),go:()=>pvListOpen(),deck:()=>pvDeckOpen(),shop:()=>pvShopOpen(),trade:()=>rmOpen(),rank:()=>{try{rankOpen()}catch(e){document.getElementById('bRank')&&document.getElementById('bRank').click()}}};
+    p.querySelectorAll('[data-pv]').forEach(b=>b.onclick=()=>{sfx('tap');const f=A[b.dataset.pv];if(f){if(b.dataset.pv==='br')closePanel(1);f()}});
+    p.querySelectorAll('[data-pvf]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);fr.go[+b.dataset.pvf][1]()})})};
+window.pvMenuOpen=pvNew;{const go=()=>{const a=document.getElementById('bPvp');if(a)a.onclick=()=>{sfx('tap');pvNew()}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else setTimeout(go,0)}
+// 컨텐츠 화면 친구랑: 세 대전을 「PVP」 한 섹션으로
+try{const h=H('brawl');if(h&&h.go&&!h.go.some(g=>g[0]==='PVP 전체 보기'))h.go.push(['PVP 전체 보기',()=>pvNew()])}catch(e){}
+}catch(e){console.warn('b9bb',e)}})();
 </script>
 
 </body></html>
