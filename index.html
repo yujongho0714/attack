@@ -3694,7 +3694,7 @@ let WB_HP=50000,WB_TRY=3,WB_THROW=5,WB_TLIM=600,WB_SQ=20;   // 9G: 시간 제한
 // 지금은 전설만 · 나중에 신화(4) · 환상(5) · 유일(6) 보스로 넓혀요
 let WBSUF='';   // 9H: 카오스 -C · 이터널 -E
 let WB_TIER=3,WB_DEX=[150,249,250,384,382,383,483,484,487,643,644,716,717,791,792,888,889,146,145,144,243,244,245,380,381,385,386,638,639,640,800];
-function wbCfg(){if(FBOFF)return null;try{const c=WBCODE||localStorage.getItem('pka-wbcode')||'';if(!c.startsWith('JD1-'))return null;const [projectId,apiKey]=atob(c.slice(4).replace(/-/g,'+').replace(/_/g,'/')).split('|');return projectId&&apiKey?{projectId,apiKey}:null}catch(e){return null}}
+function wbCfg(){if(FBOFF)return null;try{const c=localStorage.getItem('pka-wbcode')||WBCODE||'';if(!c.startsWith('JD1-'))return null;const [projectId,apiKey]=atob(c.slice(4).replace(/-/g,'+').replace(/_/g,'/')).split('|');return projectId&&apiKey?{projectId,apiKey}:null}catch(e){return null}}
 function wbWeekB(off){const n=new Date(Date.now()+9*36e5-(off||0)*7*864e5);const A=Date.UTC(2026,10,20),d=Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate());return new Date(A+Math.floor((d-A)/(7*864e5))*7*864e5).toISOString().slice(0,10)}   // 월보 전용: 2026-11-20(금)부터 7일 단위 (다른 주간 기능은 그대로 월요일)
 function wbWeek(off){const n=new Date(Date.now()+9*36e5-(off||0)*7*864e5);const d=(n.getUTCDay()+6)%7;const m=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()-d));return m.toISOString().slice(0,10)}
 function wbNextReset(){const k=wbWeekB();const t=Date.parse(k+'T00:00:00+09:00')+7*864e5;return t-Date.now()}
@@ -3773,7 +3773,7 @@ async function wbOpen(){if(!G)return;const w=wbS(),n=wbBoss();const fmt=x=>x.toL
 try{HUB.push({k:'wb',n:'월드보스 (매주)',d:'매주 금요일 새 전설 포켓몬 보스! 모두의 데미지를 합쳐서 쓰러뜨려요. 하루 3번 도전, 누적 데미지 랭킹으로 주간 보상. 쓰러뜨리면 포획 시도 5번!',st:()=>{const w=wbS();return '내 데미지 '+w.dmg.toLocaleString()},go:[['월드보스 열기',()=>wbOpen()]]})}catch(e){}
 (function(){const go=()=>{const b=document.getElementById('bWB');if(b)b.onclick=()=>{sfx('tap');wbOpen('n')}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 // 연결 코드 넣기 (운영자): 콘솔 대신 주소 ?wb=JD1-… 로도
-try{const q=new URLSearchParams(location.search).get('wb');if(q&&q.startsWith('JD1-')){localStorage.setItem('pka-wbcode',q);history.replaceState(null,'',location.pathname)}}catch(e){}
+try{const q=new URLSearchParams(location.search).get('wb');if(q==='off'){localStorage.removeItem('pka-wbcode');history.replaceState(null,'',location.pathname);location.reload()}if(q&&q.startsWith('JD1-')){localStorage.setItem('pka-wbcode',q);history.replaceState(null,'',location.pathname)}}catch(e){}
 // 월드보스는 엄청 크게 · 우리 포켓몬은 조금 작게
 {const _b=bsc;bsc=function(S,mine){const k=_b(S,mine);if(!BS.wb)return k;return mine?k*.8:k*2.4}}
 // 월드보스 땐 화면 확대(카메라 줌·흔들림) 끄기 · 아이패드 두 손가락 확대 막기 · 끝나면 화면 배율 되돌리기
