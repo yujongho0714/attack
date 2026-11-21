@@ -5998,7 +5998,7 @@ const chPrevBd=bd=>{const [y,m]=bd.slice(5).split('-').map(Number);const d=new D
 async function chPut(bd,id,name,v,t){const B=fsBase();if(!B)return '연결 없음';try{const r=await fetch(B.u+bd+'/players/'+encodeURIComponent(id)+'?key='+B.k+'&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:String(name).slice(0,12)},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});if(r.ok)return '';let m='';try{m=((await r.json()).error||{}).status||''}catch(e){}return r.status+(m?' '+m:'')}catch(e){return '인터넷'}}
 async function chSend(ty,text,mon){if(!G||!G.pid){toast('먼저 게임을 시작해요');return false}if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되면 채팅할 수 있어요');return false}if(BANS.has(G.pid)){toast('채팅을 쓸 수 없는 계정이에요');return false}
   if(Date.now()-CHLAST<(ty==='p'?20000:3500)){toast(ty==='p'?'자랑은 20초에 한 번씩 할 수 있어요':'조금 천천히 보내요');return false}
-  const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Date.now(),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
+  const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Math.floor(Date.now()),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
   await chRkRefresh();const tier=chMyTier();const id='m~'+ms.toString(36)+(tier?'.'+tier:'')+'~'+G.pid+'~'+(ty==='p'?'p'+chKeyMon(mon)+'~'+b:'t'+b);const name=rkName();const CMo=chMon(ms),vm=CMo.v,t=sec*1048576+await gmMac(id,name,vm,sec);
   CHLAST=ms;const er=await chPut(CMo.bd,id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
   chMerge([{id,pid:G.pid,tier:tier?(rkTier(parseInt(tier)-1)||''):'',rk:parseInt(tier)||0,rb:tier.slice(-1).replace(/\d/,''),name:name.slice(0,12),v:vm,ms,bd:CMo.bd,ty,x,m:ty==='p'?{n:mon.n,lv:mon.lv,sh:!!mon.sh,px:mon.px,fr:mon.fr}:null}]);chDraw();setTimeout(chPoll,1500);return true}
@@ -8131,7 +8131,7 @@ const k36=n=>String(n).replace(/^sc:/,'').replace(/\//g,'_'),d36=s=>'sc:'+String
 function cpMe(){const c=chCfgOf(),mode=c.cpMode===undefined?'all':c.cpMode;const tk=c.title&&CP.crowns().includes(c.title)?c.title:'';return{tk,pm:mode||'',pv:mode?CP.val(mode):0}}
 function chNameAva(){let n=rkName();try{const a=(G.chat||{}).ava;if(!a||!META[a]||!META[a].dex||isGM()||isOp())return n;const t='#'+META[a].dex.toString(36);return rkSplit(n).name.slice(0,12-t.length)+t}catch(e){return n}}
 chParse=async function(d){try{const id=decodeURIComponent(d.name.split('/').pop()),f=d.fields||{};const name=(f.name||{}).stringValue||'',v=+((f.v||{}).integerValue||0),t=+((f.t||{}).integerValue||0);
-  const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1),seg=p[1].split('.'),tr=seg[1]||'',rkm=/^(\d{1,3})([da]?)$/.exec(tr),rk=rkm?+rkm[1]:0,rb=rkm?rkm[2]:'';
+  const sec=Math.floor(t/1048576);if(await gmMac(id,name,v,sec)!==t%1048576)return null;const p=id.split('~');if(p[0]!=='m'||p.length<4)return null;const pid=p[2],ty=p[3][0],body=p[3].slice(1),seg=(()=>{const q=p[1].split('.');if(q.length>6)q.splice(1,1);return q})(),tr=seg[1]||'',rkm=/^(\d{1,3})([da]?)$/.exec(tr),rk=rkm?+rkm[1]:0,rb=rkm?rkm[2]:'';
   if(BANS.has(pid))return null;const o={id,pid,name,v,tier:rk?(rkTier(rk-1)||''):CHTIERS.includes(tr)?tr:'',rk,rb,ms:parseInt(seg[0],36)||v*60000,ty};
   const tk=seg[2]&&seg[2]!=='-'?seg[2]:'',pm=seg[3]&&seg[3]!=='-'?seg[3]:'';if(tk&&/^[a-z0-9]{1,12}$/.test(tk))o.tk=tk;if(seg[5]&&/^[0-9a-z]{1,8}$/.test(seg[5]))o.adv=parseInt(seg[5],36)||0;if(pm&&/^[a-z]{1,8}$/.test(pm)){o.pm=pm;o.pv=parseInt(seg[4]||'0',36)||0}
   if(ty==='t'){o.x=chClean(new TextDecoder().decode(acUb64(body)))}
@@ -8142,7 +8142,7 @@ chParse=async function(d){try{const id=decodeURIComponent(d.name.split('/').pop(
   else return null;return o}catch(e){return null}};
 chSend=async function(ty,text,mon,ex){if(!G||!G.pid){toast('먼저 게임을 시작해요');return false}if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되면 채팅할 수 있어요');return false}if(BANS.has(G.pid)){toast('채팅을 쓸 수 없는 계정이에요');return false}
   if(Date.now()-CHLAST<(ty==='t'?3500:20000)){toast(ty==='t'?'조금 천천히 보내요':'자랑은 20초에 한 번씩 할 수 있어요');return false}
-  const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Date.now(),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
+  const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Math.floor(Date.now()),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
   await chRkRefresh();const tier=chMyTier(),me=cpMe();let seg=ms.toString(36)+(tier?'.'+tier:'');if(me.tk||me.pm)seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv).toString(36);try{seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv||0).toString(36)+'.'+Math.floor(advV()).toString(36)}catch(e){}   /* 9H: 지금 진행도도 같이 보냄(옛 버전은 무시) */
   let body;if(ty==='p')body='p'+chKeyMon(mon)+'~'+b;else if(ty==='c')body='c'+ex.m+'.'+Math.floor(ex.v).toString(36);else if(ty==='d')body='d'+ex.m+'.'+Math.floor(ex.v).toString(36)+'~'+ex.l.map(k36).join(',');else body='t'+b;
   const id='m~'+seg+'~'+G.pid+'~'+body,name=chNameAva().slice(0,12),CMo=chMon(ms),vm=CMo.v,t=sec*1048576+await gmMac(id,name,vm,sec);
