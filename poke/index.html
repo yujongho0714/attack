@@ -8838,7 +8838,7 @@ const RT_SKMV={sg_mortalslash:1,sg_xenonsmasher:2,sg_baekho:3,sg_heukryong:4,sg_
 const rtDmgSkin=(m,id)=>{if(RT_SKMV[id]!=null)return RT_SKMV[id];try{return isMine(rtReal(m))?((G.opt&&G.opt.dskin)|0):0}catch(e){return 0}};
 // 8F: 장비 옵션(공격력·체력·방어력·회피·크리티컬) — 내 포켓몬만, 새 전투 전부 (예전 전투는 그대로 월드보스에서만)
 const rtGearOf=m=>{try{if(!isMine(rtReal(m))||typeof gearStats!=='function')return null;const T=gearStats();return (T.atk||T.hp||T.def||T.eva||T.crt||T.cdm)?T:null}catch(e){return null}};
-const rtCommon=()=>({teraOk:()=>{try{return teraOn()}catch(e){return true}},SGD,hitTier:(m,id)=>{try{return hitTierOf(rtReal(m),id)}catch(e){return{n:1,aw:0}}},mlvOf:(m,id)=>{try{return mlv(rtReal(m),id)}catch(e){return 1}},dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
+const rtCommon=()=>({teraOk:()=>{try{return teraOn()}catch(e){return true}},teraInfo:m=>{try{const T=teraType(m);return{T,n:TN[T]||T,c:tcol(T)}}catch(e){return null}},SGD,hitTier:(m,id)=>{try{return hitTierOf(rtReal(m),id)}catch(e){return{n:1,aw:0}}},mlvOf:(m,id)=>{try{return mlv(rtReal(m),id)}catch(e){return 1}},dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
 const rtBgOf=()=>{try{if(BS.bg==='stadium'&&typeof STAD!=='undefined'&&STAD.complete&&STAD.naturalWidth)return STAD;return bgImg(STG[BS.bg]||'grass')}catch(e){return null}};   // 7B: 새 전투 배경
 async function rtWild(o){
   if(!rtWildOn()||!o||o.wb||o.pvp||!o.foes||!o.foes.length)return undefined;
@@ -10254,4 +10254,21 @@ window.gDrop=gDrop;
 const st=document.createElement('style');st.textContent='.gsell{background:#ffd23f!important;color:#2c3050!important}';document.head.appendChild(st);
 }catch(e){console.warn('gdrop 로드 실패',e)}})();
 </script>
-</body></html>
+<script>// ===== 9BB 가이드 창 끌어서 옮기기: 도전 조건(⚠) · 목표 바 · 미니맵 · 월드보스 표시 — 손가락으로 끌면 옮겨지고, 자리는 기억해요 =====
+(function(){const IDS={reqHud:'.rqh',hObjW:null,mini:null,wbHud:null},K='pk_hud_pos';let P={};try{P=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
+  const sv=()=>{try{localStorage.setItem(K,JSON.stringify(P))}catch(e){}};
+  function place(el,x,y){const c=P[el.id]||[0,0],r=el.getBoundingClientRect();if(!r.width)return;const W=innerWidth,H=innerHeight;
+    const nl=Math.min(Math.max(r.left-c[0]+x,4),Math.max(4,W-r.width-4)),nt=Math.min(Math.max(r.top-c[1]+y,4),Math.max(4,H-r.height-4));
+    const nx=Math.round(nl-(r.left-c[0])),ny=Math.round(nt-(r.top-c[1]));P[el.id]=[nx,ny];el.style.translate=nx+'px '+ny+'px'}
+  function attach(el,hd){if(el._dg)return;el._dg=1;if(P[el.id])el.style.translate=P[el.id][0]+'px '+P[el.id][1]+'px';
+    let sx=0,sy=0,ox=0,oy=0,on=0,pid=null,blk=0;
+    el.addEventListener('pointerdown',e=>{if(e.button>0||(hd&&!e.target.closest(hd)))return;sx=e.clientX;sy=e.clientY;const c=P[el.id]||[0,0];ox=c[0];oy=c[1];pid=e.pointerId;on=0},true);
+    el.addEventListener('pointermove',e=>{if(pid!==e.pointerId)return;const dx=e.clientX-sx,dy=e.clientY-sy;if(!on){if(Math.hypot(dx,dy)<10)return;on=1;try{el.setPointerCapture(e.pointerId)}catch(_){}el.classList.add('hdg')}e.preventDefault();place(el,ox+dx,oy+dy)},true);
+    const end=e=>{if(pid!==e.pointerId)return;pid=null;if(on){el.classList.remove('hdg');sv();blk=1;setTimeout(()=>{blk=0},120)}on=0};
+    el.addEventListener('pointerup',end,true);el.addEventListener('pointercancel',end,true);
+    el.addEventListener('click',e=>{if(blk||on){e.stopPropagation();e.preventDefault()}},true)}
+  const scan=()=>{for(const id in IDS){const el=document.getElementById(id);if(el)attach(el,IDS[id])}};
+  const st=document.createElement('style');st.textContent='#hObjW,#mini,#wbHud,#reqHud .rqh{touch-action:none}.hdg{outline:2px dashed #ffd23f;opacity:.88}';document.head.appendChild(st);
+  setInterval(scan,800);scan();
+  addEventListener('resize',()=>{for(const id in P){const el=document.getElementById(id);if(el&&P[id]){el.style.translate='0px 0px';P[id]=[0,0];el.style.translate=''}}sv()})})();
+</script></body></html>

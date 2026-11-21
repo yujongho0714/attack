@@ -250,8 +250,8 @@ function dealDamage(att,def,mi,opt){
   if(def.gear&&def.gear.eva>0&&rnd()<Math.min(.5,def.gear.eva/100)){floatTxt(def.x,def.y-70,'회피!','#9be7ff');return 0}   // 8F 장비 회피
   const A=m.phys?att.st[1]:att.st[3], D=m.phys?def.st[2]:def.st[4];
   const Am=stageMul(m.phys?att.stg.atk:att.stg.spa), Dm=stageMul(m.phys?def.stg.def:def.stg.spd);
-  const e=opt.net?opt.net.e:m.typeless?1:C.eff(m.type,def.types);
-  const stab=att.types.includes(m.type)?1.5:1;
+  const e=opt.net?opt.net.e:m.typeless?1:C.eff(m.type,def.tera?[def.tera]:def.types);
+  const stab=att.tera&&att.tera===m.type?(att.types.includes(m.type)?2:1.5):att.types.includes(m.type)?1.5:1;
   const cx0=att.critX||{c:0,d:0};   // 7G: 크리티컬 확률·데미지 보너스(접두사·먹이 아이템·내 캐릭터 접두사)
   const crit=opt.net?!!opt.net.c:rnd()<(att.critWin>0?.5:1/24+cx0.c);
   let power=m.p*(opt.pm||1);
@@ -813,6 +813,7 @@ function aiRange(e){const b=e.moves.filter(m=>m&&m.p>0).sort((x,y)=>y.p-x.p)[0];
 function mkAi(tier){const AT=AI_T[tier]||AI_T.G4;return{T:AT,tier,sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)}}
 function autoMe(me,foe){
   if(me.hp<=0){me.wish={x:0,y:0};return}
+  if(!W.teraUsed&&W.time>1.2)teraGo();   // 9BC 자동 전투는 알아서 테라스탈
   const ai=W.aiMe;if(ai.uid!==me.mon.uid){ai.uid=me.mon.uid;ai.range=aiRange(me)}   // 교대하면 사거리 다시 계산
   // 잡고 싶은 포켓몬이면(host가 볼 종류를 알려 줌) 체력을 깎다가 낮아지면 공격을 멈추고 볼을 던짐
   let bk=null;if(C.autoBall&&!W.ball&&foe.hp>0){try{bk=C.autoBall()}catch(e){}}
@@ -826,7 +827,22 @@ function autoMe(me,foe){
 }
 
 // ---------- 그리기 ----------
-function render(){
+// ---------- 9BC 테라스탈 (배틀마다 1번 · 가진 기술 중 제일 센 기술 타입으로 바뀜 · 그 타입 기술이 더 세짐) ----------
+function teraInfo(e){let I=null;try{I=C.teraInfo&&C.teraInfo(e.mon)}catch(er){}
+  if(!I){let b=null,bp=-1;for(const m of e.moves||[])if(m&&(m.p||0)>bp){bp=m.p||0;b=m.t}const T=b||(e.types&&e.types[0])||'NORMAL';I={T,n:T,c:(C.TCOL&&C.TCOL[T])||'#c8a0ff'}}
+  return I}
+function teraGo(){if(!W||W.teraUsed||W.over||!C.teraOk||C.net||C.pvp)return;try{if(!C.teraOk())return}catch(er){return}
+  const me=W.me;if(!me||me.hp<=0)return;const I=teraInfo(me);W.teraUsed=1;me.tera=I.T;me.teraC=I.c;me.teraAt=performance.now();W.hitstop=Math.max(W.hitstop||0,.2);
+  try{floatTxt(me.x,me.y-(me.vis||110)-30,'💎 테라스탈! '+I.n,'#ffffff',true)}catch(er){}
+  if(W.tBtn)W.tBtn.style.display='none'}
+function teraUi(){const b=W&&W.tBtn;if(!b)return;const me=W.me,ok=!W.teraUsed&&me&&me.hp>0&&!W.over&&!W.tut;b.style.display=ok?'flex':'none';
+  if(ok&&b._tk!==me.mon.uid){b._tk=me.mon.uid;const I=teraInfo(me);b.style.background=I.c;b._n.textContent=I.n;b._n.style.display='block'}}
+function teraFront(e,ty){const cx=W.ctx,vs=e.vis||110,k=performance.now()/1000,top=ty-vs*.5,C2=e.teraC||'#c8a0ff';cx.save();cx.globalAlpha=.92;cx.fillStyle='#fff8c8';cx.strokeStyle=C2;cx.lineWidth=3;
+  cx.beginPath();cx.moveTo(e.x-26,top);cx.lineTo(e.x-30,top-26);cx.lineTo(e.x-14,top-12);cx.lineTo(e.x,top-34);cx.lineTo(e.x+14,top-12);cx.lineTo(e.x+30,top-26);cx.lineTo(e.x+26,top);cx.closePath();cx.fill();cx.stroke();
+  for(let i=0;i<6;i++){const a=k*1.4+i*1.047,r=vs*.45,px=e.x+Math.cos(a)*r,py=ty-vs*.25+Math.sin(a)*r*.5;cx.fillStyle=i%2?'#ffffff':C2;cx.beginPath();cx.moveTo(px,py-9);cx.lineTo(px+6,py);cx.lineTo(px,py+9);cx.lineTo(px-6,py);cx.closePath();cx.fill()}
+  const u=(performance.now()-(e.teraAt||0))/900;if(u>=0&&u<1){cx.globalAlpha=1-u;cx.strokeStyle='#ffffff';cx.lineWidth=8*(1-u)+2;cx.beginPath();cx.arc(e.x,ty-vs*.25,vs*(.3+u*1.5),0,7);cx.stroke();cx.strokeStyle=C2;cx.lineWidth=4;cx.beginPath();cx.arc(e.x,ty-vs*.25,vs*(.2+u*1.1),0,7);cx.stroke()}
+  cx.restore()}
+function render(){try{teraUi()}catch(er){}
   const cv=W.cv,cx=W.ctx,Wd=cv.width,Hd=cv.height;
   const land=Wd>=Hd;
   let viewW=land?AW:Math.min(AW,Math.max(620,Wd/Hd*520));
@@ -880,8 +896,10 @@ function render(){
     const st=e.anim;
     const VT=e.vt||e.tier,TR=e.eng&&VT>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
     if(TR){const a0=cx.globalAlpha;try{TFX.back(e.eng,cx,e.S,e.x,ty,e.sc,VT,tms)}catch(er){}cx.globalAlpha=a0}
+    if(e.tera){const vs=e.vis||110,gy=ty-vs*.2,k=(performance.now()%1600)/1600;cx.save();cx.globalAlpha=.6+.2*Math.sin(k*6.283);const g=cx.createRadialGradient(e.x,gy,6,e.x,gy,vs*.85);g.addColorStop(0,'#ffffff');g.addColorStop(.4,e.teraC||'#c8a0ff');g.addColorStop(1,'rgba(0,0,0,0)');cx.fillStyle=g;cx.beginPath();cx.arc(e.x,gy,vs*.85,0,7);cx.fill();cx.restore()}   // 9BC 테라스탈 보석 빛
     try{C.drawPm(cx,TR?TFX.spr(e.S,VT):e.S,st,e.row,e.at,e.x,ty,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
     if(TR){try{TFX.front(e.eng,cx,e.S,e.x,ty,e.sc,VT,tms)}catch(er){}}
+    if(e.tera)teraFront(e,ty);
     cx.globalAlpha=1;
     if(e.inv>0&&e.invMax>60){cx.strokeStyle='#ffe14a';cx.lineWidth=4;cx.globalAlpha=.45+.35*Math.sin(W.time*12);cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+20,e.r+20,0,0,7);cx.stroke();cx.globalAlpha=1}   // 9F 불멸 무적
     if(e.protect>0){cx.strokeStyle='#9be7ff';cx.lineWidth=4;cx.globalAlpha=.8;cx.beginPath();cx.ellipse(e.x,e.y-30,e.r+14,e.r+14,0,0,7);cx.stroke();cx.globalAlpha=1}
@@ -1162,6 +1180,8 @@ function buildUI(){
     const ib=SB('🧪','약','#1f9a55');place2(ib);
     ib.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();openItems()});W.itBtn=ib;
   }
+  // 9BC: 테라스탈 버튼 (배틀마다 1번 · 설정이 꺼져 있으면 안 보여요)
+  try{if(C.teraOk&&C.teraOk()&&!C.net&&!C.pvp){const tb=SB('💎','테라스탈','#7a3fd0');place2(tb);tb.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();teraGo()});W.tBtn=tb;tb.style.display='none'}}catch(er){}
   document.body.appendChild(root);
   W.root=root;W.cv=cv;W.ctx=cv.getContext('2d');W.ui={jb,jk,btns,rb,rcnt,bb,bsw};
   // 9BA: 구르기 버튼 대신 화면 아무 데나 쓱 밀면 그 방향으로 구르기 · 볼 버튼은 왼쪽 아래 줄로
