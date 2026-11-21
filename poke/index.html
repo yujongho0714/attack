@@ -10120,10 +10120,10 @@ function area(){let best=null;const top=topLv();for(let a=1;a<18;a++){try{if(isT
 let sig='';
 function draw(){try{const RH=document.getElementById('reqHud');let b=document.getElementById('reqBack');
   const hv=RH&&RH.style.display!=='none';const on=SCENE==='over'&&!document.body.classList.contains('inb')&&(DIFF()>=6||(G.rbd|0)>=6||(G.champD|0)>=5);if(!on){if(b)b.style.display='none';return}
-  if(!b){b=document.createElement('div');b.id='reqBack';document.body.appendChild(b);b.onclick=e=>{const x=e.target.closest('[data-d]');if(x)go(+x.dataset.d)}}
+  if(!b){b=document.createElement('div');b.id='reqBack';document.body.appendChild(b);b.onclick=e=>{if(e.target.closest('[data-fold]')){sfx('tap');G.opt.dfFold=G.opt.dfFold?0:1;save();sig='';draw();return}const x=e.target.closest('[data-d]');if(x)go(+x.dataset.d)}}
   b.style.display='block';if(hv){const R=RH.getBoundingClientRect();b.style.top=R.top+'px';b.style.left=Math.max(4,R.left-156)+'px';b.style.right=''}else{b.style.top='108px';b.style.left='';b.style.right='6px'}
-  const cur=DIFF(),mx=Math.max((typeof opAny==='function'&&opAny())?7:dMax(),cur,G.rbd|0),rc=Math.max(0,cur-1),k=cur+'|'+mx;if(k===sig)return;sig=k;
-  let h='<b>난이도 바로 바꾸기</b>';for(let d=mx;d>=0;d--)h+=`<div class="d${d===cur?' on':''}" data-d="${d}" style="--dc:${DCOL[d]||'#888'}">${DNAME[d]}${d===cur?'<em>지금</em>':d===rc?'<em>추천</em>':''}</div>`;
+  const cur=DIFF(),mx=Math.max((typeof opAny==='function'&&opAny())?7:dMax(),cur,G.rbd|0),rc=Math.max(0,cur-1),k=cur+'|'+mx+'|'+(G.opt&&G.opt.dfFold?1:0);if(k===sig)return;sig=k;
+  const fold=!!(G.opt&&G.opt.dfFold);if(fold){b.innerHTML=`<b data-fold="1" style="cursor:pointer;margin:0">난이도 <span style="color:#fff">${DNAME[cur]}</span> ▼</b>`;b.style.width='auto';return}b.style.width='';let h='<b data-fold="1" style="cursor:pointer">난이도 바로 바꾸기 ▲</b>';for(let d=mx;d>=0;d--)h+=`<div class="d${d===cur?' on':''}" data-d="${d}" style="--dc:${DCOL[d]||'#888'}">${DNAME[d]}${d===cur?'<em>지금</em>':d===rc?'<em>추천</em>':''}</div>`;
   b.innerHTML=h+'<small>누르면 바로 바뀌고, 맞는 사냥터로 걸어가요</small>'}catch(e){}}
 function go(d){if(d===DIFF())return;if(SCENE!=='over'){toast('밖에서만 할 수 있어요');return}sfx('get');G.opt.diff=d;save();sig='';toast('난이도: '+DNAME[DIFF()]);try{regSync&&regSync()}catch(e){}
   setTimeout(()=>{try{const a=area();if(a!=null){navSet(a,null,'auto');toast('🎯 '+areaName(a)+'(으)로 사냥하러 가요')}}catch(e){}},400)}
