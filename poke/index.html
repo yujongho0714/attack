@@ -1235,14 +1235,14 @@ const GYM=[{t:'ROCK',n:'관장 돌쇠',c:'#a08848'},{t:'WATER',n:'관장 물결'
  {t:'POISON',n:'관장 보라',c:'#9040a0'},{t:'PSYCHIC',n:'관장 미르',c:'#e85888'},{t:'FIRE',n:'관장 화로',c:'#e86020'},{t:'GROUND',n:'관장 대지',c:'#b89048'}];
 const ELITE=[{t:'ICE',n:'사천왕 칸나',lv:57},{t:'FIGHTING',n:'사천왕 시바',lv:58},{t:'GHOST',n:'사천왕 국화',lv:59},{t:'DRAGON',n:'사천왕 목호',lv:61}];
 // 챔피언 에이스 레벨: 난이도마다 직접 정해요 (쉬움 76 · 보통 80 · 어려움 86 · 지옥 92 · 나이트메어 97 · 종말 100)
-const CHL=()=>[76,80,86,92,97,100,100,100][Math.min(7,Math.max(0,(G&&G.opt&&G.opt.diff!=null)?G.opt.diff:1))];
+const CHL=()=>[76,80,86,92,97,100,100,100,100,100][Math.min(9,Math.max(0,(G&&G.opt&&G.opt.diff!=null)?G.opt.diff:1))];
 // 난이도: 0 쉬움 · 1 보통(기본) · 2 어려움
-const DIFF=()=>G&&G.opt&&G.opt.diff!=null?G.opt.diff:1;const DLV=[0,.18,.38,.62,.9,1.25,1.6,2.0],DEXP=[1,.55,.5,.5,.5,.5,.5,.5],DDMG=[1,1.15,1.35,1.6,2.0,2.5,8,32];const DBST=[0,25,55,90,130,180,230,290];const DNAME=['쉬움','보통','어려움','지옥','나이트메어','종말','천계','천상계'],DCOL=['#9be89b','#ffd060','#ff8a8a','#c05aff','#3a0a2a','#120018','#2a9ee8','#d9a400'];   // 8E: 천계·천상계(종말 위, 다 깬 친구들용)
+const DIFF=()=>G&&G.opt&&G.opt.diff!=null?G.opt.diff:1;const DLV=[0,.18,.38,.62,.9,1.25,1.6,2.0,2.6,3.4],DEXP=[1,.55,.5,.5,.5,.5,.5,.5,.5,.5],DDMG=[1,1.15,1.35,1.6,2.0,2.5,8,32,110,380];const DBST=[0,25,55,90,130,180,230,290,340,400];const DNAME=['쉬움','보통','어려움','지옥','나이트메어','종말','천계','천상계','하계','명계'],DCOL=['#9be89b','#ffd060','#ff8a8a','#c05aff','#3a0a2a','#120018','#2a9ee8','#d9a400','#6a2a9a','#0b0b18'];   // 8E: 천계·천상계(종말 위, 다 깬 친구들용)
 // 어려울수록 보상: 상금 · 희귀 포켓몬 · 이로치 · 승리 카드팩
-const DHX=[1,1.6,2.1,2.8,3.6,4.6,25,90];const DDEF=[1,1.03,1.06,1.1,1.15,1.25,1.5,2];   // 9E: AI를 낮춘 뒤 다시 시뮬 — 천상계 115→70 (장비 풀세트 40% · 만제 팀 100%)
+const DHX=[1,1.6,2.1,2.8,3.6,4.6,25,90,220,520];const DDEF=[1,1.03,1.06,1.1,1.15,1.25,1.5,2,3,4.5];   // 9E: AI를 낮춘 뒤 다시 시뮬 — 천상계 115→70 (장비 풀세트 40% · 만제 팀 100%)
 // 9D 물약 제한: 종말·천계·천상계는 전투 1번에 회복약 10개까지 (0 = 제한 없음)
-const POTLIM=()=>DIFF()>=5?10:0;   // 상대 체력 배율(난이도별). 천계·천상계는 시뮬로 맞춤: 천계=풀강 장비없이 약 50%·장비 풀세트 100% / 천상계=장비 풀세트로 약 50%
-const DMONEY=[1,1.6,2.4,3.5,5,7,10,14],DRARE=[1,1.6,2.5,3.5,5,7,10,14],DSHINY=[150,90,50,35,20,12,8,5],DPACK=[0,.08,.2,.3,.45,.6,.75,.9];
+const POTLIM=()=>DIFF()>=9?3:DIFF()>=8?5:DIFF()>=5?10:0;   // 상대 체력 배율(난이도별). 천계·천상계는 시뮬로 맞춤: 천계=풀강 장비없이 약 50%·장비 풀세트 100% / 천상계=장비 풀세트로 약 50%
+const DMONEY=[1,1.6,2.4,3.5,5,7,10,14,20,30],DRARE=[1,1.6,2.5,3.5,5,7,10,14,20,30],DSHINY=[150,90,50,35,20,12,8,5,4,3],DPACK=[0,.08,.2,.3,.45,.6,.75,.9,.95,1];
 const gymAce=k=>Math.round((12+6*k)*(1+DLV[DIFF()]));// k=0..7
 const NA=27;const isTown=a=>a%2===0&&a!==18&&a<NA;const townOf=a=>a/2;const areaName=a=>a===18?'포켓몬 리그':isTown(a)?TOWNS[a/2]:RTN[(a-1)/2];
 const AREAS={};
@@ -2617,7 +2617,7 @@ function rewardCheck(){if(!G)return;const today=dayKey();
   if(G.badgeSeen==null)G.badgeSeen=G.badges;while(G.badgeSeen<G.badges){REWQ.push({badge:G.badgeSeen});G.badgeSeen++}
   while(G.qrw<qn){G.qrw++;const kind=R()<.5?'P':'M';const pl=qrwPlan(kind);if(pl)REWQ.push({multi:pl.list,msg:'🎯 퀘스트 완료 보상!',title:'퀘스트 보상 · 환생 '+pl.r+'번 강화'});else REWQ.push({kind,msg:'🎯 퀘스트 완료 보상! '+PKN[kind]+' 1장',why:'퀘스트 보상'})}}
 // 환생 퀘스트 보상 강화: 퀘스트 하나 깰 때마다 카드팩 (1+환생, 최대 6장) + 상위 등급 팩 (난이도별: 보통 영웅~전설 · 어려움 전설 · 지옥 신화 · 나이트메어 환상 · 종말 유일)
-function qrwPlan(kind){const r=(G&&G.rebirth)||0;if(!r)return null;const dd=Math.max(0,Math.min(7,Math.min(DIFF(),G.rbd!=null?G.rbd:DIFF())));const up=['P2','P2','P3','P4','P5','P6','P6','P6'][dd];return{list:[...Array(Math.min(5,r)+1).fill(kind),up],up,r}}
+function qrwPlan(kind){const r=(G&&G.rebirth)||0;if(!r)return null;const dd=Math.max(0,Math.min(9,Math.min(DIFF(),G.rbd!=null?G.rbd:DIFF())));const up=['P2','P2','P3','P4','P5','P6','P6','P6','P6','P6'][dd];return{list:[...Array(Math.min(5,r)+1).fill(kind),up],up,r}}
 function qrwText(){const p=qrwPlan('P');if(!p)return '';return '환생 '+p.r+'번 보상 강화 · 퀘스트마다 카드팩 '+(p.list.length-1)+'장 + '+PKT[p.up].n+' 1장'}
 setInterval(()=>{try{if(SCENE==='over')rewardCheck()}catch(e){}},1500);
 // ---------- 배지 ----------
@@ -2945,7 +2945,7 @@ const TOWNF=[
 // 타입 부적 아이템
 for(const g of GYM){if(g.league)continue;const k='ch_'+g.t;ITEMS[k]={n:TN[g.t]+'의 부적',e:`<i class="tyi ic" style="${tyIco(g.t)}"></i>`,charm:g.t,tp:4000+GYM.indexOf(g)*1500}}
 // 부적은 포켓몬에게 먹여요 (토템처럼 영구) · 1개마다 그 타입 기술 위력 +5% · 포켓몬 1마리에 먹일 수 있는 수는 난이도별
-const CHMAX=[3,5,7,9,12,16,20,25],chMax=()=>CHMAX[Math.min(CHMAX.length-1,DIFF())]+(G&&G.rebirth||0),chFed=m=>m.chN!=null?m.chN:Object.values(m.ch||{}).reduce((a,b)=>a+b,0);
+const CHMAX=[3,5,7,9,12,16,20,25,30,35],chMax=()=>CHMAX[Math.min(CHMAX.length-1,DIFF())]+(G&&G.rebirth||0),chFed=m=>m.chN!=null?m.chN:Object.values(m.ch||{}).reduce((a,b)=>a+b,0);
 {const _dc=dmgCalc;dmgCalc=function(a,d,m,c){const r=_dc(a,d,m,c);try{if(a&&a.ch&&a.ch[m.type])r.d=Math.floor(r.d*(1+.05*a.ch[m.type]))}catch(e){}return r}}
 if(!ITEMS.master)ITEMS.master={n:'마스터볼',e:'<img class="ic" src="items/MASTERBALL.png">',ball:255,col:'#8a3ab0'};
 const townIdx=a=>isTown(a)?a/2:-1;
@@ -3196,7 +3196,7 @@ function arcBtns(E,list){E.ctl.innerHTML=list.map(([id,t,cl])=>`<button class="a
   const on=e=>{e.preventDefault();b.classList.add('on');E.keys['@'+id]=1;E.onBtn&&E.onBtn(id,1)},off=e=>{b.classList.remove('on');if(E.keys['@'+id]){E.keys['@'+id]=0;E.onBtn&&E.onBtn(id,0)}};
   b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off)})}
 async function arcEnd(k,B,score,x){const D=ARC[k],S=arcS(k);let rw=[];const rec=x.rec!=null?x.rec:score;const nb=rec>(S.best||0),nw=rec>(S.wb||0);S.best=Math.max(S.best||0,rec);S.wb=Math.max(S.wb||0,rec);
-  if(S.n<ARCDAY){S.n++;const mo=Math.min(ARCMAX,Math.round(D.per(score,x.win)*(DMONEY?DMONEY[Math.min(7,DIFF())]:1)));if(mo>0){G.money+=mo;rw.push('상금 <b>'+mo.toLocaleString()+'원</b>')}try{spAdd(8)}catch(e){}}else rw.push('오늘 보상은 다 받았어요 (기록은 랭킹에 올라가요)');
+  if(S.n<ARCDAY){S.n++;const mo=Math.min(ARCMAX,Math.round(D.per(score,x.win)*(DMONEY?DMONEY[Math.min(9,DIFF())]:1)));if(mo>0){G.money+=mo;rw.push('상금 <b>'+mo.toLocaleString()+'원</b>')}try{spAdd(8)}catch(e){}}else rw.push('오늘 보상은 다 받았어요 (기록은 랭킹에 올라가요)');
   D.goal.forEach((g,i)=>{if(!S.goal[i]&&rec>=g){S.goal[i]=1;const n=[1,3,5][i];packAdd(Array(n).fill('P'),D.n+' '+g+D.u+' 달성');rw.push('<b>'+g+D.u+' 첫 달성!</b> 포켓몬 카드팩 '+n+'장')}});
   G.arcW=G.arcW||{};const wk=wbWeek();G.arcW[wk]=G.arcW[wk]||{};G.arcW[wk]['mg'+k]=S.wb;save();sfx(x.win||nb?'badge':'get');
   if(nw&&rec>0)try{if(navigator.onLine&&wbCfg()&&!(typeof isGM==='function'&&isGM())){const T=toast;toast=()=>{};rankPush('mg'+k).finally(()=>{toast=T})}}catch(e){}
@@ -3835,7 +3835,7 @@ RKB.adv.n='진행도';RKB.tower.n='격투 탑';
 // ===== 진행도 랭킹: 「나이트메어 · 3번째 관장 · 3환생」처럼 어디까지 왔는지 보여요 =====
 // 순위: 환생 횟수 → 난이도 → 진행 단계 → 도감 수 순서 · 한 숫자(v)에 담아서 보내고 보여 줄 때 풀어요
 const advStage=()=>G.champ?9+Math.min(4,G.ub||0):Math.min(8,G.badges||0);
-const advV=()=>(G.rebirth||0)*1e6+Math.min(7,DIFF())*1e5+advStage()*1e3+Math.min(999,Object.keys(G.dex.c||{}).length);
+const advV=()=>(G.rebirth||0)*1e6+Math.min(9,DIFF())*1e5+advStage()*1e3+Math.min(999,Object.keys(G.dex.c||{}).length);
 function advFmt(v){const rb=Math.floor(v/1e6),d=Math.floor(v/1e5)%10,S=Math.floor(v/1e3)%100,dx=v%1e3;
   const st=S===0?'모험 시작':S<8?S+'번째 관장':S===8?'포켓몬 리그':S===9?'챔피언':'상위 체육관 '+(S-9);
   return (DNAME[d]||'')+' '+st+' <small>'+(rb?rb+'환생 · ':'')+'도감 '+dx+'마리</small>'}
@@ -3940,7 +3940,7 @@ rankFetch=async function(b){const c=wbCfg();if(!c)return null;
   return L};
 const rkStaff=()=>{try{return !!((typeof isGM==='function'&&isGM())||(typeof isOp==='function'&&isOp()))}catch(e){return false}};
 // 난이도 배지: 쉬움 · 보통 · 어려움은 담백하게, 지옥부터 점점 화려하게
-advFmt=function(v){const rb=Math.floor(v/1e6),d=Math.min(7,Math.floor(v/1e5)%10),S=Math.floor(v/1e3)%100,dx=v%1e3;
+advFmt=function(v){const rb=Math.floor(v/1e6),d=Math.min(9,Math.floor(v/1e5)%10),S=Math.floor(v/1e3)%100,dx=v%1e3;
   const st=S===0?'모험 시작':S<8?S+'번째 관장':S===8?'포켓몬 리그':S===9?'챔피언':'상위 체육관 '+(S-9);
   return `<span class="dfx d${d}"><i></i><i></i>${DNAME[d]||''}</span> ${st} <small>${rb?rb+'환생 · ':''}도감 ${dx}마리</small>`};
 RKB.adv.f=advFmt;
@@ -4369,14 +4369,14 @@ try{const O=Object.assign({},PKT);for(const k in PKT)delete PKT[k];
 // ===== 난이도 8단계 (쉬움·보통·어려움·지옥·나이트메어·종말·천계·천상계) · 환생 =====
 // 8E: 천계는 종말에서, 천상계는 천계에서 챔피언이 되면 열려요
 // 지옥은 어려움에서 챔피언이 되면, 나이트메어는 지옥에서, 종말은 나이트메어에서 챔피언이 되면 열려요. 환생: 챔피언이 되면 이야기를 처음부터 (포켓몬·가방·돈·도감·장비는 그대로)
-const DDESC=['기본 보상','상금×1.6 · 희귀×1.6 · 이로치↑ · 카드팩','상금×2.4 · 희귀×2.5 · 이로치↑↑ · 카드팩↑','상금×3.5 · 희귀×3.5 · 이로치 1/35 · 카드팩↑↑','상금×5 · 희귀×5 · 이로치 1/20 · 카드팩↑↑↑','상금×7 · 희귀×7 · 이로치 1/12 · 카드팩↑↑↑↑','☁️ 상금×10 · 희귀×10 · 이로치 1/8 · 카드팩↑↑↑↑↑ · 장비 강화가 힘이 돼요','👑 상금×14 · 희귀×14 · 이로치 1/5 · 카드팩 거의 매번 · 최강자만'];
+const DDESC=['기본 보상','상금×1.6 · 희귀×1.6 · 이로치↑ · 카드팩','상금×2.4 · 희귀×2.5 · 이로치↑↑ · 카드팩↑','상금×3.5 · 희귀×3.5 · 이로치 1/35 · 카드팩↑↑','상금×5 · 희귀×5 · 이로치 1/20 · 카드팩↑↑↑','상금×7 · 희귀×7 · 이로치 1/12 · 카드팩↑↑↑↑','☁️ 상금×10 · 희귀×10 · 이로치 1/8 · 카드팩↑↑↑↑↑ · 장비 강화가 힘이 돼요','👑 상금×14 · 희귀×14 · 이로치 1/5 · 카드팩 거의 매번 · 최강자만','🌑 상금×20 · 희귀×20 · 이로치 1/4 · 반전된 세계 · 물약 5개 · 기라티나가 기다려요','💀 상금×30 · 희귀×30 · 이로치 1/3 · 만제 연속 대결 · 물약 3개 · 아르세우스의 그림자'];
 const dMax=()=>Math.max(2,G&&G.dmax||0);
-setInterval(()=>{try{if(G&&G.champ){G.champOn=G.champOn||{};const d=DIFF();if(!G.champOn[d]&&(G.champD!=null&&d<=G.champD)){G.champOn[d]=1;if(d>=2&&d<7&&(G.dmax||2)<d+1){G.dmax=d+1;save();say(['<b>'+DNAME[d]+'</b>에서 챔피언이 됐어요!','새 난이도 <b>'+DNAME[d+1]+'</b>이(가) 열렸어요! 메뉴 → 난이도 또는 「환생」으로 도전해요.'])}else save()}}}catch(e){}},3000);
-function diffOpen(){if(!G)return;const cur=DIFF(),mx=opAny()?7:dMax();
+setInterval(()=>{try{if(G&&G.champ){G.champOn=G.champOn||{};const d=DIFF();if(!G.champOn[d]&&(G.champD!=null&&d<=G.champD)){G.champOn[d]=1;if(d>=2&&d<9&&(G.dmax||2)<d+1){G.dmax=d+1;save();say(['<b>'+DNAME[d]+'</b>에서 챔피언이 됐어요!','새 난이도 <b>'+DNAME[d+1]+'</b>이(가) 열렸어요! 메뉴 → 난이도 또는 「환생」으로 도전해요.'])}else save()}}}catch(e){}},3000);
+function diffOpen(){if(!G)return;const cur=DIFF(),mx=opAny()?9:dMax();
   openPanel('난이도',`<p class="hhint">난이도가 높을수록 상대가 세지고 레벨도 높고, <b>더 높은 등급 포켓몬</b>이 나와요. 대신 보상이 커져요. 부적 먹이기 한도도 늘어나요.</p><div class="dfg">${DNAME.map((n,i)=>{const lk=i>mx;return `<div class="dfc${i===cur?' on':''}${lk?' lk':''}" style="--dc:${DCOL[i]}"><b>${n}</b><small>상대 레벨 +${Math.round(DLV[i]*100)}% · 상대 공격 ×${DDMG[i]}</small><small>경험치 ×${DEXP[i]}</small><small>${DDESC[i]}</small><small>부적 한도 ${CHMAX[i]+(G.rebirth||0)}개</small>${lk?`<em>${DNAME[i-1]}에서 챔피언이 되면 열려요</em>`:i===cur?'<em>지금 난이도</em>':`<button data-df="${i}">이 난이도로</button>`}</div>`}).join('')}</div>
    <div class="hcard"><b>환생 ${G.rebirth?'('+G.rebirth+'번 함)':''}</b><p>챔피언이 되면 이야기를 처음부터 다시 할 수 있어요. <b>지금 환생 난이도(${DNAME[G.rbd||0]}) 이상에서 이긴 챔피언만</b> 환생할 수 있어요 — 난이도를 낮춰서 깨면 환생 못 해요. 포켓몬 · 가방 · 돈 · 도감 · 장비 · 카드팩은 그대로, 배지와 체육관은 처음부터! 환생할 때마다 <b>부적 한도 +1</b> · <b>경험치 +5%</b>. <b>4번째 환생부터는 데려갈 포켓몬을 10마리만</b> 골라요 (5번째 15마리 · 6번째 20마리…). 고른 포켓몬은 접두사 · 기술 · 부적 · 사탕이 그대로예요. 환생 퀘스트 추가 팩은 <b>난이도별</b>이에요: 어려움 전설 · 지옥 신화 · 나이트메어 환상 · <b>종말 유일</b>.</p>${rbRuleHtml((G.rebirth||0)+1)}<div class="wbt"><button class="main" id="dfRb" ${G.champ?'':'disabled'}>${G.champ?'환생하기':'챔피언이 되면 할 수 있어요'}</button></div></div>`,null,p=>{
     p.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{G.opt.diff=+b.dataset.df;save();sfx('get');toast('난이도: '+DNAME[DIFF()]);diffOpen()});const rb=p.querySelector('#dfRb');if(rb)rb.onclick=()=>{closePanel(1);rebirthOpen()}})}
-function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax(),cb=G.champD!=null&&G.champD>=0?G.champD:-1;if(cb<0){say(['환생하려면 <b>리그에서 챔피언을 이긴 기록</b>이 있어야 해요!','난이도만 올려서는 안 돼요. 지금 난이도에서 리그 챔피언을 이겨 주세요.']);return}if(cb<(G.rbd||0)){say(['환생하려면 <b>'+DNAME[G.rbd||0]+'</b> 이상 난이도에서 챔피언이 돼야 해요!','난이도를 낮춰서 이긴 챔피언으로는 환생할 수 없어요. (낮은 난이도는 연습 · 사냥용)']);return}const tg=Math.min(7,cb+1);
+function rebirthOpen(){if(!G||!G.champ)return;const mx=dMax(),cb=G.champD!=null&&G.champD>=0?G.champD:-1;if(cb<0){say(['환생하려면 <b>리그에서 챔피언을 이긴 기록</b>이 있어야 해요!','난이도만 올려서는 안 돼요. 지금 난이도에서 리그 챔피언을 이겨 주세요.']);return}if(cb<(G.rbd||0)){say(['환생하려면 <b>'+DNAME[G.rbd||0]+'</b> 이상 난이도에서 챔피언이 돼야 해요!','난이도를 낮춰서 이긴 챔피언으로는 환생할 수 없어요. (낮은 난이도는 연습 · 사냥용)']);return}const tg=Math.min(9,cb+1);
   openPanel('환생',`<p class="hhint">환생하면 난이도가 <b>차례대로 다음 단계</b>로 올라가요. <b>1~3번째 환생은 포켓몬을 전부, 4번째 환생부터는 10마리만</b>(5번째 15마리 · 6번째 20마리…) 데려가요. 지금까지 모은 포켓몬 ${G.party.length+G.box.length}마리${rbCap((G.rebirth||0)+1)?' (<b>이번 환생부터는 '+rbCap((G.rebirth||0)+1)+'마리만 골라서 데려가요</b> · 나머지는 떠나요)':''} · 가방 · 돈 · 도감 · 장비 · 접두사는 그대로예요. <b>포켓몬 레벨은 Lv.1부터 다시</b> 시작하고(화면에는 환생마다 +100, 1환생은 Lv.101~), 능력치는 환생마다 +${Math.round(REBSTAT*100)}%예요. 배지 · 상위 배지 · 체육관 · 라이벌 · 맵 아이템은 처음부터예요.</p>${rbRuleHtml((G.rebirth||0)+1)}
    <div class="dfg">${DNAME.map((n,i)=>i!==tg||i>mx?'':`<div class="dfc" style="--dc:${DCOL[i]}"><b>${n}</b><small>${DDESC[i]}</small><button data-rb="${i}">${n}(으)로 환생</button></div>`).join('')}</div>`,null,p=>{
     p.querySelectorAll('[data-rb]').forEach(b=>b.onclick=()=>{const d=+b.dataset.rb;if(d!==tg||d>mx)return;const cap0=rbCap((G.rebirth||0)+1);if(!confirm(DNAME[d]+' 난이도로 환생할까요? 배지와 이야기는 처음부터예요.'+(cap0?'\n\n⚠️ 주의! 이번 환생은 포켓몬을 '+cap0+'마리만 데려가요.\n다음 화면에서 고르지 않은 포켓몬은 영영 사라져요!':'')))return;
@@ -4431,12 +4431,12 @@ function rbPick(cap,go){const all=[...G.party,...G.box];all.forEach(m=>{if(!m.ui
   openPanel('환생 · 데려갈 포켓몬',`<div id="rbB"></div>`,null,draw)}
 
 // ===== 지옥 난이도부터: 화면이 어두워지고, 마을에서는 번개가 쳐요 =====
-(function(){let el=null,nextZap=0;const OP=[0,0,0,.55,.7,.85,.9,.95];
+(function(){let el=null,nextZap=0;const OP=[0,0,0,.55,.7,.85,.9,.95,.97,.99];
   function thunder(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const n=AC.sampleRate*1.2,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2);const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=380;const g=AC.createGain();g.gain.value=.5;s.connect(f);f.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
   function bolt(){const x0=10+Math.random()*80;let x=x0,y=0,pts=[x+',0'];while(y<100){y+=8+Math.random()*10;x+=(Math.random()-.5)*26;pts.push(Math.max(2,Math.min(98,x)).toFixed(1)+','+Math.min(y,100).toFixed(1))}return pts.join(' ')}
   function make(){el=document.createElement('div');el.id='hellFx';el.innerHTML='<div class="fl"></div><svg id="hfB" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" points=""/></svg>';document.body.appendChild(el)}
   function zap(){const sv=el.querySelector('#hfB');sv.style.left=(Math.random()*70)+'%';sv.querySelector('polyline').setAttribute('points',bolt());el.classList.remove('zap');void el.offsetWidth;el.classList.add('zap');setTimeout(thunder,180+Math.random()*250)}
-  setInterval(()=>{try{if(!el)make();const d=(typeof DIFF==='function'&&G)?DIFF():0;const on=!!G&&d>=3&&typeof SCENE!=='undefined'&&SCENE==='over';el.classList.toggle('on',on);if(!on)return;el.style.opacity=OP[Math.min(7,d)];
+  setInterval(()=>{try{if(!el)make();const d=(typeof DIFF==='function'&&G)?DIFF():0;const on=!!G&&d>=3&&typeof SCENE!=='undefined'&&SCENE==='over';el.classList.toggle('on',on);if(!on)return;el.style.opacity=OP[Math.min(9,d)];
     let town=false;try{town=!!genArea(G.a).town}catch(e){}
     if(town&&Date.now()>nextZap){if(nextZap)zap();nextZap=Date.now()+5000+Math.random()*7000}else if(!town)nextZap=0}catch(e){}},500);
 })();
@@ -4610,7 +4610,7 @@ const PXRAW=[
  [6,'유일한','atk spa hp spe.5'],[6,'창조신의','hp def spd atk.5'],[6,'절대자의','atk crt cdm'],[6,'전지전능한','atk spa spe crt.5 cdm.5']];
 const PX=PXRAW.map(([g,n,s],i)=>{const e={};for(const t of s.split(' ')){const m=t.match(/^([a-z]+)([\d.]*)$/);e[m[1]]=+(PXB*(m[2]?+m[2]:1)*PXM[g]).toFixed(1)}return{i,g,n,e}});
 // 난이도별 최고 등급: 쉬움 희귀 · 보통 영웅 · 어려움 전설 · 지옥 환상 · 나이트메어 유일 (환생 1번마다 한 칸 더 · 최대 유일)
-const PXCAP=[1,2,3,5,6,6,6,6];const pxCap=()=>{try{return Math.min(6,PXCAP[Math.min(7,DIFF())]+(G&&G.rebirth||0))}catch(e){return 2}};
+const PXCAP=[1,2,3,5,6,6,6,6,6,6];const pxCap=()=>{try{return Math.min(6,PXCAP[Math.min(9,DIFF())]+(G&&G.rebirth||0))}catch(e){return 2}};
 function pxRoll(){const cap=pxCap(),W=PXW.slice(0,cap+1);let u=R()*W.reduce((a,b)=>a+b,0),g=0;for(;g<W.length;g++){u-=W[g];if(u<0)break}g=Math.min(g,cap);const L=PX.filter(p=>p.g===g&&!p.lim);return L[ri(0,L.length-1)].i}
 const pxOf=m=>m&&m.px!=null?PX[m.px]:null;
 const pxTxt=p=>Object.keys(p.e).map(k=>PXS[k]+' +'+p.e[k]+'%').join(' · ');
@@ -4693,8 +4693,8 @@ try{const h=HUB.find(x=>x.k==='prefix');if(h){h.d+=' 내 캐릭터도 접두사�
 @keyframes pxRb6{0%,100%{box-shadow:0 0 0 4px #ff2aa0,0 0 0 7px #ffd23f,0 0 0 10px #1c2550,0 0 26px #ff2aa0}25%{box-shadow:0 0 0 4px #ffb020,0 0 0 7px #ff2aa0,0 0 0 10px #1c2550,0 0 30px #ffb020}50%{box-shadow:0 0 0 4px #14c8b8,0 0 0 7px #ffd23f,0 0 0 10px #1c2550,0 0 26px #14c8b8}75%{box-shadow:0 0 0 4px #c070ff,0 0 0 7px #ff2aa0,0 0 0 10px #1c2550,0 0 30px #c070ff}}`;document.head.appendChild(c)})();
 
 // ===== 야생에서 접두사 달린 포켓몬이 나와요 (난이도가 높을수록 자주 · 잡으면 그 접두사 그대로!) =====
-const PXWILD=[.08,.12,.16,.2,.25,.3,.35,.4];
-{const _b=battle;battle=function(o){try{if(o&&!o.trainer&&!o.wb&&o.foes)for(const f of o.foes){if(f.px==null&&R()<PXWILD[Math.min(7,DIFF())]){f.px=pxRoll();f.hp=stOf(f)[0];const p=PX[f.px];if(p.g>=1)setTimeout(()=>toast('접두사 포켓몬 등장! ['+PXG[p.g]+'] '+p.n+' '+META[f.n].name+' · 잡으면 접두사 그대로!'),400)}}}catch(e){}return _b.apply(this,arguments)}}
+const PXWILD=[.08,.12,.16,.2,.25,.3,.35,.4,.45,.5];
+{const _b=battle;battle=function(o){try{if(o&&!o.trainer&&!o.wb&&o.foes)for(const f of o.foes){if(f.px==null&&R()<PXWILD[Math.min(9,DIFF())]){f.px=pxRoll();f.hp=stOf(f)[0];const p=PX[f.px];if(p.g>=1)setTimeout(()=>toast('접두사 포켓몬 등장! ['+PXG[p.g]+'] '+p.n+' '+META[f.n].name+' · 잡으면 접두사 그대로!'),400)}}}catch(e){}return _b.apply(this,arguments)}}
 try{const h=HUB.find(x=>x.k==='prefix');if(h)h.d+=' 야생에서도 가끔 접두사 달린 포켓몬이 나와요 (난이도가 높을수록 자주). 잡으면 그 접두사가 그대로 와요!'}catch(e){}
 
 // ===== 아이템 설명 미리 보기: 아이템이 보이는 곳 어디서나 누르면 설명 (data-iv) =====
@@ -4732,7 +4732,7 @@ body.inb #wxBadge{display:none!important}@media (orientation:landscape){#wxBadge
 
 // ===== 난이도마다 한 등급씩 열려요: 쉬움·보통 전설까지 · 어려움 신화 · 지옥 환상 · 나이트메어 유일 =====
 // (야생 · 알 · 보상) · 카드팩과 합성은 어느 난이도든 운 좋으면 신화까지
-const RCAP=[3,3,4,5,6,6,6,6];const rarCap=()=>{try{return RCAP[Math.min(7,DIFF())]}catch(e){return 3}};
+const RCAP=[3,3,4,5,6,6,6,6,6,6];const rarCap=()=>{try{return RCAP[Math.min(9,DIFF())]}catch(e){return 3}};
 const rarCapOk=n=>{try{return rarOf(n)<=rarCap()}catch(e){return true}};
 {const _ri=rollItem;rollItem=function(kind,rar){if(kind!=='P'||window.PKNOCAP)return _ri.apply(this,arguments);const cap=Math.max(4,rarCap());if(rar!=null&&rar>cap)rar=cap;let g=_ri.call(this,kind,rar);for(let i=0;i<6&&g&&g.rar>cap;i++)g=_ri.call(this,kind,cap);return g}}
 try{const h=HUB.find(x=>x.k==='card');if(h)h.d+=' 난이도마다 한 등급씩 열려요: 쉬움·보통 전설까지 · 어려움 신화 · 지옥 환상 · 나이트메어 유일. 카드팩·합성은 어느 난이도든 운 좋으면 신화까지!'}catch(e){}
@@ -5337,11 +5337,11 @@ setInterval(()=>{try{aHealN()}catch(e){}},700);
 try{HUB.push({k:'hitfx',n:'배틀 덧붙임 효과',d:'맞을 때 땅 갈라짐 · 파편 · 화면 깨짐 · 도트 효과를 더 그려요. 기술 이펙트가 가려져서 기본은 꺼져 있어요.',st:()=>G&&G.opt&&G.opt.hitfx===1?'켜짐':'꺼짐',go:[['켜기 / 끄기',()=>{G.opt=G.opt||{};G.opt.hitfx=G.opt.hitfx===1?0:1;save();toast('배틀 덧붙임 효과 '+(G.opt.hitfx===1?'켜짐':'꺼짐'));closePanel(1)}]]})}catch(e){}
 
 // ===== 확률 정보: 확률로 정해지는 건 전부 「뭐가 나오는지 · 몇 %인지」 볼 수 있게 (지금 난이도 기준으로 계산) =====
-const ODN=['쉬움','보통','어려움','지옥','나이트메어','종말','천계','천상계'];
+const ODN=['쉬움','보통','어려움','지옥','나이트메어','종말','천계','천상계','하계','명계'];
 const pct=v=>{v*=100;return String(+v.toFixed(v>=1?1:v>=.1?2:3))+'%'};
 function odRows(L){const mx=Math.max(...L.map(x=>x[1]),1e-9);return `<div class="odt">${L.map(([n,p,c,s])=>`<div class="odr"><b style="${c?'color:'+c:''}">${n}</b><span class="odb"><i style="width:${Math.max(1.5,p/mx*100)}%;${c?'background:'+c:''}"></i></span><em>${pct(p)}</em>${s?`<small>${s}</small>`:''}</div>`).join('')}</div>`}
 function odFold(W,cap){const t=W.reduce((a,b)=>a+b,0),o=W.map(w=>w/t);for(let i=cap+1;i<o.length;i++){o[cap]+=o[i];o[i]=0}return o}
-const odDiff=()=>`<p class="odnow">지금 난이도 <b>${ODN[Math.min(7,DIFF())]}</b>${G&&G.rebirth?' · 환생 '+G.rebirth+'번':''} 기준이에요</p>`;
+const odDiff=()=>`<p class="odnow">지금 난이도 <b>${ODN[Math.min(9,DIFF())]}</b>${G&&G.rebirth?' · 환생 '+G.rebirth+'번':''} 기준이에요</p>`;
 const ODTABS={
  pack:['카드팩',()=>{const cap=Math.max(4,rarCap()),P=odFold(RW,cap),M=odFold(RW.slice(0,4),3);
    return odDiff()+`<h4>포켓몬 카드팩</h4>${odRows(P.map((p,i)=>[RAR[i],p,RARC[i]]).filter((x,i)=>i<=cap))}<p class="hhint">신화 = 메가진화 · 환상 = 거다이맥스 · 유일 = 원시회귀 · 무한다이맥스. 같은 등급 안에서는 어떤 포켓몬이든 똑같은 확률이에요.${cap<6?' 더 높은 등급은 더 어려운 난이도에서 열려요.':''}</p>
@@ -5358,12 +5358,12 @@ const ODTABS={
    return odDiff()+`<h4>부화기에 넣을 때 정해지는 알 등급</h4>${odRows(W.map((w,i)=>[RAR[i]+' 알',w/t,RARC[i],EGGN[i]+'걸음']))}<p class="hhint">알 얻기: 포케스탑 한 번 돌릴 때 6% · 히든 포탈 이기면 25%. 태어날 때 3% 확률로 반짝이는 포켓몬! 안 잡아 본 포켓몬이 잘 나와요.${W.length<5?' 신화 알은 어려움부터.':''}</p>`}],
  px:['접두사',()=>{const cap=pxCap(),W=PXW.slice(0,cap+1),t=W.reduce((a,b)=>a+b,0);
    return odDiff()+`<h4>접두사 주문서 · 야생 접두사 등급</h4>${odRows(W.map((w,i)=>[PXG[i],w/t,PXC[i],'효과 ×'+PXM[i]]))}<p class="hhint">지금 난이도에서는 <b>${PXG[cap]}</b>까지 나와요 (환생할 때마다 한 등급 더). 같은 등급 안에서는 접두사가 똑같은 확률이에요.</p>
-   <h4>야생 포켓몬이 접두사를 달고 나올 확률</h4>${odRows(ODN.map((n,i)=>[n,PXWILD[i],i===Math.min(7,DIFF())?'#ff8a1a':'']))}`}],
+   <h4>야생 포켓몬이 접두사를 달고 나올 확률</h4>${odRows(ODN.map((n,i)=>[n,PXWILD[i],i===Math.min(9,DIFF())?'#ff8a1a':'']))}`}],
  gear:['장비',()=>{const L=[];for(let s=0;s<SFMAX;s++){const r=sfRate(s);L.push(`<div class="sfr${s===15?' sfl':''}"><b>★${s}→${s+1}</b><em class="ok">${pct(r.ok)}</em><em>${pct(r.fail)}${r.drop?' <small>(★ 내려감)</small>':''}</em><em class="br">${r.br?pct(r.br):'-'}</em></div>`)}
    return `<h4>스타포스 강화</h4><div class="sfr sfh"><b>단계</b><em>성공</em><em>실패</em><em>파괴</em></div>${L.join('')}<p class="hhint">스타캐치를 가운데에서 딱 멈추면 성공 확률 ×1.3 (최대 99%). ★15부터 비용 ×2.5, 파괴될 수 있어요.</p>
    <h4>수상한 큐브 (옵션 다시 뽑기)</h4>${odRows([[GGR[0]+' → '+GGR[1],.06,GGC[1]]])}<p class="hhint">수상한 큐브로는 ${GGR[1]}까지만 올라가요.</p>
    <h4>명장의 큐브</h4>${odRows([0,1,2].map(g=>[GGR[g]+' → '+GGR[g+1],[.12,.05,.02][g],GGC[g+1]]))}<p class="hhint">등급이 안 올라도 옵션은 새로 바뀌어요.</p>`}],
- etc:['야생 · 기타',()=>{const d=Math.min(7,DIFF());
+ etc:['야생 · 기타',()=>{const d=Math.min(9,DIFF());
    return odDiff()+`<h4>반짝이는(이로치) 포켓몬</h4>${odRows(ODN.map((n,i)=>[n,1/DSHINY[i],i===d?'#ff8a1a':'','1/'+DSHINY[i]]))}
    <h4>배틀에서 이기면 난이도 보너스 카드팩</h4>${odRows(ODN.map((n,i)=>[n,DPACK[i],i===d?'#ff8a1a':'','트레이너는 ×2']))}<p class="hhint">보너스 카드팩은 포켓몬팩 · 기술팩 반반이에요.</p>
    <h4>히든 포탈 이기면</h4>${odRows([['능력 주문서 (크리티컬 8% · 치명 피해 8% · 공격/체력/방어 84%)',1],['접두사 주문서',.3],['포켓몬 알',.25]])}<p class="hhint">능력 주문서 수치: +1 50% · +2 30% · +3 15% · +4 5%. 포켓몬팩 · 기술팩 1장씩도 줘요.</p>
@@ -5376,7 +5376,7 @@ function odAttach(t,where){setTimeout(()=>{const p=document.querySelector('.pane
 {const _e=eggOpen;eggOpen=function(){const r=_e.apply(this,arguments);odAttach('egg');return r}}
 {const _x=pxBook;pxBook=function(){const r=_x.apply(this,arguments);odAttach('px');return r}}
 {const _g=gearOpen;gearOpen=async function(tab){const r=await _g.apply(this,arguments);if(tab==='sf'||tab==='cube')odAttach('gear');return r}}
-try{HUB.push({k:'odds',n:'확률 정보',d:'카드팩 · 합성 · 포케스탑 · 알 · 접두사 · 장비 강화 · 이로치까지, 확률로 정해지는 건 뭐가 나오는지와 몇 %인지 전부 여기서 봐요. 지금 난이도 기준으로 계산해요.',st:()=>'난이도 '+ODN[Math.min(7,DIFF())]+' 기준',go:[['확률 보기',()=>oddsOpen('pack')]]});HUBIC.odds='ic_quest'}catch(e){}
+try{HUB.push({k:'odds',n:'확률 정보',d:'카드팩 · 합성 · 포케스탑 · 알 · 접두사 · 장비 강화 · 이로치까지, 확률로 정해지는 건 뭐가 나오는지와 몇 %인지 전부 여기서 봐요. 지금 난이도 기준으로 계산해요.',st:()=>'난이도 '+ODN[Math.min(9,DIFF())]+' 기준',go:[['확률 보기',()=>oddsOpen('pack')]]});HUBIC.odds='ic_quest'}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`
 .odtabs{display:flex;flex-wrap:wrap;gap:4px;margin:2px 2px 8px}.odnow{margin:4px 4px 8px;font-size:14px}
 #odB h4{margin:14px 4px 6px;font:700 17px 'Galmuri11',sans-serif;color:#1c2550}
@@ -8027,9 +8027,9 @@ try{HUB.push({k:'trans',n:'승급 · 초월 (좋아하는 포켓몬을 만제까
 // ===== 9C 천계 새 스토리: 호연 지방 (천계·천상계 난이도에서 이야기 무대가 호연으로 바뀌어요) =====
 // 지도: maps/hNN.json + hNN_lo/hi.webp (레조넌스 호연 지도를 변환) · 관장/사천왕/챔피언 · 야생 포켓몬(호연 도감 위주) · 트레이너 2배
 (function(){try{
-window.REGCUR='m';const RESDA={m:null,h:null,s:null};
+window.REGCUR='m';const RESDA={m:null,h:null,s:null,u:null,d:null};
 // 9AT: 천계 = 호연 · 천상계 = 신오
-const REGOF=()=>DIFF()>=7&&RESDA.s?'s':DIFF()>=6&&RESDA.h?'h':'m';window.REGOF=REGOF;
+const REGOF=()=>DIFF()>=9&&RESDA.d?'d':DIFF()>=8&&RESDA.u?'u':DIFF()>=7&&RESDA.s?'s':DIFF()>=6&&RESDA.h?'h':'m';window.REGOF=REGOF;
 const XH=[[null,0],[1,0],[2,5],[2,['w',79,6]],[0,3],[2,0],[3,1],[1,7],[0,['w',12,15]],[0,1],[3,2],[0,2],[2,3],[1,8],[8,1],[7,0],[5,15],[3,6],[['w',18,41],null]];
 for(let a=19;a<=26;a++){const s=XH[UMAP[a]];XH[a]=[a===19?null:s[0],a===26?null:s[1]]}
 const XS=[[null,1],[0,3],[0,7],[0,2],[4,7],[0,3],[0,1],[0,2],[3,6],[2,3],[0,7],[0,4],[3,4],[0,2],[0,2],[0,6],[0,1],[1,4],[2,null]];
@@ -8077,6 +8077,15 @@ const R={m:null,h:{
     {pre:['사천왕 오엽입니다. 책을 읽듯 당신의 수를 읽어 드리죠.','에스퍼 포켓몬의 힘, 넘어설 수 있을까요?'],win:['…훌륭합니다. 챔피언이 기다리고 있어요.']}],
   ch:{spr:'CHAMPION_Cynthia',n:'챔피언 난천',dex:[442,407,468,448,350,445],pre:()=>['어서 와, '+(G.name||'친구')+'. 나는 신오 지방의 챔피언, 난천.','천상계의 끝, 마지막 시험이야. 나의 한카리아스와 함께 전력으로 갈게!']}}};
 const cp=o=>JSON.parse(JSON.stringify(o));
+// ===== 10A 하계 · 명계: 신오 지도를 어둡게 뒤집어 재사용 =====
+{const mk=(tag,pfx,chn,chspr,chdex,prel)=>{const o=cp(R.s);
+  o.gym.forEach(g=>{g.n=g.n.replace('관장 ',pfx+' 관장 ')});
+  o.gl.forEach(l=>{l.pre=[l.pre[0].replace(/\S+체육관/,tag+'체육관')].concat(['…'+tag+'까지 내려온 너, 돌아갈 길은 이미 없어.']);l.lose=['…'+tag+'의 어둠은 너를 놓아주지 않아.']});
+  o.el.forEach(l=>{l.pre=[l.pre[0],tag+'에서 살아 돌아간 자는 없다…'];});
+  o.r17=tag+' · 챔피언 로드';
+  o.ch={spr:chspr,n:chn,dex:chdex,pre:prel};return o};
+ R.u=mk('하계','왜곡','반전의 군주 기라티나','CHAMPION_Cynthia',[429,442,477,354,94,487],()=>['…여기까지 내려오다니. 나는 '+(G.name||'너')+'를 기다렸다.','창조가 갈라진 곳, 반전세계의 군주 기라티나다. 이 세계에서 빛은 오래 버티지 못해!']);
+ R.d=mk('명계','기억의','기억의 화신 아르세우스','CHAMPION_Cynthia',[483,484,487,150,384,493],()=>['모든 포켓몬의 기억이 이곳에 모인다…','나는 아르세우스의 그림자. 지나온 모든 승부를 이겨 낸 너를, 마지막으로 시험하겠다.'])}
 function snapM(){if(R.m)return;R.m={X:RESX.map(x=>x&&x.slice()),towns:RES_TOWNS.slice(),gym:GYM.slice(0,8).map(g=>({t:g.t,n:g.n,c:g.c})),gbg:GYMBG.slice(),gwx:GYMWX.slice(),trg:TRS.gym.slice(),tre:TRS.elite.slice(),elite:cp(ELITE),gl:cp(GLINE),el:cp(ELINE),ch:null}}
 function apply(r){const D=R[r];if(!D||!RESDA[r])return;
   RESX.splice(0,RESX.length,...D.X.map(x=>x&&x.slice()));RESD=RESDA[r];
@@ -8090,7 +8099,7 @@ function apply(r){const D=R[r];if(!D||!RESDA[r])return;
 function fixPos(){if(!G)return;if(G.reg===REGCUR)return;const first=G.reg!=null;G.reg=REGCUR;if(!first&&REGCUR==='m')return;
   try{const A=genArea(G.a),c=A.bld.find(b=>b.kind==='center')||A.bld.find(b=>b.kind==='home')||A.bld.find(b=>b.kind==='league');const s=c?c.out:A.spawn;G.x=P.x=s.x;G.y=P.y=s.y;
     const H=genArea(G.heal&&G.heal.a!=null&&G.heal.a<19?G.heal.a:0),hc=H.bld.find(b=>b.kind==='center')||H.bld.find(b=>b.kind==='home');G.heal=hc?{a:H.a,x:hc.out.x,y:hc.out.y}:{a:0,x:H.spawn.x,y:H.spawn.y}}catch(e){console.warn('9C pos',e)}}
-window.regSync=function(){if(!RESOK)return;snapM();if(!RESDA.m)RESDA.m=RESD;if(!RESDA.h||!RESDA.s){regLoad();}const r=REGOF();if(r!==REGCUR){apply(r)}if(G&&G.reg!==REGCUR){G._regFix=1}};
+window.regSync=function(){if(!RESOK)return;snapM();if(!RESDA.m)RESDA.m=RESD;if(!RESDA.h||!RESDA.s){regLoad();}if(RESDA.s){RESDA.u=RESDA.s;RESDA.d=RESDA.s}const r=REGOF();if(r!==REGCUR){apply(r)}if(G&&G.reg!==REGCUR){G._regFix=1}};
 // 지도 불러오기: 관동(원래) + 호연
 let RLB={};window.regLoad=async function(){for(const rg of ['h','s']){if(RESDA[rg]||RLB[rg])continue;RLB[rg]=1;try{const XX=rg==='s'?XS:XH;const L=await Promise.all(XX.map((_,a)=>fetch('maps/'+rg+String(UMAP[a]??a).padStart(2,'0')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)));
   if(L.every(Boolean)){const D={};L.forEach((j,a)=>D[a]=j);RESDA[rg]=D;
@@ -8098,15 +8107,16 @@ let RLB={};window.regLoad=async function(){for(const rg of ['h','s']){if(RESDA[r
     if(G&&SCENE!=='title'&&REGOF()!==REGCUR){try{regSync();const A=genArea(G.a);place(G.a,G.x,G.y,G.dir)}catch(e){}}}else RLB[rg]=0}catch(e){RLB[rg]=0;console.warn('9C 지도 '+rg,e)}}};
 regLoad();
 // 지도 그림: 지금 지방 글자(m/h)로
-{const _ri=resImg;resImg=function(a,k){if(REGCUR==='m')return _ri(a,k);const key=REGCUR+a+k;if(!RIMG[key]){const src='maps/'+REGCUR+String(UMAP[a]??a).padStart(2,'0')+'_'+k+'.webp';const i=new Image();i.decoding='async';
-  if(UTINT[a]){const o=new Image();o.onload=()=>{try{const c=document.createElement('canvas');c.width=o.naturalWidth;c.height=o.naturalHeight;const g=c.getContext('2d');g.filter=UTINT[a];g.drawImage(o,0,0);c.toBlob(b=>{i.src=URL.createObjectURL(b)},'image/webp',.9)}catch(e){i.src=src}};o.src=src}else i.src=src;RIMG[key]=i}return RIMG[key]}}
+{const _ri=resImg;resImg=function(a,k){if(REGCUR==='m')return _ri(a,k);const key=REGCUR+a+k;if(!RIMG[key]){const _RL=(REGCUR==='u'||REGCUR==='d')?'s':REGCUR;const src='maps/'+_RL+String(UMAP[a]??a).padStart(2,'0')+'_'+k+'.webp';const i=new Image();i.decoding='async';
+  const _tt=(UTINT[a]||'')+(REGCUR==='u'?' hue-rotate(250deg) saturate(.75) brightness(.5) contrast(1.15)':REGCUR==='d'?' grayscale(.85) hue-rotate(190deg) brightness(.32) contrast(1.3)':'');
+  if(_tt){const o=new Image();o.onload=()=>{try{const c=document.createElement('canvas');c.width=o.naturalWidth;c.height=o.naturalHeight;const g=c.getContext('2d');g.filter=_tt;g.drawImage(o,0,0);c.toBlob(b=>{i.src=URL.createObjectURL(b)},'image/webp',.9)}catch(e){i.src=src}};o.src=src}else i.src=src;RIMG[key]=i}return RIMG[key]}}
 {const _ga=genArea;genArea=function(a){try{regSync()}catch(e){}const A=_ga(a);if(G&&G._regFix&&a===G.a&&A){delete G._regFix;fixPos()}return A}}
 // 야생 포켓몬: 호연에선 호연 도감(252~386번) 포켓몬이 주로 나와요
-{const _et=encTable;encTable=function(a){const T=_et(a);if(REGCUR!=='h'&&REGCUR!=='s')return T;try{const r=rng(G.seed*7+a*313);const D0=REGCUR==='s'?387:252,D1=REGCUR==='s'?493:386;const HO=SPECIES.filter(s=>{const d=META[s].dex;return d>=D0&&d<=D1&&!META[s].form});
+{const _et=encTable;encTable=function(a){const T=_et(a);if(REGCUR==='m')return T;try{const r=rng(G.seed*7+a*313);const D0=REGCUR!=='h'?387:252,D1=REGCUR!=='h'?493:386;const HO=SPECIES.filter(s=>{const d=META[s].dex;return d>=D0&&d<=D1&&!META[s].form});
   const sw=(L,water)=>L.map(e=>{const b=bst(META[e.n].stats),d=META[e.n].dex;if(d>=D0&&d<=D1||r()>.8)return e;const C=HO.filter(s=>Math.abs(bst(META[s].stats)-b)<=70&&(!water||META[s].types.includes('WATER'))&&rarOf(s)<=Math.max(2,rarOf(e.n)));return C.length?{n:C[r()*C.length|0],w:e.w}:e});
   return{g:sw(T.g,0),w:sw(T.w,1)}}catch(e){return T}}}
 // 챔피언: 호연에선 윤진 (에이스 가이오가)
-window.regChamp=function(){if(REGCUR!=='h'&&REGCUR!=='s')return null;const C=R[REGCUR].ch;return{spr:C.spr,n:C.n,pre:C.pre(),team:(n,lvs)=>C.dex.slice(-n).map((d,i)=>mkMon(BYDEX[d]||SPECIES[0],lvs[i]))}};
+window.regChamp=function(){if(REGCUR==='m')return null;const C=R[REGCUR].ch;return{spr:C.spr,n:C.n,pre:C.pre(),team:(n,lvs)=>C.dex.slice(-n).map((d,i)=>mkMon(BYDEX[d]||SPECIES[0],lvs[i]))}};
 }catch(e){console.warn('9C 호연',e)}})();
 </script>
 
@@ -8151,7 +8161,7 @@ chSend=async function(ty,text,mon,ex){if(!G||!G.pid){toast('먼저 게임을 시
 // 보이는 모양: 칭호 · 전투력 · 덱 얼굴
 const ttl=o=>o.tk?`<u class="cptk">${o.tk==='ch6'||o.tk==='ch7'?(window.CPH?CPH(o.tk):esc(CP.title(o.tk))):esc(CP.title(o.tk))}</u>`:'',cpe=o=>o.pm?`<em class="cpv">⚡${o.pv>=1e4?(o.pv/1e4).toFixed(1)+'만':fmtN(o.pv)}</em>`:'';
 {const _n=chName;chName=function(o){let h=_n.apply(this,arguments);try{h=h.replace('<span class="chhd">','<span class="chhd">'+ttl(o));h=h.replace(/<\/b><\/span>$/,'</b>'+cpe(o)+'</span>')}catch(e){}return h}}
-const advS=o=>{let v0=o.adv;if(!v0){try{for(let i=CHM.length-1;i>=0;i--){const x=CHM[i];if(x.pid===o.pid&&x.adv){v0=x.adv;break}}}catch(e){}}if(!v0)return'';const v=v0,rb=Math.floor(v/1e6),d=Math.floor(v/1e5)%10,S=Math.floor(v/1e3)%100;const st=S===0?'시작':S<8?'배지 '+S:S===8?'리그':S===9?'챔피언':'상위 '+(S-9);return `<em class="chadv chadv2">${rb?'<b class="chrb">'+rb+'환생</b>':''}<span class="dfx d${Math.min(7,d)}"><i></i><i></i>${DNAME[d]||''}</span><u>${st}</u></em>`};   /* 9H 진행도 꼬리표 */
+const advS=o=>{let v0=o.adv;if(!v0){try{for(let i=CHM.length-1;i>=0;i--){const x=CHM[i];if(x.pid===o.pid&&x.adv){v0=x.adv;break}}}catch(e){}}if(!v0)return'';const v=v0,rb=Math.floor(v/1e6),d=Math.floor(v/1e5)%10,S=Math.floor(v/1e3)%100;const st=S===0?'시작':S<8?'배지 '+S:S===8?'리그':S===9?'챔피언':'상위 '+(S-9);return `<em class="chadv chadv2">${rb?'<b class="chrb">'+rb+'환생</b>':''}<span class="dfx d${Math.min(9,d)}"><i></i><i></i>${DNAME[d]||''}</span><u>${st}</u></em>`};   /* 9H 진행도 꼬리표 */
 {const _r=chRow;chRow=function(o){let h=_r.apply(this,arguments);if(!h)return h;try{{const ad=advS(o);h=h.replace('<small class="cht">',ad+(ad?'':ttl(o))+cpe(o)+'<small class="cht">')}
   if(o.ty==='d')h=h.replace(/<\/div><\/div>$/,'<div class="cpdk">'+o.dl.map(n=>`<img src="${THUMB[n]||''}" alt="">`).join('')+'</div></div></div>');
   else if(o.ty==='c')h=h.replace(/<\/div><\/div>$/,'<div class="cpbig">⚡ '+fmtN(o.bv)+'</div></div></div>')}catch(e){}return h}}
@@ -8375,13 +8385,13 @@ function rbSummary(){const n=G.rebirth||0,nx=n+1,cap=rbCap(nx);return `<div clas
 • ${cap?'다음 <b>'+nx+'번째 환생</b>은 포켓몬 <b>'+cap+'마리</b>만 데려가요':'다음 <b>'+nx+'번째 환생</b>은 포켓몬을 전부 데려가요'}</div>`}
 function rbInfoOpen(){if(!G)return;const n=G.rebirth||0,nx=n+1,can=!!G.champ,m0=G.party[0];
   const pre=m0?`<div class="awx-c"><b class="t">🔮 다음 환생 미리보기</b>능력치 환생 보너스 +${Math.round(n*REBSTAT*100)}% → <b>+${Math.round(nx*REBSTAT*100)}%</b><br>별 칸 ${awSlots()} → <b>${Math.min(AWMAX,awSlots()+1)}</b> / ${AWMAX}<br><span style="display:inline-block;margin:4px 0">지금 ${awStarsRaw(awOf(m0),awSlots())}</span><br><span style="display:inline-block">환생 후 ${awStarsRaw(awOf(m0),Math.min(AWMAX,awSlots()+1))}</span><br><small>${nm(m0)} 기준 · 금색 ★이 새로 열리는 칸이에요</small><div class="awbt"><button data-ra="1">🌀 환생 오라 미리보기</button></div></div>`:'';
-  openPanel('🌀 환생',`<div class="awx-c" style="background:${can?'#e6ffe9':'#fffdf0'}"><b class="t">${can?'✅ 지금 환생할 수 있어요!':'🔒 아직 환생할 수 없어요'}</b>${can?'챔피언이 됐어요! 아래 「환생하기」로 다음 난이도(<b>'+DNAME[Math.min(7,DIFF()+1)]+'</b>)에 도전해요.':'<b>챔피언</b>이 되면 환생할 수 있어요. (지금 난이도 '+DNAME[DIFF()]+')'}</div>
+  openPanel('🌀 환생',`<div class="awx-c" style="background:${can?'#e6ffe9':'#fffdf0'}"><b class="t">${can?'✅ 지금 환생할 수 있어요!':'🔒 아직 환생할 수 없어요'}</b>${can?'챔피언이 됐어요! 아래 「환생하기」로 다음 난이도(<b>'+DNAME[Math.min(9,DIFF()+1)]+'</b>)에 도전해요.':'<b>챔피언</b>이 되면 환생할 수 있어요. (지금 난이도 '+DNAME[DIFF()]+')'}</div>
     <div class="wbt"><button class="main" id="rbiGo">${can?'🌀 환생하기':'환생 조건 보기'}</button></div>${pre}${rbSummary()}<div class="awbt"><button data-awx="1">⭐ 각성 설명 · 각성 화면</button></div>`,null,p=>{
     p.querySelector('#rbiGo').onclick=()=>{sfx('tap');if(can){closePanel(1);rebirthOpen()}else ovBox('환생 조건','환생은 <b>챔피언이 된 뒤</b>에 할 수 있어요.<br>지금 난이도 <b>'+DNAME[DIFF()]+'</b>의 챔피언(리그 우승)이 되면, 환생 안내창이 바로 떠요!',[{t:'확인',main:1,v:1}])};
     const ra=p.querySelector('[data-ra]');if(ra)ra.onclick=()=>{sfx('tap');if(m0)rbAuraPreview(m0)};
     const a=p.querySelector('[data-awx]');if(a)a.onclick=()=>{sfx('tap');awOpen()}})}
 async function rbReadyPop(){const n=(G.rebirth||0)+1,cap=rbCap(n);
-  const v=await ovBox('🌀 환생할 수 있어요!',`챔피언이 되어서 <b>${n}번째 환생</b>을 할 수 있어요!<br><br>• 난이도 <b>${DNAME[Math.min(7,DIFF()+1)]}</b>(으)로 처음부터 · 능력치 +${Math.round(REBSTAT*100)}%<br>• ⭐ <b>각성 별 칸</b>이 1개 열려요<br>• 기술 초월<br>${cap?'<br>⚠️ 이번에는 포켓몬을 <b>'+cap+'마리만</b> 데려가요!':''}<br><small>지금 안 해도 돼요. 사이드 메뉴 「환생」에서 언제든 할 수 있어요.</small>`,[{t:'📖 설명 · 미리보기 보기',main:1,v:'info'},{t:'🌀 바로 환생하기',v:'go'},{t:'나중에',v:false}]);
+  const v=await ovBox('🌀 환생할 수 있어요!',`챔피언이 되어서 <b>${n}번째 환생</b>을 할 수 있어요!<br><br>• 난이도 <b>${DNAME[Math.min(9,DIFF()+1)]}</b>(으)로 처음부터 · 능력치 +${Math.round(REBSTAT*100)}%<br>• ⭐ <b>각성 별 칸</b>이 1개 열려요<br>• 기술 초월<br>${cap?'<br>⚠️ 이번에는 포켓몬을 <b>'+cap+'마리만</b> 데려가요!':''}<br><small>지금 안 해도 돼요. 사이드 메뉴 「환생」에서 언제든 할 수 있어요.</small>`,[{t:'📖 설명 · 미리보기 보기',main:1,v:'info'},{t:'🌀 바로 환생하기',v:'go'},{t:'나중에',v:false}]);
   if(v==='info')rbInfoOpen();else if(v==='go')rebirthOpen()}
 setInterval(()=>{try{if(!G||!G.champ||SCENE!=='over'||PANEL||DLG.on)return;if(document.querySelector('#clrOv,#itInfo,#gAsk,#awOv,#lgOv,#rbPk,#dlg.on'))return;G.opt=G.opt||{};const key=String(G.rebirth||0);if(G.opt.rbPop===key)return;G.opt.rbPop=key;save();rbReadyPop()}catch(e){}},2500);
 
@@ -8797,7 +8807,7 @@ window.rtGo=rtGo;
 // ===== 6F-2: 진짜 야생 조우를 새 전투로 (GM/운영자가 켰을 때만 · 자동 중에는 예전 전투) =====
 const rtWildOn=()=>{try{return !!(G&&G.opt&&G.opt.rtWild!==false&&!BS.on)}catch(e){return false}};   // 7C: 모두에게 기본 ON (메뉴 → 🔧 설정에서 끄기)   // 7A: 자동(AUTO) 중에도 새 전투 (내 포켓몬은 AI가 조종)
 // 7D: 숫자 배율 K = 10^(표시레벨/200) → Lv.1 ×1 · Lv.100 ×3 · 환생3(Lv.400) ×100 · 환생9(Lv.1000) ×10만 (체력·데미지 숫자만, 승패 밸런스와 무관)
-const rtNumK=m=>{try{return Math.min(1e9,Math.pow(10,dLv(m)/200)*(DIFF()>=7?100:DIFF()>=6?10:1))}catch(e){return 1}};   // 9C: 천계 숫자 ×10 · 천상계 ×100 (보이는 숫자만)
+const rtNumK=m=>{try{return Math.min(1e9,Math.pow(10,dLv(m)/200)*(DIFF()>=9?1e4:DIFF()>=8?1e3:DIFF()>=7?100:DIFF()>=6?10:1))}catch(e){return 1}};   // 9C: 천계 숫자 ×10 · 천상계 ×100 (보이는 숫자만)
 // 7D: 예전 전투와 같은 보정 — 기술 레벨(+8%/레벨) · 난이도별 상대 데미지(DDMG)
 const rtDmgMul=(a,d,id)=>{let k=1;try{k*=awDmgOf(a,id)}catch(e){}try{if(a&&a.moves&&a.moves.includes(id))k*=1+.08*(mlv(a,id)-1)}catch(e){}try{if(!isMine(a))k*=DDMG[DIFF()]}catch(e){}
   // 환생하면 체력이 ×(1+0.4×환생)으로 커지는데 데미지는 그대로라 실시간 전투가 너무 길어짐(환생9 트레이너 74초) → 데미지도 같은 배율(양쪽 똑같이, 밸런스 그대로)
@@ -8858,9 +8868,9 @@ async function rtWild(o){
   try{FX2.clear()}catch(e){}
   try{BGM.battle(o)}catch(e){}try{sfx('enc')}catch(e){}
   // AI 단계: 야생=W · 트레이너는 난이도(0~5)별 T1,T2,G4,T4,T5,REF · 관장·사천왕·챔피언은 한 단계 위
-  const TIERS=['W','T1','T1','T2','T2','G4','G4','G4','G4'];   // 9E: 컴퓨터가 너무 잘 피해서 조작이 안 통함 → 전부 낮춤(어려움은 체력·데미지 배율로)
-  const WTIERS=['W','W','W','W','T1','T1','T2','T2'];   // 7D: 야생도 난이도 따라 (예전 턴제 승률과 맞춤 — 지옥↑에서 야생이 너무 쉬웠음)
-  const tier=!tr?WTIERS[Math.min(7,Math.max(0,DIFF()))]:TIERS[Math.min(7,Math.max(0,DIFF())+((o.gym||o.league||/관장|챔피언|사천왕/.test(o.trainer))?1:0))];
+  const TIERS=['W','T1','T1','T2','T2','G4','G4','G4','G4','G4','G4'];   // 9E: 컴퓨터가 너무 잘 피해서 조작이 안 통함 → 전부 낮춤(어려움은 체력·데미지 배율로)
+  const WTIERS=['W','W','W','W','T1','T1','T2','T2','T2','T2'];   // 7D: 야생도 난이도 따라 (예전 턴제 승률과 맞춤 — 지옥↑에서 야생이 너무 쉬웠음)
+  const tier=!tr?WTIERS[Math.min(9,Math.max(0,DIFF()))]:TIERS[Math.min(9,Math.max(0,DIFF())+((o.gym||o.league||/관장|챔피언|사천왕/.test(o.trainer))?1:0))];
   const balls=()=>BALLS().map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0}));
   const takeBall=k=>{const it=ITEMS[k];if(!it||(G.bag[k]||0)<=0)return null;G.bag[k]--;let r=it;
     if(it.ball&&it.ball<255&&(G.bag.razz||0)>0&&G.opt.razz!==false){G.bag.razz--;r=Object.assign({},it,{ball:it.ball*1.5});try{toast('🍓 라즈열매를 먼저 줬다! 잡기 쉬워졌다')}catch(e){}}return r};
@@ -9058,7 +9068,7 @@ const fix=()=>{try{if(G)apply(cur())}catch(e){}};setInterval(fix,5000);fix();
 // 챔피언이 되면 서버(pokeBoss/first-dN/players/{기기id} = {name, dmg:난이도, t})에 기록 → 가장 먼저 기록한 친구가 그 난이도 「최초 정복」 접두사(내 캐릭터 접두사 칸)
 // 이번 업데이트부터 기록돼요(예전 기록은 서버에 없어서)
 (function(){try{
-const FN=['새싹 개척자의','모험 개척자의','용맹한 정복자의','지옥 정복자의','악몽 정복자의','종말 정복자의','천계 정복자의','천상계 정복자의'];
+const FN=['새싹 개척자의','모험 개척자의','용맹한 정복자의','지옥 정복자의','악몽 정복자의','종말 정복자의','천계 정복자의','천상계 정복자의','하계 정복자의','명계 정복자의'];
 PXG[7]='최초 정복';PXC[7]='#ffd700';PXM[7]=9;
 const B0=PX.length;FN.forEach((n,d)=>{const k=1+d*.15;PX.push({i:B0+d,g:7,n,lim:1,fd:d,e:{atk:+(27*k).toFixed(1),spa:+(27*k).toFixed(1),hp:+(27*k).toFixed(1),spe:+(13.5*k).toFixed(1),crt:+(9*k).toFixed(1),cdm:+(18*k).toFixed(1)}})});
 window.FPX0=B0;
@@ -10260,7 +10270,7 @@ window.gSell=function(k){if(!G.me||!G.me.own.includes(k))return;const pr=gPrice(
 // 출결에서 캐릭터를 다시 가져와도 판 장비는 다시 안 들어와요
 {const _ma=meApply;meApply=async function(){const r=await _ma.apply(this,arguments);try{if(G.me&&G.gsold&&G.gsold.length){const T=new Set(G.gsold);G.me.own=G.me.own.filter(k=>!T.has(k)||Object.values(G.me.eq||{}).includes(k));save()}}catch(e){}return r}}
 // 등급 확률: 기본 레전드리 0.1% · 유니크 1% · 에픽 10% · 나머지 레어 / 단계(난이도)가 높을수록 조금씩 ↑ (단계당 +12%)
-function rollGrade(d){const f=1+.12*Math.max(0,Math.min(7,d|0)),u=Math.random();return u<.001*f?3:u<(.001+.01)*f?2:u<(.001+.01+.10)*f?1:0}
+function rollGrade(d){const f=1+.12*Math.max(0,Math.min(9,d|0)),u=Math.random();return u<.001*f?3:u<(.001+.01)*f?2:u<(.001+.01+.10)*f?1:0}
 // 월드보스 주간 순위별 등급 확률(%): [레전드리, 유니크, 에픽] · 1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지
 const WBG=[[5,20,45],[3,15,40],[2,12,35],[1,8,30],[.5,5,25],[.2,3,20]];
 function rollTier(t){const q=WBG[Math.max(0,Math.min(5,t|0))],u=Math.random()*100;return u<q[0]?3:u<q[0]+q[1]?2:u<q[0]+q[1]+q[2]?1:0}
