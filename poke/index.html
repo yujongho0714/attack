@@ -10244,7 +10244,7 @@ async function giveGear(g){
   toast('🎁 장비 획득! <b style="color:'+GGC[g]+'">['+GGR[g]+']</b> '+((meItem(k)||{}).n||k));return true}
 async function gDrop(opt){opt=opt||{};
   if(!G||!G.me||!G.me.own)return;if(!opt.sure&&Math.random()>=GDROP)return;
-  await giveGear(opt.tier!=null?rollTier(opt.tier):Math.min(opt.cap!=null?opt.cap:3,rollGrade(opt.d||0)))}
+  await giveGear(opt.tier!=null?rollTier(opt.tier):(opt.l&&Math.random()<opt.l?3:opt.u&&Math.random()<opt.u?2:Math.min(opt.cap!=null?opt.cap:3,rollGrade(opt.d||0))))}
 // 월드보스 순위 보상 = 큐브 (장비는 사냥 · 트레이너 · 챔피언에서만)
 // 일반: 명장의 큐브 · 카오스: 카오스 큐브(등급업 확률 +1%p) / 순위 구간 = 1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지
 const WBCUBE={n:['cube2',[20,16,13,10,7,5]],c:['cube3',[10,8,7,5,4,3]]};
@@ -10260,7 +10260,7 @@ window.gDrop=gDrop;
 {const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{
   if(o&&!o.pvp){let d=0;try{d=DIFF()}catch(e){}
     if(o.wb){}   // 월드보스 도전에서는 장비가 안 나와요 (순위 보상은 큐브)
-    else if(r==='win')await gDrop({d,cap:1})}   // 필드사냥 · 트레이너 · 관장 · 챔피언: 장비 드롭 20% · 에픽까지만
+    else if(r==='win')await gDrop({d,cap:1,u:d>=6?.03:0,l:d>=7?.01:0})}   // 필드사냥 · 트레이너 · 관장 · 챔피언: 장비 드롭 20% · 에픽까지만 (천계 이상은 드롭마다 3%로 유니크 · 천상계는 거기에 1%로 레전드리)
   }catch(e){console.warn('gDrop',e)}return r}}
 const st=document.createElement('style');st.textContent='.gsell{background:#ffd23f!important;color:#2c3050!important}';document.head.appendChild(st);
 }catch(e){console.warn('gdrop 로드 실패',e)}})();
