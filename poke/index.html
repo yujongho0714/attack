@@ -3484,7 +3484,7 @@ const HITFX=()=>!!(G&&G.opt&&G.opt.hitfx===1);
 // ===== 타격감: 진짜 효과음 + 부서지는 연출 (땅 갈라짐 · 파편 · 화면 깨짐 · 쓰러질 때 산산조각) =====
 const SFXP='sfx/',SBUF={},SLOAD={};
 function snd(k,v){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const play=b=>{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;s.playbackRate.value=.92+Math.random()*.16;g.gain.value=(v||.5)*(G&&G.opt&&G.opt.vol!=null?G.opt.vol:1);s.connect(g);g.connect(AC.destination);s.start()};
-  if(SBUF[k])return play(SBUF[k]);if(SLOAD[k])return;SLOAD[k]=fetch(SFXP+k+'.mp3').then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(b=>{SBUF[k]=b;play(b)}).catch(()=>{})}catch(e){}}
+  if(SBUF[k])return play(SBUF[k]);if(SLOAD[k])return;SLOAD[k]=fetch(SFXP+k+'.mp3').then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(b=>{SBUF[k]=b;play(b)}).catch(()=>{delete SLOAD[k]})}catch(e){}}
 // 미리 받아 두기 (배틀에서 처음 소리가 늦지 않게)
 setTimeout(()=>{try{['hit_light','hit_heavy','crit','shatter','ep_shatter','super_eff','not_eff','ko','miss','dash','heal'].forEach(k=>{AC=AC||new (window.AudioContext||window.webkitAudioContext)();SLOAD[k]=fetch(SFXP+k+'.mp3').then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(b=>SBUF[k]=b).catch(()=>{})})}catch(e){}},2500);
 // 기존 삑삑 소리를 진짜 효과음으로
@@ -10271,4 +10271,5 @@ const st=document.createElement('style');st.textContent='.gsell{background:#ffd2
   const st=document.createElement('style');st.textContent='#hObjW,#mini,#wbHud,#reqHud .rqh{touch-action:none}.hdg{outline:2px dashed #ffd23f;opacity:.88}';document.head.appendChild(st);
   setInterval(scan,800);scan();
   addEventListener('resize',()=>{for(const id in P){const el=document.getElementById(id);if(el&&P[id]){el.style.translate='0px 0px';P[id]=[0,0];el.style.translate=''}}sv()})})();
-</script></body></html>
+</script>
+<script src="pk-patch.js"></script></body></html>

@@ -279,6 +279,7 @@ function dealDamage(att,def,mi,opt){
   if(def.hp<=0&&def.undying&&!def._ud){def._ud=1;def.hp=Math.round(def.max*.5);const s=def.aw>0?10+3*(def.aw-1):1;def.inv=Math.max(def.inv||0,Math.round(s*60));def.invMax=def.inv;cancelCast&&def.cast&&cancelCast(def,true);floatTxt(def.x,def.y-125,'불멸 부활!'+(def.aw>0?' 무적 '+s+'초':''),'#8fb4ff',true);W.hitstop=Math.max(W.hitstop||0,.15);try{W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.5,r:110,c:'#8fb4ff'})}catch(er){}}   // 9B 불멸: 한 번 버팀
   def.flash=.15;
   if(dmg>0){
+    try{window.PKS&&PKS.hit(m,e,crit,!att.side)}catch(er){}
     W._dp={dmg,raw:Math.max(rawD,dmg>0?1:0),e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
     if(e>1)floatTxt(def.x,def.y-95,'효과 굉장!','#ffb030');
     if(e<1&&e>0)floatTxt(def.x,def.y-95,'별로…','#9bb');
@@ -384,6 +385,7 @@ function startCast(e,i,aimDir,dist){
   if(!e.side&&C.onUse){try{const up=C.onUse(e.mon,m.id);if(up)floatTxt(e.x,e.y-130,'⬆ '+m.name+' Lv.'+up,'#ffd23f',true)}catch(er){}}   // 7G 기술 레벨 올리기
   if(m.ramp){cast.pm=RAMP.powerMul;e.ramp={mi:i,left:(RAMP.min-1)+(rnd()<.5?1:0)}}   // 연속기: 2~3번, 한 번 위력 ×0.75
   e.anim=m.melee?'attack':'shoot';e.at=0;
+  try{window.PKS&&PKS.cast(m,!e.side)}catch(er){}
   W.fx.push({k:'callout',x:e.x,y:e.y-120,t:0,life:.9,s:m.name,c:C.TCOL[m.type]||'#fff'});
 }
 function phaseTo(e,ph,ticks){e.cast.phase=ph;e.cast.t=0;e.cast.len=ticks}
@@ -557,6 +559,7 @@ function update(){
   W.time+=TICK;
   if(W.swCd>0)W.swCd=Math.max(0,W.swCd-TICK);   // 6F-4b: 교체 쿨타임
   if(W.itCd>0)W.itCd=Math.max(0,W.itCd-TICK);   // 6F-4c: 약 쿨타임
+  try{autoSwapChk()}catch(er){}
   if(autoNow())autoMe(me,foe);else playerInput(me);
   updBall();
   aiUpdate(foe,W.ai,me);
@@ -668,7 +671,8 @@ function update(){
     else if(W.time>=(C.maxTime||180)){if(C.noTimeLimit)finish('draw');else finish(me.hp/me.max>=foe.hp/foe.max?(me.hp/me.max===foe.hp/foe.max?'draw':'win'):'lose')}
   }
 }
-function finish(r){W.over=r;W.overT=0;(r==='win'?[W.foe]:[W.me]).forEach(e=>{e.anim='hurt';e.at=0})}
+function finish(r){W.over=r;W.overT=0;if(r==='win'||r==='lose')try{window.PKS&&PKS.ko(r==='win'?W.foe:W.me)}catch(er){}
+  (r==='win'?[W.foe]:[W.me]).forEach(e=>{e.anim='hurt';e.at=0})}
 
 // ---------- 6F-1: 실시간 포획 (레조넌스 방식: 전투 중 볼을 던짐) ----------
 // C.balls():[{k,e,n,count}] · C.takeBall(k):볼 정보(없으면 null, 실제 모드는 가방에서 1개 차감) · C.catchP(foe,it,hpRatio):0~1
@@ -1117,11 +1121,40 @@ async function doSwitch(uid){
   w.proj=w.proj.filter(p=>{if(p.o!==old)return true;try{if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}return false});w.zones=w.zones.filter(z=>z.o!==old);w.delays=w.delays.filter(d=>d.o!==old);   // 9E: 나간 포켓몬 기술 그림이 멈춰 남지 않게
   w.delays.forEach(d=>{if(d.tgt===old)d.tgt=ne});   // 상대의 내려찍기 조준은 새 포켓몬을 따라감
   w.me=ne;
+  try{window.PKS&&PKS.cry(ne.mon,.8,150)}catch(er){}
   if(!w.used.includes(uid))w.used.push(uid);
   w.swCd=SW_CD;w.swapping=0;
   w.fx.push({k:'ring',sys:1,x:ne.x,y:ne.y,t:0,life:.35,r:60,c:'#ffffff'});
   floatTxt(ne.x,ne.y-80,'교대!','#9be7ff',true);
   setMoveBtns();closeParty();
+}
+// ---------- 상성이 안 맞아 공격이 하나도 안 들어가면(효과 없음) 들어가는 포켓몬으로 알아서 교체 ----------
+// 설정의 「상성이 안 맞으면 자동 교체」 스위치(pk-patch.js)로 끌 수 있어요. 공격기술이 아예 없는 포켓몬은 상성 문제가 아니라서 그대로 둬요.
+let _asTick=0;
+function pkHurts(moves,foe){const dm=moves.filter(m=>m&&(m.p>0||m.fx||m.exec));if(!dm.length)return true;const ft=foe.tera?[foe.tera]:foe.types;return dm.some(m=>m.typeless||C.eff(m.type,ft)>0)}
+function autoSwapChk(){
+  const w=W;
+  if(!w||w.over||w.paused||w.swapping||w.tut||w.pp||w.ip||w.ball||(w.swCd||0)>0||!C.pickMon||!C.party||C.noAutoSwap)return;
+  if(window.PKS&&PKS.swapOn&&!PKS.swapOn())return;
+  if(w.tick-_asTick<30)return;_asTick=w.tick;
+  const me=w.me,foe=w.foe;
+  if(!me||!foe||me.hp<=0||foe.hp<=0||me.cast||me.stun>0||me.swapT>0||foe.hidden||foe.capt)return;
+  if(pkHurts(me.moves,foe))return;
+  let L=[];try{L=C.party()||[]}catch(er){}
+  let best=null,bs=0;
+  for(const q of L){
+    if(q.uid===me.mon.uid)continue;
+    let pk=null;try{pk=C.pickMon(q.uid)}catch(er){}
+    if(!pk||!pk.mon)continue;
+    const h=w.hpBy[q.uid]!=null?w.hpBy[q.uid]:pk.hp;if(!(h>0))continue;
+    const ty=(C.META[pk.mon.n]||{types:['NORMAL']}).types,ft=foe.tera?[foe.tera]:foe.types;
+    let s=0;
+    for(const id of (pk.mon.moves||[]).slice(0,4)){let m=null;try{m=moveInfo(id)}catch(er){}if(!m||!(m.p>0))continue;const e=m.typeless?1:C.eff(m.type,ft);if(e<=0)continue;s=Math.max(s,m.p*e*(ty.includes(m.type)?1.5:1))}
+    if(s>bs){bs=s;best=q}
+  }
+  if(!best)return;
+  floatTxt(me.x,me.y-110,'상성이 안 맞아요! 교체','#9be7ff',true);
+  doSwitch(best.uid);
 }
 function openParty(){
   if(!W||W.over||W.pp||W.ip||W.ball)return;
@@ -1309,6 +1342,7 @@ async function start(ctx){
   if(best)W.ai.range=best.k==='melee'?120:best.k==='pulse'?150:best.k==='leap'?170:300;
   W.autoOn=!!C.autoMe;try{if(!C.autoMe&&localStorage.getItem('pka-rtauto')==='1')W.autoOn=true}catch(er){}   // 9O: 전투 안 자동 버튼(한 번 켜면 다음 전투도 켜짐)
   W.aiMe=mkAi('ME');W.aiMe.uid=W.me.mon.uid;W.aiMe.range=aiRange(W.me);
+  try{window.PKS&&(PKS.cry(C.foe,.85,250),PKS.cry(C.me,.85,1150))}catch(er){}
   buildUI();
   if(C.rollTut)tutStart();
   {W.fast=false;try{W.fast=(C.fast&&C.fast())||localStorage.getItem('pka-rtfast')==='1'}catch(er){}   // 9O: 전투 안 ⏩ 2배속 버튼

@@ -280,6 +280,7 @@ function dealDamage(att,def,mi,opt){
   if(def.hp<=0&&def.undying&&!def._ud){def._ud=1;def.hp=Math.round(def.max*.5);const s=def.aw>0?10+3*(def.aw-1):1;def.inv=Math.max(def.inv||0,Math.round(s*60));def.invMax=def.inv;cancelCast&&def.cast&&cancelCast(def,true);floatTxt(def.x,def.y-125,'불멸 부활!'+(def.aw>0?' 무적 '+s+'초':''),'#8fb4ff',true);W.hitstop=Math.max(W.hitstop||0,.15);try{W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.5,r:110,c:'#8fb4ff'})}catch(er){}}   // 9B 불멸: 한 번 버팀
   def.flash=.15;
   if(dmg>0){
+    try{window.PKS&&PKS.hit(m,e,crit,!att.side)}catch(er){}
     W._dp={dmg,raw:Math.max(rawD,dmg>0?1:0),e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
     if(e>1)floatTxt(def.x,def.y-95,'효과 굉장!','#ffb030');
     if(e<1&&e>0)floatTxt(def.x,def.y-95,'별로…','#9bb');
@@ -385,6 +386,7 @@ function startCast(e,i,aimDir,dist){
   if(!e.side&&C.onUse){try{const up=C.onUse(e.mon,m.id);if(up)floatTxt(e.x,e.y-130,'⬆ '+m.name+' Lv.'+up,'#ffd23f',true)}catch(er){}}   // 7G 기술 레벨 올리기
   if(m.ramp){cast.pm=RAMP.powerMul;e.ramp={mi:i,left:(RAMP.min-1)+(rnd()<.5?1:0)}}   // 연속기: 2~3번, 한 번 위력 ×0.75
   e.anim=m.melee?'attack':'shoot';e.at=0;
+  try{window.PKS&&PKS.cast(m,!e.side)}catch(er){}
   W.fx.push({k:'callout',x:e.x,y:e.y-120,t:0,life:.9,s:m.name,c:C.TCOL[m.type]||'#fff'});
 }
 function phaseTo(e,ph,ticks){e.cast.phase=ph;e.cast.t=0;e.cast.len=ticks}
@@ -657,7 +659,8 @@ function update(){
   }
 }
 function netEnd(rank){if(W.over)return;W.rank=rank;const p=rank.indexOf(C.net.me)+1;W.place=p;finish(p===1?'win':'lose');if(NH()&&C.net.end)try{C.net.end(rank)}catch(er){}}
-function finish(r){W.over=r;W.overT=0;W.ents.filter(e=>C.net?e.hp<=0:e.side===(r==='win'?1:0)).forEach(e=>{e.anim='hurt';e.at=0})}
+function finish(r){W.over=r;W.overT=0;if(r==='win'||r==='lose')try{window.PKS&&PKS.ko(r==='win'?W.foe:W.me)}catch(er){}
+  W.ents.filter(e=>C.net?e.hp<=0:e.side===(r==='win'?1:0)).forEach(e=>{e.anim='hurt';e.at=0})}
 
 // ---------- 6F-1: 실시간 포획 (레조넌스 방식: 전투 중 볼을 던짐) ----------
 // C.balls():[{k,e,n,count}] · C.takeBall(k):볼 정보(없으면 null, 실제 모드는 가방에서 1개 차감) · C.catchP(foe,it,hpRatio):0~1
@@ -1101,6 +1104,7 @@ async function doSwitch(uid){
   w.proj=w.proj.filter(p=>{if(p.o!==old)return true;try{if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}return false});w.zones=w.zones.filter(z=>z.o!==old);w.delays=w.delays.filter(d=>d.o!==old);   // 9E: 나간 포켓몬 기술 그림이 멈춰 남지 않게
   w.delays.forEach(d=>{if(d.tgt===old)d.tgt=ne});   // 상대의 내려찍기 조준은 새 포켓몬을 따라감
   w.me=ne;
+  try{window.PKS&&PKS.cry(ne.mon,.8,150)}catch(er){}
   if(!w.used.includes(uid))w.used.push(uid);
   w.swCd=SW_CD;w.swapping=0;
   w.fx.push({k:'ring',sys:1,x:ne.x,y:ne.y,t:0,life:.35,r:60,c:'#ffffff'});

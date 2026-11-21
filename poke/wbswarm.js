@@ -176,6 +176,7 @@ function hitBoss(e,m){
   B.hp=Math.max(0,B.hp-r.d);B.flash=.08;W.dealt+=r.d;
   e.dealt=(e.dealt||0)+r.d;
   const me=e===W.me;
+  if(me)try{window.PKS&&!W.ff&&PKS.hit(m,r.e,r.crit,true)}catch(er){}
   if(me||r.crit||r.e>1)pop(B.x+rr(-60,60),B.y-B.vis*.45+rr(-20,20),fmtN(r.d*(C.SC||1)),r.e>1?'#ffb030':r.crit?'#ffe14a':(C.TCOL[m.type]||'#fff'),me&&(r.crit||r.e>1));
   else if(W.fx.length<30)pop(B.x+rr(-80,80),B.y-B.vis*.4+rr(-30,30),fmtN(r.d*(C.SC||1)),'rgba(255,255,255,.7)');
 }
@@ -208,7 +209,7 @@ function boom(z){
 }
 function meDied(){
   const nx=W.allies.find(e=>e.hp>0);
-  if(nx&&!W.over){W.me=nx;W.touch=-99;if(C.toast&&!W.ff)C.toast('내 캐릭터가 쓰러져서 '+C.nm(nx.mon)+'(으)로 바뀌었어요')}
+  if(nx&&!W.over){W.me=nx;W.touch=-99;try{window.PKS&&!W.ff&&PKS.cry(nx.mon,.8,300)}catch(er){}if(C.toast&&!W.ff)C.toast('내 캐릭터가 쓰러져서 '+C.nm(nx.mon)+'(으)로 바뀌었어요')}
 }
 function finish(r,timeout){
   if(W.over)return;W.over=r;W.overT=0;W.timeout=!!timeout;W.ff=0;
@@ -344,7 +345,7 @@ function openSwitch(){
   h+='</div><div style="text-align:center;margin-top:14px"><button id="wbBack" style="padding:10px 26px;font:900 15px sans-serif;border:3px solid #0a0d18;background:#2a3256;color:#fff;cursor:pointer">계속 싸우기</button></div>';
   p.innerHTML=h;W.ui.root.appendChild(p);
   const close=()=>{p.remove();W.sp=null;W.paused=0};
-  p.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{const e=W.allies[+b.dataset.i];if(e&&e.hp>0){W.me=e;W.touch=W.time;try{C.sfx&&C.sfx('tap')}catch(er){}}close()});
+  p.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{const e=W.allies[+b.dataset.i];if(e&&e.hp>0){W.me=e;W.touch=W.time;try{window.PKS&&!W.ff&&PKS.cry(e.mon,.8,200)}catch(er){}try{C.sfx&&C.sfx('tap')}catch(er){}}close()});
   p.querySelector('#wbBack').onclick=close;
 }
 function trySkip(){
@@ -385,6 +386,7 @@ async function start(ctx){
   W.ents=W.allies.concat([W.boss]);
   const first=C.firstUid&&W.allies.find(e=>e.mon.uid===C.firstUid&&e.hp>0);
   W.me=first||W.allies.find(e=>e.hp>0)||W.allies[0];
+  try{window.PKS&&!W.ff&&PKS.cry(W.me.mon,.85,500)}catch(er){}
   buildUI();
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
