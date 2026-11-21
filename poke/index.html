@@ -4113,8 +4113,7 @@ function gSetBonus(){const t={};const c=gSetCount();for(const i in c){const n=c[
 const gBt=o=>Object.entries(o).map(([k,v])=>goN(k)+' +'+v+'%').join(' · ');
 function gSetBox(){const c=gSetCount();const rows=GSET.map((S,i)=>{const n=c[i]|0;return `<div class="gsr${n>=2?' on':''}" style="--sc:${S.c}"><b>${S.n}</b><i>${n}/6</i>${[2,4,6].map((m,j)=>`<span class="${n>=m?'ok':''}">${m}세트 ${gBt(S.b[j])}</span>`).join('')}</div>`}).join('');
   return `<div class="gset"><div class="gseth">🔗 세트 효과 <small>같은 접두사 장비를 2 · 4 · 6부위 끼면 효과가 생겨요 (큐브 탭 「접두사 바꾸기」로 맞춰요)</small></div>${rows}</div>`}
-async function gPxRoll(c){const k=G.me.eq[c];if(!k||(G.bag.cube||0)<2)return;G.bag.cube-=2;const it=gItem(k),old=gPx(k);let nx;do{nx=R()<.05?5:ri(0,4)}while(nx===old&&R()<.7);it.px=nx;save();try{sfx('badge')}catch(e){}
-  toast('접두사가 바뀌었어요: '+GSET[old].n+' → <b style="color:'+GSET[nx].c+'">'+GSET[nx].n+'</b>');gearOpen('cube',c)}
+
 window.gSetBonus=gSetBonus;window.GSET=GSET;
 (function(){const c=document.createElement('style');c.textContent=`.gpxn{font-weight:900}.gset{margin:6px 0 8px;border:3px solid #1c2550;background:#141a38;box-shadow:0 3px 0 #0b0f24;font:900 11px 'Galmuri11',monospace;color:#cfd6ff}.gseth{background:#2a3256;color:#ffd23f;padding:4px 6px}.gseth small{color:#9fb0ff;font-size:10px;margin-left:4px}.gsr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:4px 6px;border-top:2px solid #1c2550;opacity:.55}.gsr.on{opacity:1;background:#ffffff10}.gsr b{color:var(--sc);width:52px}.gsr i{font-style:normal;color:#fff;width:28px}.gsr span{font-size:10px;color:#8890b0}.gsr span.ok{color:#7dffb0}.cub.gpx{background:linear-gradient(#5a2a8a,#3a1a5a)!important;color:#fff!important}`;document.head.appendChild(c)})();
 // 스타포스 확률 · 비용
@@ -4133,23 +4132,23 @@ const r1=x=>Math.round(x*10)/10;
 const gOpts=(it,c)=>{const sf=c?gSF(c):null,m=sf&&!sf.b?sfMul(sf.s):1;return it.o.map(([k,v])=>`<li>${goN(k)} ${m>1?`<s>+${v}%</s> → <b class="gup">+${r1(v*m)}%</b>`:`+${v}%`}</li>`).join('')};
 async function gearOpen(tab,sel){if(!G)return;tab=tab||'eq';await dressPack();
   if(!G.me){openPanel('장비',`<div class="hcard"><b>내 출결 캐릭터가 아직 없어요</b><p>출석 앱의 「QR로 한 번에 받기」를 QR 옮기기(카메라 또는 앨범)로 가져오면 내 캐릭터와 장비가 들어와요.</p><div class="wbt"><button class="main" id="gQr">QR 옮기기</button></div></div>`,null,p=>{p.querySelector('#gQr').onclick=()=>{closePanel(1);xferOpen()}});return}
-  const T=gearStats(),eq=G.me.eq||{};const tabs=`<div class="tabs">${[['eq','장비창'],['bag','아이템'],['sf','강화'],['cube','큐브']].map(([k,n])=>`<button data-gt="${k}" class="${k===tab?'on':''}">${n}</button>`).join('')}</div>`;
+  const T=gearStats(),eq=G.me.eq||{};const tabs=`<div class="tabs">${[['eq','장비창'],['bag','아이템'],['sf','강화'],['cube','큐브']].map(([k,n])=>`<button data-gt="${k}" class="${k===tab?'on':''}">${n}${k==='sf'&&gxBroken().length?' 💥':''}</button>`).join('')}</div>${gxBroken().length&&tab!=='sf'?`<div class="gbrk"><span>💥 터진 장비가 있어요! ${gxBroken().map(x=>ME_KO[x]+' ★'+gSF(x).s).join(' · ')} — 복구하세요</span><button data-gfx="${gxBroken()[0]}">복구하러 가기</button></div>`:''}`;
   const sum=`<div class="gsum">${GOPT.map(o=>`<span><small>${o.n}</small><b>+${T[o.k]}%</b></span>`).join('')}</div><p class="wbpd">장비 효과는 내 캐릭터가 데리고 있는 <b>모든 포켓몬</b>에게 들어가요 · <b>새 실시간 전투 전부 + 월드보스</b>에 적용돼요 (천계·천상계 도전에 꼭 필요!) · 줄 그은 숫자는 <b>기본 능력치</b>, 초록 숫자는 <b>강화가 들어간 지금 능력치</b>예요</p>`;
   let body='';
-  if(tab==='eq')body=sum+gSetBox()+`<div class="geq">${ME_CATS.map(c=>{const k=eq[c],sf=gSF(c);if(!k)return `<div class="gs empty"><small>${ME_KO[c]}</small><i>비어 있음</i></div>`;const it=gItem(k);return `<div class="gs" style="--gc:${GGC[it.g]}" data-go="${c}">${gTh(k)}<div><small>${ME_KO[c]} · <b style="color:${GGC[it.g]}">${GGR[it.g]}</b></small><b>${gNm(k)}</b><u>${sf.b?'파괴됨 · 복구 필요':'★'+sf.s}</u><ul>${gOpts(it,c)}</ul></div></div>`}).join('')}</div>`;
+  if(tab==='eq')body=sum+gSetBox()+`<div class="geq">${ME_CATS.map(c=>{const k=eq[c],sf=gSF(c);if(!k)return `<div class="gs empty"><small>${ME_KO[c]}</small><i>비어 있음</i></div>`;const it=gItem(k);return `<div class="gs" style="--gc:${GGC[it.g]}" data-go="${c}">${gTh(k)}<div><small>${ME_KO[c]} · <b style="color:${GGC[it.g]}">${GGR[it.g]}</b></small><b>${gNm(k)}</b><u class="${sf.b?'bk':''}">${sf.b?'💥 터졌어요 · 복구하세요':'★'+sf.s}</u><ul>${gOpts(it,c)}</ul></div></div>`}).join('')}</div>`;
   if(tab==='bag'){const c=sel||ME_CATS.find(c=>G.me.own.some(k=>k.startsWith(c+':')))||'weapon';const L=G.me.own.filter(k=>k.startsWith(c+':'));
-    body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ${G.me.own.filter(k=>k.startsWith(x+':')).length}</button>`).join('')}</div><div class="gbag">${L.map(k=>{const it=gItem(k),on=eq[c]===k;return `<div class="gb${on?' on':''}" style="--gc:${GGC[it.g]}">${gTh(k)}<div><b>${gNm(k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><u>${gSF(k).b?'파괴됨':'★'+gSF(k).s}</u><ul>${gOpts(it,k)}</ul></div>${on?'<em>장착 중</em>':`<span class="gbb"><button data-ge="${k}">장착</button><button class="gdel" data-gd="${k}">버리기</button><button class="gsell" data-gs="${k}">팔기 ${(gPrice(k)/10000)}만</button></span>`}</div>`}).join('')||'<small>이 부위 장비가 없어요. 출석 앱에서 모아요!</small>'}</div>`}
+    body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ${G.me.own.filter(k=>k.startsWith(x+':')).length}</button>`).join('')}</div><div class="gbag">${L.map(k=>{const it=gItem(k),on=eq[c]===k;return `<div class="gb${on?' on':''}" style="--gc:${GGC[it.g]}">${gTh(k)}<div><b>${gNm(k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><u class="${gSF(k).b?'bk':''}">${gSF(k).b?'💥 터졌어요 · 복구하세요':'★'+gSF(k).s}</u><ul>${gOpts(it,k)}</ul></div>${on?'<em>장착 중</em>':`<span class="gbb"><button data-ge="${k}">장착</button><button class="gdel" data-gd="${k}">버리기</button><button class="gsell" data-gs="${k}">팔기 ${(gPrice(k)/10000)}만</button></span>`}</div>`}).join('')||'<small>이 부위 장비가 없어요. 출석 앱에서 모아요!</small>'}</div>`}
   if(tab==='sf'){const c=sel||'weapon',sf=gSF(c),r=sfRate(sf.s),cost=sfCost(sf.s);
-    body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ★${gSF(x).s}${gSF(x).b?'(파괴)':''}</button>`).join('')}</div>
+    body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ★${gSF(x).s}${gSF(x).b?' 💥복구':''}</button>`).join('')}</div>
     <div class="gsf"><div class="gsfh">${eq[c]?gTh(eq[c],64,80):''}<div><b>${ME_KO[c]} 강화 ★${sf.s} / ${SFMAX}</b><small>이 부위의 모든 장비가 같은 강화 단계예요 (무기 하나 12강 → 다른 무기도 12강)</small><div class="stars">${Array.from({length:SFMAX},(_,i)=>`<img src="ui/star.webp" class="${i<sf.s?'on':''}${i>=15?' hi':''}">`).join('')}</div><small>옵션 효과 ×${sfMul(sf.s).toFixed(2)} → 다음 ×${sfMul(sf.s+1).toFixed(2)}</small></div></div>${(()=>{const ek=eq[c];if(!ek)return '<p class="hhint">이 부위에 장착한 장비가 없어요. 장착하면 강화 효과가 들어가요.</p>';const it=gItem(ek),m0=sf.b?0:sfMul(sf.s),nx=sf.s<SFMAX,m1=sfMul(sf.s+1);
       return `<div class="gsft"><b>강화하면 이렇게 바뀌어요 · ${gNm(ek)}</b><table><tr><th>옵션</th><th>기본</th><th>지금 ★${sf.s}</th>${nx?`<th>성공하면 ★${sf.s+1}</th>`:''}</tr>${it.o.map(([k,v])=>`<tr><td>${goN(k)}</td><td>+${v}%</td><td>+${r1(v*m0)}%</td>${nx?`<td class="gup">+${r1(v*m1)}% <small>(+${r1(v*m1-v*m0)})</small></td>`:''}</tr>`).join('')}</table><small>이 부위의 다른 장비로 바꿔 껴도 같은 ★${sf.s}가 들어가요${sf.b?' · 지금은 파괴돼서 효과가 0이에요':''}</small></div>`})()}
-    ${sf.b?`<p class="wbpd">장비가 파괴됐어요! 복구하면 ★${sf.s}로 다시 쓸 수 있어요.</p><div class="wbt"><button class="main" id="gFix" ${G.money>=GFIX?'':'disabled'}>복구하기 · ${GFIX.toLocaleString()}원</button></div>`:sf.s>=SFMAX?'<p class="wbpd">최고 강화예요!</p>':`<div class="gsfr"><span class="ok">성공 <b>${Math.round(r.ok*100)}%</b></span><span>실패 <b>${Math.round(r.fail*100)}%</b>${r.drop?' (★-1)':''}</span>${r.br?`<span class="br">파괴 <b>${(r.br*100).toFixed(0)}%</b></span>`:''}</div>
+    ${sf.b?`<p class="wbpd" style="color:#ff6a6a;font-weight:900">💥 장비가 터졌어요! 복구하세요 · 복구하면 ★${sf.s}로 다시 쓸 수 있어요.</p><div class="wbt"><button class="main" id="gFix" ${G.money>=GFIX?'':'disabled'}>복구하기 · ${GFIX.toLocaleString()}원</button></div>`:sf.s>=SFMAX?'<p class="wbpd">최고 강화예요!</p>':`<div class="gsfr"><span class="ok">성공 <b>${Math.round(r.ok*100)}%</b></span><span>실패 <b>${Math.round(r.fail*100)}%</b>${r.drop?' (★-1)':''}</span>${r.br?`<span class="br">파괴 <b>${(r.br*100).toFixed(0)}%</b></span>`:''}</div>
     <div class="wbt"><button class="main" id="gSf" ${G.money>=cost&&!sf.none?'':'disabled'}>강화하기 (스타캐치) · ${cost.toLocaleString()}원</button>${sf.s<15&&!sf.none?`<button id="gSfA" ${G.money>=cost?'':'disabled'}>자동 강화 (★15 전까지 · 안 터져요)</button>`:''}</div><p class="hhint">가진 돈 ${G.money.toLocaleString()}원 · 15강부터는 파괴될 수 있어요 (파괴되면 골드로 복구)</p>`}</div>`}
   if(tab==='cube'){const c=sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])||'weapon';const k=eq[c];const it=k?gItem(k):null;
     body=`<div class="wch">${ME_CATS.filter(x=>eq[x]).map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]}</button>`).join('')}</div>${it?`<div class="gcube" style="--gc:${GGC[it.g]}">${gTh(k,64,80)}<div><b>${gNm(k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><ul class="gco">${gOpts(it)}</ul></div></div>
      <div class="wbt"><button class="main cub" data-cu="cube" ${(G.bag.cube||0)>0?'':'disabled'}><img src="ui/cube1.webp">수상한 큐브<small>${G.bag.cube||0}개</small></button><button class="main cub" data-cu="cube2" ${(G.bag.cube2||0)>0?'':'disabled'}><img src="ui/cube2.webp">명장의 큐브<small>${G.bag.cube2||0}개</small></button><button class="main cub gpx" data-cp="1" ${(G.bag.cube||0)>=2?'':'disabled'}><img src="ui/cube1.webp">접두사 바꾸기<small>수상한 큐브 2개</small></button></div><p class="hhint">큐브는 상점 · 월드보스 · 격투 탑 · 출석에서 얻어요. 수상한 큐브는 에픽까지, 명장의 큐브는 레전드리까지 올라가요.</p>`:'<small>장착한 장비가 없어요</small>'}`}
   openPanel('장비 · 내 캐릭터',tabs+body,null,p=>{p.querySelectorAll('canvas.gth').forEach(gearTh);
-    p.querySelectorAll('[data-gt]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen(b.dataset.gt)});p.querySelectorAll('[data-gc]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen(tab,b.dataset.gc)});
+    p.querySelectorAll('[data-gt]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen(b.dataset.gt)});p.querySelectorAll('[data-gfx]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen('sf',b.dataset.gfx)});p.querySelectorAll('[data-gc]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen(tab,b.dataset.gc)});
     p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen('bag',b.dataset.go)});
     p.querySelectorAll('[data-gd]').forEach(b=>b.onclick=()=>{const k=b.dataset.gd,c=k.split(':')[0];if(G.me.eq[c]===k)return;sfx('tap');
       itAsk('<b>'+gNm(k)+'</b>을(를) 버릴까요?','휴지통으로 가요. 사이드메뉴 「휴지통」에서 언제든 되살릴 수 있어요.',()=>{gTrash(k);gearOpen('bag',c)})});
@@ -4158,23 +4157,98 @@ async function gearOpen(tab,sel){if(!G)return;tab=tab||'eq';await dressPack();
     const sfb=p.querySelector('#gSf');if(sfb)sfb.onclick=()=>sfTry(sel||'weapon');const sfa=p.querySelector('#gSfA');if(sfa)sfa.onclick=()=>sfAuto(sel||'weapon');const fx=p.querySelector('#gFix');if(fx)fx.onclick=()=>{const sf=gSF(sel||'weapon');if(G.money<GFIX)return;G.money-=GFIX;sf.b=0;save();sfx('badge');toast('복구했어요! ★'+sf.s);gearOpen('sf',sel||'weapon')};
     p.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>cubeUse(b.dataset.cu,sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])));
     p.querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>gPxRoll(sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])))})}
-// 스타캐치: 별이 왔다갔다 · 가운데 칸에서 딱 멈추면 성공 확률 ×1.3
-function starCatch(s){return new Promise(res=>{const o=document.createElement('div');o.id='scOv';const w=Math.max(10,22-s*.5);
-  o.innerHTML=`<div class="scb"><b>스타캐치!</b><small>별이 가운데 노란 칸에 올 때 화면을 눌러요 · 성공하면 강화 확률이 올라가요</small><div class="sct"><i class="scz" style="left:${50-w/2}%;width:${w}%"></i><img class="scs" src="ui/star.webp"></div><button id="scGo">멈추기!</button></div>`;
-  document.body.appendChild(o);const S=o.querySelector('.scs');let t=0,last=performance.now(),done=0,raf;const sp=1.1+s*.07;
-  const pos=()=>{const u=(t*sp)%2;return u<1?u:2-u};
+// ===== 9BA 장비 연출: 큐브 · 등급업 · 스타포스(성공 SUCCESS / 실패 FAIL / 터짐 DESTROYED) =====
+let GXBUSY=0;
+const gxEl=h=>{const d=document.createElement('div');d.innerHTML=h;return d.firstElementChild};
+function gxSnd(t){try{if(!window.GXA)window.GXA=new (window.AudioContext||window.webkitAudioContext)();const A=window.GXA;if(A.state!=='running')A.resume();const n=A.currentTime;
+  const tone=(f,d,ty,at,v,f2)=>{const o=A.createOscillator(),g=A.createGain();o.type=ty||'sine';o.frequency.setValueAtTime(f,n+at);if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+at+d);g.gain.setValueAtTime(v||.12,n+at);g.gain.exponentialRampToValueAtTime(.001,n+at+d);o.connect(g);g.connect(A.destination);o.start(n+at);o.stop(n+at+d+.02)};
+  const noise=(d,at,v)=>{const b=A.createBuffer(1,A.sampleRate*d,A.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*(1-i/x.length);const s=A.createBufferSource(),g=A.createGain();s.buffer=b;g.gain.value=v||.2;s.connect(g);g.connect(A.destination);s.start(n+at)};
+  if(t==='charge')tone(200,.9,'sawtooth',0,.06,900);
+  else if(t==='ok'){[523,659,784,1046,1568].forEach((f,i)=>tone(f,.25,'triangle',i*.07,.13))}
+  else if(t==='up'){[392,523,659,784,1046,1318,1568].forEach((f,i)=>tone(f,.3,'triangle',i*.08,.14))}
+  else if(t==='fail'){tone(300,.35,'sine',0,.14,110)}
+  else if(t==='br'){noise(.5,0,.35);tone(90,.6,'sawtooth',0,.2,35);noise(.25,.12,.25)}
+  else if(t==='roll')tone(500+Math.random()*500,.05,'square',0,.04)}catch(e){}}
+// 반짝이 · 가루 터뜨리기
+function gxBurst(h,n,ch,cols,dist,dur){for(let i=0;i<n;i++){const a=Math.random()*6.283,d=(.5+Math.random()*.5)*dist;const p=document.createElement('span');p.className='gxp';p.textContent=ch[i%ch.length];p.style.cssText=`--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${(Math.random()*720-360)|0}deg;color:${cols[i%cols.length]};font-size:${10+Math.random()*16|0}px;animation-duration:${(dur||.9)*(.7+Math.random()*.6)}s`;h.appendChild(p);setTimeout(()=>p.remove(),(dur||.9)*1400)}}
+function gxFlash(o,c){const f=document.createElement('div');f.className='gxfl';f.style.background=c;o.appendChild(f);setTimeout(()=>f.remove(),700)}
+function gxStage(k,c,col){const it=k?gItem(k):null;return `<div class="gxs" style="--gc:${col}"><i class="gxg"></i><i class="gxray"></i>${k?gTh(k,96,120):'<b class="gxno">'+ME_KO[c]+'</b>'}<svg class="gxcr" viewBox="0 0 100 120"><g fill="none" stroke-linecap="round"><path d="M52 0 L44 26 L58 40 L40 64 L54 80 L38 120"/><path d="M44 26 L20 34 L8 52"/><path d="M58 40 L82 46 L96 70"/><path d="M40 64 L18 78"/><path d="M54 80 L78 96"/></g></svg></div>`}
+function gxOpen(h){const o=gxEl(`<div id="gx"><div class="gxb">${h}</div></div>`);document.body.appendChild(o);o.querySelectorAll('canvas.gth').forEach(gearTh);return o}
+const gxWait=(o,ms,keep)=>new Promise(r=>{let d=0;const f=()=>{if(d)return;d=1;o.removeEventListener('pointerup',f);r()};setTimeout(f,keep?9e6:ms);o.addEventListener('pointerup',()=>setTimeout(f,150))});
+const gxStars=s=>Array.from({length:SFMAX},(_,i)=>`<img src="ui/star.webp" class="${i<s?'on':''}${i>=15?' hi':''}">`).join('');
+// 스타캐치: 장비가 가운데 · 밑에 스타포스 바
+function gxCatch(o,s){return new Promise(res=>{const w=Math.max(10,22-s*.5),B=o.querySelector('.gxcatch');B.innerHTML=`<small>별이 가운데 노란 칸에 올 때 화면을 눌러요 · 성공하면 확률 ×1.3</small><div class="sct"><i class="scz" style="left:${50-w/2}%;width:${w}%"></i><img class="scs" src="ui/star.webp"></div><button id="scGo">멈추기!</button>`;
+  const S=B.querySelector('.scs');let t=0,last=performance.now(),done=0,raf;const sp=1.1+s*.07,pos=()=>{const u=(t*sp)%2;return u<1?u:2-u};
   const loop=n=>{t+=(n-last)/1000;last=n;S.style.left=(pos()*100)+'%';if(t>6)stop();else raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
-  const stop=()=>{if(done)return;done=1;cancelAnimationFrame(raf);const p=pos()*100,hit=Math.abs(p-50)<=w/2;o.classList.add(hit?'hit':'miss');o.querySelector('#scGo').textContent=hit?'스타캐치 성공! 확률 ×1.3':'아쉬워요… 그냥 강화해요';sfx(hit?'get':'tap');setTimeout(()=>{o.remove();res(hit)},650)};
-  o.addEventListener('pointerdown',e=>{e.preventDefault();stop()})})}
-async function sfTry(c,auto){const sf=gSF(c),cost=sfCost(sf.s);if(sf.none||sf.b||sf.s>=SFMAX||G.money<cost)return null;
-  let hit=false;if(!auto)hit=await starCatch(sf.s);G.money-=cost;const r=Object.assign({},sfRate(sf.s));if(hit){const ok2=Math.min(.99,r.ok*1.3);r.fail=Math.max(0,r.fail-(ok2-r.ok));r.ok=ok2}const u=R();
-  if(auto){let res;if(u<r.ok){sf.s++;res='ok'}else if(u<r.ok+r.br){sf.b=1;sf.s=Math.min(sf.s,12);res='br'}else{if(r.drop)sf.s=Math.max(0,sf.s-1);res='fail'}save();return res}
-  const ov=document.createElement('div');ov.id='sfOv';ov.innerHTML=`<div class="sfb"><img class="sfst" src="ui/star.webp"><div class="sfs">★${sf.s} → ★${sf.s+1}</div><div class="sfr"></div></div>`;document.body.appendChild(ov);sfx('tap');await sleep(900);
-  let res;if(u<r.ok){sf.s++;res='ok'}else if(u<r.ok+r.br){sf.b=1;sf.s=Math.min(sf.s,12);res='br'}else{if(r.drop)sf.s=Math.max(0,sf.s-1);res='fail'}save();
-  const t=ov.querySelector('.sfr');ov.classList.add(res);t.textContent=res==='ok'?'강화 성공! ★'+sf.s:res==='br'?'장비가 파괴됐어요… (골드로 복구 가능)':'강화 실패'+(r.drop?' · ★'+sf.s:'');sfx(res==='ok'?'badge':'tap');try{navigator.vibrate&&navigator.vibrate(res==='ok'?[30,30,60]:res==='br'?[200]:60)}catch(e){}
-  await sleep(1100);ov.remove();gearOpen('sf',c)}
-function cubeUse(kind,c){const k=G.me.eq[c];if(!k||!(G.bag[kind]>0))return;const it=gItem(k);G.bag[kind]--;const old=GGR[it.g];
-  const up=kind==='cube'?(it.g===0&&R()<.06):(R()<[.12,.05,.02,0][it.g]);if(up)it.g=Math.min(kind==='cube'?1:3,it.g+1);it.o=gRoll(it.g);save();sfx(up?'badge':'get');toast(up?'등급 상승! '+old+' → '+GGR[it.g]:'옵션이 바뀌었어요');gearOpen('cube',c)}
+  const stop=()=>{if(done)return;done=1;cancelAnimationFrame(raf);const hit=Math.abs(pos()*100-50)<=w/2;B.querySelector('#scGo').textContent=hit?'스타캐치 성공! 확률 ×1.3':'아쉬워요… 그냥 강화해요';B.classList.add(hit?'hit':'miss');sfx(hit?'get':'tap');setTimeout(()=>res(hit),600)};
+  B.addEventListener('pointerdown',e=>{e.preventDefault();stop()})})}
+async function sfTry(c,auto){const sf=gSF(c),cost=sfCost(sf.s);if(sf.none||sf.b||sf.s>=SFMAX||G.money<cost||(!auto&&GXBUSY))return null;
+  const roll=(r,u)=>{let res;if(u<r.ok){sf.s++;res='ok'}else if(u<r.ok+r.br){sf.b=1;sf.s=Math.min(sf.s,12);res='br'}else{if(r.drop)sf.s=Math.max(0,sf.s-1);res='fail'}return res};
+  if(auto){G.money-=cost;const res=roll(Object.assign({},sfRate(sf.s)),R());save();return res}
+  GXBUSY=1;try{const ek=G.me&&G.me.eq?G.me.eq[c]:null,s0=sf.s;
+    const o=gxOpen(`<div class="gxt">${ME_KO[c]} 스타포스 ★${s0} → ★${s0+1}</div>${gxStage(ek,c,'#ffd23f')}<div class="gxst">${gxStars(s0)}</div><div class="gxcatch"></div><div class="gxres"></div>`);
+    const hit=await gxCatch(o,s0);G.money-=cost;const r=Object.assign({},sfRate(s0));if(hit){const ok2=Math.min(.99,r.ok*1.3);r.fail=Math.max(0,r.fail-(ok2-r.ok));r.ok=ok2}
+    const res=roll(r,R());save();
+    const S=o.querySelector('.gxs'),T=o.querySelector('.gxst'),RS=o.querySelector('.gxres');o.querySelector('.gxcatch').innerHTML='';
+    S.classList.add('charge');gxSnd('charge');sfx('tap');for(let i=0;i<10;i++)setTimeout(()=>gxBurst(S,2,['✦','·'],['#fff3a0','#ffd23f'],-1,.5),i*80);await sleep(950);S.classList.remove('charge');
+    const sub=RS.appendChild(document.createElement('small')),tx=RS.insertBefore(document.createElement('b'),sub);
+    if(res==='ok'){S.classList.add('ok');gxFlash(o,'#fff');gxSnd('ok');sfx('badge');T.innerHTML=gxStars(sf.s);T.children[sf.s-1].classList.add('pop');
+      gxBurst(S,hit?46:28,['★','✦','✧'],['#fff','#ffe066','#ffd23f','#9fe8ff'],hit?190:130,1.1);if(hit)setTimeout(()=>{gxFlash(o,'#ffe066');gxBurst(S,24,['★','✦'],['#fff','#ffe066'],220,1.2)},260);
+      tx.className='gxok';tx.textContent='SUCCESS';sub.textContent='★'+sf.s+(hit?' · 스타캐치 보너스!':'');try{navigator.vibrate&&navigator.vibrate([30,30,60])}catch(e){}}
+    else if(res==='fail'){S.classList.add('fail');gxSnd('fail');sfx('tap');if(r.drop){T.innerHTML=gxStars(s0);T.children[s0-1].classList.add('lose');setTimeout(()=>{T.innerHTML=gxStars(sf.s)},700)}gxBurst(S,10,['·','•'],['#9aa4c8','#6f7897'],70,.9);
+      tx.className='gxfail';tx.textContent='FAIL';sub.textContent=r.drop?'★'+sf.s+'로 내려갔어요':'★'+sf.s+' 그대로예요';try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
+    else{o.classList.add('shake');S.classList.add('crack');gxFlash(o,'#ff1a1a');gxSnd('br');sfx('hit');T.innerHTML=gxStars(s0);setTimeout(()=>{T.innerHTML=gxStars(sf.s);gxFlash(o,'#ff3b3b')},500);
+      setTimeout(()=>{S.classList.add('ash');gxBurst(S,36,['▪','▫','·'],['#9a9a9a','#6b6b6b','#c4c4c4'],90,1.6);o.classList.remove('shake')},650);
+      tx.className='gxbr';tx.textContent='DESTROYED';sub.innerHTML='장비가 터졌어요! 💥 강화 탭에서 <b>복구하세요</b> (골드 '+GFIX.toLocaleString()+'원)';try{navigator.vibrate&&navigator.vibrate([200,60,200])}catch(e){}}
+    RS.classList.add('on');if(res==='br')RS.insertAdjacentHTML('beforeend','<button class="gxbtn">복구하러 가기</button>');else RS.insertAdjacentHTML('beforeend','<button class="gxbtn">확인</button>');
+    await gxWait(o,res==='ok'?2000:1700,res==='br');o.remove()}finally{GXBUSY=0}
+  gearOpen('sf',c)}
+// 큐브 · 접두사 바꾸기 연출 (등급이 오르면 GRADE UP!)
+async function gxRoll(o){const{k,c,img,title,old,nw,up}=o;GXBUSY=1;try{const it=gItem(k),col=GGC[up?up.f:it.g];
+  const ov=gxOpen(`<div class="gxt">${title}</div><div class="gxcw"><img class="gxcube" src="${img}">${gxStage(k,c,col)}</div><ul class="gxrows">${nw.map(()=>'<li><b>…</b><small></small></li>').join('')}</ul><div class="gxres"></div>`);
+  const S=ov.querySelector('.gxs'),cu=ov.querySelector('.gxcube'),L=[...ov.querySelectorAll('.gxrows li')];
+  S.classList.add('charge');gxSnd('charge');await sleep(850);cu.remove();S.classList.remove('charge');gxFlash(ov,'#fff');sfx('get');gxBurst(S,18,['✦','◆'],['#fff',col],110,.8);
+  const tm=setInterval(()=>{L.forEach(l=>{if(!l.dataset.d)l.firstChild.textContent=goN(GOPT[ri(0,GOPT.length-1)].k)+' +'+ri(1,25)+'%'});gxSnd('roll')},70);
+  for(let i=0;i<L.length;i++){await sleep(380);L[i].dataset.d=1;L[i].firstChild.textContent=nw[i];L[i].classList.add('lock');L[i].lastChild.textContent=old[i]?'이전: '+old[i]:'';sfx('tap');gxBurst(L[i],5,['✦'],[col],40,.5)}
+  clearInterval(tm);await sleep(250);const RS=ov.querySelector('.gxres');
+  if(up){S.classList.add('ok');gxFlash(ov,'#fff');setTimeout(()=>gxFlash(ov,GGC[up.t]),200);gxSnd('up');sfx('badge');S.style.setProperty('--gc',GGC[up.t]);gxBurst(S,50,['★','✦','✧'],['#fff',GGC[up.t],'#ffe066'],200,1.2);
+    RS.innerHTML=`<b class="gxok" style="color:${GGC[up.t]}">GRADE UP!</b><small>${GGR[up.f]} → <b style="color:${GGC[up.t]}">${GGR[up.t]}</b></small><button class="gxbtn">확인</button>`;try{navigator.vibrate&&navigator.vibrate([30,30,60])}catch(e){}}
+  else RS.innerHTML=`<small>${o.done||'옵션이 바뀌었어요'}</small><button class="gxbtn">확인</button>`;
+  RS.classList.add('on');await gxWait(ov,up?3200:1700);ov.remove()}finally{GXBUSY=0}}
+async function cubeUse(kind,c){const k=G.me.eq[c];if(GXBUSY||!k||!(G.bag[kind]>0))return;const it=gItem(k);G.bag[kind]--;const og=it.g,old=it.o.map(([a,v])=>goN(a)+' +'+v+'%');
+  const up=kind==='cube'?(it.g===0&&R()<.06):(R()<[.12,.05,.02,0][it.g]);if(up)it.g=Math.min(kind==='cube'?1:3,it.g+1);it.o=gRoll(it.g);save();
+  await gxRoll({k,c,img:kind==='cube'?'ui/cube1.webp':'ui/cube2.webp',title:(kind==='cube'?'수상한 큐브':'명장의 큐브')+' 사용 · 남은 '+(G.bag[kind]||0)+'개',old,nw:it.o.map(([a,v])=>goN(a)+' +'+v+'%'),up:up?{f:og,t:it.g}:null});gearOpen('cube',c)}
+async function gPxRoll(c){const k=G.me.eq[c];if(GXBUSY||!k||(G.bag.cube||0)<2)return;G.bag.cube-=2;const it=gItem(k),old=gPx(k);let nx;do{nx=R()<.05?5:ri(0,4)}while(nx===old&&R()<.7);it.px=nx;save();
+  await gxRoll({k,c,img:'ui/cube1.webp',title:'접두사 바꾸기 · 남은 수상한 큐브 '+(G.bag.cube||0)+'개',old:['['+GSET[old].n+']'],nw:['['+GSET[nx].n+']'],up:null,done:'접두사가 바뀌었어요'});gearOpen('cube',c)}
+// 터진 장비 복구 (강화 탭 · 터진 장비 알림에서 같이 써요)
+function gxBroken(){return ME_CATS.filter(x=>G.me&&G.me.eq&&G.me.eq[x]&&gSF(x).b)}
+(function(){const c=document.createElement('style');c.textContent=`
+#gx{position:fixed;inset:0;z-index:95;background:radial-gradient(#202a5c,#04060f 80%);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Galmuri11',sans-serif;overflow:hidden;touch-action:manipulation}#gx.shake{animation:gxsh .09s 9}
+@keyframes gxsh{0%{transform:translate(0)}25%{transform:translate(-9px,5px)}50%{transform:translate(8px,-6px)}75%{transform:translate(-6px,-4px)}}
+#gx .gxb{position:relative;width:min(520px,96vw);display:flex;flex-direction:column;align-items:center;gap:5px;max-height:100vh;padding:4px}
+.gxt{font:900 clamp(13px,3.8vh,17px) 'Galmuri11',sans-serif;color:#ffe066;text-shadow:2px 2px 0 #000;text-align:center}
+.gxs{position:relative;width:min(30vh,130px);height:min(37vh,160px);display:flex;align-items:center;justify-content:center}.gxs canvas{position:relative;z-index:2;width:100%;height:100%;image-rendering:pixelated;filter:drop-shadow(0 0 6px var(--gc));transition:filter .4s}
+.gxno{position:relative;z-index:2;font-size:22px}
+.gxg{position:absolute;inset:-25%;border-radius:50%;background:radial-gradient(var(--gc),transparent 66%);opacity:.3;animation:gxpu 1.4s ease-in-out infinite}@keyframes gxpu{50%{opacity:.55;transform:scale(1.08)}}
+.gxray{position:absolute;inset:-70%;border-radius:50%;opacity:0;background:repeating-conic-gradient(var(--gc) 0 5deg,transparent 5deg 15deg);-webkit-mask:radial-gradient(circle,#000 8%,transparent 62%);mask:radial-gradient(circle,#000 8%,transparent 62%)}
+.gxs.ok .gxray{animation:gxrs 2s ease-out forwards}@keyframes gxrs{0%{opacity:.95;transform:rotate(0) scale(.4)}100%{opacity:0;transform:rotate(80deg) scale(1.1)}}
+.gxs.ok canvas{animation:gxpop .5s ease-out;filter:drop-shadow(0 0 14px #fff) brightness(1.5)}@keyframes gxpop{40%{transform:scale(1.22)}}
+.gxs.charge canvas{animation:gxch .09s infinite}.gxs.charge .gxg{animation:gxpu .25s infinite;opacity:.7}@keyframes gxch{25%{transform:translate(-3px,1px)}75%{transform:translate(3px,-1px)}}
+.gxs.fail canvas{filter:brightness(.6) saturate(.5);animation:gxch .08s 5}
+.gxs.crack canvas{filter:drop-shadow(0 0 10px #f00) saturate(2.5) brightness(1.2) sepia(.6) hue-rotate(-30deg)}.gxs.ash canvas{filter:grayscale(1) brightness(.5) contrast(1.1)!important;transition:filter .5s}.gxs.ash .gxg,.gxs.crack .gxg{--gc:#555;opacity:.1;animation:none}
+.gxcr{position:absolute;inset:0;z-index:3;width:100%;height:100%;pointer-events:none;opacity:0}.gxs.crack .gxcr{opacity:1}.gxs.ash .gxcr{opacity:.55}
+.gxcr path{stroke:#ff2a2a;stroke-width:2.4;stroke-dasharray:140;stroke-dashoffset:140;filter:drop-shadow(0 0 3px #f00)}.gxs.crack .gxcr path{animation:gxdr .3s ease-out forwards}.gxcr path:nth-child(2){animation-delay:.08s!important}.gxcr path:nth-child(3){animation-delay:.14s!important}.gxcr path:nth-child(4){animation-delay:.2s!important}.gxcr path:nth-child(5){animation-delay:.26s!important}@keyframes gxdr{to{stroke-dashoffset:0}}
+.gxst{display:flex;gap:1px;width:min(94vw,440px);justify-content:center}.gxst img{flex:1;min-width:0;max-width:17px;opacity:.22;filter:grayscale(1)}.gxst img.on{opacity:1;filter:none}.gxst img.hi.on{filter:hue-rotate(-30deg) saturate(1.5) drop-shadow(0 0 3px #f60)}.gxst img.pop{animation:gxstp .7s ease-out}.gxst img.lose{animation:gxlo .7s forwards}@keyframes gxstp{0%{transform:scale(3.2);filter:brightness(3)}60%{transform:scale(.8)}}@keyframes gxlo{to{transform:translateY(14px) scale(.4);opacity:0}}
+#gx .gxcatch{width:100%;display:flex;flex-direction:column;gap:5px;text-align:center}#gx .gxcatch small{font-size:11px;opacity:.85}#gx .gxcatch.hit .sct{box-shadow:0 0 18px #3ad66a}#gx #scGo{font-size:17px;font-weight:900;padding:8px;border-radius:12px;border:3px solid #2c3050;background:#ffd23f;color:#2c3050}#gx .sct{height:38px}#gx .scs{width:38px;height:38px}
+.gxres{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:60px;text-align:center;opacity:0}.gxres.on{opacity:1}.gxres b{font:900 clamp(26px,9vh,42px) 'Galmuri11',sans-serif;letter-spacing:3px;text-shadow:3px 3px 0 #000}.gxres small{font-size:12px}.gxres small b{font-size:13px;letter-spacing:0;color:#ff8a8a;text-shadow:none}
+.gxok{color:#ffe066;animation:gxin .5s ease-out,gxgl 1s ease-in-out infinite alternate}.gxfail{color:#9aa4c8;animation:gxin .4s ease-out}.gxbr{color:#ff2a2a;animation:gxin .3s ease-out,gxsh .09s 6}@keyframes gxin{0%{transform:scale(3);opacity:0}}@keyframes gxgl{to{text-shadow:0 0 18px #ffd23f,3px 3px 0 #000}}
+.gxbtn{margin-top:2px;padding:7px 22px;border:3px solid #2c3050;border-radius:12px;background:#ffd23f;color:#2c3050;font:900 14px 'Galmuri11',sans-serif}
+.gxp{position:absolute;left:50%;top:50%;z-index:4;pointer-events:none;font-weight:900;animation:gxfl .9s ease-out forwards;text-shadow:0 0 6px currentColor}@keyframes gxfl{0%{transform:translate(-50%,-50%) scale(.3) rotate(0);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--r));opacity:0}}
+.gxfl{position:absolute;inset:0;z-index:9;pointer-events:none;animation:gxfa .6s ease-out forwards}@keyframes gxfa{from{opacity:.95}to{opacity:0}}
+.gxcw{position:relative;display:flex;justify-content:center}.gxcube{position:absolute;z-index:5;width:56px;height:56px;left:50%;top:-6px;margin-left:-28px;animation:gxcb .85s ease-in forwards;filter:drop-shadow(0 0 10px #c8a0ff)}@keyframes gxcb{0%{transform:translateY(-10px) rotate(0) scale(1.3)}70%{transform:translateY(60px) rotate(540deg) scale(1)}100%{transform:translateY(80px) rotate(720deg) scale(.2);opacity:0}}
+.gxrows{list-style:none;margin:0;padding:0;width:min(94vw,360px);display:flex;flex-direction:column;gap:3px}.gxrows li{position:relative;display:flex;justify-content:space-between;align-items:center;background:#ffffff14;border:2px solid #ffffff30;padding:3px 8px;font-size:13px}.gxrows li.lock{border-color:#ffe066;background:#ffe06622;animation:gxrin .25s ease-out}@keyframes gxrin{0%{transform:scale(1.18);opacity:.3}}.gxrows li small{font-size:10px;opacity:.6}
+.gbrk{display:flex;align-items:center;gap:8px;justify-content:space-between;margin:6px 0;padding:6px 8px;background:#4a1018;border:3px solid #ff3b3b;color:#fff;font:900 12px 'Galmuri11',sans-serif;animation:gxbk 1s ease-in-out infinite alternate}.gbrk button{padding:5px 10px;border:2px solid #2c3050;border-radius:8px;background:#ffd23f;color:#2c3050;font:900 12px 'Galmuri11',sans-serif}@keyframes gxbk{to{box-shadow:0 0 14px #ff3b3b}}
+.gs u.bk,.gb u.bk{color:#ff3b3b;text-decoration:none;font-weight:900}`;document.head.appendChild(c)})();
 // 월드보스에서만: 공격력·크리티컬은 내 공격에, 방어력·회피는 맞을 때, 체력은 최대 체력에
 {const _dc=dmgCalc;dmgCalc=function(a,d,m,c){const r=_dc(a,d,m,c);try{if(BS.wb&&r&&r.d>0){const T=gearStats();if(G.party.includes(a)){r.d=Math.round(r.d*(1+T.atk/100));if(R()<T.crt/100)r.d=Math.round(r.d*1.5*(1+T.cdm/100))}
   else if(G.party.includes(d)){if(R()<T.eva/100)r.d=0;else r.d=Math.round(r.d*(1-Math.min(.6,T.def/100)))}}}catch(e){}return r}}
@@ -5034,7 +5108,7 @@ const NOTI={
   stop:()=>{try{return psS().n<PS_MAX&&!!PSNEAR}catch(e){return false}},
   heal:()=>{try{return G.party.some(m=>m.hp<=0)}catch(e){return false}},
   prefix:()=>(G.bag.pxsc||0)>0||(G.bag.spxsc||0)>0,
-  gear:()=>{try{return (G.bag.cube||0)+(G.bag.cube2||0)>0}catch(e){return false}},
+  gear:()=>{try{return (G.bag.cube||0)+(G.bag.cube2||0)>0||gxBroken().length>0}catch(e){return false}},
   rank:()=>{try{const T=(G.mg||{}).tw||{};return navigator.onLine&&!!wbCfg()&&T.wk===wbWeek()&&(T.wb||0)>(G.rkTw||0)}catch(e){return false}}
 };
 const NOTI_BTN={bHub:['season','rm','card','egg','prefix'],bWB:['wb'],bPack:['pack'],bGiftS:['gift'],bFuse:['card'],bBadge:['rm'],bHeal:['heal'],bGear:['gear','prefix'],bRank:['rank']};
