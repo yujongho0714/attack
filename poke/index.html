@@ -4138,7 +4138,7 @@ async function gearOpen(tab,sel){if(!G)return;tab=tab||'eq';await dressPack();
   let body='';
   if(tab==='eq')body=sum+gSetBox()+`<div class="geq">${ME_CATS.map(c=>{const k=eq[c],sf=gSF(c);if(!k)return `<div class="gs empty"><small>${ME_KO[c]}</small><i>비어 있음</i></div>`;const it=gItem(k);return `<div class="gs" style="--gc:${GGC[it.g]}" data-go="${c}">${gTh(k)}<div><small>${ME_KO[c]} · <b style="color:${GGC[it.g]}">${GGR[it.g]}</b></small><b>${gNm(k)}</b><u>${sf.b?'파괴됨 · 복구 필요':'★'+sf.s}</u><ul>${gOpts(it,c)}</ul></div></div>`}).join('')}</div>`;
   if(tab==='bag'){const c=sel||ME_CATS.find(c=>G.me.own.some(k=>k.startsWith(c+':')))||'weapon';const L=G.me.own.filter(k=>k.startsWith(c+':'));
-    body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ${G.me.own.filter(k=>k.startsWith(x+':')).length}</button>`).join('')}</div><div class="gbag">${L.map(k=>{const it=gItem(k),on=eq[c]===k;return `<div class="gb${on?' on':''}" style="--gc:${GGC[it.g]}">${gTh(k)}<div><b>${gNm(k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><u>${gSF(k).b?'파괴됨':'★'+gSF(k).s}</u><ul>${gOpts(it,k)}</ul></div>${on?'<em>장착 중</em>':`<span class="gbb"><button data-ge="${k}">장착</button><button class="gdel" data-gd="${k}">버리기</button></span>`}</div>`}).join('')||'<small>이 부위 장비가 없어요. 출석 앱에서 모아요!</small>'}</div>`}
+    body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ${G.me.own.filter(k=>k.startsWith(x+':')).length}</button>`).join('')}</div><div class="gbag">${L.map(k=>{const it=gItem(k),on=eq[c]===k;return `<div class="gb${on?' on':''}" style="--gc:${GGC[it.g]}">${gTh(k)}<div><b>${gNm(k)}</b><small style="color:${GGC[it.g]}">${GGR[it.g]}</small><u>${gSF(k).b?'파괴됨':'★'+gSF(k).s}</u><ul>${gOpts(it,k)}</ul></div>${on?'<em>장착 중</em>':`<span class="gbb"><button data-ge="${k}">장착</button><button class="gdel" data-gd="${k}">버리기</button><button class="gsell" data-gs="${k}">팔기 ${(gPrice(k)/10000)}만</button></span>`}</div>`}).join('')||'<small>이 부위 장비가 없어요. 출석 앱에서 모아요!</small>'}</div>`}
   if(tab==='sf'){const c=sel||'weapon',sf=gSF(c),r=sfRate(sf.s),cost=sfCost(sf.s);
     body=`<div class="wch">${ME_CATS.map(x=>`<button data-gc="${x}" class="${x===c?'on':''}">${ME_KO[x]} ★${gSF(x).s}${gSF(x).b?'(파괴)':''}</button>`).join('')}</div>
     <div class="gsf"><div class="gsfh">${eq[c]?gTh(eq[c],64,80):''}<div><b>${ME_KO[c]} 강화 ★${sf.s} / ${SFMAX}</b><small>이 부위의 모든 장비가 같은 강화 단계예요 (무기 하나 12강 → 다른 무기도 12강)</small><div class="stars">${Array.from({length:SFMAX},(_,i)=>`<img src="ui/star.webp" class="${i<sf.s?'on':''}${i>=15?' hi':''}">`).join('')}</div><small>옵션 효과 ×${sfMul(sf.s).toFixed(2)} → 다음 ×${sfMul(sf.s+1).toFixed(2)}</small></div></div>${(()=>{const ek=eq[c];if(!ek)return '<p class="hhint">이 부위에 장착한 장비가 없어요. 장착하면 강화 효과가 들어가요.</p>';const it=gItem(ek),m0=sf.b?0:sfMul(sf.s),nx=sf.s<SFMAX,m1=sfMul(sf.s+1);
@@ -4153,6 +4153,7 @@ async function gearOpen(tab,sel){if(!G)return;tab=tab||'eq';await dressPack();
     p.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{sfx('tap');gearOpen('bag',b.dataset.go)});
     p.querySelectorAll('[data-gd]').forEach(b=>b.onclick=()=>{const k=b.dataset.gd,c=k.split(':')[0];if(G.me.eq[c]===k)return;sfx('tap');
       itAsk('<b>'+gNm(k)+'</b>을(를) 버릴까요?','휴지통으로 가요. 사이드메뉴 「휴지통」에서 언제든 되살릴 수 있어요.',()=>{gTrash(k);gearOpen('bag',c)})});
+    p.querySelectorAll('[data-gs]').forEach(b=>b.onclick=()=>{const k=b.dataset.gs,c=k.split(':')[0];if(G.me.eq[c]===k)return;sfx('tap');const g=gItem(k).g,pr=gPrice(k);itAsk('<b>'+gNm(k)+'</b>을(를) <b>'+pr.toLocaleString()+'원</b>에 팔까요?','<b style="color:'+GGC[g]+'">'+GGR[g]+'</b> 장비예요. 팔면 되살릴 수 없어요.'+(g>=2?' <b style="color:#c0304a">귀한 장비예요!</b>':''),()=>{gSell(k);gearOpen('bag',c)})});
     p.querySelectorAll('[data-ge]').forEach(b=>b.onclick=async()=>{const k=b.dataset.ge,c=k.split(':')[0];G.me.eq[c]=k;save();try{await meBuild()}catch(e){}sfx('get');gearOpen('bag',c)});
     const sfb=p.querySelector('#gSf');if(sfb)sfb.onclick=()=>sfTry(sel||'weapon');const sfa=p.querySelector('#gSfA');if(sfa)sfa.onclick=()=>sfAuto(sel||'weapon');const fx=p.querySelector('#gFix');if(fx)fx.onclick=()=>{const sf=gSF(sel||'weapon');if(G.money<GFIX)return;G.money-=GFIX;sf.b=0;save();sfx('badge');toast('복구했어요! ★'+sf.s);gearOpen('sf',sel||'weapon')};
     p.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>cubeUse(b.dataset.cu,sel&&eq[sel]?sel:ME_CATS.find(x=>eq[x])));
@@ -4546,7 +4547,7 @@ setInterval(()=>{try{pxAssign()}catch(e){}},2500);
 // 이름 앞에 접두사
 {const _nm=nm;nm=function(m){const p=pxOf(m);return p?p.n+' '+_nm(m):_nm(m)}}
 // 편성 카드에 접두사 등급 · 효과
-{const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');const put=(cards,L)=>cards.forEach((c,i)=>{const m=L[i],x=pxOf(m);if(!x||c.querySelector('.pxg'))return;const ti=c.querySelector('.ti');if(ti)ti.insertAdjacentHTML('beforeend',`<small class="pxg" style="--pc:${PXC[x.g]}"><u>${PXG[x.g]}</u> ${pxTxt(x)}</small>`)});
+{const _to=teamOpen;teamOpen=function(){_to.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');const put=(cards,L)=>cards.forEach((c,i)=>{const m=cardMon(c,L,i),x=pxOf(m);if(!x||c.querySelector('.pxg'))return;const ti=c.querySelector('.ti');if(ti)ti.insertAdjacentHTML('beforeend',`<small class="pxg" style="--pc:${PXC[x.g]}"><u>${PXG[x.g]}</u> ${pxTxt(x)}</small>`)});
   if(tg[0])put([...tg[0].querySelectorAll('.tm.p')],G.party);if(tg[1])put([...tg[1].querySelectorAll('.tm.b')],G.box)},60)}}
 function pxBook(){const body=PXG.map((g,i)=>`<h4 style="color:${PXC[i]}">${g} · ${(PXW[i]/10).toFixed(1)}%</h4><div class="pxbk">${PX.filter(p=>p.g===i).map(p=>`<span style="--pc:${PXC[i]}"><b>${p.n}</b><small>${pxTxt(p)}</small></span>`).join('')}</div>`).join('');
   openPanel('접두사 도감 · 100가지',`<p class="hhint">내 포켓몬은 들어올 때 접두사가 하나씩 붙어요. 등급이 높을수록 능력치가 많이 올라가요. <b>난이도별 최고 등급</b>: 쉬움 희귀 · 보통 영웅 · 어려움 전설 · 지옥 환상 · 나이트메어 유일 (환생할 때마다 한 칸 위까지). 지금은 <b>${PXG[pxCap()]}</b>까지. 이름 앞에 보여요 (예: 「용맹한 파이리」).</p>${body}`)}
@@ -4586,7 +4587,7 @@ function pxReroll(target){return new Promise(done=>{const me=target==='me',m=me?
 {const _wp=wbPayout;wbPayout=async function(){const o=G.wb&&G.wb.last;const r=await _wp.apply(this,arguments);try{if(o&&G.wb.paid[o.wk]&&!o.pxsc){o.pxsc=1;const top=WBC.list&&WBC.list.findIndex(x=>x.id===G.pid)>=0&&WBC.list.findIndex(x=>x.id===G.pid)<10;addItem('pxsc',top?3:1);save();toast('월드보스 보상 · 접두사 주문서 '+(top?3:1)+'장')}}catch(e){}return r}}
 // 편성 카드: 접두사 등급 프레임 + 바꾸기 버튼
 {const _to2=teamOpen;teamOpen=function(){_to2.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');
-  const put=(cards,L)=>cards.forEach((c,i)=>{const m=L[i],x=pxOf(m);if(!x)return;c.classList.add('pxf'+x.g);const g=c.querySelector('.pxg');if(g&&!g.querySelector('.pxrb')){const b=document.createElement('button');b.className='pxrb';b.textContent='접두사 바꾸기';b.onclick=e=>{e.stopPropagation();sfx('tap');pxReroll(m)};g.appendChild(b)}});
+  const put=(cards,L)=>cards.forEach((c,i)=>{const m=cardMon(c,L,i),x=pxOf(m);if(!x)return;c.classList.add('pxf'+x.g);const g=c.querySelector('.pxg');if(g&&!g.querySelector('.pxrb')){const b=document.createElement('button');b.className='pxrb';b.textContent='접두사 바꾸기';b.onclick=e=>{e.stopPropagation();sfx('tap');pxReroll(m)};g.appendChild(b)}});
   if(tg[0])put([...tg[0].querySelectorAll('.tm.p')],G.party);if(tg[1])put([...tg[1].querySelectorAll('.tm.b')],G.box)},90)}}
 // 장비 창 맨 위에 내 캐릭터 접두사
 {const _go=gearOpen;gearOpen=function(){const r=_go.apply(this,arguments);setTimeout(()=>{const p=document.querySelector('.panel');if(!p||p.querySelector('.mepx'))return;const x=mePx();const pb=p.querySelector('.pb');if(!pb||!x)return;
@@ -5614,7 +5615,7 @@ function bxFilter(){const p=document.querySelector('.panel');if(!p)return;const 
   const S={new:(a,b)=>b.i-a.i,lv:(a,b)=>b.m.lv-a.m.lv,rar:(a,b)=>rarM(b.m)-rarM(a.m)||b.m.lv-a.m.lv,dex:(a,b)=>META[a.m.n].dex-META[b.m.n].dex}[F.s]||((a,b)=>a.i-b.i);
   cards.sort(S);let n=0;for(const x of cards){const ok=(F.r<0||rarM(x.m)===F.r)&&(!F.t||META[x.m.n].types.includes(F.t))&&bxHit(x.m,BXQ);x.c.style.display=ok?'':'none';if(ok)n++;box.appendChild(x.c)}
   const ct=p.querySelector('.bxcnt');if(ct)ct.textContent=n+' / '+cards.length+'마리';
-  {const gc=Array(9).fill(0);for(const x of cards)gc[Math.min(8,rarM(x.m))]++;p.querySelectorAll('[data-fr]').forEach(b=>{const r=+b.dataset.fr;b.textContent=(r<0?'전체':RAR[r])+' '+(r<0?cards.length:gc[r]);b.style.opacity=r>=0&&!gc[r]?'.4':''})}
+  {const gc=Array(10).fill(0);for(const x of cards)gc[Math.min(9,rarM(x.m))]++;p.querySelectorAll('[data-fr]').forEach(b=>{const r=+b.dataset.fr;b.textContent=(r<0?'전체':RAR[r])+' '+(r<0?cards.length:gc[r]);b.style.opacity=r>=0&&!gc[r]?'.4':''})}
   // 삭제 버튼
   for(const x of cards){const row=x.c.querySelector('.bxb');if(!row||row.querySelector('.bxx'))continue;const b=document.createElement('button');b.className='bxx';b.textContent='삭제';if(x.m.lock)b.disabled=true;b.onclick=e=>{e.stopPropagation();bxDel(x.m)};row.appendChild(b)}}
 function bxDel(m){if(!m||m.lock){toast('자물쇠가 채워져 있어요');return}if(!G.box.includes(m))return;const r=rarM(m),hi=r>=3;
@@ -8279,7 +8280,7 @@ function monSkillOpen(m){const adm=awAdmin();
     const sk=p.querySelector('[data-sk]');if(sk)sk.onclick=()=>{sfx('tap');if(SCENE!=='over'){toast('밖에서만 열려요');return}skillOpen()};
     const bk=p.querySelector('[data-back]');if(bk)bk.onclick=()=>{sfx('tap');teamOpen()}})}
 function awxTeam(){const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');
-  const put=(cards,L)=>cards.forEach((c,i)=>{const m=L[i];if(!m||c.querySelector('.tmM'))return;const b=document.createElement('button');b.className='tmM';b.textContent='⭐ 메뉴';b.onclick=e=>{e.stopPropagation();sfx('tap');monMenu(m)};const ti=c.querySelector('.ti');(ti||c).appendChild(b)});
+  const put=(cards,L)=>cards.forEach((c,i)=>{const m=cardMon(c,L,i);if(!m||c.querySelector('.tmM'))return;const b=document.createElement('button');b.className='tmM';b.textContent='⭐ 메뉴';b.onclick=e=>{e.stopPropagation();sfx('tap');monMenu(m)};const ti=c.querySelector('.ti');(ti||c).appendChild(b)});
   if(tg[0])put([...tg[0].querySelectorAll('.tm.p')],G.party);if(tg[1])put([...tg[1].querySelectorAll('.tm.b')],G.box)}
 {const _t=teamOpen;teamOpen=function(){const r=_t.apply(this,arguments);setTimeout(awxTeam,160);return r}}
 
@@ -8763,7 +8764,7 @@ const RT_SKMV={sg_mortalslash:1,sg_xenonsmasher:2,sg_baekho:3,sg_heukryong:4,sg_
 const rtDmgSkin=(m,id)=>{if(RT_SKMV[id]!=null)return RT_SKMV[id];try{return isMine(rtReal(m))?((G.opt&&G.opt.dskin)|0):0}catch(e){return 0}};
 // 8F: 장비 옵션(공격력·체력·방어력·회피·크리티컬) — 내 포켓몬만, 새 전투 전부 (예전 전투는 그대로 월드보스에서만)
 const rtGearOf=m=>{try{if(!isMine(rtReal(m))||typeof gearStats!=='function')return null;const T=gearStats();return (T.atk||T.hp||T.def||T.eva||T.crt||T.cdm)?T:null}catch(e){return null}};
-const rtCommon=()=>({SGD,hitTier:(m,id)=>{try{return hitTierOf(rtReal(m),id)}catch(e){return{n:1,aw:0}}},mlvOf:(m,id)=>{try{return mlv(rtReal(m),id)}catch(e){return 1}},dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
+const rtCommon=()=>({teraOk:()=>{try{return teraOn()}catch(e){return true}},SGD,hitTier:(m,id)=>{try{return hitTierOf(rtReal(m),id)}catch(e){return{n:1,aw:0}}},mlvOf:(m,id)=>{try{return mlv(rtReal(m),id)}catch(e){return 1}},dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
 const rtBgOf=()=>{try{if(BS.bg==='stadium'&&typeof STAD!=='undefined'&&STAD.complete&&STAD.naturalWidth)return STAD;return bgImg(STG[BS.bg]||'grass')}catch(e){return null}};   // 7B: 새 전투 배경
 async function rtWild(o){
   if(!rtWildOn()||!o||o.wb||o.pvp||!o.foes||!o.foes.length)return undefined;
@@ -8800,7 +8801,7 @@ async function rtWild(o){
       lastMon=m;part.add(m.uid);
       const me=Object.assign({},m,{moves:m.moves.slice()});const reserve=alive().length>1;
       const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
-        meHp:m.hp,foeHp:f.hp,aiTier:tier,bg:rtBgOf,...rtCommon(),party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:q.lv,hp:q.hp,max:stOf(q)[0]})),
+        meHp:m.hp,foeHp:f.hp,aiTier:tier,bg:rtBgOf,...rtCommon(),party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:dLv(q),hp:q.hp,max:stOf(q)[0]})),
         pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
         // 6F-4c: 전투 중 회복 아이템(가방에서 1개 차감). 상처약·좋은상처약·고급상처약·오랭/시트러스열매
         items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal})),
@@ -8854,7 +8855,7 @@ async function rtWB(o){
     const me=Object.assign({},m,{moves:m.moves.slice()});
     const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
       meHp:m.hp,foeHp:f.hp,aiTier:(window.WBAI&&WBAI())||'T2',bg:rtBgOf,...rtCommon(),numK:()=>SC,
-      party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:q.lv,hp:q.hp,max:stOf(q)[0]})),
+      party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:dLv(q),hp:q.hp,max:stOf(q)[0]})),
       pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
       items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal})),
       useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;const L=POTLIM();if(L&&(BS.potN||0)>=L)return{deny:'물약은 전투 1번에 '+L+'개까지!'};G.bag[k]--;BS.potN=(BS.potN||0)+1;return{heal:it.heal}},sfx,
@@ -8956,6 +8957,12 @@ const stOfK=k=>{const w=k===cur()?G.wb:G['wb_'+k];return w&&w.wk===wbWeekB()?w:{
     const n=RW.mat[T]+(killed?12:0);trmAdd(D.mat,n);let t=D.nm+' 보상: '+(k==='c'?'<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵':'<img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결')+' ×'+n;   // 9AB 재료 많이
     if(k==='c'){const g=RW.gem[T]+(killed?10:0);trmAdd('gem',g);t+=' · <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 ×'+g}
     if(k==='e'){const sl=RW.seal[T]+(killed?1:0);if(sl)trmAdd('seal',sl);t+=' · <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장 ×'+sl+(rank?' ('+rank+'위)':'')}save();toast(t)}}finally{wbKind(k0)}}}
+// 장비 보너스: 주간 순위별로 장비 드롭 확률 차등 (일반 1개 · 카오스 2개 · 이터널 3개 / 순위가 높을수록 좋은 등급 확률 ↑)
+{const _p2=wbPayout;wbPayout=async function(){const k0=cur();const pre=[];
+  try{for(const k of ['n','c','e']){wbKind(k);const w=wbS(),o=w.last;if(!o||w.paid[o.wk])continue;let L=null;try{L=await wbFetch(o.wk,1)}catch(e){}const i=L?L.findIndex(x=>x.id===G.pid):-1;pre.push({k,wk:o.wk,rank:i>=0?i+1:null})}}catch(e){}finally{try{wbKind(k0)}catch(e){}}
+  const r=await _p2.apply(this,arguments);
+  try{for(const x of pre){wbKind(x.k);const w=wbS();if(w.paid[x.wk]&&!w['gd_'+x.wk]){w['gd_'+x.wk]=1;save();if(window.gDropRank)await gDropRank(x.k,wbTier(x.rank))}}}catch(e){console.warn('gDropRank',e)}finally{try{wbKind(k0)}catch(e){}}
+  return r}}
 // 들어가는 곳: 허브에 카오스·이터널 · 원래 월보 버튼은 일반으로
 try{const h=HUB.find(x=>x.k==='wb');if(h){h.go=[['월드보스 열기',()=>wbOpen('n')]];h.st=()=>'내 데미지 '+stOfK('n').dmg.toLocaleString()}
   HUB.push({k:'wbc',n:'카오스 월드보스 (매주)',d:'메가진화한 신화 등급 보스! 일반 월보보다 훨씬 세요. 쓰러뜨리면 참여한 사람 모두(쓰러진 뒤에 때린 사람도) 포획 기회 5번 — 잡으면 신화 등급! 도전할 때마다 <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +2 · 주간 순위 보상(1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지): 신화 카드팩 3~1 + <img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵 18~4 + <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 35~15. 보스를 쓰러뜨리면 모두 <img class="tri" src="ui/tr/core.png" alt="">+12 <img class="tri" src="ui/tr/gem.png" alt="">+10! (불멸 승급 = 핵 30개)',st:()=>'내 데미지 '+stOfK('c').dmg.toLocaleString(),go:[['카오스 월드보스 열기',()=>wbOpen('c')]]},
@@ -10129,5 +10136,48 @@ function go(d){if(d===DIFF())return;if(SCENE!=='over'){toast('밖에서만 할 �
   setTimeout(()=>{try{const a=area();if(a!=null){navSet(a,null,'auto');toast('🎯 '+areaName(a)+'(으)로 사냥하러 가요')}}catch(e){}},400)}
 setInterval(draw,800);
 }catch(e){console.warn('b9bs',e)}})();
+</script>
+<script id="gdrop">
+// ===== 편성 카드 ↔ 포켓몬 연결 · 장비 드롭(사냥 승리 20%) · 장비 팔기 =====
+// 드롭 등급: 레전드리 0.1% · 유니크 1% · 에픽 10% · 나머지 레어 / 판매가: 레어 2만 · 에픽 10만 · 유니크 50만 · 레전드리 100만
+function cardMon(c,L,i){try{const b=c.querySelector('[data-in]');if(b)return G.box[+b.dataset.in];const o=c.querySelector('[data-out]');if(o)return G.party[+o.dataset.out]}catch(e){}return L[i]}
+(function(){try{
+const GSELL=[20000,100000,500000,1000000],GDROP=.2;
+window.gPrice=k=>GSELL[Math.min(3,Math.max(0,(gItem(k).g|0)))];
+window.gSell=function(k){if(!G.me||!G.me.own.includes(k))return;const pr=gPrice(k);
+  G.me.own=G.me.own.filter(x=>x!==k);G.money=(G.money||0)+pr;G.gsold=(G.gsold||[]).filter(x=>x!==k);G.gsold.push(k);delete (G.gear||{})[k];
+  save();try{sfx('get')}catch(e){}toast('💰 '+pr.toLocaleString()+'원에 팔았어요!');try{hud()}catch(e){}};
+// 출결에서 캐릭터를 다시 가져와도 판 장비는 다시 안 들어와요
+{const _ma=meApply;meApply=async function(){const r=await _ma.apply(this,arguments);try{if(G.me&&G.gsold&&G.gsold.length){const T=new Set(G.gsold);G.me.own=G.me.own.filter(k=>!T.has(k)||Object.values(G.me.eq||{}).includes(k));save()}}catch(e){}return r}}
+// 등급 확률: 기본 레전드리 0.1% · 유니크 1% · 에픽 10% · 나머지 레어 / 단계(난이도)가 높을수록 조금씩 ↑ (단계당 +12%)
+function rollGrade(d){const f=1+.12*Math.max(0,Math.min(7,d|0)),u=Math.random();return u<.001*f?3:u<(.001+.01)*f?2:u<(.001+.01+.10)*f?1:0}
+// 월드보스 주간 순위별 등급 확률(%): [레전드리, 유니크, 에픽] · 1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지
+const WBG=[[5,20,45],[3,15,40],[2,12,35],[1,8,30],[.5,5,25],[.2,3,20]];
+function rollTier(t){const q=WBG[Math.max(0,Math.min(5,t|0))],u=Math.random()*100;return u<q[0]?3:u<q[0]+q[1]?2:u<q[0]+q[1]+q[2]?1:0}
+async function giveGear(g){
+  try{await dressPack()}catch(e){}
+  if(typeof DRS==='undefined'||!DRS||!DRS.cats)return false;
+  const have=new Set([...G.me.own,...(G.gtrash||[]).map(x=>x.k)]);
+  const pool=[];for(const c of ME_CATS)for(const o of (DRS.cats[c]||[])){const k=c+':'+o.id;if(!have.has(k))pool.push(k)}
+  if(!pool.length){const pr=GSELL[g];G.money=(G.money||0)+pr;save();toast('🎁 '+GGR[g]+' 장비를 얻었지만 이미 다 가지고 있어서 '+pr.toLocaleString()+'원으로 바뀌었어요');return true}
+  const k=pool[Math.floor(Math.random()*pool.length)];
+  G.gear=G.gear||{};G.gear[k]={g,o:gRoll(g)};G.gsold=(G.gsold||[]).filter(x=>x!==k);
+  G.me.own.push(k);save();
+  try{sfx(g>=2?'badge':'get')}catch(e){}
+  toast('🎁 장비 획득! <b style="color:'+GGC[g]+'">['+GGR[g]+']</b> '+((meItem(k)||{}).n||k));return true}
+async function gDrop(opt){opt=opt||{};
+  if(!G||!G.me||!G.me.own)return;if(!opt.sure&&Math.random()>=GDROP)return;
+  await giveGear(opt.tier!=null?rollTier(opt.tier):rollGrade(opt.d||0))}
+async function gDropRank(kind,tier){if(!G||!G.me||!G.me.own)return;const n=kind==='e'?3:kind==='c'?2:1;for(let i=0;i<n;i++)await giveGear(rollTier(tier))}
+window.gDropRank=gDropRank;
+window.gDrop=gDrop;
+// 전투 승리 → 장비 드롭: 사냥 · 트레이너전은 승리 시 (단계가 높을수록 좋은 등급 ↑) · 월드보스는 데미지를 줬을 때
+{const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{
+  if(o&&!o.pvp){let d=0;try{d=DIFF()}catch(e){}
+    if(o.wb){if(typeof BS!=='undefined'&&BS.wbLast&&BS.wbLast.dmg>0)await gDrop({d:0})}
+    else if(r==='win')await gDrop({d})}
+  }catch(e){console.warn('gDrop',e)}return r}}
+const st=document.createElement('style');st.textContent='.gsell{background:#ffd23f!important;color:#2c3050!important}';document.head.appendChild(st);
+}catch(e){console.warn('gdrop 로드 실패',e)}})();
 </script>
 </body></html>
