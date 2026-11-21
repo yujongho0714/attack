@@ -2473,7 +2473,7 @@ function rzStatus(mine,m,AB,DB){const S=bsz(),now=performance.now(),kd=m.rkd,atk
 function rzMul(AB,DB){const now=performance.now();let k=1;if(AB.buffUntil>now)k*=1.3;if(AB.debuffUntil>now)k*=.75;if(DB.guardUntil>now)k*=.4;return k}
 const formsOf=m=>{const M=META[m.n];if(!M||M.form)return[];return(FORMS[M.dex]||[]).map(([p,k,suf])=>({fk:'sc:'+p,k,suf}))};
 // 가방에서 쓰기 → 바꿀 포켓몬 고르기
-const MGMAX=5;const mgUsed=()=>{if(!G)return 0;let n=0;for(const m of [...G.party,...(G.box||[])]){try{if(META[m.n]&&META[m.n].form==='mega')n++}catch(e){}}return Math.max(n,G.mgN||0)};const mgLeft=()=>Math.max(0,MGMAX-mgUsed());
+const MGMAX=5;const mgUsed=()=>{if(!G)return 0;if(G.mgN==null){let n=0;for(const m of [...G.party,...(G.box||[])]){try{if(META[m.n]&&META[m.n].form==='mega')n++}catch(e){}}G.mgN=n}return G.mgN|0}; // 메가스톤으로 변신시킨 횟수만 셈 (카드팩·합성·월드보스로 얻은 메가는 안 셈) · 예전 저장은 처음 한 번만 지금 메가 수로 맞춤const mgLeft=()=>Math.max(0,MGMAX-mgUsed());
 function formUse(itemKey){const it=ITEMS[itemKey];const L=[];if(it.form==='mega'&&mgLeft()<=0){say(['메가스톤으로는 <b>'+MGMAX+'마리</b>까지만 메가진화할 수 있어요.','더 얻으려면 카드 <b>합성 · 포켓몬 카드팩 뽑기</b>(신화 카드)로만 가능해요.']);return}[...G.party,...G.box].forEach((m,i)=>{for(const f of formsOf(m))if(f.k===it.form||(it.form==='gmax'&&f.k==='emax'))L.push({m,f})});
   try{itSortRows(itemKey,L,x=>x.m)}catch(e){}
   if(!L.length){say(['이 아이템으로 바뀔 수 있는 포켓몬이 없어요.<br><small>메가진화 '+Object.values(FORMS).flat().filter(f=>f[1]==='mega').length+'종 · 원시회귀 3종 · 거다이맥스 '+Object.values(FORMS).flat().filter(f=>f[1]==='gmax').length+'종이 있어요</small>']);return}
@@ -8126,7 +8126,7 @@ ST(R.d,{
  c:{spr:'CHAMPION_Red',n:'명계 챔피언 · 아르세우스의 그림자',bg:'orig',dex:[483,484,487,150,384,493],
   pre:()=>['…모든 기억이 모이는 땅, 기원의 전당.','나는 아르세우스의 그림자. 이 모습은 '+NM()+'가 가장 강하다고 기억하는 트레이너의 그림자다.','말은 필요 없다. 지나온 모든 승부가 곧 대답이니.','창조의 첫 숨결과 함께, 모든 기억을 걸고 마지막 시험을 시작한다!'],
   post:()=>['…………','아르세우스: 세계를 만든 뒤, 나는 단 한 번도 시험받은 적이 없었다.','그러나 너는 모든 기억을 안고 여기까지 내려왔다. 그 기억이 너를 가장 강하게 만든 것이다.','…합격이다. 이제 돌아가라. 네 이야기는 네가 쓴다.'],
-  lose:'…기억이 아직 모자라다. 다시 오라.'}});R.u.trg=['LEADER_Brock','LEADER_Erika','LEADER_Brawly','LEADER_Juan','LEADER_Morty','LEADER_Jasmine','LEADER_Pryce','LEADER_Wattson'];R.u.tre=['ELITEFOUR_Agatha','ELITEFOUR_Bruno','ELITEFOUR_Karen','ELITEFOUR_Will'];R.u.gwx=Array(8).fill('fog');R.d.trg=['LEADER_Roxane_ORAS','LEADER_Winoa','LEADER_Norman_ORAS','LEADER_Misty','LEADER_Sabrina','LEADER_Giovanni','LEADER_Clair','LEADER_Surge'];R.d.tre=['ELITEFOUR_Lorelei','ELITEFOUR_Lance','ELITEFOUR_Whitney','SCIENTIST']}
+  lose:'…기억이 아직 모자라다. 다시 오라.'}});R.u.trg=['LEADER_Brock','LEADER_Erika','LEADER_Brawly','LEADER_Juan','LEADER_Jasmine','LEADER_Morty','LEADER_Pryce','LEADER_Wattson'];R.u.tre=['ELITEFOUR_Agatha','ELITEFOUR_Bruno','ELITEFOUR_Karen','ELITEFOUR_Will'];R.u.gwx=Array(8).fill('fog');R.d.trg=['LEADER_Roxane_ORAS','LEADER_Winoa','LEADER_Norman_ORAS','LEADER_Misty','LEADER_Sabrina','LEADER_Giovanni','LEADER_Clair','LEADER_Surge'];R.d.tre=['ELITEFOUR_Lorelei','ELITEFOUR_Lance','ELITEFOUR_Whitney','SCIENTIST']}
 function snapM(){if(R.m)return;R.m={X:RESX.map(x=>x&&x.slice()),towns:RES_TOWNS.slice(),gym:GYM.slice(0,8).map(g=>({t:g.t,n:g.n,c:g.c})),gbg:GYMBG.slice(),gwx:GYMWX.slice(),trg:TRS.gym.slice(),tre:TRS.elite.slice(),elite:cp(ELITE),gl:cp(GLINE),el:cp(ELINE),ch:null}}
 function apply(r){const D=R[r];if(!D||!RESDA[r])return;
   RESX.splice(0,RESX.length,...D.X.map(x=>x&&x.slice()));RESD=RESDA[r];
