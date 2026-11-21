@@ -89,7 +89,8 @@
         acc+=dt;if(acc<.7)return;acc=0;
         if(!swapOn()||!ACT.on||SCENE!=='battle'||ACT.down||ACT.busy||ACT.fbusy||ACT.pause||(ACT.swcd||0)>0)return;
         const me=BS.me,f=BS.foe;if(!me||!f||!me.m||!f.m||me.m.hp<=0||f.m.hp<=0)return;
-        if(hurts(me.m,f.m))return;
+        const forced=!!BS._noEff;BS._noEff=0;
+        if(!forced&&hurts(me.m,f.m))return;
         const i=swapPick(me.m,f.m);if(i<0)return;
         toast('🔄 상성이 안 맞아서 '+nm(G.party[i])+'(으)로 교체!');actSwitch(i);
       });
@@ -106,7 +107,8 @@
       const r=T(()=>{
         if(!swapOn()||(typeof advOn==='function'&&advOn()))return null;
         if(!BS||!BS.me||!BS.foe||!BS.me.m||!BS.foe.m||BS.me.m.hp<=0)return null;
-        if(hurts(BS.me.m,BS.foe.m))return null;
+        const forced=!!BS._noEff;BS._noEff=0;
+        if(!forced&&hurts(BS.me.m,BS.foe.m))return null;
         const i=swapPick(BS.me.m,BS.foe.m);if(i<0)return null;
         return new Promise(ok=>{toast('🔄 상성이 안 맞아서 '+nm(G.party[i])+'(으)로 교체!');setTimeout(()=>ok({t:'switch',i}),FAST()?300:700)});
       });
@@ -114,6 +116,29 @@
     }});
   T(()=>{const _sm=sendMe;sendMe=function(m){setTimeout(()=>cry(m,.8),250);return _sm.apply(this,arguments)}});
   T(()=>{const _sf=sendFoe;sendFoe=function(m){setTimeout(()=>cry(m,.8),150);return _sf.apply(this,arguments)}});
+
+  // ---------- 전투가 끝나면 얻은 아이템을 1초 보여줘요 ----------
+  // 전투 전에 가방 · 장비를 적어 두고, 끝난 뒤 늘어난 것만 (등급 높은 순) 띄워요. 화면을 누르면 바로 닫혀요.
+  T(()=>{const c=document.createElement('style');c.textContent='#pkGot{position:fixed;z-index:9999;left:50%;top:22%;transform:translateX(-50%);min-width:210px;max-width:88vw;max-height:56vh;overflow:auto;padding:10px 14px;border:3px solid #1c2550;background:#141a38f2;color:#fff;box-shadow:0 4px 0 #0b0f24,0 0 0 3px #ffd23f;font:900 13px Galmuri11,sans-serif;text-align:center}#pkGot h4{margin:0 0 6px;color:#ffd23f;font-size:14px}#pkGot div{padding:3px 0;border-top:1px solid #ffffff22;text-align:left}#pkGot div:first-of-type{border-top:0}#pkGot small{color:#9fb0ff}';document.head.appendChild(c)});
+  const gotLines=L=>{const R=[];for(const x of L){
+    if(x.gear){const k=x.gear,it=gItem(k),n=(meItem(k)||{}).n||k;R.push({g:it.g,h:`<div><b style="color:${GGC[it.g]}">[${GGR[it.g]}]</b> ${esc(n)}</div>`})}
+    else if(x.item){const I=ITEMS[x.item]||{};R.push({g:-1,h:`<div>${I.e||'🎁'} ${esc(I.n||x.item)} <b>×${x.n}</b></div>`})}}
+    R.sort((a,b)=>b.g-a.g);return R.map(r=>r.h).join('')};
+  window.pkGotShow=function(L,ms){return new Promise(ok=>{T(()=>{
+    document.querySelectorAll('#pkGot').forEach(e=>e.remove());
+    if(!L||!L.length){ok();return}
+    const d=document.createElement('div');d.id='pkGot';d.innerHTML='<h4>🎁 획득한 아이템</h4>'+gotLines(L);document.body.appendChild(d);
+    let done=0;const fin=()=>{if(done)return;done=1;d.remove();ok()};
+    d.onclick=fin;setTimeout(fin,ms||1000)})||ok()})};
+  T(()=>{const _b=battle;battle=async function(o){
+    let snap=null,own0=null;
+    T(()=>{snap=Object.assign({},G.bag||{});own0=new Set((G.me&&G.me.own)||[])});
+    const r=await _b.apply(this,arguments);
+    try{if(o&&!o.pvp&&snap){const L=[];
+      for(const k in (G.bag||{})){const n=(G.bag[k]||0)-(snap[k]||0);if(n>0&&ITEMS[k])L.push({item:k,n})}
+      for(const k of ((G.me&&G.me.own)||[]))if(!own0.has(k))L.push({gear:k});
+      if(L.length)await window.pkGotShow(L,1000)}}catch(e){console.warn('[pk-patch] got',e)}
+    return r}});
 
   // ---------- 포켓몬 메뉴: 비행 · 수영 지정 ----------
   const fidOf=m=>{m.fid=m.fid||('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));return m.fid};

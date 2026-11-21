@@ -283,7 +283,7 @@ function dealDamage(att,def,mi,opt){
     W._dp={dmg,raw:Math.max(rawD,dmg>0?1:0),e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
     if(e>1)floatTxt(def.x,def.y-95,'효과 굉장!','#ffb030');
     if(e<1&&e>0)floatTxt(def.x,def.y-95,'별로…','#9bb');
-  } else floatTxt(def.x,def.y-70,'효과 없음','#9bb');
+  } else {floatTxt(def.x,def.y-70,'효과 없음','#9bb');try{if(att.side===0&&att===W.me)W._noEffTick=W.tick}catch(er){}}   // 내 공격이 「효과 없음」이면 → 자동 교체 쪽에 알려요
   if(att.critWin>0&&crit)att.critWin=0;
   // 다단 기술: 첫 타가 맞으면 나머지 타를 간격(근접 8틱·원거리 6틱)으로 이어서 침
   if(dmg>0&&m.hits>1&&!opt.chain&&!opt.mult&&m.mh&&!m.chg){const mh=m.mh;let n=m.hits;
@@ -1139,7 +1139,9 @@ function autoSwapChk(){
   if(w.tick-_asTick<30)return;_asTick=w.tick;
   const me=w.me,foe=w.foe;
   if(!me||!foe||me.hp<=0||foe.hp<=0||me.cast||me.stun>0||me.swapT>0||foe.hidden||foe.capt)return;
-  if(pkHurts(me.moves,foe))return;
+  const forced=W._noEffTick!=null&&w.tick-W._noEffTick<=180;   // 「효과 없음」이 실제로 떴으면 기술 타입 계산과 상관없이 교체
+  if(!forced&&pkHurts(me.moves,foe))return;
+  W._noEffTick=null;
   let L=[];try{L=C.party()||[]}catch(er){}
   let best=null,bs=0;
   for(const q of L){
@@ -1153,7 +1155,7 @@ function autoSwapChk(){
     if(s>bs){bs=s;best=q}
   }
   if(!best)return;
-  floatTxt(me.x,me.y-110,'상성이 안 맞아요! 교체','#9be7ff',true);
+  floatTxt(me.x,me.y-110,forced?'효과 없음! 교체':'상성이 안 맞아요! 교체','#9be7ff',true);
   doSwitch(best.uid);
 }
 function openParty(){
