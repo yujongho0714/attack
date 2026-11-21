@@ -1506,8 +1506,8 @@ const FAST=()=>(AUTO.on&&!AUTO.guide)||G.fast;
 bt('bTx').addEventListener('pointerdown',()=>{if(MSGR){const r=MSGR;MSGR=null;r()}});
 // ---------- 그리기 ----------
 const BGIMG={};function bgImg(k){if(BGIMG[k])return BGIMG[k];const im=new Image();im.onerror=()=>{if(STGF[k]){im.onerror=null;im.src='stages/'+STGF[k]+'.webp'}};im.src='stages/'+k+'.webp';return BGIMG[k]=im}
-const STG={meadow:'grass',forest:'forest',cave:'cave',beach:'seaside',swamp:'swamp',ruins:'ruins',volcano:'volcanic',road:'ruins',town:'city',city:'city',ice:'ice',snow:'snow',desert:'desert',night:'night',power:'power',league:'league',champ:'champ',gym_rock:'gym_rock',gym_water:'gym_water',gym_elec:'gym_elec',gym_grass:'gym_grass',gym_poison:'gym_poison',gym_psychic:'gym_psychic',gym_fire:'gym_fire',gym_ground:'gym_ground'};
-const STGF={cave:'ruins',swamp:'forest',city:'grass',snow:'ice',desert:'ruins',night:'grass',power:'ruins',league:'ruins',champ:'ruins',gym_rock:'ruins',gym_water:'seaside',gym_elec:'ruins',gym_grass:'forest',gym_poison:'forest',gym_psychic:'ruins',gym_fire:'volcanic',gym_ground:'ruins'};
+const STG={dist:'dist',orig:'orig',meadow:'grass',forest:'forest',cave:'cave',beach:'seaside',swamp:'swamp',ruins:'ruins',volcano:'volcanic',road:'ruins',town:'city',city:'city',ice:'ice',snow:'snow',desert:'desert',night:'night',power:'power',league:'league',champ:'champ',gym_rock:'gym_rock',gym_water:'gym_water',gym_elec:'gym_elec',gym_grass:'gym_grass',gym_poison:'gym_poison',gym_psychic:'gym_psychic',gym_fire:'gym_fire',gym_ground:'gym_ground'};
+const STGF={dist:'night',orig:'league',cave:'ruins',swamp:'forest',city:'grass',snow:'ice',desert:'ruins',night:'grass',power:'ruins',league:'ruins',champ:'ruins',gym_rock:'ruins',gym_water:'seaside',gym_elec:'ruins',gym_grass:'forest',gym_poison:'forest',gym_psychic:'ruins',gym_fire:'volcanic',gym_ground:'ruins'};
 function side(mine){if(ACT.on||(advOn()&&BS.me&&BS.me.ax!=null)){const B=mine?BS.me:BS.foe;if(B&&B.ax!=null)return{x:B.ax,y:B.ay,row:B.row??(mine?2:6)}}return VW>VH?(mine?{x:VW*.3,y:VH*.7,row:4}:{x:VW*.55,y:VH*.46,row:7}):mine?{x:VW*.27,y:VH*.6,row:4}:{x:VW*.73,y:VH*.36,row:7}}
 const bsz=()=>VW>VH?Math.min(VW*.105,VH*.17)*(ACT.on?.95:1):Math.min(VW*.3,VH*.19);
 // 큰 포켓몬(거다이맥스 등)은 그림이 커서 오라·불꽃도 그림 크기에 맞춰 키워요 (보통 크기는 ×1)
@@ -1969,9 +1969,9 @@ function firstClr(key,n,who){try{const d=DIFF();if(d<6||!window.trmAdd)return;G.
 function rmDrop(){try{const d=DIFF();if(d<6||!window.trmAdd||G.rmDD===dayKey()||R()>=.05)return;G.rmDD=dayKey();const mk=d===6?'core':'breath';trmAdd(mk,1);save();try{sfx('badge')}catch(e){}toast('✨ 행운! 재대결 보상으로 '+(d===6?'<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵':'<img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결')+' ×1 (5%)')}catch(e){}}
 async function gym(k){const g=GYM[k-1];if(G.badges>=k){await say([g.n+': 너는 이미 내 배지를 가졌지! 다음 체육관으로 가렴.']);return}if(G.badges<k-1){await say(['체육관 안내원: 먼저 '+TOWNS[G.badges+1]+' 체육관부터 도전해 봐!']);return}
   const ace=gymAce(k-1);await say(['체육관 안내원: 여기는 '+TOWNS[k]+' 체육관! <b>'+TN[g.t]+'</b> 타입 포켓몬을 쓰는 '+g.n+'이(가) 기다려요.','상성이 좋은 포켓몬을 데려가면 유리해요! (추천 Lv.'+(ace-1+LVO())+')']);
-  const ap=typeTeam(g.t,330+38*(k-1),2,[ace-5,ace-4],G.seed+k*11);let r=await battle({scaled:1,gym:k,trainer:'체육관 수련생',foes:ap,money:ace*20,lose:'관장님은 나보다 훨씬 강해!',bg:'town'});if(r!=='win'){if(r==='lose')await blackout();return}
+  const ap=typeTeam(g.t,330+38*(k-1),2,[ace-5,ace-4],G.seed+k*11);let r=await battle({scaled:1,gym:k,trainer:'체육관 수련생',foes:ap,money:ace*20,lose:'관장님은 나보다 훨씬 강해!',bg:window.GBG?GBG():'town'});if(r!=='win'){if(r==='lose')await blackout();return}
   await trainerScene(TRS.gym[k-1],g.n,GLINE[k-1].pre);const n=Math.min(6,(DIFF()?3:2)+Math.floor(k/2));const lv=[];for(let i=0;i<n;i++)lv.push(ace-(n-1-i)*1-(i<n-1?2:0));
-  r=await battle({scaled:1,gym:k,trainer:g.n,foes:typeTeam(g.t,360+40*k,n,lv,G.seed+k*17),money:ace*120,lose:'훌륭하다! 너의 실력을 인정하마.',bg:'town'});
+  r=await battle({scaled:1,gym:k,trainer:g.n,foes:(window.GTEAM&&GTEAM(k,n,lv))||typeTeam(g.t,360+40*k,n,lv,G.seed+k*17),money:ace*120,lose:'훌륭하다! 너의 실력을 인정하마.',bg:window.GBG?GBG():'town'});
   if(r==='win'){await trainerScene(TRS.gym[k-1],g.n,GLINE[k-1].win,'win');G.badges=k;sfx('badge');firstClr('g'+k,1,g.n);if(k>=3){addItem('mstone',1);toast('🎁 메가스톤을 받았다!')}if(k>=6){addItem('dmax',1);toast('🎁 다이맥스 밴드를 받았다!')}try{REWQ.unshift({badge:k-1});G.badgeSeen=k}catch(e){}await say(['<b>'+TOWNS[k]+' 배지</b>를 받았다! (배지 '+G.badges+'개)',k<8?'이제 북쪽 길로 나아갈 수 있어요!':'배지 8개를 모두 모았다! 포켓몬 리그로 가자!']);save()}else if(r==='lose'){await trainerScene(TRS.gym[k-1],g.n,GLINE[k-1].lose);await blackout()}}
 function rivalTeam(n,lvs){const out=[];const st=G.rival.n;let d=META[st].dex;for(let i=0;i<2;i++){const E=EVC[d];if(E&&E.length&&BYDEX[E[0][0]]&&lvs[lvs.length-1]>=E[0][1])d=E[0][0]}const ace=BYDEX[d]||st;
   const r=rng(G.seed+77);const pool=SPECIES.filter(s=>bst(META[s].stats)>=380&&bst(META[s].stats)<=600);for(let i=0;i<n-1;i++)out.push(mkMon(pool[Math.floor(r()*pool.length)]||ace,lvs[i]));out.push(mkMon(ace,lvs[n-1]));return out}
@@ -1979,8 +1979,8 @@ async function league(){if(G.badges<8){await say(['리그 경비원: 배지 8개
   await say(['포켓몬 리그에 온 걸 환영합니다! 사천왕 4명과 챔피언을 연달아 이기면 명예의 전당에 올라요.','(한 명을 이길 때마다 포켓몬이 회복돼요)']);
   for(let i=0;i<4;i++){const e=ELITE[i];healAll();await trainerScene(TRS.elite[i],e.n,ELINE[i].pre);
     const r=await battle({trainer:e.n,foes:typeTeam(e.t,640,5,[e.lv-2,e.lv-1,e.lv-1,e.lv,e.lv+1],G.seed+i*31),money:e.lv*100,lose:'멋지다… 앞으로 나아가라!',bg:'league'});if(r!=='win'){if(r==='lose')await blackout();return}await trainerScene(TRS.elite[i],e.n,ELINE[i].win,'win');firstClr('e'+i,2,e.n)}
-  healAll();const RC=typeof regChamp==='function'?regChamp():null;await trainerScene(RC?RC.spr:rivSpr(),RC?RC.n:'챔피언 '+RIV(),RC?RC.pre:['왔구나, '+(G.name||'친구')+'! 내가 바로 이 지방의 챔피언이야.','처음 포켓몬을 받았던 그날부터 이 순간을 기다렸어. 마지막 승부다!']);const r=await battle({trainer:RC?RC.n:'챔피언 '+RIV()+'',scaled:1,foes:(RC?RC.team:rivalTeam)(6,[-5,-4,-4,-3,-2,0].map(d=>Math.max(1,Math.min(100,CHL()+d)))),money:9000,lose:'…졌다. 네가 새로운 챔피언이야!',bg:'stadium'});
-  if(r==='win'){G.champ=(G.champ||0)+1;G.champD=Math.max(G.champD!=null?G.champD:-1,DIFF());try{(G.chLog=G.chLog||[]).push({t:Date.now(),d:DIFF(),rb:G.rebirth||0});if(G.chLog.length>20)G.chLog.shift()}catch(e){}firstClr('c',3,'챔피언');addItem('mstone',3);addItem('porb',1);addItem('dmax',2);addItem('sstone',2);sfx('badge');await say(['🏆 축하합니다! 명예의 전당에 올랐어요!','이제 도감을 완성해 봐요. 「📖 도감」에서 포켓몬이 나오는 곳을 누르면 자동으로 찾아가요!']);save()}else if(r==='lose')await blackout()}
+  healAll();const RC=typeof regChamp==='function'?regChamp():null;await trainerScene(RC?RC.spr:rivSpr(),RC?RC.n:'챔피언 '+RIV(),RC?RC.pre:['왔구나, '+(G.name||'친구')+'! 내가 바로 이 지방의 챔피언이야.','처음 포켓몬을 받았던 그날부터 이 순간을 기다렸어. 마지막 승부다!']);const r=await battle({trainer:RC?RC.n:'챔피언 '+RIV()+'',scaled:1,foes:(RC?RC.team:rivalTeam)(6,[-5,-4,-4,-3,-2,0].map(d=>Math.max(1,Math.min(100,CHL()+d)))),money:9000,lose:(RC&&RC.lose)||'…졌다. 네가 새로운 챔피언이야!',bg:(RC&&RC.bg)||'stadium'});
+  if(r==='win'){G.champ=(G.champ||0)+1;G.champD=Math.max(G.champD!=null?G.champD:-1,DIFF());try{(G.chLog=G.chLog||[]).push({t:Date.now(),d:DIFF(),rb:G.rebirth||0});if(G.chLog.length>20)G.chLog.shift()}catch(e){}firstClr('c',3,'챔피언');addItem('mstone',3);addItem('porb',1);addItem('dmax',2);addItem('sstone',2);sfx('badge');if(RC&&RC.post)await say(RC.post());await say(['🏆 축하합니다! 명예의 전당에 올랐어요!','이제 도감을 완성해 봐요. 「📖 도감」에서 포켓몬이 나오는 곳을 누르면 자동으로 찾아가요!']);save()}else if(r==='lose')await blackout()}
 // 라이벌 이벤트
 async function areaEvent(){if(!G.party.length)return;if(G.a===1&&!G.flags.r1){G.flags.r1=1;await trainerScene(rivSpr(),'라이벌 '+RIV(),['기다렸어, '+(G.name||'친구')+'! 우리 같은 날 포켓몬을 받았잖아.','누가 더 잘 키웠는지 한번 겨뤄 보자!']);const r=await battle({trainer:'라이벌 '+RIV()+'',foes:[mkMon(G.rival.n,4)],money:300,lose:'칫, 다음엔 꼭 이길 거야!',bg:'meadow'});if(r==='win')await trainerScene(rivSpr(),'라이벌 '+RIV(),['칫… 이번엔 내가 졌어.','하지만 다음엔 꼭 이길 거야! 먼저 간다!'],'win');if(r==='lose')await blackout()}
   if(G.a===9&&!G.flags.r2&&G.badges>=4){G.flags.r2=1;await trainerScene(rivSpr(),'라이벌 '+RIV(),['배지 4개? 나도 4개야!','그동안 얼마나 강해졌는지 보여 주지. 승부다!']);const r=await battle({trainer:'라이벌 '+RIV()+'',foes:rivalTeam(3,[28,29,31]),money:2500,lose:'강해졌구나…!',bg:'beach'});if(r==='win')await trainerScene(rivSpr(),'라이벌 '+RIV(),['…강해졌구나. 인정할게.','포켓몬 리그에서 다시 만나자. 그때는 지지 않아!'],'win');if(r==='lose')await blackout()}}
@@ -2407,8 +2407,8 @@ const BGM=(()=>{const TOWN=['pallet','pewter','cerulean','vermilion','celadon','
   function fade(a,to,ms,done){const from=a.volume,t0=performance.now();(function f(){const k=Math.min(1,(performance.now()-t0)/ms);a.volume=Math.max(0,Math.min(1,from+(to-from)*k));if(k<1)requestAnimationFrame(f);else done&&done()})()}
   function play(k){if(k===key&&cur&&!cur.paused)return;key=k;const old=cur;if(old)fade(old,0,400,()=>old.pause());if(!on||!k){cur=null;return}
     const a=el(k);try{a.currentTime=0}catch(e){}a.volume=0;cur=a;const p=a.play();if(p&&p.catch)p.catch(()=>{});fade(a,vol,500)}
-  function area(){if(!G)return;const a=G.a;let k;if(P.mode==='surf')k='surf';else if(P.mode==='fly')k='fly';else if(a===18)k='indigo';else if(a%2===0)k=TOWN[a/2];else k=ROUTE[(a-1)/2];play(k)}
-  function battle(o){const t=(o&&o.trainer)||'';play(/챔피언/.test(t)?'bchamp':/사천왕/.test(t)?'belite':/관장/.test(t)?'bgym':t?'btrainer':'bwild')}
+  function area(){if(!G)return;const a=G.a;let k;if(P.mode!=='surf'&&P.mode!=='fly'&&(window.REGCUR==='u'||window.REGCUR==='d')){play(window.REGCUR+'_area');return}if(P.mode==='surf')k='surf';else if(P.mode==='fly')k='fly';else if(a===18)k='indigo';else if(a%2===0)k=TOWN[a/2];else k=ROUTE[(a-1)/2];play(k)}
+  function battle(o){const t=(o&&o.trainer)||'';if(/챔피언/.test(t)&&(window.REGCUR==='u'||window.REGCUR==='d')){play(window.REGCUR+'_champ');return}play(/챔피언/.test(t)?'bchamp':/사천왕/.test(t)?'belite':/관장/.test(t)?'bgym':t?'btrainer':'bwild')}
   function win(o){const t=(o&&o.trainer)||'';play(/관장|사천왕|챔피언/.test(t)?'vgym':t?'vtrainer':'vwild')}
   function toggle(){on=!on;try{localStorage.setItem('pka-bgm',on?'1':'0')}catch(e){}if(!on&&cur){cur.pause();cur=null;key=''}else area();return on}
   function setVol(v){vol=v;try{localStorage.setItem('pka-bgmv',v)}catch(e){}if(cur)cur.volume=v}
@@ -8077,44 +8077,56 @@ const R={m:null,h:{
     {pre:['사천왕 오엽입니다. 책을 읽듯 당신의 수를 읽어 드리죠.','에스퍼 포켓몬의 힘, 넘어설 수 있을까요?'],win:['…훌륭합니다. 챔피언이 기다리고 있어요.']}],
   ch:{spr:'CHAMPION_Cynthia',n:'챔피언 난천',dex:[442,407,468,448,350,445],pre:()=>['어서 와, '+(G.name||'친구')+'. 나는 신오 지방의 챔피언, 난천.','천상계의 끝, 마지막 시험이야. 나의 한카리아스와 함께 전력으로 갈게!']}}};
 const cp=o=>JSON.parse(JSON.stringify(o));
-// ===== 10B 하계 · 명계: 스토리판 (신오 지도를 어둡게 뒤집어 재사용 · 대사·지명은 전부 새로 씀) =====
-// 하계 = "거울 속 세계": 잃어버린 마음 8조각을 모아 외로운 기라티나를 만나요 (이름 없는 아이와 함께)
-// 명계 = "기억의 세계": 내 포켓몬과 함께한 기억 8방을 지나 아르세우스를 만나요 (3막)
-{const bld=(towns,r17,gn,gl,en,el,ch)=>{const o=cp(R.s);o.towns=towns;o.r17=r17;o.gym.forEach((g,i)=>{g.n=gn[i]});o.gl=gl;o.elite.forEach((e,i)=>{e.n=en[i]});o.el=el;o.ch=ch;return o};
- // ---------- 하계 ----------
- const UGL=[
-  {pre:['…오, 오지 마! 여긴 위험해! 천장이 무너질지도 몰라!','나는 단단한 척하지만 사실 돌 구르는 소리에도 깜짝 놀라거든! 그러니까… 배틀로 막을 거야!'],win:['…어? 안 무너졌네. 네가 곁에 있으니까 하나도 안 무서웠어.','이거 가져가. 내 안에 있던 "용기" 한 조각이야. 그 아이에게 전해 줘!'],lose:['거 봐, 무섭다고 했잖아! …그래도 다시 올 거지?']},
-  {pre:['쉿, 밟지 마세요! …아, 밟을 풀도 없지만요.','이 정원엔 아무것도 자라지 않아요. 씨앗을 심어도 소용없다고 믿거든요. 그걸 증명할게요!'],win:['…어머, 발밑에서 초록색이…! 싹이 났어요!','이 조각을 가져가세요. 제가 잃어버렸던 "희망"이에요!'],lose:['역시 아무것도 안 자라네요… 아니, 잠깐. 방금 뭔가 꿈틀했는데?']},
-  {pre:['훈련은 이제 안 해. 아무도 안 보는데 왜 해?','…하지만 승부라면 얘기가 달라. 와라! 한 번만 더 몸을 풀어 볼게!'],win:['…아무도 안 보는 줄 알았는데, 네가 봐 줬구나.','그거면 충분해. "끈기" 조각을 가져가! 내일도 훈련할 거야. 진짜로!'],lose:['후우… 오늘은 여기까지. 내일 또 와. 나도 내일 또 할 거니까.']},
-  {pre:['우하하하! …하하… 하… 으으, 사실은 울고 싶다!','이 바다는 내가 흘린 눈물이야. 웃음으로 덮어 두고 있었지. 파도가 몰려온다, 각오해라!'],win:['으아앙! 졌다! …근데 이상해. 울고 났더니 속이 시원하구먼!','"울어도 괜찮다"는 걸 알려 줘서 고맙다. 눈물과 웃음의 조각이다, 받아라!'],lose:['우하하! …아니 으앙! 울면서 웃는 중이다! 다시 와라!']},
-  {pre:['…어서 와요. 제 친구를 소개할게요.','옛날에 버려진 인형이에요. 주인이 돌아올 거라 믿으며 혼자 기다렸죠. …아무도 오지 않았지만요.'],win:['(인형이 네 포켓몬의 손을 꼭 잡았다)','이 아이가 말해요. "같이 놀아 줘서 고마워"라고요. 우정의 조각이에요. 받아 줘요.'],lose:['…괜찮아요. 이 아이는 기다리는 걸 잘해요. 다시 와 줘요, 꼭이요.']},
-  {pre:['나는 한 번도 미안하다고 말한 적이 없다.','말하는 순간 내 강철이 녹슬 것 같았거든! 이 문을 지나려면 먼저 나를 쓰러뜨려라!'],win:['…미안하다. 오래전부터 하고 싶던 말인데, 이제 말했어.','녹슬지 않았군. 오히려 더 단단해진 기분이야. "용서"의 조각을 받아라.'],lose:['하하! 강철은 굽히지 않는다! …다음엔 굽혀 볼게. 조금만.']},
-  {pre:['으, 추워… 아니, 안 추워! 나는 얼음이니까!','…사실 손을 잡아 본 적이 없어. 내 손에 닿으면 다 얼어 버리거든. 그래서 눈보라로 막을래!'],win:['(네가 내민 손을 조심스레 잡았다) …어? 안 얼었어?','따뜻해… 얼음도 따뜻할 수 있구나. "따뜻함" 조각을 줄게!'],lose:['꽁꽁! …다음엔 장갑 끼고 올게. 서로 손 잡게!']},
-  {pre:['등대의 불이 꺼진 지 오래다. 전기가 이어지질 않아.','하지만 너희 둘의 눈빛은 이어져 있군. 그 연결이 진짜인지, 번개로 확인해 보마!'],win:['…찌릿! 불이 들어왔다! 등대가 다시 켜졌어!','연결의 조각이다. 마지막이야. 이 불빛을 따라 챔피언 로드로 가라!'],lose:['불이 깜빡거리는군. 한 번 더 이어 보자!']}];
- const UEL=[
-  {pre:['나는 충호. 작은 벌레도 소중히 여기는 사람이지.','우리 기라티나님은 옛날에 이 세계 모두와 숨바꼭질을 하던 다정한 분이셨어. …그 얘기를 들을 자격이 있는지 보자!'],win:['…졌군. 좋아, 들어라.','기라티나님은 처음부터 화난 분이 아니었다. 그건 꼭 기억해 줘.']},
-  {pre:['호호, 이 할미는 들국화란다.','땅은 모든 걸 받쳐 주지. 기라티나님도 오랫동안 이 세계를 받쳐 주었어. 아무도 알아주지 않았지만.'],win:['그러던 어느 날 외로움을 못 이겨 세상을 마구 흔들어 버렸단다.','그래서 이 뒤집힌 곳에 갇히셨지. …강한 아이구나, 다음으로 가렴.']},
-  {pre:['대엽이다! 뜨거운 마음 하나로 살아왔지!','갇힌 뒤에 기라티나님은 소리쳤어. "다 필요 없어!" …그건 거짓말이었다. 혼자 몰래 우셨거든.'],win:['크으, 졌다! 하지만 마음은 안 졌다!','…다음 사람이 나머지 이야기를 해 줄 거다.']},
-  {pre:['오엽입니다. 책을 읽듯 마음을 읽죠.','…읽혔어요. 당신 곁의 그 작은 아이. 기라티나님에게서 떨어져 나간 "착한 마음" 아닌가요?'],win:['…역시. 두 분을 다시 만나게 해 주는 것, 그게 저희 모두의 소원이었어요.','챔피언의 방문을 열어 드리죠. …기라티나님을 부탁합니다.']}];
- R.u=bld(['거꾸로 현관','무너진 광산','시든 정원','지친 도장','눈물 항구','속삭임 마을','녹슨 성','서리 거울 도시','꺼진 등대'],'하계 · 거울 속 챔피언 로드',
-  ['거울 속 관장 강석','거울 속 관장 유채','거울 속 관장 자두','거울 속 관장 맥석','거울 속 관장 멜리사','거울 속 관장 동관','거울 속 관장 무청','거울 속 관장 전진'],UGL,
-  ['사천왕 충호','사천왕 들국화','사천왕 대엽','사천왕 오엽'],UEL,
-  {spr:'CHAMPION_Cynthia',n:'반전의 챔피언 기라티나',dex:[429,442,477,354,94,487],pre:()=>['…여기까지 왔나. 사라진 마음을 줍고 다니는 작은 인간.','그 아이를 내놓아라. 그건 내 것이다. 내가… 버렸지만… 내 것이다!']});
- // ---------- 명계 ----------
- const DGL=[
-  {pre:['여기는 "처음 만난 날"의 방이야. 먼지 쌓인 이 기억, 닦아 볼래?','기억이 단단한지 부드러운지는 직접 부딪혀 봐야 알지. 간다!'],win:['반짝… 기억이 선명해졌어!','처음 눈이 마주친 날의 떨림, 잊지 마. 첫 번째 조각이야!'],lose:['기억이 흐릿하네. 천천히 다시 떠올려 봐!']},
-  {pre:['처음 같이 걸은 풀숲이야. 바스락바스락 소리, 기억나?','그때 야생 포켓몬이 튀어나와서 다 같이 소리 질렀잖아! 그 장면을 다시 재생한다!'],win:['꺄하하! 그때도 이렇게 신났었지!','두 번째 조각, "첫 모험의 두근거림"이야.'],lose:['풀숲에서 길 잃었어? 괜찮아, 다시 걸어 보자!']},
-  {pre:['이 방은 조금 아파. "처음 졌던 날"의 기억이거든.','하지만 아픈 기억도 소중해. 그날이 있어서 오늘의 네가 있으니까. 덤벼 봐!'],win:['…이겨 냈구나. 그날의 눈물이 오늘의 힘이 됐어.','세 번째 조각, "다시 일어서는 마음"이야.'],lose:['괜찮아, 졌다고 끝이 아니야. 그날도 그랬잖아?']},
-  {pre:['우하하! 여긴 제일 시끌벅적한 방이다! "함께 웃던 날"의 기억이지.','물웅덩이 첨벙첨벙, 간식 나눠 먹기, 이상한 표정 대회! 다 기억나나?'],win:['으하하! 웃다 지쳤다! 최고의 승부였어!','네 번째 조각, "별거 아닌 날의 행복"이다. 이게 의외로 제일 반짝이거든!'],lose:['우하하! 웃느라 못 봤지? 다시 와!']},
-  {pre:['…어서 와요. 여긴 "보관함의 방"이에요.','같이 지내던 친구들 중엔 오래 못 만난 아이도 있죠? 그 아이들도 당신을 기억하고 있답니다. …인사해 볼래요?'],win:['…모두 인사를 마쳤어요. 서운했던 마음이 풀렸대요.','다섯 번째 조각, "잊지 않는 마음"이에요. 이 아이들도 가끔은 꺼내 주세요.'],lose:['괜찮아요. 아이들은 기다리는 걸 잘해요. 다시 와 줘요.']},
-  {pre:['여긴 "그만두고 싶던 밤"이다. 누구에게나 한 번쯤 있지.','그때 어땠는지 기억나나? 내 강철 방패를 뚫을 수 있다면 증명해 봐라!'],win:['…뚫렸구나. 그래, 포기하지 않았기에 여기 있는 거다.','여섯 번째 조각, "버텨 낸 마음"이다. 자랑스러워해도 된다.'],lose:['한 번 쓰러졌다고 끝이 아니다. 다시 일어서라.']},
-  {pre:['눈이 펑펑 오던 밤이었어. 둘이 붙어서 잠들었던 거 기억나?','추웠는데도 이상하게 따뜻했지. 그 따뜻함이 진짜인지 확인해 볼게!'],win:['으앗 따뜻해! 녹는다 녹아!','일곱 번째 조각, "곁에 있는 온기"야. 소중히 간직해!'],lose:['앗 추워! 다시 붙어서 녹여 오자!']},
-  {pre:['이 방은 "챔피언이 된 날"의 기억이다. 환호성이 아직 들리나?','하지만 기억하라. 그 영광 뒤엔 수많은 하루가 있었다는 걸. 마지막 방을 시험하마!'],win:['…찌릿! 여덟 개의 기억이 하나로 이어졌다.','마지막 조각이다. 이제 "기억의 회랑"으로 가라. 네 이야기를 기다리는 자들이 있다.'],lose:['번개는 한 번에 안 친다. 다시 모아 보자!']}];
- const DEL=[{pre:['…'],win:['…']},{pre:['…'],win:['…']},{pre:['…'],win:['…']},{pre:['…'],win:['…']}];
- R.d=bld(['기억의 입구','첫 만남 마을','첫 모험 숲','첫 패배 언덕','웃음 항구','상자 속 마을','한밤의 성','눈길 도시','우승 등대'],'명계 · 기억의 회랑',
-  ['기억의 관장 강석','기억의 관장 유채','기억의 관장 자두','기억의 관장 맥석','기억의 관장 멜리사','기억의 관장 동관','기억의 관장 무청','기억의 관장 전진'],DGL,
-  ['사천왕 라이벌(기억)','사천왕 윤진(기억)','사천왕 난천(기억)','사천왕 기라티나(기억)'],DEL,
-  {spr:'CHAMPION_Cynthia',n:'기억의 챔피언 아르세우스',dex:[483,484,487,150,384,493],pre:()=>['모든 포켓몬의 기억이 이곳에 모인다…','나는 아르세우스. 지나온 모든 승부를 이겨 낸 너를, 마지막으로 시험하겠다.']})}
+// ===== 10A 하계 · 명계: 신오 지도를 어둡게 뒤집어 재사용 =====
+{const mk=(tag,pfx,chn,chspr,chdex,prel)=>{const o=cp(R.s);
+  o.gym.forEach(g=>{g.n=g.n.replace('관장 ',pfx+' 관장 ')});
+  o.gl.forEach(l=>{l.pre=[l.pre[0].replace(/\S+체육관/,tag+'체육관')].concat(['…'+tag+'까지 내려온 너, 돌아갈 길은 이미 없어.']);l.lose=['…'+tag+'의 어둠은 너를 놓아주지 않아.']});
+  o.el.forEach(l=>{l.pre=[l.pre[0],tag+'에서 살아 돌아간 자는 없다…'];});
+  o.r17=tag+' · 챔피언 로드';
+  o.ch={spr:chspr,n:chn,dex:chdex,pre:prel};return o};
+ R.u=mk('하계','왜곡','반전의 군주 기라티나','CHAMPION_Cynthia',[429,442,477,354,94,487],()=>['…여기까지 내려오다니. 나는 '+(G.name||'너')+'를 기다렸다.','창조가 갈라진 곳, 반전세계의 군주 기라티나다. 이 세계에서 빛은 오래 버티지 못해!']);
+ R.d=mk('명계','기억의','기억의 화신 아르세우스','CHAMPION_Cynthia',[483,484,487,150,384,493],()=>['모든 포켓몬의 기억이 이곳에 모인다…','나는 아르세우스의 그림자. 지나온 모든 승부를 이겨 낸 너를, 마지막으로 시험하겠다.'])}
+// ===== 10B 하계 · 명계 새 스토리 (대사·챔피언·BGM·배경). 지도는 신오 재사용 그대로 =====
+{const ST=(o,S)=>{S.g.forEach((x,i)=>{o.gl[i]={pre:x[0],win:x[1],lose:x[2]}});S.e.forEach((x,i)=>{o.el[i]={pre:x[0],win:x[1]}});Object.assign(o.ch,S.c)};
+const NM=()=>(G&&G.name)||'너';
+ST(R.u,{
+ g:[
+  [['…내려왔구나. 나는 강석. 이 세계에서는 바위조차 위로 떨어져.','첫 번째 빛의 조각은 버티는 자만 가질 수 있어. 얼마나 버티는지 보자!'],['…흔들리지 않는 바위가 흔들렸군.','빛의 조각 하나를 가져가. 다음은 뒤집힌 숲, 영원시티의 유채야.'],['버티지 못하는 자는 여기 오래 못 있어.']],
+  [['반전세계에서도 풀은 자란단다. 빛이 없어도, 뿌리를 위로 뻗으면서!','어둠 속에서 피는 꽃의 힘을 보여 줄게!'],['아… 내 꽃이 다 꺾였어. 그래도 네 안에서 빛이 보여.','다음 조각은 장막시티의 자두가 지키고 있어.'],['꽃은 어둠에서도 피어난단다. 다시 와!']],
+  [['무서우면 무섭다고 인정하는 게 용기예요.','여긴 무서운 곳이에요. 그래도 한 발 나아갈 수 있나요? 보여 주세요!'],['…무서워하면서도 나아갔군요.','세 번째 조각이에요. 다음은 물이 거꾸로 흐르는 들판시티!'],['한 번 더, 용기를 내 봐요.']],
+  [['으하하! 여기 폭포는 하늘로 떨어진다! 파도를 타고 올라가는 나를 어찌 따라오겠느냐!','거꾸로 흐르는 물의 힘, 맛 좀 봐라!'],['으하하! 위아래가 뒤집혀도 네 실력은 그대로구나!','네 번째 조각이다. 다음은 연고시티, 멜리사다.'],['물살이 아직 너를 밀어낸다!']],
+  [['이 세계에는 그림자뿐이에요. 어쩌면 저도 그림자일지 몰라요.','무서운 건 어둠이 아니라 아무도 기억해 주지 않는 것… 저를 기억해 줄 건가요?'],['…기억해 주신다고요? 고마워요.','다섯 번째 조각이에요. 운하시티의 동관 씨가 기다려요.'],['잊히는 건 무서워요… 다시 와 줘요.']],
+  [['나는 동관. 이 세계가 뒤집히기 전부터 약속을 지켜 온 사람이다.','왜곡이 아무리 거세도 강철은 구부러질지언정 부러지지 않는다!'],['…약속을 지킬 사람이 하나 더 늘었군.','여섯 번째 조각이다. 북쪽 선단시티의 무청이 기다린다.'],['강철은 녹슬지 않는다. 다시 와라.']],
+  [['…조용하지? 이 세계는 소리조차 얼어붙어.','외로움이 얼음이 된다는 걸 알아? 군주님은 아주 오래 혼자였어. 그 곁에 설 수 있을까?'],['…녹았네. 내 얼음이.','일곱 번째 조각. 마지막은 물가시티의 전진 씨야.'],['아직 차갑네. 다시 와.']],
+  [['여기까지 오다니. 마지막 조각은 작은 불꽃이다. 희망이라는 이름의.','빛이 거의 꺼진 세계에서도 번개는 친다. 네 불꽃을 보여 줘라!'],['…좋은 불꽃이었다. 여덟 조각이 다 모였군.','리그로 가라. 사천왕과, 그 너머의 군주가 너를 기다린다.'],['불꽃이 아직 약하군. 다시 도전해라.']]],
+ e:[
+  [['사천왕 충호. 작은 생명은 어둠 속에서도 빛을 찾지.','네 안의 빛, 내 벌레들이 시험해 주마!'],['…작다고 우습게 볼 일이 아니구나. 다음 방으로 가라.']],
+  [['사천왕 들국화란다. 땅이 뒤집혀도 모든 걸 받쳐 주는 건 변함없지.','여기까지 내려온 사람은 오랜만이네. 할미 손맛을 보여 줄게요~'],['호호, 단단하구나. 앞으로 가렴.']],
+  [['사천왕 대엽! 어둠 속에서 불꽃이 얼마나 눈부신지 아나?','내 불꽃이 꺼지기 전에 널 시험하마!'],['크으… 불이 꺼졌어! 하지만 따뜻했다!']],
+  [['사천왕 오엽. 제가 본 미래를 말씀드리죠.','챔피언 태홍은 이 세계에 삼켜진 사람이에요. 새 세계를 원하다 길을 잃었죠. 그를 멈출 수 있는 건 당신뿐입니다.'],['…읽은 대로군요. 챔피언이 기다립니다.']]],
+ c:{spr:'CHAMPION_Cyrus',n:'왜곡의 챔피언 태홍',bg:'dist',dex:[429,442,477,354,94,487],
+  pre:()=>['…'+NM()+'. 여기까지 내려왔군.','나는 태홍. 마음도 감정도 없는 새로운 세계를 만들려다 이 세계에 삼켜졌다.','…이상하지. 지금은 그 마음이라는 것이 전부 그립다.','그러나 군주는 아직 만족하지 않았다. 반전의 군주 기라티나와 함께 네 마음을 시험하겠다!'],
+  post:()=>['…졌군. 마음이란 것이, 이토록 강했나.','기라티나: …오랜만이다. 내 앞에서 도망치지 않은 인간은.','내가 갇혀 있던 곳에도 빛은 있었다. 네가 가져온 여덟 조각이 그 증거다.','…가라. 더 깊은 곳, 모든 기억이 모이는 땅에서 그분의 그림자가 기다린다.'],
+  lose:'…마음이 아직 부족하다. 돌아가라.'}});
+ST(R.d,{
+ g:[
+  [['나는 강석… 아니, 네가 처음 만난 관장의 기억이야.','처음 체육관 앞에서 떨던 너를 기억해. 그때처럼 부딪혀 봐!'],['처음보다 훨씬 강해졌구나. 이 기억은 네 것이야.','다음은 네가 처음 얻은 친구의 기억, 영원시티의 유채야.'],['기억은 사라지지 않아. 다시 와.']],
+  [['처음 포켓몬을 잡던 날 기억나? 풀숲이 흔들리고, 심장이 뛰었지.','그 두근거림을 다시 보여 줘!'],['그날의 두근거림이 아직 남아 있네!','다음 기억은 장막시티, 처음 졌던 날이야.'],['두근거림이 모자라! 다시 와!']],
+  [['…져 본 적 있죠? 눈물이 났던 날.','그 패배가 오늘의 당신을 만들었어요. 그날의 저를 넘어 보세요!'],['…패배를 이겨 냈군요.','다음은 들판시티, 처음 함께 웃었던 날의 기억이에요.'],['아직 그날에 머물러 있네요.']],
+  [['으하하! 라이벌이랑 웃고 떠들던 그 길! 물가에서 도시락도 먹었지!','소중한 기억은 파도처럼 밀려온다! 이겨 보거라!'],['으하하! 좋은 기억이 이겼구나!','다음은 연고시티, 두려웠던 밤의 기억이다.'],['추억에 휩쓸렸구먼! 다시 와라!']],
+  [['잊고 싶은 기억도 있죠. 무서웠던 밤, 놓쳐 버린 포켓몬…','그것도 당신이에요. 피하지 말고 마주해 주세요.'],['…마주해 줘서 고마워요.','다음은 운하시티, 지키겠다고 약속한 기억이에요.'],['아직 눈을 피하고 있어요. 다시 와요.']],
+  [['모든 포켓몬을 지키겠다고 했던 약속, 기억하나.','그 약속이 얼마나 단단한지 보여 봐라!'],['…약속은 지켜지고 있었군.','다음은 선단시티, 홀로 걸었던 긴 길의 기억이다.'],['약속이 흔들리는군. 다시 와라.']],
+  [['오랫동안 혼자 걸었지? 아무도 보지 않는 곳에서 계속 키웠던 시간.','그 시간은 헛되지 않았어. 얼음처럼 투명하게 보여 줘.'],['…전부 보였어. 헛된 시간은 하나도 없었네.','마지막은 물가시티, 여기까지 온 이유의 기억이야.'],['더 투명해져야 해. 다시 와.']],
+  [['왜 여기까지 왔나. 강해지려고? 이기려고?','아니, 포켓몬과 함께 있고 싶었기 때문이겠지. 그 마음, 번개처럼 보여 줘라!'],['…찌릿하군. 여덟 개의 기억, 전부 네 것이다.','리그로 가라. 기억의 끝에서 아르세우스의 그림자가 기다린다.'],['아직 마음이 닿지 않았다. 다시 와라.']]],
+ e:[
+  [['사천왕 충호. 모든 포켓몬의 첫 기억은 작고 여리다.','그 작은 시작을 지켜 낸 힘, 보여 줘라!'],['…작은 시작이 여기까지 왔구나.']],
+  [['사천왕 들국화란다. 지나온 길 하나하나가 지금 네 발밑의 땅이야.','그 땅을 딛고 얼마나 높이 왔는지 볼게요~'],['호호, 높이도 왔구나. 가렴.']],
+  [['사천왕 대엽! 기억이 모이는 곳에서 가장 뜨거운 건 후회가 아니라 열정이다!','네 열정을 불꽃으로 증명해라!'],['크으… 열정이 이겼다!']],
+  [['사천왕 오엽. 아르세우스는 세계를 만든 뒤 모든 기억을 이곳에 모았습니다.','그분의 그림자는 당신이 가장 강하다고 기억하는 모습으로 나타날 거예요.'],['…마음의 준비는 끝났군요. 가세요.']]],
+ c:{spr:'CHAMPION_Red',n:'명계 챔피언 · 아르세우스의 그림자',bg:'orig',dex:[483,484,487,150,384,493],
+  pre:()=>['…모든 기억이 모이는 땅, 기원의 전당.','나는 아르세우스의 그림자. 이 모습은 '+NM()+'가 가장 강하다고 기억하는 트레이너의 그림자다.','말은 필요 없다. 지나온 모든 승부가 곧 대답이니.','창조의 첫 숨결과 함께, 모든 기억을 걸고 마지막 시험을 시작한다!'],
+  post:()=>['…………','아르세우스: 세계를 만든 뒤, 나는 단 한 번도 시험받은 적이 없었다.','그러나 너는 모든 기억을 안고 여기까지 내려왔다. 그 기억이 너를 가장 강하게 만든 것이다.','…합격이다. 이제 돌아가라. 네 이야기는 네가 쓴다.'],
+  lose:'…기억이 아직 모자라다. 다시 오라.'}});R.u.trg=['LEADER_Brock','LEADER_Erika','LEADER_Brawly','LEADER_Juan','LEADER_Morty','LEADER_Jasmine','LEADER_Pryce','LEADER_Wattson'];R.u.tre=['ELITEFOUR_Agatha','ELITEFOUR_Bruno','ELITEFOUR_Karen','ELITEFOUR_Will'];R.u.gwx=Array(8).fill('fog');R.d.trg=['LEADER_Roxane_ORAS','LEADER_Winoa','LEADER_Norman_ORAS','LEADER_Misty','LEADER_Sabrina','LEADER_Giovanni','LEADER_Clair','LEADER_Surge'];R.d.tre=['ELITEFOUR_Lorelei','ELITEFOUR_Lance','ELITEFOUR_Whitney','SCIENTIST']}
 function snapM(){if(R.m)return;R.m={X:RESX.map(x=>x&&x.slice()),towns:RES_TOWNS.slice(),gym:GYM.slice(0,8).map(g=>({t:g.t,n:g.n,c:g.c})),gbg:GYMBG.slice(),gwx:GYMWX.slice(),trg:TRS.gym.slice(),tre:TRS.elite.slice(),elite:cp(ELITE),gl:cp(GLINE),el:cp(ELINE),ch:null}}
 function apply(r){const D=R[r];if(!D||!RESDA[r])return;
   RESX.splice(0,RESX.length,...D.X.map(x=>x&&x.slice()));RESD=RESDA[r];
@@ -8145,189 +8157,7 @@ regLoad();
   const sw=(L,water)=>L.map(e=>{const b=bst(META[e.n].stats),d=META[e.n].dex;if(d>=D0&&d<=D1||r()>.8)return e;const C=HO.filter(s=>Math.abs(bst(META[s].stats)-b)<=70&&(!water||META[s].types.includes('WATER'))&&rarOf(s)<=Math.max(2,rarOf(e.n)));return C.length?{n:C[r()*C.length|0],w:e.w}:e});
   return{g:sw(T.g,0),w:sw(T.w,1)}}catch(e){return T}}}
 // 챔피언: 호연에선 윤진 (에이스 가이오가)
-window.regChamp=function(){if(REGCUR==='m')return null;const C=R[REGCUR].ch;return{spr:C.spr,n:C.n,pre:C.pre(),team:(n,lvs)=>C.dex.slice(-n).map((d,i)=>mkMon(BYDEX[d]||SPECIES[0],lvs[i]))}};
-// ===== 10C 하계 · 명계 이야기 장면 + 리그 흐름 (이름 없는 아이와 함께 · 하계 2막 · 명계 3막) =====
-// 저장: G.story = {u0,d0,kid,b:{u1..,d1..},uDone,dDone,uP2:{rb},dP2:{rb},dP3:{rb},kidGift} (환생해도 안 지워져요)
-{
-const ST=()=>{G.story=G.story||{};return G.story};
-const PM=()=>G.party&&G.party[0];
-const PN=()=>{try{return nm(PM())}catch(e){return '포켓몬'}};
-const KN=()=>ST().kid||'그림자 아이';
-const sp=d=>BYDEX[d]||SPECIES[0];
-const fu=(d,e)=>faceUrl(sp(d),e||'Normal');
-const me=()=>G.name||'너';
-const lvs6=o=>o.map(d=>Math.max(1,Math.min(100,CHL()+d)));
-{const st=document.createElement('style');st.textContent=`
-#trScene.u .tsBg{background:radial-gradient(ellipse at 70% 45%,#c9a0ff33,transparent 60%),linear-gradient(115deg,#0d0820 0 45%,#3a1d6e 45% 100%)}#trScene.u .tsName{background:#6a3ab8}
-#trScene.uw .tsBg{background:radial-gradient(ellipse at 70% 45%,#ffe9a066,transparent 60%),linear-gradient(115deg,#241240 0 45%,#8a5ac8 45% 100%)}#trScene.uw .tsName{background:#c08a20}
-#trScene.d .tsBg{background:radial-gradient(ellipse at 70% 45%,#bfe4ff44,transparent 60%),linear-gradient(115deg,#04060f 0 45%,#16406e 45% 100%)}#trScene.d .tsName{background:#2a6ac8}
-#trScene.dw .tsBg{background:radial-gradient(ellipse at 70% 45%,#fff8d077,transparent 60%),linear-gradient(115deg,#0b1a38 0 45%,#c9a040 45% 100%)}#trScene.dw .tsName{background:#c9a040;color:#1c2550;text-shadow:none}
-#trScene.pt .tsImg{height:min(34vh,250px);bottom:32%;filter:drop-shadow(0 0 18px #fff7)}
-#trScene.ptb .tsImg{height:min(44vh,330px);bottom:30%}
-#trScene.s0 .tsImg{filter:brightness(0) drop-shadow(0 0 16px #b08cff)}
-#trScene.s1 .tsImg{filter:brightness(.3) saturate(.5) drop-shadow(0 0 14px #b08cff)}
-#trScene.s2 .tsImg{filter:brightness(.65) saturate(.85) drop-shadow(0 0 12px #e0ccff)}
-@media (orientation:landscape){#trScene.pt .tsImg{height:min(40vh,250px);bottom:32%}#trScene.ptb .tsImg{height:min(50vh,320px)}}
-#stPick{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:#0006}
-#stPick .stBox{width:min(92vw,560px);margin-bottom:calc(6% + env(safe-area-inset-bottom));background:#fffdf0;border:4px solid #1c2550;border-radius:18px;box-shadow:0 6px 0 #1c2550;padding:14px;color:#1c2550;display:flex;flex-direction:column;gap:8px}
-#stPick p{margin:0 0 4px;font-weight:900;text-align:center}
-#stPick button{font:inherit;font-weight:800;padding:10px 12px;border-radius:12px;border:3px solid #1c2550;background:#ffe9a8;color:#1c2550;cursor:pointer}`;document.head.appendChild(st)}
-const pick=(title,opts)=>new Promise(r=>{const d=document.createElement('div');d.id='stPick';d.innerHTML='<div class="stBox"><p>'+title+'</p>'+opts.map((o,i)=>'<button data-i="'+i+'">'+o+'</button>').join('')+'</div>';document.body.appendChild(d);
-  d.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();try{sfx('tap')}catch(_){}d.remove();r(+b.dataset.i)});
-  if(AUTO.on&&!AUTO.guide)setTimeout(()=>{if(d.isConnected){d.remove();r(0)}},1500)});
-// 아이 장면: 하계에선 조각을 모을수록 또렷해져요 (k = 모은 조각 수)
-const kstage=k=>k<=0?' s0':k>=8?'':k>=6?' s2':' s1';
-const stopAuto=()=>{try{if(AUTO.on&&typeof autoStop==='function')autoStop()}catch(e){}};   // 처음 보는 이야기는 자동으로 휙 넘어가지 않게 자동 진행을 꺼요
-const kid=(lines,rg,k,name)=>trainerScene(faceUrl(sp(425),'Normal'),name||(rg==='u'&&k<=0?'???':KN()),lines,rg+' pt'+(rg==='u'?kstage(k):''));
-const kidU=(lines,k)=>kid(lines,'u',k);
-const kidD=lines=>kid(lines,'d',9);
-const boss=(d,e,name,lines,rg)=>trainerScene(fu(d,e),name,lines,rg+' pt ptb');
-const psay=(t,e)=>PM()?say([{f:[PM().n,e||'Normal'],t:'<b>'+PN()+'</b>: '+t}]):say([t]);
-// 아이 이름 짓기
-async function nameKid(){const S=ST();if(S.kid)return;
-  await kid(['…이름이 필요해. 앞으로 계속 불러 줄 이름.','네가 지어 줘. 어떤 이름이든 좋아!'],'uw',9,'이름 없는 아이');
-  const i=await pick('아이의 이름은?',['하루','다온','반짝이']);const n=['하루','다온','반짝이'][i];S.kid=n;save();
-  const why=['하루… 하루하루 쌓여 가는 기억처럼?','다온… 좋은 일이 다 온다는 뜻이지?','반짝이… 별처럼 반짝이라고?'][i];
-  await kid([why,'마음에 쏙 들어! 오늘부터 나는 "'+n+'"이야!','(처음 불려 본 이름이야. 가슴이 터질 것 같아…!)'],'uw',9,n)}
-// ---------- 처음 들어왔을 때 ----------
-async function prologue(){if(!G||!G.party.length||SCENE!=='over')return;const S=ST();if((REGCUR==='u'&&!S.u0)||(REGCUR==='d'&&!S.d0))stopAuto();
-  if(REGCUR==='u'&&!S.u0){S.u0=1;save();
-    await say(['천상계의 챔피언이 된 밤. 명예의 전당의 불빛이 꺼지고 나서도, '+PN()+'(은)는 자꾸 거울을 바라봐요.','…그런데 거울 속의 '+PN()+'가 웃지 않고 있어요. 거울 속 세계가 이쪽을 부르고 있어요!']);
-    await kid(['……들려? 내 목소리, 들려?','나는… 이름이 없어. 그래서 아무도 나를 부르지 못해.'],'u',0);
-    await say(['쿠구구궁! 눈앞이 뒤집히더니 발밑에 하늘이, 머리 위로 땅이 펼쳐졌어요.','여기는 모든 게 거꾸로인 세계 — <b>하계</b>예요.']);
-    await kid(['여기는 사라진 마음들이 흘러와 닿는 곳이야.','나를 도와줄래? 이 세계 여덟 곳에 내가 잃어버린 마음이 흩어져 있어. 그걸 다 모으면… 이름을 기억해 낼 수 있을 것 같아.'],'u',0);
-    const i=await pick('"그림자 아이"가 도움을 청해요. 어떻게 할까?',['도와줄게!','…너, 누구야?','일단 간식부터 먹을래?']);
-    await kid([['정말? …고마워! 누가 웃어 준 건 처음이야.','(아이가 둥실 떠올라 빙글빙글 돌았다)'],['나도 몰라. 그래서 찾는 거야.','…그래도 네 옆에 있으면 안 무서워.'],['…간식? (꼬르륵 소리가 났다) 나, 먹어 본 적 없어!','헤헤, 일이 다 끝나면 같이 먹자. 약속!']][i],'u',0);
-    await kid(['그리고 조심해. 이 세계에선 모든 게 거울처럼 반대야.','강한 척하던 사람이 사실은 겁쟁이고, 겁쟁이인 줄 알았던 사람이 가장 용감해. …잘 봐 줘.'],'u',0);
-    toast('🌑 그림자 아이가 함께해요 · 거울 조각 8개를 모아요');save()}
-  else if(REGCUR==='d'&&!S.d0){S.d0=1;save();
-    await say(['눈을 뜨니 별이 가득한 하늘 위예요.','반짝이는 빛 하나하나가 누군가의 기억이에요. 여기는 <b>명계</b> — 모든 기억이 모이는 곳이에요.']);
-    if(!S.kid)await nameKid();
-    await kidD(['…다시 만났네! 여기가 "명계"야.','저 가운데 큰 빛 보여? 그 안에 모두를 만든 분이 계셔. 아주 오래 혼자였던 분…','그 앞에 가려면 "기억의 방" 여덟 개를 지나야 해. 이번엔 내 기억이 아니야. 바로 네 기억이야!']);
-    const i=await pick('기억의 방으로 들어가기 전에…',['좋아, 가 보자!','조금 떨려…','내 기억? 부끄러운 것도 있는데…']);
-    await kidD([['응! '+PN()+'랑 셋이서 가면 돼!'],['나도 떨려! 같이 떨면 덜 무서워.'],['헤헤, 나는 못 본 걸로 할게! (눈을 가린다… 손가락 사이로 슬쩍 본다)']][i]);
-    toast('🌌 기억의 방 8개를 지나 가운데 빛으로!');save()}}
-// ---------- 배지를 받은 뒤 (조각 하나 · 기억 하나) ----------
-const UB=[
- {t:'용기',l:['(조각이 반짝이며 아이 안으로 스며든다)','…따뜻해. 이게 "용기"구나.','아이의 그림자에 작은 눈이 두 개 생겼다!']},
- {t:'희망',l:['나, 방금 처음으로 웃은 것 같아.','희망이 있으면 어둠 속에서도 앞이 보여!','아이의 그림자에 작은 입이 생겼다!']},
- {t:'끈기',l:['(아이가 땅에서 살짝 떠올랐다)','어제보다 오늘이 조금 더 가벼워!','계속 가 보자. 이제 포기하지 않을 수 있을 것 같아!']},
- {t:'눈물과 웃음',l:['눈물이 났는데… 안 슬퍼. 이상하지?','이게 "진짜 웃음"인가 봐. 울다가 웃는 것도 나쁘지 않아!']},
- {t:'우정',l:['나도 누군가 불러 주기를 기다렸었어.','근데 지금은 네가 옆에 있어. …그걸로 됐어.','아이의 그림자에 작은 손이 생겼다. 네 손을 가만히 잡았다.']},
- {t:'용서',l:['나도 누군가에게 미안하다고 말하고 싶은 게 있어.','…누군지는 아직 기억이 안 나지만, 곧 알게 될 것 같아.']},
- {t:'따뜻함',l:()=>['몸이 은은하게 빛나! 얼굴이 거의 보여…','나, 어떻게 생겼어?','('+PN()+'(이)가 고개를 끄덕인다. 좋은 얼굴이라는 듯!)']},
- {t:'연결',l:['조각 여덟 개가 다 모였어…!','이제 기억이 돌아와. 나, 가야 할 곳이 있어.','저 챔피언 로드 끝에 사는 외로운 용에게… 나를 데려가 줘.']}];
-const DB=[
- {t:'첫 만남',e:'Normal',p:'…그날 난 사실 조금 무서웠어. 근데 네 손이 따뜻해서 괜찮았어.'},
- {t:'첫 모험',e:'Joyous',p:'풀숲에서 넘어졌던 거 기억나? 네가 먼저 웃어서 나도 웃음이 났어!'},
- {t:'다시 일어서기',e:'Determined',p:'그날 졌을 때 네가 말했지. "우리, 한 번만 더 해 보자." 난 그 말이 제일 좋았어.'},
- {t:'함께 웃은 날',e:'Joyous',p:'간식 나눠 먹던 날이 제일 좋았어. 별거 아닌데, 이상하게 오래 남아.'},
- {t:'잊지 않는 마음',e:'Normal',p:'다른 친구들도 다 소중해. 우린 다 같이 있는 거야.',k:['나도… 상자 속에 있던 적 있어. 그래서 알아.','기억해 주는 사람이 있다는 게 얼마나 큰 힘인지.']},
- {t:'버텨 낸 마음',e:'Determined',p:'네가 주저앉았을 때 내가 먼저 일어나 네 앞에 섰어. 이젠 우리가 같이 서 있어.'},
- {t:'곁에 있는 온기',e:'Happy',p:'그날 네 숨결이 따뜻해서 하나도 안 추웠어. …고마워, 곁에 있어 줘서.'},
- {t:'우리가 이긴 날',e:'Joyous',p:'그날 모두가 박수 쳤지만, 난 네가 제일 기뻐 보여서 그게 제일 좋았어.',k:['조각 여덟 개가 다 모였어! 이제 회랑을 지나면…','"그분"을 만날 수 있어. 나 사실 조금 떨려. 같이 가 줄 거지?']}];
-async function beat(k){const S=ST();S.b=S.b||{};const key=REGCUR+k;
-  if(REGCUR==='u'){const B=UB[k-1];toast('🪞 거울 조각 '+k+'/8 · '+B.t);if(S.b[key])return;S.b[key]=1;await kidU(typeof B.l==='function'?B.l():B.l,k)}
-  else{const B=DB[k-1];toast('✨ 기억 조각 '+k+'/8 · '+B.t);if(S.b[key])return;S.b[key]=1;await psay(B.p,B.e);if(B.k)await kidD(B.k)}
-  save()}
-// 명계 5번째 방: 내 보관함의 친구들이 상대가 돼요 (이름표도 내가 붙여 준 별명 그대로)
-{const _b=battle;battle=function(o){try{if(o&&REGCUR==='d'&&o.gym===5&&o.trainer&&o.trainer!=='체육관 수련생'&&G.box&&G.box.length&&o.foes){const seen=new Set(),pool=[];for(const m of G.box.slice().sort(()=>Math.random()-.5)){if(m&&META[m.n]&&!seen.has(m.n)){seen.add(m.n);pool.push(m)}}
-  if(pool.length>=2){const src=pool.slice(0,o.foes.length);o.foes=o.foes.map((f,i)=>{const s=src[i%src.length],nf=mkMon(s.n,f.lv);if(s.nick)nf.nick=s.nick;return nf})}}}catch(e){console.warn('10C 보관함',e)}return _b.apply(this,arguments)}}
-// ---------- 챔피언 공통 ----------
-async function champWin(){G.champ=(G.champ||0)+1;G.champD=Math.max(G.champD!=null?G.champD:-1,DIFF());try{(G.chLog=G.chLog||[]).push({t:Date.now(),d:DIFF(),rb:G.rebirth||0});if(G.chLog.length>20)G.chLog.shift()}catch(e){}firstClr('c',3,'챔피언');addItem('mstone',3);addItem('porb',1);addItem('dmax',2);addItem('sstone',2);sfx('badge');save()}
-const resume=k=>{const v=ST()[k];return !!(v&&v.rb===(G.rebirth||0))};
-async function eliteLoop(rg,first){const names=rg==='u'?null:null;for(let i=0;i<4;i++){const e=ELITE[i];healAll();await trainerScene(TRS.elite[i],e.n,ELINE[i].pre,rg==='u'?'u':'d');
-  const r=await battle({trainer:e.n,foes:typeTeam(e.t,640,5,[e.lv-2,e.lv-1,e.lv-1,e.lv,e.lv+1],G.seed+i*31),money:e.lv*100,lose:'…이 문을 지나가라.',bg:'league',wx:rg==='u'?'fog':undefined});
-  if(r!=='win'){if(r==='lose')await blackout();return false}await trainerScene(TRS.elite[i],e.n,ELINE[i].win,'win');firstClr('e'+i,2,e.n)}return true}
-// ---------- 하계 리그 ----------
-async function leagueU(){if(G.badges<8){await say(['리그 경비원: 배지 8개가 있어야 들어갈 수 있어요!']);return}
-  const S=ST(),first=!S.uDone,rbk=G.rebirth||0;if(first)stopAuto();
-  const cn=R.u.ch.n,ch=R.u.ch,gi=(e)=>fu(487,e);
-  if(!resume('uP2')){
-    await say(['거울의 문이 열렸어요. 하계의 문지기 네 명을 지나야 챔피언의 방에 닿아요.','(한 명을 이길 때마다 포켓몬이 회복돼요)']);
-    if(!await eliteLoop('u',first))return;
-    healAll();
-    await kidU(['…내가, 기라티나의…? 그래서 그렇게 춥고 외로웠구나.','무서워. 근데 가야 해. 이 마음을 돌려줘야 하니까. …같이 가 줄래?'],8);
-    await trainerScene(gi('Angry'),cn,first?ch.pre().concat(['(콰르르르—! 하계 전체가 거꾸로 뒤집히며 비명을 지른다!)']):ch.pre(),'u pt ptb');
-    const r1=await battle({trainer:cn,scaled:1,foes:ch.dex.slice(-6).map((d,i)=>mkMon(sp(d),lvs6([-5,-4,-4,-3,-2,0])[i])),money:9000,lose:'…가라. 이 아이는 내 것이다.',bg:'league',wx:'fog'});
-    if(r1!=='win'){if(r1==='lose')await blackout();return}
-    S.uP2={rb:rbk};save()}
-  else await say(['…여덟 조각의 빛이 다시 모여 포켓몬들을 감싸요. 챔피언의 방으로 되돌아왔어요!']);
-  healAll();
-  if(first)await trainerScene(gi('Pain'),cn,['크윽…! 졌어도… 놓을 수 없다!','이 아이가 없으면 나는 또 혼자야…! 혼자는… 싫다고!'],'u pt ptb');
-  if(first)await kidU(['그만해! 나는 네게서 도망친 게 아니야.','네가 나를 밀어냈다고 생각했는데… 사실은 내가 무서워서 먼저 숨었던 거야.','같이 놀던 때 기억나? 숨바꼭질! 난 이제 안 숨어!'],8);
-  await say(['반짝이는 여덟 조각의 빛이 쏟아지며 포켓몬들이 다시 일어섰어요!','(포켓몬이 모두 회복됐어요)']);
-  await trainerScene(gi('Angry'),cn,['…그 눈빛. …그래도! 내 마지막 힘을 받아 봐라!'],'u pt ptb');
-  const f=mkMon(sp(487),lvs6([2])[0]);f.hpx=2;f.hp=stOf(f)[0];
-  const r2=await battle({trainer:cn,scaled:1,foes:[f],money:9000,lose:'…아직이다.',bg:'stadium',wx:'fog'});
-  if(r2!=='win'){if(r2==='lose')await blackout();return}
-  delete S.uP2;
-  if(first){await trainerScene(gi('Normal'),cn,['……졌구나. 이상하다. 조금도 분하지 않아.','…미안하다. 너를 밀어낸 것도, 모두를 겁준 것도.'],'uw pt ptb');
-    await kidU(['나도 미안해. 먼저 말 걸지 못해서.','그런데 있지, 나 이제 혼자가 아니야. 이 사람이랑 '+PN()+'가 나를 찾아 줬어.'],8);
-    await trainerScene(gi('Normal'),cn,['그렇구나. 그럼 됐다.','그 아이를 데려가라. 세상을 보여 줘라. 마음이 자라면 가끔 돌아와서 이야기를 들려 다오.'],'uw pt ptb');
-    await nameKid();
-    await trainerScene(gi('Happy'),cn,['…이름이 생겼구나. 좋은 이름이다.','그리고 하나 더. 이 세계 너머, 모든 기억이 모이는 "명계"의 문이 열렸다.','거기엔 우리 모두를 만든 분이 계신다. …아주 오래 외로우셨던 분이다. 만나 보아라.'],'uw pt ptb')}
-  else await trainerScene(gi('Happy'),cn,['…또 왔구나. 반갑다. '+KN()+'(은)는 잘 지내고 있느냐?'],'uw pt ptb');
-  await champWin();S.uDone=1;save();
-  await say(['🏆 축하합니다! 하계의 챔피언이 되었어요!',first?'🌌 「명계」가 열렸어요! 메뉴의 난이도에서 고를 수 있어요. (환생할 때도 고를 수 있어요)':'이제 도감을 완성해 봐요!']);save()}
-// ---------- 명계 리그 ----------
-async function leagueD(){if(G.badges<8){await say(['리그 경비원: 기억의 방 여덟 개를 모두 지나야 들어갈 수 있어요!']);return}
-  const S=ST(),first=!S.dDone,rbk=G.rebirth||0,ch=R.d.ch,cn=ch.n,ar=e=>fu(493,e);if(first)stopAuto();
-  if(!S.kid)await nameKid();
-  const COR=[
-   {spr:()=>rivSpr(),n:'사천왕 '+RIV()+'(기억)',pre:['…진짜? 기억 속에서까지 나를 이기러 온 거야?','난 이 방이 아니라 네 마음속에 있는 거라던데. 그럼 더 세게 나갈게!'],win:['칫… 기억 속에서도 졌어. 반칙이야!','…근데 말이야. 네가 있어서 나도 여기까지 강해진 거야. 고마워. (작게) 진짜야.'],team:()=>rivalTeam(6,lvs6([-8,-7,-7,-6,-5,-4]))},
-   {spr:()=>'CHAMPION_Wallace',n:'사천왕 윤진(기억)',pre:['아름다운 승부는 기억에도 남는 법. 기억해 주었군요.','호연에서의 그 승부, 다시 한 번 펼쳐 볼까요?'],win:['훌륭합니다. 기억 속에서도 변함없이 아름답군요.'],team:()=>R.h.ch.dex.slice(-6).map((d,i)=>mkMon(sp(d),lvs6([-8,-7,-7,-6,-5,-4])[i]))},
-   {spr:()=>'CHAMPION_Cynthia',n:'사천왕 난천(기억)',pre:['신화와 전설은 기억에서 태어나. 알고 있었니?','네가 이긴 승부들도 언젠가 누군가의 전설이 될 거야. 자, 시작하자!'],win:['…좋은 승부였어. 앞으로도 그 마음을 잃지 마.'],team:()=>R.s.ch.dex.slice(-6).map((d,i)=>mkMon(sp(d),lvs6([-8,-7,-7,-6,-5,-4])[i]))},
-   {spr:()=>fu(487,'Normal')+'',n:'사천왕 기라티나(기억)',pre:['…이번엔 내가 길을 열어 줄 차례다. 단, 공짜는 아니지.','반전세계의 군주가 마지막으로 네 힘을 확인해 주마. 친구로서!'],win:['…훌륭하다. 이제 "그분"의 빛이 보일 것이다.',KN()+'(은)는 이제 혼자가 아니군. …고맙다.'],team:()=>R.u.ch.dex.slice(-6).map((d,i)=>mkMon(sp(d),lvs6([-8,-7,-7,-6,-5,-4])[i])),pt:1}];
-  if(!resume('dP2')&&!resume('dP3')){
-    await say(['기억의 회랑이에요. 네 번의 "추억의 승부"를 지나면 가운데 빛에 닿아요.','(한 명을 이길 때마다 포켓몬이 회복돼요)']);
-    for(let i=0;i<4;i++){const c=COR[i];healAll();const spr=c.spr();await trainerScene(spr,c.n,c.pre,c.pt?'d pt ptb':'d');
-      const r=await battle({trainer:c.n,scaled:1,foes:c.team(),money:7000+i*500,lose:'…기억은 사라지지 않아. 다시 와.',bg:'league'});
-      if(r!=='win'){if(r==='lose')await blackout();return}await trainerScene(spr,c.n,c.win,c.pt?'dw pt ptb':'win');firstClr('e'+i,2,c.n)}
-    healAll();
-    if(first){await boss(493,'Normal','아르세우스',['…기억의 끝까지 온 것을 환영한다.','나는 아르세우스. 이름을 잊힌 지 오래된 자. 세상을 만들고… 홀로 남은 자.','네 이야기를 보았다. 여기까지 온 모든 발걸음을.','이제 묻겠다. 너는 무엇으로 싸우는가. 시험은 세 번이다!'],'d');
-      await kidD(['…이 분이야. 내가 태어나기 전부터 계속 우릴 지켜보던 분.','무섭지 않아. 이 분도 사실은… 외로우셨던 거야.'])}
-    else await trainerScene(ar('Normal'),cn,ch.pre(),'d pt ptb');
-    await say(['— 제1막 · 힘의 시험 —']);
-    const r1=await battle({trainer:cn,scaled:1,foes:ch.dex.slice(-6).map((d,i)=>mkMon(sp(d),lvs6([-5,-4,-4,-3,-2,0])[i])),money:9000,lose:'…아직 기억이 부족하다.',bg:'league'});
-    if(r1!=='win'){if(r1==='lose')await blackout();return}
-    S.dP2={rb:rbk};save()}
-  else await say(['…기억 조각들이 다시 모여 포켓몬들을 감싸요. 가운데 빛 앞으로 되돌아왔어요!']);
-  if(resume('dP2')){healAll();
-    await trainerScene(ar('Normal'),cn,['…힘은 충분하다. 하지만 힘만으로는 소중한 것을 지킬 수 없다.','— 제2막 · 두려움의 시험 —','보아라. 언젠가 올 이별을.'],'d pt ptb');
-    await say(['눈앞에 환영이 펼쳐져요. 아주 먼 훗날, '+PN()+'(이)가 나이 들어 조용히 잠드는 모습이에요…','아르세우스: 포켓몬과 사람의 시간은 다르다. 헤어짐은 반드시 온다.','아르세우스: 그래도… 정말 사랑하겠느냐?']);
-    await psay('…(네 곁에 바짝 붙어 서서 너를 올려다본다)','Normal');
-    await kidD(['무서워도 괜찮아! 헤어질 걸 알아도, 오늘을 같이 보낸 걸 후회한 적 없잖아!','기억은 끝나지 않아. 이어지는 거야. 내가 증명이야!']);
-    await trainerScene(ar('Determined'),cn,['…그 말이 진심인지 보여 다오.'],'d pt ptb');
-    const f=mkMon(sp(493),lvs6([2])[0]);f.hpx=2;f.hp=stOf(f)[0];
-    const r2=await battle({trainer:cn,scaled:1,foes:[f],money:9000,lose:'…아직 두려움이 남아 있구나.',bg:'stadium'});
-    if(r2!=='win'){if(r2==='lose')await blackout();return}
-    delete S.dP2;S.dP3={rb:rbk};save()}
-  healAll();
-  await trainerScene(ar('Normal'),cn,['…이별을 알면서도 오늘을 택하는구나.','— 제3막 · 마음의 시험 —','네가 지금까지 만난 모든 얼굴이 네 안에 있는가!'],'d pt ptb');
-  await say(['…어디선가 목소리가 들려와요.','기억의 관장 강석: 첫 만남을 기억해! 힘내!','기억의 관장 유채: 두근두근 풀숲 모험, 또 가자!','기억의 관장 자두: 쓰러져도 다시 일어나!','기억의 관장 맥석: 웃어라! 웃으면 더 세진다!','기억의 관장 멜리사: 모두 여기 있어요. 잊지 않아요.','기억의 관장 동관: 포기하지 마라. 버텨라!','기억의 관장 무청: 따뜻하게… 서로 의지해!','기억의 관장 전진: 우리 모두, 이어져 있다!','라이벌 '+RIV()+': 챔피언! 질 생각 하지 마!','저 멀리 하계에서 기라티나의 목소리도 들려요. …가라, 작은 친구들.','<b>'+KN()+'</b>: 우리 다 같이 있어!']);
-  await psay('(모두의 목소리를 안고 한 걸음 앞으로 나선다. 눈빛이 환하게 빛난다!)','Determined');
-  const g=mkMon(sp(493),lvs6([4])[0]);g.hpx=3;g.hp=stOf(g)[0];
-  const r3=await battle({trainer:cn,scaled:1,foes:[g],money:12000,lose:'…아직 마음이 모이지 않았다.',bg:'stadium'});
-  if(r3!=='win'){if(r3==='lose')await blackout();return}
-  delete S.dP3;
-  if(first){
-    await trainerScene(ar('Pain'),cn,['……졌구나. 이상하다. 분하지가 않아. 오히려, 따뜻하다.','나는 오래도록 기다렸다. 누군가 "수고했어요"라고 말해 주기를.','세상을 만든 뒤 모두가 나를 잊었다. 당연하다고 생각했지. 하지만… 사실은 쓸쓸했다.','…이제 알겠다. 기억은 혼자 간직하는 게 아니었어. 나누는 거였구나.'],'dw pt ptb');
-    await kid(['아르세우스 님! 저 이름이 생겼어요. "'+KN()+'"이에요! 저 사람이 지어 줬어요!'],'dw',9);
-    await trainerScene(ar('Happy'),cn,['…좋은 이름이다. 기억해 두마. 네 이름도, '+PN()+'의 이름도.','그리고 부탁이 하나 있다. 가끔은… 나를 불러 다오. 이름을 불러 주는 것, 그것이면 충분하다.'],'dw pt ptb');
-    const i=await pick('아르세우스에게 뭐라고 할까?',['수고했어요, 아르세우스!','우리가 기억할게요!','다음에 같이 놀아요!']);
-    await trainerScene(ar('Joyous'),cn,[['…수고했어요… 라니. (눈가가 반짝인다) 오래 기다린 말이었다.'],['…고맙다. 약속이구나. 잊지 않겠다.'],['…놀자고? …그래, 다음엔 내가 술래를 하마. (아주 작게 웃는다)']][i],'dw pt ptb');
-    if(!S.kidGift){S.kidGift=1;try{const m=mkMon(sp(425),Math.max(topLv(),30));m.nick=KN();m.gift=1;addMon(m);toast('🎁 '+KN()+'(이)가 동료가 됐어요!');sfx('lv')}catch(e){console.warn('10C 선물',e)}}
-    await say(['명계의 별빛이 하나씩 하늘로 올라가요.','잊혀 있던 기억들이 제 주인을 찾아 돌아가는 거예요.',me()+'와(과) '+PN()+'(이)가 걸어온 길도 반짝이는 별이 되었어요.','기억은 사라지지 않아요. 누군가 불러 주는 한, 언제까지나.','— 하계 · 명계 편 · 끝 —','(오늘 함께한 포켓몬에게 "고마워"라고 말해 볼까요? 😊)'])}
-  else await trainerScene(ar('Happy'),cn,['…또 와 주었구나. 오늘도 수고했다. '+KN()+'(은)는 잘 지내느냐?'],'dw pt ptb');
-  await champWin();S.dDone=1;save();
-  await say(['🏆 축하합니다! 명계의 챔피언이 되었어요!','이제 도감을 완성해 봐요!']);save()}
-// ---------- 연결 ----------
-{const _g=gym;gym=async function(k){const b0=G.badges;const r=await _g.apply(this,arguments);try{if(G.badges>b0&&(REGCUR==='u'||REGCUR==='d'))await beat(k)}catch(e){console.warn('10C beat',e)}return r}}
-{const _l=league;league=async function(){if(REGCUR==='u')return leagueU();if(REGCUR==='d')return leagueD();return _l.apply(this,arguments)}}
-{const _a=areaEvent;areaEvent=async function(){await _a.apply(this,arguments);try{await prologue()}catch(e){console.warn('10C 프롤로그',e)}}}
-window.__story={ST,prologue,leagueU,leagueD,beat,nameKid};
-}
+window.regChamp=function(){if(REGCUR==='m')return null;const C=R[REGCUR].ch;return{spr:C.spr,n:C.n,pre:C.pre(),bg:C.bg,post:C.post,lose:C.lose,team:(n,lvs)=>C.dex.slice(-n).map((d,i)=>mkMon(BYDEX[d]||SPECIES[0],lvs[i]))}};
 }catch(e){console.warn('9C 호연',e)}})();
 </script>
 
@@ -9338,6 +9168,8 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112056,date:'11월 21일',t:'하계 · 명계 이야기가 길어졌어요',items:[{img:"",h:"🎬 들어가면 이야기가 시작돼요",p:["하계·명계에 처음 들어가면 <b>인트로 장면</b>이 나와요.","마을 · 길마다 <b>처음 가면 짧은 이야기</b>가 나오고, 관장을 이기면 <b>빛의 조각 / 기억</b> 장면이 나와요.","맨 위 목표에도 <b>조각 · 기억 n/8</b>이 보여요."]},{img:"",h:"⚔ 관장이 달라졌어요",p:["관장 · 사천왕 <b>그림</b>이 새로 바뀌었어요.","관장마다 <b>전용 포켓몬 팀</b>이 있고, 싸우는 곳도 <b>왜곡세계 · 기원의 전당</b>이에요."]},{img:"",h:"📜 가이드 퀘스트 탭 2개 추가",p:["컨텐츠 → 가이드 퀘스트에 <b>하계</b> · <b>명계</b> 탭이 생겼어요. 조각 · 기억을 모을 때마다 보상을 받아요."]}]},
+ {v:2026112055,date:'11월 21일',t:'하계 · 명계 새 이야기',items:[{img:"",h:"🌑 하계: 반전세계의 빛 여덟 조각",p:["관장 8명이 <b>빛의 조각</b>을 지키고 있어요. 모으면 <b>태홍</b>과 <b>기라티나</b>가 기다려요.","왜곡세계 음악과 기라티나 배틀 음악, 새 배경이 나와요."]},{img:"",h:"💀 명계: 지나온 모든 기억",p:["관장 8명은 <b>내가 걸어온 길의 기억</b>이에요. 마지막은 <b>아르세우스의 그림자</b>!","기원의 전당 음악과 아르세우스 배틀 음악, 새 배경이 나와요.","하계·명계 챔피언도 이제 <b>보스 공격력</b>이 적용돼요."]}]},
  {v:2026112054,date:'11월 21일',t:'채팅 · 랭킹 안 보이던 것 고침',items:[{img:"",h:"💬 친구 글이 다시 보여요",p:["서버를 너무 자주 읽어서 하루 한도가 차면 <b>다른 친구 글 · 랭킹이 안 보이던</b> 문제를 고쳤어요.","이제 읽는 양을 크게 줄였어요. 그래도 한도가 차면 채팅 위에 <b>「서버 읽기 한도 초과」</b>라고 알려 줘요."]}]},
  {v:2026112053,date:'11월 21일',t:'아티팩트 장착 · 도감',items:[{img:"",h:"💎 아티팩트 (천계 이상)",p:["포켓몬 하나마다 <b>각성 ★3개 = 아티팩트 1개 · ★6개 = 2개</b>를 낄 수 있어요. 효과는 그 포켓몬에게만 적용돼요.", "메뉴 <b>「컨텐츠」→「아티팩트」</b>나 장비창 맨 오른쪽 「아티팩트」 탭에서 열어요.", "포켓몬 화면에서 <b>장착 · 교체 · 빼기</b>, 🎒 <b>보관함</b>, 📖 <b>도감</b>이 있어요. 한 번이라도 가진 것만 도감에 켜져요.", "등급마다 11종, 모두 <b>44종</b>이에요. 레어 파랑 · 에픽 보라 · 유니크 노랑 · 레전드리 초록으로 계속 반짝여요."]},
   {img:"",h:"⚔ 능력치 9종 (모두 %)",p:["<b>보스 공격력</b>: 사천왕 · 월드보스 · 챔피언 상대일 때 공격이 세져요.", "<b>일반 공격력</b>: 야생 · 트레이너 · 관장 전투에서 공격이 세져요.", "<b>총공격력</b> · <b>총데미지</b> · <b>모든속성 공격력</b>: 주는 데미지가 세져요 (서로 곱해져요).", "<b>흡혈</b>: 준 데미지의 %를 회복해요 (한 번에 최대 체력 5%까지).", "<b>체력</b>: 최대 체력이 늘어요 · <b>방어력</b>: 받는 피해가 줄어요 (최대 60%).", "<b>방어력 무시</b>: 상대 방어를 깎아요 (최대 60%).", "한 아티팩트에 <b>옵션 3개</b>가 붙어요. 수치는 레어 1~4% · 에픽 3~8% · 유니크 6~11% · 레전드리 10~15%예요. PvP에는 적용되지 않아요."]},
@@ -9889,17 +9721,29 @@ const Q={6:[
  ['7g','천상계 배지 8개 모두 모으기',()=>[fcN(7,'g'),8],{breath:3},'lg'],
  ['7h','천상계 사천왕 이기기',()=>[fcN(7,'e'),1],{gem:15},'lg'],
  ['7i','천상계 챔피언 되기',()=>[fcN(7,'c'),1],{gold:3000000,gem:20},'lg']]};
+Q[8]=[
+ ['8a','하계 관장 처음 이기기 (빛의 조각 1개)',()=>[fcN(8,'g'),1],{gem:15},'lg'],
+ ['8b','하계 빛의 조각 4개 모으기',()=>[fcN(8,'g'),4],{breath:3},'lg'],
+ ['8c','하계 빛의 조각 8개 모두 모으기',()=>[fcN(8,'g'),8],{breath:5},'lg'],
+ ['8d','하계 사천왕 이기기',()=>[fcN(8,'e'),1],{gem:20},'lg'],
+ ['8e','하계 챔피언 태홍과 기라티나 이기기',()=>[fcN(8,'c'),1],{gold:5000000,gem:30,breath:8},'lg']];
+Q[9]=[
+ ['9a','명계 관장 처음 이기기 (기억 1개)',()=>[fcN(9,'g'),1],{gem:20},'lg'],
+ ['9b','명계 기억 4개 되찾기',()=>[fcN(9,'g'),4],{breath:5},'lg'],
+ ['9c','명계 기억 8개 모두 되찾기',()=>[fcN(9,'g'),8],{breath:8},'lg'],
+ ['9d','명계 사천왕 이기기',()=>[fcN(9,'e'),1],{gem:30},'lg'],
+ ['9e','명계 챔피언 아르세우스의 그림자 이기기',()=>[fcN(9,'c'),1],{gold:10000000,gem:50,breath:15},'lg']];
 const IC={gem:'<img class="tri" src="ui/tr/gem.png" alt="">',core:'<img class="tri" src="ui/tr/core.png" alt="">',breath:'<img class="tri" src="ui/tr/breath.png" alt="">',cube:'<img class="tri" src="ui/cube1.webp" alt="">'};
 const rwT=r=>Object.entries(r).map(([k,v])=>k==='gold'?'💰 '+fm(v):(IC[k]||'')+'×'+v).join(' ');
 const give=r=>{for(const [k,v] of Object.entries(r)){if(k==='gold')G.money=(G.money|0)+v;else if(k==='cube')addItem('cube',v);else if(window.trmAdd)trmAdd(k,v)}};
 const reach=d=>Math.max(DIFF(),G.rbd|0)>=d;
 const st=q=>{let v=[0,1];try{v=q[2]()}catch(e){}return{cur:v[0],need:v[1],done:v[0]>=v[1],got:!!(G.tgq&&G.tgq[q[0]])}};
 const cnt=d=>{const L=Q[d].map(st);return{got:L.filter(x=>x.got).length,ready:L.filter(x=>x.done&&!x.got).length,n:L.length}};
-function tgOpen(tab){if(!G)return;G.tgq=G.tgq||{};tab=tab||(reach(7)?7:6);const nm=DNAME[tab]||'';
+function tgOpen(tab){if(!G)return;G.tgq=G.tgq||{};tab=tab||(reach(9)?9:reach(8)?8:reach(7)?7:6);const nm=DNAME[tab]||'';
   const rows=Q[tab].map((q,i)=>{const t=st(q),pc=Math.min(100,Math.round(t.cur/t.need*100));
     return `<div class="tgq ${t.got?'got':t.done?'rd':''}"><i>${t.got?'✔':i+1}</i><span><b>${q[1]}</b><div class="tgb"><u style="width:${pc}%"></u><em>${t.need>=1e4?fm(Math.min(t.cur,t.need))+' / '+fm(t.need):Math.min(t.cur,t.need)+' / '+t.need}</em></div><small>보상 ${rwT(q[3])}</small></span>${t.got?'<button disabled>받음</button>':t.done?`<button class="main" data-rw="${q[0]}">받기!</button>`:`<button data-go="${q[4]}">가기 ▶</button>`}</div>`}).join('');
   const lock=!reach(tab);const c6=cnt(6),c7=cnt(7);
-  openPanel('🌌 가이드 퀘스트 · '+nm,`<div class="tabs"><button data-tb="6" class="${tab===6?'on':''}">${DNAME[6]} ${c6.got}/${c6.n}${c6.ready?' 🔴':''}</button><button data-tb="7" class="${tab===7?'on':''}">${DNAME[7]} ${c7.got}/${c7.n}${c7.ready?' 🔴':''}</button></div>
+  openPanel('🌌 가이드 퀘스트 · '+nm,`<div class="tabs">${[6,7,8,9].map(d=>{const c=cnt(d);return `<button data-tb="${d}" class="${tab===d?'on':''}">${DNAME[d]} ${c.got}/${c.n}${c.ready?' 🔴':''}</button>`}).join('')}</div>
    <p class="hhint"><b>${nm}</b>부터는 상대가 엄청 세요 (레벨 1000이 넘어요). <b>바로 못 이기는 게 정상!</b> 순서대로 퀘스트를 하면서 키워요. 골드 · 영혼이 모자라면 <b>낮은 난이도</b>로 내려가서 모아요 — 환생한 난이도는 그대로예요.</p>
    ${lock?`<p class="hhint">🔒 아직 <b>${nm}</b>에 가지 않았어요. 미리 볼 수는 있지만, ${nm}에 가면 시작돼요.</p>`:''}<div class="${lock?'tglk':''}">${rows}</div>`,null,p=>{
    p.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{sfx('tap');closePanel(1);tgOpen(+b.dataset.tb)});
@@ -9943,10 +9787,10 @@ const css2=document.createElement('style');css2.textContent="#reqHud{position:fi
 const css=document.createElement('style');css.textContent=".tgq{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:8px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 3px 0 #0b0f24}.tgq.rd{background:#fff1b8;border-color:#e0a000}.tgq.got{opacity:.6}.tgq i{font-style:normal;width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;background:#3a1f5c;color:#ffd23f;font:900 16px 'Galmuri11',monospace;border:3px solid #0b0f24}.tgq.got i{background:#2e8b57;color:#fff}.tgq span{flex:1;min-width:0}.tgq span>b{display:block;color:#1c2550;font-size:14px}.tgq small{color:#3c4262;font-size:12px}.tgb{position:relative;height:16px;margin:4px 0;background:#d9d4bf;border:2px solid #1c2550}.tgb u{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#ffd23f,#e09a00)}.tgb em{position:relative;display:block;text-align:center;font:900 11px/12px 'Galmuri11',monospace;font-style:normal;color:#1c2550}.tgq button{flex:none;padding:8px 10px;border:3px solid #0b0f24;background:#fff;color:#1c2550;font:900 12px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24}.tgq button.main{background:#ffd23f;animation:tgp 1s infinite}@keyframes tgp{50%{transform:scale(1.06)}}.tglk{filter:grayscale(.7);pointer-events:none}";document.head.appendChild(css);
 // 컨텐츠 목록: 월드보스 바로 밑
 try{const card={k:'tg',n:'🌌 천계 · 천상계 가이드 퀘스트',d:'천계부터는 상대가 엄청 세요! 낮은 난이도에서 골드 · 영혼 모으기 → 각성 → 장비 강화 → 승급 → 카오스 월드보스 → 관장 · 사천왕 · 챔피언. 하나씩 하면 보상을 받아요.',
-  st:()=>{try{if(!reach(6))return '천계에 가면 시작돼요';const d=reach(7)?7:6,c=cnt(d);return DNAME[d]+' '+c.got+'/'+c.n+(c.ready?' · 받을 보상 '+c.ready+'개!':'')}catch(e){return ''}},go:[['퀘스트 보기',()=>tgOpen()]]};
+  st:()=>{try{if(!reach(6))return '천계에 가면 시작돼요';const d=reach(9)?9:reach(8)?8:reach(7)?7:6,c=cnt(d);return DNAME[d]+' '+c.got+'/'+c.n+(c.ready?' · 받을 보상 '+c.ready+'개!':'')}catch(e){return ''}},go:[['퀘스트 보기',()=>tgOpen()]]};
   const i=HUB.findIndex(x=>x.k==='wb');if(i>=0)HUB.splice(i+1,0,card);else HUB.push(card)}catch(e){}
 let lastR=-1;
-setInterval(()=>{try{if(!G||SCENE!=='over')return;const d=Math.max(DIFF(),G.rbd|0);if(d<6)return;const k=d>=7?7:6;
+setInterval(()=>{try{if(!G||SCENE!=='over')return;const d=Math.max(DIFF(),G.rbd|0);if(d<6)return;const k=d>=9?9:d>=8?8:d>=7?7:6;
   if(!DLG.on&&!PANEL){G.tgSeen=G.tgSeen||{};if(!G.tgSeen[k]){G.tgSeen[k]=1;save();tgOpen(k);return}}
   const r=cnt(k).ready;if(lastR>=0&&r>lastR)toast('🌌 가이드 퀘스트 완료! 컨텐츠 → 가이드 퀘스트에서 보상 받기');lastR=r}catch(e){}},5000);
 }catch(e){console.warn('b9ao',e)}})();
@@ -10668,4 +10512,41 @@ try{HUBIC.artifact='ic_bag';HUB.push({k:'artifact',n:'아티팩트',d:'각성 �
   setInterval(scan,800);scan();
   addEventListener('resize',()=>{for(const id in P){const el=document.getElementById(id);if(el&&P[id]){el.style.translate='0px 0px';P[id]=[0,0];el.style.translate=''}}sv()})})();
 </script>
-<script src="pk-patch.js"></script></body></html>
+<script src="pk-patch.js"></script>
+<script id="b10c">
+// ===== 10C 하계 · 명계: 인트로 장면 · 마을마다 첫 방문 이야기 · 조각/기억 얻을 때 장면 · 목표 문구 · 관장 전용 팀 =====
+(function(){try{
+const rg=()=>window.REGCUR,ur=()=>rg()==='u'||rg()==='d';
+const TAG={u:{n:'빛의 조각',e:'🌑'},d:{n:'기억',e:'🕯'}};
+const INTRO={
+u:['…눈을 뜨니 하늘이 발밑에 있었다.','여기는 반전세계, 「하계」. 빛이 거의 꺼져 가는 세계.','어디선가 낮고 쓸쓸한 목소리가 들린다. "…빛을 가져와라. 여덟 조각을."','관장 8명이 빛의 조각을 하나씩 지키고 있어요. 다 모으면 리그로 가는 길이 열려요.'],
+d:['…하얀 빛 속에서 눈을 떴다.','여기는 모든 기억이 모이는 땅, 「명계」.','어디선가 고요한 목소리가 들린다. "걸어온 길을 다시 걸어 보라."','관장 8명은 내가 지나온 여덟 개의 기억이에요. 다 되찾으면 기원의 전당이 열려요.']};
+const EV={
+u:[['…이곳이 하계의 첫 마을. 나무가 거꾸로 자라고, 그림자가 먼저 걸어간다.'],['길이 위로 뻗어 있다. 야생 포켓몬도 그림자처럼 조용하다.'],['무쇠마을. 광산 입구에서 첫 번째 빛의 조각이 희미하게 깜박인다.'],['폭포가 하늘로 떨어지는 길. 물방울이 천천히 위로 올라간다.'],['영원시티. 꽃밭 한가운데서 두 번째 조각이 자라고 있다.'],['쓰러진 안내판: "돌아가는 길은 없다. 앞으로만."'],['장막시티. 모든 소리가 한 박자씩 늦게 들린다.'],['안개 속에서 누군가 속삭인다. "…군주는 오래 혼자였다."'],['들판시티. 호수가 하늘에 걸려 있다.'],['발밑에서 그림자가 먼저 앞서 걷는다. 따라가 본다.'],['연고시티. 가로등이 모두 꺼져 있다. 다섯 번째 조각은 어디에 있을까.'],['낡은 비석: "여기 갇힌 이는 폭력이 아니라 외로움이었다."'],['운하시티. 배는 하늘을 떠다니고 항구는 조용하다.'],['얼어붙은 바람이 분다. 소리마저 얼어붙는 길.'],['선단시티. 눈이 위로 내린다.'],['번개가 칠 때마다 먼 곳에서 거대한 그림자가 몸을 뒤척인다.'],['물가시티. 마지막 조각이 작은 불꽃으로 타고 있다.'],['챔피언 로드. 길 끝에서 누군가 기다리는 기척이 느껴진다.'],['포켓몬 리그. 이 세계의 끝, 군주의 궁전이 눈앞에 있다.','여기서 모든 이야기가 끝난다. 준비는 됐나?']],
+d:[['…낯익은 마을이다. 처음 모험을 떠나던 날의 공기가 난다.'],['낯익은 길. 처음 걷던 날의 풀 냄새가 난다.'],['첫 번째 기억의 마을. 처음 체육관 문을 두드리던 때가 떠오른다.'],['풀숲에서 처음 포켓몬을 잡던 날의 두근거림이 되살아난다.'],['두 번째 기억. 처음 친구가 된 포켓몬이 어깨 위에서 웃던 날.'],['길 위에 처음 졌던 날의 발자국이 남아 있다.'],['세 번째 기억. 패배의 눈물이 바닥에 스며 있다. 하지만 다시 일어섰다.'],['웃음소리가 들린다. 라이벌과 나란히 걷던 그 길이다.'],['네 번째 기억. 소중한 사람들과 먹던 도시락 냄새.'],['해가 지고 밤이 온다. 무서웠던 그 밤.'],['다섯 번째 기억. 놓쳐 버린 포켓몬의 울음소리가 아직 맴돈다.'],['"모든 포켓몬을 지키겠다." 약속을 속삭이는 목소리가 들린다.'],['여섯 번째 기억. 약속은 강철처럼 이 마을을 지탱한다.'],['아무도 보지 않던 길. 혼자 걸었던 시간이 눈처럼 쌓여 있다.'],['일곱 번째 기억. 외로웠지만, 그 길 끝에 지금의 내가 있다.'],['번개가 하늘을 가른다. 여기까지 온 이유가 번쩍 떠오른다.'],['마지막 기억. 포켓몬과 함께 있고 싶었던 마음, 그게 전부였다.'],['챔피언 로드. 하얀 빛 끝에 기원의 전당이 보인다.'],['기원의 전당. 세계가 시작된 곳.','이곳의 주인이 지금 너를 기다리고 있다.']]};
+const BADGE={
+u:{1:['주변이 아주 조금 밝아졌다.'],2:['빛이 번지는 곳에서 그림자가 한 걸음 물러난다.'],3:['소리가 한 박자씩 제자리를 찾는다.'],4:['세계가 절반쯤 밝아졌다.','어디선가 군주가 이쪽을 바라보는 기척이 느껴진다.'],5:['그림자가 이제 네 뒤를 따라온다.'],6:['얼어붙은 소리들이 하나둘 녹아내린다.'],7:['저 멀리 거대한 궁전의 윤곽이 보이기 시작한다.'],8:['여덟 조각이 하나로 모여 리그로 가는 길 위에 빛의 길이 열렸다!','군주: …기다리고 있겠다.']},
+d:{1:['첫 번째 기억이 가슴속에 돌아왔다.'],2:['잊고 있던 설렘이 되살아난다.'],3:['패배조차 소중한 기억이었다.'],4:['기억의 절반. 하얀 빛이 눈부시게 번진다.'],5:['무서웠던 밤도 내 일부였다.'],6:['약속이 더 단단해졌다.'],7:['홀로 걸은 시간이 빛이 되었다.'],8:['여덟 개의 기억이 모두 돌아왔다. 기원의 전당으로 가는 문이 열린다.','목소리: …시험을 시작하자.']}};
+// 관장 전용 팀 (약한 순 → 에이스 마지막 · 전투 때 뒤에서 n마리)
+const GT={
+u:[[76,142,476,306,464,248],[470,465,407,460,389,254],[68,237,454,448,475,392],[134,321,260,350,395,130],[354,478,442,477,429,94],[205,437,212,462,376,208],[365,131,460,478,471,473],[26,181,135,405,462,466]],
+d:[[74,95,111,112,139,141],[3,182,189,45,154,254],[67,106,107,297,308,392],[9,55,121,186,230,350],[93,200,302,356,429,94],[81,227,208,306,376,448],[87,124,221,362,473,461],[25,26,125,135,181,466]]};
+window.GTEAM=(k,n,lv)=>{if(!ur())return null;const L=GT[rg()][k-1];if(!L)return null;return L.slice(-n).map((d,i)=>mkMon(BYDEX[d]||SPECIES[0],lv[i]))};
+window.GBG=()=>rg()==='u'?'dist':rg()==='d'?'orig':'town';
+// 목표 문구
+const _o=objective;objective=function(){const r=_o.apply(this,arguments);try{if(r&&ur()&&G&&G.party&&G.party.length){const T=TAG[rg()],b=G.badges|0,t=String(r.t||'');
+ if(b<8&&t.indexOf('체육관')>=0)r.t=T.e+' '+T.n+' '+b+'/8 · '+t;
+ else if(b>=8&&!G.champ&&t.indexOf('리그')>=0)r.t=T.e+' '+T.n+' 8/8 · '+(rg()==='u'?'리그의 태홍과 기라티나에게':'기원의 전당으로')}}catch(e){}return r};
+// 장면 틀: 인트로 → 첫 방문 이야기 → 조각/기억 얻음
+setInterval(()=>{try{if(!G||!ur()||!G.party||!G.party.length||SCENE!=='over'||DLG.on||PANEL||document.getElementById('clrOv')||EVB.n||P.busy||P.mv)return;
+ const r=rg();if(G.reg!=null&&G.reg!==r)return;
+ G.s10=G.s10||{i:{},e:{},b:{}};const S=G.s10;
+ if(!S.i[r]){S.i[r]=1;S.b[r]=G.badges|0;save();say(INTRO[r]);return}
+ const a=G.a,ek=r+a;if(!S.e[ek]&&EV[r][a]){S.e[ek]=1;save();say(EV[r][a]);return}
+ const b=G.badges|0,lb=S.b[r]|0;
+ if(b<lb){S.b[r]=b;save()}
+ else if(b>lb){S.b[r]=b;save();const T=TAG[r];say([T.e+' <b>'+T.n+' '+b+'/8</b>'+(r==='u'?'을 손에 넣었다.':'이 돌아왔다.')].concat(BADGE[r][b]||[]))}
+}catch(e){}},1200);
+}catch(e){console.warn('b10c',e)}})();
+</script>
+</body></html>
