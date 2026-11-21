@@ -58,7 +58,7 @@ function mkEnt(mon,S,side){
   if(!e.moves.some(m=>m.p>0))e.moves.push(moveOf('struggle'));
   e.moves.forEach((m,i)=>{m.t=rr(0,m.cd*.6)});
   try{e.critX=C.critOf?C.critOf(mon)||{c:0,d:0}:{c:0,d:0}}catch(er){e.critX={c:0,d:0}}
-  try{const g=C.gearOf?C.gearOf(mon):null;if(g){e.gear=g;const hm=1+(g.hp||0)/100;e.max=Math.round(e.max*hm);e.hp=e.max;e.critX={c:Math.min(.75,e.critX.c+(g.crt||0)/100),d:e.critX.d+(g.cdm||0)/100}}}catch(er){}
+  try{const g=C.gearOf?C.gearOf(mon):null;if(g){e.gear=g;const hm=1+((g.hp||0)+((g.aA&&g.aA.hp)||0))/100;e.max=Math.round(e.max*hm);e.hp=e.max;e.critX={c:Math.min(.75,e.critX.c+(g.crt||0)/100),d:e.critX.d+(g.cdm||0)/100}}}catch(er){}
   if(!e.side&&mon.hp!=null&&isFinite(mon.hp)){const hm=e.max/(e.st[0]||1);e.hp=clamp(mon.hp*hm,1,e.max)}
   return e;
 }
@@ -70,9 +70,11 @@ function calcDmg(att,def,m){
   const stab=att.types.includes(m.type)?1.5:1;
   const cx=att.critX||{c:0,d:0};
   const crit=Math.random()<(1/24+cx.c);
-  let base=((2*att.lv/5+2)*m.p*A/Math.max(1,D)/50+2);
+  const _ign=Math.min(.9,((att.gear&&att.gear.aA&&att.gear.aA.ign)||0)/100);   // 9BZ 아티팩트 방어력 무시
+  let base=((2*att.lv/5+2)*m.p*A/Math.max(1,D*(1-_ign))/50+2);
   let dmg=base*.52*stab*e*(.85+Math.random()*.15)*(crit?1.5*(1+cx.d):1)*(m.melee&&m.phys?1.15:1);
   if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;
+  if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}
   if(e===0)dmg=0;
   return{d:Math.max(e===0?0:1,Math.round(dmg)),e,crit};
@@ -81,7 +83,7 @@ function bossDmg(def,e0,pw){
   const hit=(C.bossHit||.08)*(1+W.time*CFG.bossRage);
   const e=Math.min(2,Math.max(.5,C.eff(W.boss.types[0]||'NORMAL',def.types)||1));
   let d=def.max*hit*pw*e*(.85+Math.random()*.15);
-  if(def.gear&&def.gear.def)d*=1-Math.min(.6,def.gear.def/100);
+  {const _dd=((def.gear&&def.gear.def)||0)+((def.gear&&def.gear.aA&&def.gear.aA.def)||0);if(_dd)d*=1-Math.min(.6,_dd/100)}
   return Math.max(1,Math.round(Math.min(d,def.max*.6)));
 }
 
@@ -175,6 +177,7 @@ function hitBoss(e,m){
   const r=calcDmg(e,B,m);
   B.hp=Math.max(0,B.hp-r.d);B.flash=.08;W.dealt+=r.d;
   e.dealt=(e.dealt||0)+r.d;
+  if(r.d>0&&e.gear&&e.gear.aA&&e.gear.aA.vamp&&e.hp>0&&e.max){const vh=Math.min(e.max-e.hp,e.max*.05,r.d*e.gear.aA.vamp/100);if(vh>0){e.hp+=vh;if(e===W.me)pop(e.x,e.y-60,'+'+fmtN(vh*(C.SC||1)),'#6f6')}}   // 9BZ 아티팩트 흡혈 (한 번에 최대 체력의 5%까지)
   const me=e===W.me;
   if(me)try{window.PKS&&!W.ff&&PKS.hit(m,r.e,r.crit,true)}catch(er){}
   if(me||r.crit||r.e>1)pop(B.x+rr(-60,60),B.y-B.vis*.45+rr(-20,20),fmtN(r.d*(C.SC||1)),r.e>1?'#ffb030':r.crit?'#ffe14a':(C.TCOL[m.type]||'#fff'),me&&(r.crit||r.e>1));
