@@ -1299,7 +1299,7 @@ function genArea(a){if(AREAS[a])return AREAS[a];if(RESOK&&RESD[a])return genRes(
     // 땅 위 아이템
     for(let i=0;i<2;i++){for(let tr=0;tr<40;tr++){const xx=2+r()*(W-4)|0,y=3+r()*(H-6)|0;if(get(xx,y)===T_.G||get(xx,y)===T_.CAVE){A.items.push({x:xx,y,it:pick(k<2?['ball','potion']:k<5?['great','spotion','ball']:['hyper','hpotion','great']),n:1+(r()*2|0),id:'i'+a+'_'+i});break}}}
     // 트레이너
-    const HO=window.REGCUR==='h'||window.REGCUR==='s',nT=HO?6+Math.floor(k/2):3+Math.floor(k/3);const enc=encTable(a);const [lo,hi]=areaLv(a);
+    const HO=window.REGCUR==='h'||window.REGCUR==='s'||window.REGCUR==='u',nT=HO?6+Math.floor(k/2):3+Math.floor(k/3);const enc=encTable(a);const [lo,hi]=areaLv(a);
     for(let i=0;i<nT;i++){const y=Math.floor(H*(i+1)/(nT+1));let px=-1;for(let xx=1;xx<W-1;xx++)if(get(xx,y)===T_.PATH||get(xx,y)===T_.CAVE||get(xx,y)===T_.TG){px=xx;break}if(px<0)continue;
       const left=r()<.5;let tx=left?px-2:px+3;if(get(tx,y)!==T_.G&&get(tx,y)!==T_.CAVE&&get(tx,y)!==T_.FLOW){tx=left?px+3:px-2}if(tx<1||tx>=W-1)continue;set(tx,y,th.cave?T_.CAVE:T_.G);
       const nm=pick(['반바지 꼬마','곤충채집 소년','등산가','아가씨','낚시꾼','엘리트 트레이너','태권 소녀','캠프 보이','초능력자']);const cnt=HO?2+(r()*Math.min(4,1+k/2)|0):k===0?1:1+(r()*Math.min(3,1+k/2)|0);
@@ -1370,9 +1370,10 @@ function genRes(a){const j=RESD[a],W=j.w,H=j.h,town=isTown(a)||a===18,r=rng(G.se
   if(to2&&!path.length){const p=bfs(A,from.x,from.y,(x,y)=>x===to2.x&&y===to2.y,'surf');if(p)path=p}   // 9C: 물을 건너야 하는 길(호연)도 트레이너를 세워요
   if(A.exN&&a>0&&a<18&&town){const g=A.exN.arr;A.guard={x:g.x,y:g.y,need:a/2,beside:1}}
   if(A.exN&&a>=20&&a<26&&town){const g=A.exN.arr;A.guard={x:g.x,y:g.y,need:100+(a-20)/2+1,beside:1}}
+  if(a===0&&window.REGCUR==='u'){const hm=A.bld.find(b=>b.kind==='home');if(hm){hm.name='치료사의 집';const C=[];for(let rr=1;rr<=6;rr++)for(let dy=0;dy<=rr;dy++)for(let dx=-rr;dx<=rr;dx++){if(Math.max(Math.abs(dx),dy)!==rr)continue;const x=hm.out.x+dx,y=hm.out.y+dy;if(walk(x,y)&&M[y][x]===T_.G&&!(x===hm.out.x&&y===hm.out.y))C.push([x,y])}const s=C[0];if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:NPAL(),kind:'talk',lines:['치료사: 다친 포켓몬은 내 집에서 쉬게 해 주렴.','이 마을엔 포켓몬센터가 없지만, 나 혼자서도 전부 고쳐 줄 수 있단다.']})}}
   if(a===0){const lab=A.bld.find(b=>b.kind==='lab');if(lab){const s=[[1,0],[-1,0],[2,0],[-2,0]].map(([dx,dy])=>[lab.out.x+dx,lab.out.y+dy]).find(([x,y])=>walk(x,y));if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:PAL.prof,kind:'talk',lines:['포켓몬 박사: 어서 와! 연구소에서 첫 포켓몬을 골라 주렴.']})}}
   if(town&&a>0&&a<16){const c=A.bld.find(b=>b.kind==='center');if(c){const s=[[2,1],[-2,1],[3,0],[-3,0]].map(([dx,dy])=>[c.out.x+dx,c.out.y+dy]).find(([x,y])=>walk(x,y));if(s)A.npc.push({x:s[0],y:s[1],dir:0,pal:NPAL(),kind:'talk',lines:[pick(['풀숲에 들어가면 야생 포켓몬이 나와!','포켓몬센터에서 공짜로 회복할 수 있어.','상성이 좋은 기술은 2배 피해야!','비행 타입 포켓몬이 있으면 하늘을 날 수 있대!','물 타입 포켓몬이 있으면 물 위를 탈 수 있어.'])]})}}
-  if(!town){const k=(a-1)/2;A.enc=encTable(a);const enc=A.enc,[lo,hi]=areaLv(a);const HO=window.REGCUR==='h'||window.REGCUR==='s',nT=HO?6+Math.floor(k/2):3+Math.floor(k/3);const used=new Set(path.map(([x,y])=>x+','+y));
+  if(!town){const k=(a-1)/2;A.enc=encTable(a);const enc=A.enc,[lo,hi]=areaLv(a);const HO=window.REGCUR==='h'||window.REGCUR==='s'||window.REGCUR==='u',nT=HO?6+Math.floor(k/2):3+Math.floor(k/3);const used=new Set(path.map(([x,y])=>x+','+y));
     for(let i=0;i<nT&&path.length>12;i++){const [px,py]=path[Math.floor(path.length*(i+1)/(nT+1))];
       const cand=[[2,0],[-2,0],[0,2],[0,-2],[3,0],[-3,0],[1,1],[-1,1]].map(([dx,dy])=>[px+dx,py+dy]).filter(([x,y])=>walk(x,y)&&!used.has(x+','+y));if(!cand.length)continue;const [tx,ty]=cand[r()*cand.length|0];
       const nm=pick(['반바지 꼬마','곤충채집 소년','등산가','아가씨','낚시꾼','엘리트 트레이너','태권 소녀','캠프 보이','초능력자']);const cnt=HO?2+(r()*Math.min(4,1+k/2)|0):k===0?1:1+(r()*Math.min(3,1+k/2)|0);
@@ -1933,7 +1934,7 @@ let AC=null;function sfx(k){try{AC=AC||new (window.AudioContext||window.webkitAu
   let t=AC.currentTime;for(const [f,d,w] of S){const o=AC.createOscillator(),g=AC.createGain();o.type=w||'sine';o.frequency.value=f;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d);t+=d*.9}}catch(e){}}
 // ---------- 건물 ----------
 async function enterBld(b){P.busy=1;await fade(.6);await fade(0);P.busy=0;const back=()=>{if(b.out){P.x=b.out.x;P.y=b.out.y}else{P.x=b.door.x;P.y=b.door.y+1}P.dir=0;P.trail=[]};
-  if(b.kind==='center'||b.kind==='home'){healAll();G.heal=b.out?{a:G.a,x:b.out.x,y:b.out.y}:{a:G.a,x:b.door.x,y:b.door.y+1};sfx('heal');back();await say([b.kind==='home'?'엄마: 푹 쉬었다 가렴! 포켓몬들이 모두 건강해졌어.':'간호순: 포켓몬들이 모두 건강해졌어요! 또 오세요 ♪']);if(b.kind==='center'){if(AUTO.on)autoBuy();else await shop(1)}save()}
+  if(b.kind==='center'||b.kind==='home'){healAll();G.heal=b.out?{a:G.a,x:b.out.x,y:b.out.y}:{a:G.a,x:b.door.x,y:b.door.y+1};sfx('heal');back();await say([b.kind==='home'?(window.REGCUR==='u'?'치료사: 어서 와요. 지친 포켓몬들을 푹 쉬게 해 줄게요… 자, 모두 건강해졌어요!':'엄마: 푹 쉬었다 가렴! 포켓몬들이 모두 건강해졌어.'):'간호순: 포켓몬들이 모두 건강해졌어요! 또 오세요 ♪']);if(b.kind==='center'){if(AUTO.on)autoBuy();else await shop(1)}save()}
   else if(b.kind==='shop'){back();if(AUTO.on)autoBuy();else await shop(0)}
   else if(b.kind==='lab'){back();if(!G.party.length)await chooseStarter();else await say(['포켓몬 박사: 도감은 잘 채우고 있니? 지금 '+Object.keys(G.dex.c).length+'마리 잡았구나!'])}
   else if(b.kind==='gym'){back();await gym(G.a/2)}
@@ -1971,9 +1972,9 @@ function firstClr(key,n,who){try{const d=DIFF();if(d<6||!window.trmAdd)return;G.
 function rmDrop(){try{const d=DIFF();if(d<6||!window.trmAdd||G.rmDD===dayKey()||R()>=.05)return;G.rmDD=dayKey();const mk=d===6?'core':'breath';trmAdd(mk,1);save();try{sfx('badge')}catch(e){}toast('✨ 행운! 재대결 보상으로 '+(d===6?'<img class="tri" src="ui/tr/core.png" alt=""> 불멸의 핵':'<img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결')+' ×1 (5%)')}catch(e){}}
 async function gym(k){const g=GYM[k-1];if(G.badges>=k){await say([g.n+': 너는 이미 내 배지를 가졌지! 다음 체육관으로 가렴.']);return}if(G.badges<k-1){await say(['체육관 안내원: 먼저 '+TOWNS[G.badges+1]+' 체육관부터 도전해 봐!']);return}
   const ace=gymAce(k-1);await say(['체육관 안내원: 여기는 '+TOWNS[k]+' 체육관! <b>'+TN[g.t]+'</b> 타입 포켓몬을 쓰는 '+g.n+'이(가) 기다려요.','상성이 좋은 포켓몬을 데려가면 유리해요! (추천 Lv.'+(ace-1+LVO())+')']);
-  const ap=typeTeam(g.t,330+38*(k-1),2,[ace-5,ace-4],G.seed+k*11);let r=await battle({scaled:1,gym:k,trainer:'체육관 수련생',foes:ap,money:ace*20,lose:'관장님은 나보다 훨씬 강해!',bg:window.GBG?GBG():'town'});if(r!=='win'){if(r==='lose')await blackout();return}
+  const ap=typeTeam(g.t,330+38*(k-1),2,[ace-5,ace-4],G.seed+k*11);let r=await battle({scaled:1,gym:k,trainer:'체육관 수련생',foes:ap,money:ace*20,lose:'관장님은 나보다 훨씬 강해!',bg:window.GBG?GBG(k):'town'});if(r!=='win'){if(r==='lose')await blackout();return}
   await trainerScene(TRS.gym[k-1],g.n,GLINE[k-1].pre);const n=Math.min(6,(DIFF()?3:2)+Math.floor(k/2));const lv=[];for(let i=0;i<n;i++)lv.push(ace-(n-1-i)*1-(i<n-1?2:0));
-  r=await battle({scaled:1,gym:k,trainer:g.n,foes:(window.GTEAM&&GTEAM(k,n,lv))||typeTeam(g.t,360+40*k,n,lv,G.seed+k*17),money:ace*120,lose:'훌륭하다! 너의 실력을 인정하마.',bg:window.GBG?GBG():'town'});
+  r=await battle({scaled:1,gym:k,trainer:g.n,foes:(window.GTEAM&&GTEAM(k,n,lv))||typeTeam(g.t,360+40*k,n,lv,G.seed+k*17),money:ace*120,lose:'훌륭하다! 너의 실력을 인정하마.',bg:window.GBG?GBG(k):'town'});
   if(r==='win'){await trainerScene(TRS.gym[k-1],g.n,GLINE[k-1].win,'win');G.badges=k;sfx('badge');firstClr('g'+k,1,g.n);if(k>=3){addItem('mstone',1);toast('🎁 메가스톤을 받았다!')}if(k>=6){addItem('dmax',1);toast('🎁 다이맥스 밴드를 받았다!')}try{REWQ.unshift({badge:k-1});G.badgeSeen=k}catch(e){}await say(['<b>'+TOWNS[k]+' 배지</b>를 받았다! (배지 '+G.badges+'개)',k<8?'이제 북쪽 길로 나아갈 수 있어요!':'배지 8개를 모두 모았다! 포켓몬 리그로 가자!']);save()}else if(r==='lose'){await trainerScene(TRS.gym[k-1],g.n,GLINE[k-1].lose);await blackout()}}
 function rivalTeam(n,lvs){const out=[];const st=G.rival.n;let d=META[st].dex;for(let i=0;i<2;i++){const E=EVC[d];if(E&&E.length&&BYDEX[E[0][0]]&&lvs[lvs.length-1]>=E[0][1])d=E[0][0]}const ace=BYDEX[d]||st;
   const r=rng(G.seed+77);const pool=SPECIES.filter(s=>bst(META[s].stats)>=380&&bst(META[s].stats)<=600);for(let i=0;i<n-1;i++)out.push(mkMon(pool[Math.floor(r()*pool.length)]||ace,lvs[i]));out.push(mkMon(ace,lvs[n-1]));return out}
@@ -8037,6 +8038,9 @@ const XH=[[null,0],[1,0],[2,5],[2,['w',79,6]],[0,3],[2,0],[3,1],[1,7],[0,['w',12
 for(let a=19;a<=26;a++){const s=XH[UMAP[a]];XH[a]=[a===19?null:s[0],a===26?null:s[1]]}
 const XS=[[null,1],[0,3],[0,7],[0,2],[4,7],[0,3],[0,1],[0,2],[3,6],[2,3],[0,7],[0,4],[3,4],[0,2],[0,2],[0,6],[0,1],[1,4],[2,null]];
 for(let a=19;a<=26;a++){const s=XS[UMAP[a]];XS[a]=[a===19?null:s[0],a===26?null:s[1]]}
+// 11A 하계=성도: 출구표 [이전 출구 run 번호, 다음 출구 run 번호] (maps/u00~u18)
+const XU=[[null,0],[1,0],[0,1],[0,3],[0,1],[0,1],[3,2],[3,0],[0,1],[0,1],[4,1],[1,0],[0,1],[0,3],[3,7],[3,0],[2,1],[2,5],[0,null]];
+for(let a=19;a<=26;a++){const s=XU[UMAP[a]];XU[a]=[a===19?null:s[0],a===26?null:s[1]]}
 const R={m:null,h:{
   X:XH,towns:['미로마을','금탄도시','무로마을','보라시티','용암마을','등화도시','검방울시티','이끼시티','루네시티'],
   r17:'114번도로 · 승리의 길',
@@ -8130,6 +8134,22 @@ ST(R.d,{
   pre:()=>['…모든 기억이 모이는 땅, 기원의 전당.','나는 아르세우스의 그림자. 이 모습은 '+NM()+'가 가장 강하다고 기억하는 트레이너의 그림자다.','말은 필요 없다. 지나온 모든 승부가 곧 대답이니.','창조의 첫 숨결과 함께, 모든 기억을 걸고 마지막 시험을 시작한다!'],
   post:()=>['…………','아르세우스: 세계를 만든 뒤, 나는 단 한 번도 시험받은 적이 없었다.','그러나 너는 모든 기억을 안고 여기까지 내려왔다. 그 기억이 너를 가장 강하게 만든 것이다.','…합격이다. 이제 돌아가라. 네 이야기는 네가 쓴다.'],
   lose:'…기억이 아직 모자라다. 다시 오라.'}});R.u.trg=['LEADER_Brock','LEADER_Erika','LEADER_Brawly','LEADER_Juan','LEADER_Jasmine','LEADER_Morty','LEADER_Pryce','LEADER_Wattson'];R.u.tre=['ELITEFOUR_Agatha','ELITEFOUR_Bruno','ELITEFOUR_Karen','ELITEFOUR_Will'];R.u.gwx=Array(8).fill('fog');R.d.trg=['LEADER_Roxane_ORAS','LEADER_Winoa','LEADER_Norman_ORAS','LEADER_Misty','LEADER_Sabrina','LEADER_Giovanni','LEADER_Clair','LEADER_Surge'];R.d.tre=['ELITEFOUR_Lorelei','ELITEFOUR_Lance','ELITEFOUR_Whitney','SCIENTIST']}
+// ===== 11A 하계 = 성도: 마을·관장(원작 타입)·대사·그림 =====
+{const o=R.u;o.X=XU;o.towns=['연두마을','도라지시티','고동마을','금빛시티','인주시티','담청시티','진청시티','황토마을','검은먹시티'];o.r17='45번도로 · 챔피언 로드';
+ const G8=[['FLYING','관장 하람','#7aa8f0'],['BUG','관장 호일','#a8b820'],['NORMAL','관장 꼭두','#a8a878'],['GHOST','관장 묵진','#7a5ab8'],['FIGHTING','관장 철권','#c05030'],['STEEL','관장 은아','#8a9ab0'],['ICE','관장 서리','#7ad0e8'],['DRAGON','관장 용희','#7038f8']];
+ o.gym=G8.map(([t,n,c])=>({t,n,c}));
+ o.gbg=['ruins','forest','city','night','gym_ground','gym_elec','ice','volcano'];o.gwx=Array(8).fill('fog');
+ o.trg=['LEADER_Winoa','LEADER_Koga','ELITEFOUR_Whitney','LEADER_Morty','LEADER_Brawly','LEADER_Jasmine','LEADER_Pryce','LEADER_Clair'];
+ o.gl=[
+  {pre:['…내려왔구나. 나는 하람. 이 세계에서는 하늘이 발밑에 있고, 새들은 땅 아래로 날아.','첫 번째 빛의 조각은 높이 나는 자만 가질 수 있어. 얼마나 날 수 있는지 보자!'],win:['…날개가 꺾였군. 네 안의 빛은 꽤 높이 나는구나.','빛의 조각 하나를 가져가. 다음은 고동마을의 호일이야.'],lose:['아직 날개가 무거워. 다시 올라와 봐.']},
+  {pre:['고동마을의 호일이야. 벌레들은 어둠 속에서도 빛을 찾아 모여들지.','작다고 얕보면 큰코다쳐! 내 벌레들의 날갯짓을 견뎌 봐!'],win:['…이럴 수가. 내 벌레들이 전부 눌렸네!','두 번째 조각이야. 다음은 금빛시티의 꼭두가 기다려.'],lose:['벌레는 포기를 몰라. 다시 와!']},
+  {pre:['금빛시티의 꼭두예요. 이 도시의 불은 꺼졌지만 내 포켓몬은 그대로 튼튼해요!','평범하다고요? 평범한 게 제일 강한 법이에요!'],win:['으앙, 졌어요… 너무 강해요!','세 번째 조각이에요. 다음은 인주시티, 묵진 씨가 있어요.'],lose:['히히, 평범한 힘이 이겼어요! 다시 와요!']},
+  {pre:['…인주시티의 묵진. 불탄 탑에서 올라온 그림자들이 나를 따른다.','이 세계에선 사라진 것들이 오래 남지. 너도 그림자가 되고 싶나?'],win:['…그림자가 흩어졌군. 네 빛이 더 오래 남겠어.','네 번째 조각이다. 담청시티의 철권이 기다린다.'],lose:['그림자는 끈질기다. 다시 와라.']},
+  {pre:['담청시티의 철권이다! 파도가 하늘로 솟아도 내 주먹은 땅을 딛고 있다!','말은 필요 없다. 온몸으로 부딪혀 보자!'],win:['크으… 졌다! 정말 단단한 주먹이다!','다섯 번째 조각이다. 진청시티의 은아에게 가라.'],lose:['아직 주먹이 가볍다! 단련하고 와라!']},
+  {pre:['진청시티의 은아예요. 이 도시의 등대는 꺼졌지만 약속은 꺼지지 않았어요.','강철처럼 단단한 마음으로 버텨 보세요. 쉽게 뚫리진 않을 거예요.'],win:['…뚫렸네요. 정말 훌륭한 마음이에요.','여섯 번째 조각이에요. 황토마을의 서리 씨가 기다려요.'],lose:['강철은 녹슬지 않아요. 다시 오세요.']},
+  {pre:['…황토마을의 서리. 이 세계는 소리조차 얼어붙어.','외로움이 얼음이 된다는 걸 알아? 군주님은 아주 오래 혼자였어. 그 곁에 설 수 있을까?'],win:['…녹았네. 내 얼음이.','일곱 번째 조각. 마지막은 검은먹시티의 용희야.'],lose:['아직 차갑네. 다시 와.']},
+  {pre:['검은먹시티의 용희다. 용의 소굴을 지키는 마지막 관장이지.','마지막 조각은 작은 불꽃이다. 희망이라는 이름의. 네 불꽃을 용 앞에서 증명해라!'],win:['…좋은 불꽃이었다. 여덟 조각이 다 모였군.','석영고원의 리그로 가라. 사천왕과, 그 너머의 군주가 너를 기다린다.'],lose:['용은 아직 너를 인정하지 않는다. 다시 도전해라.']}];
+}
 function snapM(){if(R.m)return;R.m={X:RESX.map(x=>x&&x.slice()),towns:RES_TOWNS.slice(),gym:GYM.slice(0,8).map(g=>({t:g.t,n:g.n,c:g.c})),gbg:GYMBG.slice(),gwx:GYMWX.slice(),trg:TRS.gym.slice(),tre:TRS.elite.slice(),elite:cp(ELITE),gl:cp(GLINE),el:cp(ELINE),ch:null}}
 function apply(r){const D=R[r];if(!D||!RESDA[r])return;
   RESX.splice(0,RESX.length,...D.X.map(x=>x&&x.slice()));RESD=RESDA[r];
@@ -8143,20 +8163,20 @@ function apply(r){const D=R[r];if(!D||!RESDA[r])return;
 function fixPos(){if(!G)return;if(G.reg===REGCUR)return;const first=G.reg!=null;G.reg=REGCUR;if(!first&&REGCUR==='m')return;
   try{const A=genArea(G.a),c=A.bld.find(b=>b.kind==='center')||A.bld.find(b=>b.kind==='home')||A.bld.find(b=>b.kind==='league');const s=c?c.out:A.spawn;G.x=P.x=s.x;G.y=P.y=s.y;
     const H=genArea(G.heal&&G.heal.a!=null&&G.heal.a<19?G.heal.a:0),hc=H.bld.find(b=>b.kind==='center')||H.bld.find(b=>b.kind==='home');G.heal=hc?{a:H.a,x:hc.out.x,y:hc.out.y}:{a:0,x:H.spawn.x,y:H.spawn.y}}catch(e){console.warn('9C pos',e)}}
-window.regSync=function(){if(!RESOK)return;snapM();if(!RESDA.m)RESDA.m=RESD;if(!RESDA.h||!RESDA.s){regLoad();}if(RESDA.s){RESDA.u=RESDA.s;RESDA.d=RESDA.s}const r=REGOF();if(r!==REGCUR){apply(r)}if(G&&G.reg!==REGCUR){G._regFix=1}};
+window.regSync=function(){if(!RESOK)return;snapM();if(!RESDA.m)RESDA.m=RESD;if(!RESDA.h||!RESDA.s||!RESDA.u){regLoad();}if(RESDA.s){RESDA.d=RESDA.s}const r=REGOF();if(r!==REGCUR){apply(r)}if(G&&G.reg!==REGCUR){G._regFix=1}};
 // 지도 불러오기: 관동(원래) + 호연
-let RLB={};window.regLoad=async function(){for(const rg of ['h','s']){if(RESDA[rg]||RLB[rg])continue;RLB[rg]=1;try{const XX=rg==='s'?XS:XH;const L=await Promise.all(XX.map((_,a)=>fetch('maps/'+rg+String(UMAP[a]??a).padStart(2,'0')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)));
-  if(L.every(Boolean)){const D={};L.forEach((j,a)=>D[a]=j);RESDA[rg]=D;
+let RLB={};window.regLoad=async function(){for(const rg of ['h','s','u']){if(RESDA[rg]||RLB[rg])continue;RLB[rg]=1;try{const XX=rg==='s'?XS:rg==='u'?XU:XH;const L=await Promise.all(XX.map((_,a)=>fetch('maps/'+rg+String(UMAP[a]??a).padStart(2,'0')+'.json').then(r=>r.ok?r.json():null).catch(()=>null)));
+  if(L.every(Boolean)){if(rg==='u')L.forEach(j=>{if(j._cv)return;/* 성도 지도 칸 코드(0땅·1풀숲·2막힘·3길·4물·5문·15다리) → 게임 칸 코드(0막힘·1땅·2풀숲·3물·5문) */const r=atob(j.cells),M={0:1,1:2,2:0,3:1,4:3,5:5,15:1};let t='';for(let i=0;i<r.length;i++)t+=String.fromCharCode(M[r.charCodeAt(i)]??0);j.cells=btoa(t);j._cv=1});const D={};L.forEach((j,a)=>D[a]=j);RESDA[rg]=D;
     // 이미 천계 이상으로 게임 중이면 바로 호연으로 바꿔요
     if(G&&SCENE!=='title'&&REGOF()!==REGCUR){try{regSync();const A=genArea(G.a);place(G.a,G.x,G.y,G.dir)}catch(e){}}}else RLB[rg]=0}catch(e){RLB[rg]=0;console.warn('9C 지도 '+rg,e)}}};
 regLoad();
 // 지도 그림: 지금 지방 글자(m/h)로
-{const _ri=resImg;resImg=function(a,k){if(REGCUR==='m')return _ri(a,k);const key=REGCUR+a+k;if(!RIMG[key]){const _RL=(REGCUR==='u'||REGCUR==='d')?'s':REGCUR;const src='maps/'+_RL+String(UMAP[a]??a).padStart(2,'0')+'_'+k+'.webp';const i=new Image();i.decoding='async';
-  const _tt=(UTINT[a]||'')+(REGCUR==='u'?' hue-rotate(250deg) saturate(.75) brightness(.5) contrast(1.15)':REGCUR==='d'?' grayscale(.85) hue-rotate(190deg) brightness(.32) contrast(1.3)':'');
+{const _ri=resImg;resImg=function(a,k){if(REGCUR==='m')return _ri(a,k);const key=REGCUR+a+k;if(!RIMG[key]){const _RL=REGCUR==='d'?'s':REGCUR;const src='maps/'+_RL+String(UMAP[a]??a).padStart(2,'0')+'_'+k+'.webp';const i=new Image();i.decoding='async';
+  const _tt=(UTINT[a]||'')+(REGCUR==='u'?' hue-rotate(40deg) saturate(.7) brightness(.62) contrast(1.15)':REGCUR==='d'?' grayscale(.85) hue-rotate(190deg) brightness(.32) contrast(1.3)':'');
   if(_tt){const o=new Image();o.onload=()=>{try{const c=document.createElement('canvas');c.width=o.naturalWidth;c.height=o.naturalHeight;const g=c.getContext('2d');g.filter=_tt;g.drawImage(o,0,0);c.toBlob(b=>{i.src=URL.createObjectURL(b)},'image/webp',.9)}catch(e){i.src=src}};o.src=src}else i.src=src;RIMG[key]=i}return RIMG[key]}}
 {const _ga=genArea;genArea=function(a){try{regSync()}catch(e){}const A=_ga(a);if(G&&G._regFix&&a===G.a&&A){delete G._regFix;fixPos()}return A}}
 // 야생 포켓몬: 호연에선 호연 도감(252~386번) 포켓몬이 주로 나와요
-{const _et=encTable;encTable=function(a){const T=_et(a);if(REGCUR==='m')return T;try{const r=rng(G.seed*7+a*313);const D0=REGCUR!=='h'?387:252,D1=REGCUR!=='h'?493:386;const HO=SPECIES.filter(s=>{const d=META[s].dex;return d>=D0&&d<=D1&&!META[s].form});
+{const _et=encTable;encTable=function(a){const T=_et(a);if(REGCUR==='m')return T;try{const r=rng(G.seed*7+a*313);const D0=REGCUR==='u'?152:REGCUR!=='h'?387:252,D1=REGCUR==='u'?251:REGCUR!=='h'?493:386;const HO=SPECIES.filter(s=>{const d=META[s].dex;return d>=D0&&d<=D1&&!META[s].form});
   const sw=(L,water)=>L.map(e=>{const b=bst(META[e.n].stats),d=META[e.n].dex;if(d>=D0&&d<=D1||r()>.8)return e;const C=HO.filter(s=>Math.abs(bst(META[s].stats)-b)<=70&&(!water||META[s].types.includes('WATER'))&&rarOf(s)<=Math.max(2,rarOf(e.n)));return C.length?{n:C[r()*C.length|0],w:e.w}:e});
   return{g:sw(T.g,0),w:sw(T.w,1)}}catch(e){return T}}}
 // 챔피언: 호연에선 윤진 (에이스 가이오가)
@@ -9174,6 +9194,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112077,date:'11월 22일',t:'하계가 성도 지방으로 바뀌었어요',items:[{img:"",h:"🌑 하계(난이도 8)의 무대가 성도로 바뀌었어요",p:["<b>연두마을</b>에서 시작해 도라지·고동·금빛·인주·담청·진청·황토·검은먹시티를 거쳐 <b>석영고원</b> 리그까지 가요. 길과 마을 그림은 어두운 반전세계 색이에요.","<b>관장 8명</b>은 비행·벌레·노말·고스트·격투·강철·얼음·드래곤 타입이고, 하계 분위기의 새 대사로 바뀌었어요. 야생 포켓몬도 성도 도감(152~251번) 위주로 나와요.","<b>연두마을엔 포켓몬센터가 없어요.</b> 대신 <b>치료사의 집</b>에 들어가면 포켓몬을 전부 고쳐 줘요(마을 안의 치료사 아저씨에게 말을 걸어도 돼요).","<b>어떻게 가요?</b> 난이도 메뉴에서 하계(난이도 8)를 고르면 돼요. 처음 열 때 지도를 받아 오니 인터넷이 켜진 상태에서 한 번 들어가 주세요."]}]},
  {v:2026112076,date:'11월 22일',t:'특성 8부: 노말스킨·테라셸·풀모피',items:[{img:"",h:"✨ 특성 3개가 더 들어왔어요 (천계 이상, 내 포켓몬만)",p:["<b>노말스킨</b>: 내 모든 기술이 노말 타입이 되고 ×1.2예요(원래 타입의 자속 보너스는 사라져요).","<b>테라셸</b>: 체력이 가득일 때는 효과가 굉장한 공격도 별로인 정도로만 받아요. 체력이 닳으면 꺼져요.","<b>풀모피</b>: 그래스필드(풀 장) 안에서 물리 공격을 덜 받아요.","<b>어떻게 써요?</b> 해당 특성 포켓몬으로 천계(난이도 6) 이상에서 싸우면 자동 적용돼요."]}]},
  {v:2026112075,date:'11월 22일',t:'특성 7부: 배율 특성 12개',items:[{img:"",h:"✨ 특성이 더 늘었어요 (천계 이상, 내 포켓몬만)",p:["<b>타입 강화</b>: <b>다크오라·페어리오라</b>는 악·페어리 기술 ×1.33, <b>강철술사·강철정신</b>은 강철 ×1.5, <b>용의턱</b>은 드래곤 ×1.5. <b>예리함</b>은 베기 기술 ×1.5, <b>펑크록</b>은 소리 기술 ×1.3(맞을 때는 ×0.5).","<b>상태·재앙</b>: <b>독폭주</b>는 독일 때 물리 ×1.5, <b>열폭주</b>는 화상일 때 특수 ×1.5. <b>재앙의검·그릇</b>은 내 물리·특수 피해가 커지고, <b>재앙의목간·구슬</b>은 상대 물리·특수 피해가 25% 줄어요.","<b>그 밖에</b>: <b>방탄</b>은 탄 기술 무효, <b>흙먹기</b>는 땅 기술을 맞으면 체력 25% 회복, <b>독사슬</b>은 맞히면 30% 중독, <b>비스트부스트</b>는 쓰러뜨리면 능력 ▲, <b>불요의검·불굴의방패</b>는 등장 때 공격·방어 ▲.","<b>어떻게 써요?</b> 해당 특성을 가진 포켓몬으로 천계(난이도 6) 이상에서 싸우면 자동으로 적용돼요. 난이도 5 이하와 사람끼리 대전에서는 꺼져 있어요."]}]},
  {v:2026112074,date:'11월 22일',t:'비 오면 허리케인이 바로 떨어져요',items:[{img:"",h:"🌧 허리케인이 빨라졌어요 (천계 이상, 내 포켓몬만)",p:["<b>비</b>가 올 때 내가 <b>허리케인</b>을 쓰면 상대 자리에 거의 바로 떨어져요(「바로 떨어진다!」 글자).","<b>어떻게 써요?</b> 날씨 기술이나 잔비 특성으로 비를 만든 뒤 허리케인을 눌러요. 난이도 5 이하와 상대가 쓰는 허리케인은 그대로예요."]}]},
@@ -9843,14 +9864,14 @@ const css=document.createElement('style');css.textContent=`.nxc{margin:0 0 8px;p
 // ---------- 이벤트 (의뢰 진행) ----------
 const EV={};const ev=(k,n)=>{try{(EV[k]||[]).forEach(f=>f(n||1))}catch(e){}};window.nxEv=ev;
 {const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{if(o){
-  if(r==='caught'){ev('catch');try{const f=o.foes&&o.foes[0];const d=f&&META[f.n]&&META[f.n].dex;if(d&&REGCUR==='s'&&d>=387&&d<=493||d&&REGCUR==='h'&&d>=252&&d<=386)ev('catchR')}catch(e){}}
+  if(r==='caught'){ev('catch');try{const f=o.foes&&o.foes[0];const d=f&&META[f.n]&&META[f.n].dex;if(d&&REGCUR==='s'&&d>=387&&d<=493||d&&REGCUR==='h'&&d>=252&&d<=386||d&&REGCUR==='u'&&d>=152&&d<=251)ev('catchR')}catch(e){}}
   if(r==='win'){if(o.wb){}else if(/관장/.test(o.trainer||''))ev('gym');else if(o.trainer)ev('trainer');else ev('wild')}
   if(o.wb&&!BS.wbPr)ev('wb')}}catch(e){}return r}}
 {const _s=sfTry;sfTry=async function(){const r=await _s.apply(this,arguments);try{ev('sf')}catch(e){}return r}}
 {const _a=awGo;awGo=async function(){const n0=(arguments[0]&&arguments[0].aw)|0;const r=await _a.apply(this,arguments);try{if(((arguments[0]&&arguments[0].aw)|0)>n0)ev('aw')}catch(e){}return r}}
 // ========== ① 일일 천계 의뢰 ==========
 const DQP=[['catch','포켓몬 {n}마리 잡기',5],['wild','야생 포켓몬 {n}번 이기기',15],['trainer','트레이너 {n}명 이기기',5],['gym','관장 재대결 {n}번 이기기',2],['wb','월드보스 {n}번 도전하기',1],['sf','장비 강화 {n}번 하기',3],['ctw','천계 탑 {n}층 오르기',3],['catchR','{R} 포켓몬 {n}마리 잡기',3],['raid','전설 레이드 {n}번 도전하기',1]];
-const RN=()=>REGCUR==='s'?'신오':REGCUR==='h'?'호연':'관동';
+const RN=()=>REGCUR==='s'?'신오':REGCUR==='h'?'호연':REGCUR==='u'?'성도':'관동';
 function dqS(){const day=dayKey();if(!G.dq||G.dq.day!==day){let h=7;for(const ch of day+(G.pid||''))h=(h*31+ch.charCodeAt(0))>>>0;const L=DQP.slice();const pick=[];while(pick.length<3&&L.length){h=(h*1103515245+12345)>>>0;pick.push(L.splice(h%L.length,1)[0])}
   G.dq={day,L:pick.map(p=>({id:p[0],t:p[1],n:p[2],c:0,got:0})),all:0};save()}return G.dq}
 for(const p of DQP)(EV[p[0]]=EV[p[0]]||[]).push(n=>{if(!G||!reach(6))return;const D=dqS();for(const q of D.L)if(q.id===p[0]&&q.c<q.n){q.c=Math.min(q.n,q.c+n);if(q.c>=q.n)toast('📜 오늘의 의뢰 완료! '+q.t.replace('{n}',q.n).replace('{R}',RN())+' · 받으러 가요');save()}});
@@ -10548,17 +10569,17 @@ const INTRO={
 u:['…눈을 뜨니 하늘이 발밑에 있었다.','여기는 반전세계, 「하계」. 빛이 거의 꺼져 가는 세계.','어디선가 낮고 쓸쓸한 목소리가 들린다. "…빛을 가져와라. 여덟 조각을."','관장 8명이 빛의 조각을 하나씩 지키고 있어요. 다 모으면 리그로 가는 길이 열려요.'],
 d:['…하얀 빛 속에서 눈을 떴다.','여기는 모든 기억이 모이는 땅, 「명계」.','어디선가 고요한 목소리가 들린다. "걸어온 길을 다시 걸어 보라."','관장 8명은 내가 지나온 여덟 개의 기억이에요. 다 되찾으면 기원의 전당이 열려요.']};
 const EV={
-u:[['…이곳이 하계의 첫 마을. 나무가 거꾸로 자라고, 그림자가 먼저 걸어간다.'],['길이 위로 뻗어 있다. 야생 포켓몬도 그림자처럼 조용하다.'],['무쇠마을. 광산 입구에서 첫 번째 빛의 조각이 희미하게 깜박인다.'],['폭포가 하늘로 떨어지는 길. 물방울이 천천히 위로 올라간다.'],['영원시티. 꽃밭 한가운데서 두 번째 조각이 자라고 있다.'],['쓰러진 안내판: "돌아가는 길은 없다. 앞으로만."'],['장막시티. 모든 소리가 한 박자씩 늦게 들린다.'],['안개 속에서 누군가 속삭인다. "…군주는 오래 혼자였다."'],['들판시티. 호수가 하늘에 걸려 있다.'],['발밑에서 그림자가 먼저 앞서 걷는다. 따라가 본다.'],['연고시티. 가로등이 모두 꺼져 있다. 다섯 번째 조각은 어디에 있을까.'],['낡은 비석: "여기 갇힌 이는 폭력이 아니라 외로움이었다."'],['운하시티. 배는 하늘을 떠다니고 항구는 조용하다.'],['얼어붙은 바람이 분다. 소리마저 얼어붙는 길.'],['선단시티. 눈이 위로 내린다.'],['번개가 칠 때마다 먼 곳에서 거대한 그림자가 몸을 뒤척인다.'],['물가시티. 마지막 조각이 작은 불꽃으로 타고 있다.'],['챔피언 로드. 길 끝에서 누군가 기다리는 기척이 느껴진다.'],['포켓몬 리그. 이 세계의 끝, 군주의 궁전이 눈앞에 있다.','여기서 모든 이야기가 끝난다. 준비는 됐나?']],
+u:[['…이곳이 하계의 첫 마을, 연두마을. 바람이 거꾸로 불고 그림자가 먼저 걸어간다.','집 안의 치료사가 다친 포켓몬을 쉬게 해 준다고 한다.'],['길이 위로 뻗어 있다. 야생 포켓몬도 그림자처럼 조용하다.'],['도라지시티. 높은 탑의 종이 거꾸로 울린다. 첫 번째 빛의 조각이 하늘 쪽에서 깜박인다.'],['긴 길 위로 낚싯줄이 하늘로 드리워 있다. 발밑에서 그림자가 먼저 앞서 걷는다.'],['고동마을. 우물 속에서 불빛이 위로 솟는다. 두 번째 조각은 벌레들이 지키고 있다.'],['쓰러진 안내판: "돌아가는 길은 없다. 앞으로만."'],['금빛시티. 지하통로의 불이 모두 꺼졌고, 높은 탑에서 지직거리는 소리만 들린다.'],['안개 속에서 누군가 속삭인다. "…군주는 오래 혼자였다."'],['인주시티. 불탄 탑의 재가 하늘로 내린다. 네 번째 조각은 그림자들이 지킨다.'],['길가의 소 한 마리가 말없이 이쪽을 본다. 이 세계에서는 소리도 한 박자 늦다.'],['담청시티. 파도가 하늘로 부서진다. 다섯 번째 조각은 단련한 주먹 속에 있다.'],['낡은 비석: "여기 갇힌 이는 폭력이 아니라 외로움이었다."'],['진청시티. 등대 불빛이 바닷속을 비춘다. 여섯 번째 조각은 단단한 강철 속에서 반짝인다.'],['얼어붙은 바람이 분다. 산길이 얼음처럼 투명하다.'],['황토마을. 호수가 붉게 빛난다. 일곱 번째 조각은 얼음 속에 갇혀 있다.'],['번개가 칠 때마다 먼 곳에서 거대한 그림자가 몸을 뒤척인다.'],['검은먹시티. 용의 소굴 위로 마지막 조각이 작은 불꽃으로 타오른다.'],['챔피언 로드. 길 끝에서 누군가 기다리는 기척이 느껴진다.'],['석영고원. 이 세계의 끝, 군주의 궁전이 눈앞에 있다.','여기서 모든 이야기가 끝난다. 준비는 됐나?']],
 d:[['…낯익은 마을이다. 처음 모험을 떠나던 날의 공기가 난다.'],['낯익은 길. 처음 걷던 날의 풀 냄새가 난다.'],['첫 번째 기억의 마을. 처음 체육관 문을 두드리던 때가 떠오른다.'],['풀숲에서 처음 포켓몬을 잡던 날의 두근거림이 되살아난다.'],['두 번째 기억. 처음 친구가 된 포켓몬이 어깨 위에서 웃던 날.'],['길 위에 처음 졌던 날의 발자국이 남아 있다.'],['세 번째 기억. 패배의 눈물이 바닥에 스며 있다. 하지만 다시 일어섰다.'],['웃음소리가 들린다. 라이벌과 나란히 걷던 그 길이다.'],['네 번째 기억. 소중한 사람들과 먹던 도시락 냄새.'],['해가 지고 밤이 온다. 무서웠던 그 밤.'],['다섯 번째 기억. 놓쳐 버린 포켓몬의 울음소리가 아직 맴돈다.'],['"모든 포켓몬을 지키겠다." 약속을 속삭이는 목소리가 들린다.'],['여섯 번째 기억. 약속은 강철처럼 이 마을을 지탱한다.'],['아무도 보지 않던 길. 혼자 걸었던 시간이 눈처럼 쌓여 있다.'],['일곱 번째 기억. 외로웠지만, 그 길 끝에 지금의 내가 있다.'],['번개가 하늘을 가른다. 여기까지 온 이유가 번쩍 떠오른다.'],['마지막 기억. 포켓몬과 함께 있고 싶었던 마음, 그게 전부였다.'],['챔피언 로드. 하얀 빛 끝에 기원의 전당이 보인다.'],['기원의 전당. 세계가 시작된 곳.','이곳의 주인이 지금 너를 기다리고 있다.']]};
 const BADGE={
 u:{1:['주변이 아주 조금 밝아졌다.'],2:['빛이 번지는 곳에서 그림자가 한 걸음 물러난다.'],3:['소리가 한 박자씩 제자리를 찾는다.'],4:['세계가 절반쯤 밝아졌다.','어디선가 군주가 이쪽을 바라보는 기척이 느껴진다.'],5:['그림자가 이제 네 뒤를 따라온다.'],6:['얼어붙은 소리들이 하나둘 녹아내린다.'],7:['저 멀리 거대한 궁전의 윤곽이 보이기 시작한다.'],8:['여덟 조각이 하나로 모여 리그로 가는 길 위에 빛의 길이 열렸다!','군주: …기다리고 있겠다.']},
 d:{1:['첫 번째 기억이 가슴속에 돌아왔다.'],2:['잊고 있던 설렘이 되살아난다.'],3:['패배조차 소중한 기억이었다.'],4:['기억의 절반. 하얀 빛이 눈부시게 번진다.'],5:['무서웠던 밤도 내 일부였다.'],6:['약속이 더 단단해졌다.'],7:['홀로 걸은 시간이 빛이 되었다.'],8:['여덟 개의 기억이 모두 돌아왔다. 기원의 전당으로 가는 문이 열린다.','목소리: …시험을 시작하자.']}};
 // 관장 전용 팀 (약한 순 → 에이스 마지막 · 전투 때 뒤에서 n마리)
 const GT={
-u:[[76,142,476,306,464,248],[470,465,407,460,389,254],[68,237,454,448,475,392],[134,321,260,350,395,130],[354,478,442,477,429,94],[205,437,212,462,376,208],[365,131,460,478,471,473],[26,181,135,405,462,466]],
+u:[[18,164,169,227,398,142],[166,193,123,127,214,212],[162,424,463,143,242,241],[200,426,354,477,429,94],[237,106,107,297,68,448],[437,462,212,227,208,376],[478,131,461,471,473,144],[230,334,149,373,445,384]],
 d:[[74,95,111,112,139,141],[3,182,189,45,154,254],[67,106,107,297,308,392],[9,55,121,186,230,350],[93,200,302,356,429,94],[81,227,208,306,376,448],[87,124,221,362,473,461],[25,26,125,135,181,466]]};
 window.GTEAM=(k,n,lv)=>{if(!ur())return null;const L=GT[rg()][k-1];if(!L)return null;return L.slice(-n).map((d,i)=>mkMon(BYDEX[d]||SPECIES[0],lv[i]))};
-window.GBG=()=>rg()==='u'?'dist':rg()==='d'?'orig':'town';
+window.GBG=k=>rg()==='u'?(['ruins','forest','city','night','gym_ground','gym_elec','ice','volcano'][(k|0)-1]||'dist'):rg()==='d'?'orig':'town';
 // 목표 문구
 const _o=objective;objective=function(){const r=_o.apply(this,arguments);try{if(r&&ur()&&G&&G.party&&G.party.length){const T=TAG[rg()],b=G.badges|0,t=String(r.t||'');
  if(b<8&&t.indexOf('체육관')>=0)r.t=T.e+' '+T.n+' '+b+'/8 · '+t;
