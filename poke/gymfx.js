@@ -131,7 +131,7 @@ function key(k){return DEF[k]?k:null}
 function info(k){const i=DEF[k]?DEF[k].info:'';return i?i+' ★ 해로운 장치는 상대에게만, 이로운 장치는 나에게만 걸려요':''}
 
 const _img={};
-function bg(k){const d=DEF[k];if(!d)return null;if(_img[k])return _img[k];const im=new Image();im.src='arena/'+d.img+'.webp';_img[k]=im;return im}
+function bg(k){const d=DEF[k];if(!d)return null;const D=window.REGCUR==='d'&&k!=='sea',ck=D?k+'#d':k;if(_img[ck])return _img[ck];const im=new Image();if(D){im.onerror=()=>{im.onerror=null;im.src='arena/'+d.img+'.webp'};im.src='arena/d_'+k+'.webp'}else im.src='arena/'+d.img+'.webp';_img[ck]=im;return im}   // 명계(난이도 9)는 arena/d_<장치>.webp 먼저, 없으면 예전 그림
 
 // 주기 계산: 한 주기의 끝쪽 fire초 동안 발동, 그 앞 warn초는 예고
 function phase(c,t){const u=(((t-(c.off||0))%c.period)+c.period)%c.period,fs=c.period-c.fire;
