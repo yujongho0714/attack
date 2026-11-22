@@ -68,6 +68,41 @@ function abEnterOne(e,foe,k){
   else if(AB_MOLD.includes(k)){say((AB_NAME[k]||'틀깨기')+'!','#ffcf8a')}
 }
 function abEnter(e,foe){try{if(!e||!e.ab||!e.ab.length)return;for(const k of e.ab.slice())abEnterOne(e,foe,k)}catch(er){console.warn('abEnter',er)}}
+// ===== ② 특성 C단계 (2026-11-22) — 맞은 뒤(afterHit): 접촉 상태이상·반사 피해·능력치 반응·KO 보너스 =====
+// att=때린 쪽, def=맞은 쪽, hb=맞기 전 체력. 다단 기술의 뒤 타(opt.chain)는 안 부름(원본 contactOncePerCast)
+const AB_CONTACT_CH=.3;   // 원본 consts.contactChance
+function abChip(e,frac,why){if(!e||e.hp<=0)return;const v=Math.max(1,Math.round((e.pctMax||e.max)*frac));e.hp=Math.max(0,e.hp-v);floatTxt(e.x,e.y-100,why+' -'+fmtN(v*kOf(e)),'#f88');e.flash=Math.max(e.flash||0,.1)}
+function abAfterHit(att,def,m,dmg,crit,hb){
+  if(!(dmg>0))return;
+  const fl=(m.d&&m.d.fl)||[],contact=fl.includes('Contact'),ty=m.type;
+  const dab=def&&def.ab&&def.ab.length,aab=att&&att.ab&&att.ab.length;
+  if(dab){
+    const alive=def.hp>0;
+    if(alive&&contact&&att.hp>0){
+      if(abHas(def,'STATIC'))setAil(att,'paralysis',AB_CONTACT_CH*100);
+      if(abHas(def,'FLAMEBODY'))setAil(att,'burn',AB_CONTACT_CH*100);
+      if(abHas(def,'POISONPOINT'))setAil(att,'poison',AB_CONTACT_CH*100);
+      if(abHas(def,'EFFECTSPORE')&&!att.types.includes('GRASS')&&!abHas(att,'OVERCOAT')&&rnd()<AB_CONTACT_CH){const r=rnd();setAil(att,r<1/3?'poison':r<2/3?'paralysis':'sleep',100)}
+      if(abHas(def,'ROUGHSKIN')||abHas(def,'IRONBARBS'))abChip(att,.0625,'까칠한 피부');
+      if(abHas(def,'TANGLINGHAIR')||abHas(def,'GOOEY')){floatTxt(def.x,def.y-130,'끈적!','#ffe14a');addStage(att,'spe',-1)}
+    }
+    if(!alive&&contact&&att.hp>0&&abHas(def,'AFTERMATH')&&!abHas(att,'DAMP')&&!abHas(def,'DAMP'))abChip(att,.25,'유폭');
+    if(alive&&abHas(def,'CURSEDBODY')&&rnd()<AB_CONTACT_CH){const i=att.moves.indexOf(m);if(i>=0){att.cd[i]=Math.max(att.cd[i],4);floatTxt(att.x,att.y-130,'저주받은바디!','#c9a0ff')}}   // 원본 disableSec=4
+    if(alive){
+      if(abHas(def,'JUSTIFIED')&&ty==='DARK')addStage(def,'atk',1);
+      if(abHas(def,'RATTLED')&&(ty==='BUG'||ty==='DARK'||ty==='GHOST'))addStage(def,'spe',1);
+      if(abHas(def,'STAMINA'))addStage(def,'def',1);
+      if(abHas(def,'WEAKARMOR')&&m.phys){addStage(def,'def',-1);addStage(def,'spe',2)}   // 원본 weakArmorDef −1, weakArmorSpe +2
+      if(abHas(def,'ANGERPOINT')&&crit){def.stg.atk=3;def.stgT=8;floatTxt(def.x,def.y-130,'분노의경혈!','#ff6a4a',true)}   // 원본 angerPoint +3(최대)
+      if(abHas(def,'BERSERK')&&hb>def.max*.5&&def.hp<=def.max*.5)addStage(def,'spa',1);
+    }
+  }
+  if(aab&&att.hp>0){
+    if(def.hp<=0&&abHas(att,'MOXIE')){addStage(att,'atk',1);floatTxt(att.x,att.y-130,'자기과신!','#ffb347',true)}
+    if(def.hp>0&&contact&&abHas(att,'POISONTOUCH'))setAil(def,'poison',AB_CONTACT_CH*100);
+    if(def.hp>0&&abHas(att,'STENCH'))setAil(def,'flinch',10);   // 원본 flinchChance=.1
+  }
+}
 // 맞는 쪽·때리는 쪽 특성이 주는 피해 배율 (원본 consts.mul 값 그대로)
 function abDmg(att,def,m,e,crit){
   let x=1;const a=att&&att.ab,d=def&&def.ab;
@@ -384,6 +419,7 @@ function dealDamage(att,def,mi,opt){
     if(f.op==='recoil'){const rc=Math.max(1,Math.round(f.of==='max'?(att.pctMax||att.max)*(f.frac||.25):dmg*(f.frac||.25)));   /* 9AA: 월드보스가 PP 바닥나 발버둥 치면 10억의 1/4씩 자기 피를 깎아 죽던 버그 → 원래 체력 기준 */att.hp=Math.max(0,att.hp-rc);floatTxt(att.x,att.y-100,'반동 '+fmtN(rc*kOf(att)),'#f88')}}
   // 자폭기: 쓰면 기절
   if(m.selfko&&att.hp>0&&!att._ko&&!(C.bossNoFrac&&att.side===1)){att._ko=1;att.hp=0;floatTxt(att.x,att.y-90,'쓰러졌다','#f88')}
+  if(dmg>0&&!opt.chain&&((def.ab&&def.ab.length)||(att.ab&&att.ab.length))){try{abAfterHit(att,def,m,dmg,crit,_hb)}catch(er){}}   // ② 특성 C: 맞은 뒤
   // 6E-3: 마지막 타(또는 치명타·효과 굉장)는 크게, 중간 타는 작게
   const fin=(opt.chain?!!opt.last:!W._more)||crit||e>1;W._more=0;
   if(dmg>0&&W._dp){const q=W._dp;W._dp=null;
