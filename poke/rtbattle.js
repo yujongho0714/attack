@@ -53,9 +53,19 @@ function abUpkeep(e){
   if(abHas(e,'SHEDSKIN')&&abStatus(e)&&abEvery(e,'SHEDSKIN',6)&&rnd()<1/3){for(const k of AB_ST)delete e.ail[k];floatTxt(e.x,e.y-135,'탈피!','#9cf',true)}
   if(abHas(e,'POISONHEAL')&&e.ail&&e.ail.poison!=null&&e.hp<e.max&&abEvery(e,'POISONHEAL',6)){const h=Math.min(e.max-e.hp,Math.max(1,Math.round((e.pctMax||e.max)*.125)));e.hp+=h;floatTxt(e.x,e.y-80,'+'+fmtN(h*kOf(e)),'#7dff8a')}
   if(abHas(e,'MOODY')&&abEvery(e,'MOODY',10)){const K=['atk','def','spa','spd','spe'],up=K.filter(k=>e.stg[k]<3);if(up.length){const a=up[Math.floor(rnd()*up.length)%up.length],dn=K.filter(k=>k!==a&&e.stg[k]>-3),b=dn.length?dn[Math.floor(rnd()*dn.length)%dn.length]:null;floatTxt(e.x,e.y-135,'변덕쟁이!','#ffb347',true);abStage(e,a,2,true);if(b)abStage(e,b,-1,true)}}
+  {const wk=W&&W.wx&&W.wx.k;   // ③ 날씨가 필요한 주기 특성 (이로운 것만: 선파워·건조피부의 날씨 피해는 사용자 방침상 뺌)
+   if(wk==='rain'&&abHas(e,'DRYSKIN')&&e.hp<e.max&&abEvery(e,'DRYSKIN',6)){const h=Math.min(e.max-e.hp,Math.max(1,Math.round((e.pctMax||e.max)*.125)));e.hp+=h;floatTxt(e.x,e.y-80,'+'+fmtN(h*kOf(e)),'#7dff8a')}
+   if(wk==='rain'&&abHas(e,'RAINDISH')&&e.hp<e.max&&abEvery(e,'RAINDISH',6)){const h=Math.min(e.max-e.hp,Math.max(1,Math.round((e.pctMax||e.max)*.0625)));e.hp+=h;floatTxt(e.x,e.y-80,'+'+fmtN(h*kOf(e)),'#7dff8a')}
+   if(wk==='snow'&&abHas(e,'ICEBODY')&&e.hp<e.max&&abEvery(e,'ICEBODY',6)){const h=Math.min(e.max-e.hp,Math.max(1,Math.round((e.pctMax||e.max)*.0625)));e.hp+=h;floatTxt(e.x,e.y-80,'+'+fmtN(h*kOf(e)),'#7dff8a')}
+   if(wk==='rain'&&abHas(e,'HYDRATION')&&abStatus(e)&&abEvery(e,'HYDRATION',6)){for(const k of AB_ST)delete e.ail[k];floatTxt(e.x,e.y-135,'촉촉바디!','#9cf')}}
 }
 function abEnterOne(e,foe,k){
   const say=(t,c)=>floatTxt(e.x,e.y-135,t,c||'#ffe14a',true);
+  if(k==='DROUGHT'||k==='DRIZZLE'||k==='SANDSTREAM'||k==='SNOWWARNING'){   // ③ 날씨 특성: 가뭄·잔비·모래날림·눈퍼뜨리기 (20초)
+    const wk={DROUGHT:'sun',DRIZZLE:'rain',SANDSTREAM:'sand',SNOWWARNING:'snow'}[k];
+    if(wxSet(wk,WX_AB_SEC))say(AB_NAME[k]+'!');
+    return;
+  }
   if(k==='INTIMIDATE'){
     if(!foe||foe.hp<=0)return;say('위협!','#ffb347');
     if(AB_NOINTIM.some(x=>abHas(foe,x))){floatTxt(foe.x,foe.y-90,'소용없다!','#9cf');return}
@@ -336,7 +346,7 @@ function mkEnt(mon,S,side,hp0){
   return e;
 }
 const foeOf=e=>e.side?W.me:W.foe;   // 6F-4b: 교대로 W.me가 바뀌어도 이미 나간 공격이 제 상대를 찾도록 side 기준
-const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;if(e.ab&&e.ab.length&&abHas(e,'QUICKFEET')&&abStatus(e))v*=1.5;   /* ② 속보 */if(e.gxMul)v*=e.gxMul;   /* 1/3: 체육관 바닥(웅덩이·모래늪) */return clamp(v,60,320)};
+const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;if(e.ab&&e.ab.length&&abHas(e,'QUICKFEET')&&abStatus(e))v*=1.5;   /* ② 속보 */if(e.gxMul)v*=e.gxMul;   /* 1/3: 체육관 바닥(웅덩이·모래늪) */if(W&&W.wx&&e.ab&&e.ab.length)v*=wxSpeed(e);   /* ③ 날씨 특성 */return clamp(v,60,320)};
 
 // ---------- 데미지 ----------
 function floatTxt(x,y,t,col,big){W.fx.push({k:'txt',x,y,t:0,life:.9,s:t,c:col||'#fff',big:!!big})}
@@ -383,6 +393,104 @@ function hitFx(def,col,fin){
   W.shk=Math.max(W.shk||0,fin?20:9);W.flashA=Math.max(W.flashA||0,fin?.35:.14);W.flashC=col;
   /* 9R: 막타 화면 뒤집힘(검게 번쩍) 없앰 — 정신없다는 요청 */
 }
+// ===== ③ 날씨 1/2 (2026-11-22) — 난이도 6 이상(C.wxOn)에서만 · 사람끼리 대전 제외 · 쉬움~종말(0~5)은 없음 =====
+// 사용자 방침: 해로운 건 상대(컴퓨터)만, 이로운 건 내 포켓몬만. 4종: 쾌청(sun)·비(rain)·모래바람(sand)·설경(snow)
+// 원본 값: 날씨 기술 30초(rzmoves ef.dur) · 특성으로 켜면 20초(consts.weatherSec) · 선파워 ×1.5 · 모래의힘 ×1.3 · 젖은접시·아이스바디 1/16 · 건조피부 비 1/8
+// 이 게임에서 정한 값(원본 표에 없음): 모래바람·설경 상대 피해 초당 1.5% · 날씨 특성 이동 속도 ×1.3 · 불꽃/물 ×1.5/×0.5 · 바위(모래)·얼음(설경) 방어 ×1.5
+const WX_NAME={sun:'쾌청',rain:'비',sand:'모래바람',snow:'설경'},WX_ICON={sun:'☀',rain:'🌧',sand:'🌪',snow:'❄'};
+const WX_COL={sun:'#ffb347',rain:'#7fb8ff',sand:'#d8bc85',snow:'#bfefff'};
+const WX_START={sun:'햇살이 강해졌다!',rain:'비가 내리기 시작했다!',sand:'모래바람이 불기 시작했다!',snow:'눈이 내리기 시작했다!'};
+const WX_END={sun:'햇살이 원래대로 돌아왔다',rain:'비가 그쳤다',sand:'모래바람이 잦아들었다',snow:'눈이 그쳤다'};
+const WX_SEC=30,WX_AB_SEC=20,WX_CHIP=.015,WX_SPD=1.3;
+const WX_MAP={sun:'sun',rain:'rain',sand:'sand',sandstorm:'sand',snow:'snow',hail:'snow'};
+function wxOn(){try{return !!(W&&!W.tut&&C&&C.wxOn&&!C.net&&!C.pvp&&!C.meTeam&&C.wxOn())}catch(er){return false}}
+function wxSet(k,sec){
+  if(!wxOn()||!WX_NAME[k])return false;
+  if(W.wx&&W.wx.k===k){W.wx.t=Math.max(W.wx.t,sec);W.wx.t0=Math.max(W.wx.t0,sec);return true}
+  W.wx={k,t:sec,t0:sec};
+  const m=W.me||W.foe;if(m){floatTxt(m.x,m.y-160,WX_ICON[k]+' '+WX_START[k],WX_COL[k],true);W.fx.push({k:'ring',sys:1,x:m.x,y:m.y,t:0,life:.6,r:130,c:WX_COL[k]})}
+  return true;
+}
+// 날씨 기술(rzmoves의 ef.op==='weather') — 내가 쓸 때만 바뀜 (상대가 쓰면 아무 일 없음)
+function wxMove(e,f){
+  if(e.side||!wxOn())return;
+  const k=WX_MAP[String(f.w||'').toLowerCase()];if(!k)return;
+  const sec=parseFloat(f.dur)||WX_SEC;
+  wxSet(k,sec);
+}
+// 날씨가 데미지에 주는 배율: 내 쪽 이로움만 / 상대 쪽 해로움만
+function wxMul(att,def,m){
+  const w=W&&W.wx&&W.wx.k;if(!w)return 1;
+  const t=m.type;let x=1;
+  if(!att.side){
+    if(w==='sun'&&t==='FIRE')x*=1.5;
+    if(w==='rain'&&t==='WATER')x*=1.5;
+    if(w==='sun'&&!m.phys&&abHas(att,'SOLARPOWER'))x*=1.5;
+    if(w==='sand'&&abHas(att,'SANDFORCE')&&(t==='ROCK'||t==='GROUND'||t==='STEEL'))x*=1.3;
+  }else{
+    if(w==='sun'&&t==='WATER')x*=.5;
+    if(w==='rain'&&t==='FIRE')x*=.5;
+  }
+  if(!def.side){
+    const ty=def.tera?[def.tera]:(def.types||[]);
+    if(w==='sand'&&!m.phys&&ty.includes('ROCK'))x/=1.5;
+    if(w==='snow'&&m.phys&&ty.includes('ICE'))x/=1.5;
+  }
+  return x;
+}
+// 이동 속도: 날씨 특성(쓱쓱·엽록소·모래헤치기·눈치우기)이 맞는 날씨일 때 — 내 포켓몬만 (e.ab는 내 쪽만 있음)
+function wxSpeed(e){
+  const w=W&&W.wx&&W.wx.k;if(!w||!e.ab||!e.ab.length)return 1;
+  return((w==='rain'&&abHas(e,'SWIFTSWIM'))||(w==='sun'&&abHas(e,'CHLOROPHYLL'))||(w==='sand'&&abHas(e,'SANDRUSH'))||(w==='snow'&&abHas(e,'SLUSHRUSH')))?WX_SPD:1;
+}
+// 날씨 시간 · 상대 지속 피해(1초마다) — 매 틱 한 번
+function wxTick(){
+  const w=W.wx;if(!w)return;
+  w.t-=TICK;
+  if(w.t<=0){const m=W.me||W.foe;if(m)floatTxt(m.x,m.y-160,WX_END[w.k],'#cfd8ea',true);W.wx=null;return}
+  if(W.tick%60===0&&(w.k==='sand'||w.k==='snow')){
+    const f=W.foe;
+    if(f&&f.hp>0&&!f.hidden){
+      const ty=f.tera?[f.tera]:(f.types||[]);
+      const safe=w.k==='sand'?ty.some(t=>t==='ROCK'||t==='GROUND'||t==='STEEL'):ty.includes('ICE');
+      if(!safe){const d=Math.max(1,Math.round((f.pctMax||f.max)*WX_CHIP));f.hp=Math.max(0,f.hp-d);floatTxt(f.x,f.y-60,fmtN(d*kOf(f)),WX_COL[w.k])}
+    }
+  }
+}
+// 그림: 날씨 알갱이 + 위쪽 작은 표지 (몸 위에 덮음)
+function wxDraw(cx){
+  const w=W.wx;if(!w)return;
+  const T=W.time,col=WX_COL[w.k];
+  cx.save();
+  const fade=Math.min(1,w.t/1.2,(w.t0-w.t)/.6+.2);cx.globalAlpha=Math.max(0,fade);
+  if(w.k==='sun'){
+    const g=cx.createRadialGradient(AW*.82,-40,20,AW*.82,-40,AW*.9);g.addColorStop(0,'rgba(255,214,120,.30)');g.addColorStop(1,'rgba(255,214,120,0)');
+    cx.fillStyle=g;cx.fillRect(0,0,AW,AH);
+    cx.strokeStyle='rgba(255,230,160,.10)';cx.lineWidth=26;
+    for(let i=0;i<5;i++){cx.beginPath();cx.moveTo(AW*.82-i*150,-20);cx.lineTo(AW*.82-i*330-200,AH);cx.stroke()}
+  }else if(w.k==='rain'){
+    cx.fillStyle='rgba(30,60,120,.10)';cx.fillRect(0,0,AW,AH);
+    cx.strokeStyle='rgba(170,210,255,.55)';cx.lineWidth=1.6;cx.beginPath();
+    for(let i=0;i<70;i++){const sp=620+(i%5)*70,x=((i*173.7)%(AW+200))-100+((T*sp*.28)%60),y=((i*97.3+T*sp)%(AH+80))-40;cx.moveTo(x,y);cx.lineTo(x-9,y+26)}
+    cx.stroke();
+  }else if(w.k==='sand'){
+    cx.fillStyle='rgba(180,140,70,.16)';cx.fillRect(0,0,AW,AH);
+    cx.fillStyle='rgba(230,200,140,.5)';
+    for(let i=0;i<60;i++){const sp=300+(i%7)*60,x=((i*131.3-T*sp)%(AW+120)+AW+120)%(AW+120)-60,y=((i*89.7+Math.sin(T*2+i)*18)%AH+AH)%AH;cx.fillRect(x,y,4+(i%3)*2,2)}
+  }else{
+    cx.fillStyle='rgba(200,230,255,.08)';cx.fillRect(0,0,AW,AH);
+    cx.fillStyle='rgba(255,255,255,.85)';
+    for(let i=0;i<55;i++){const sp=70+(i%6)*18,x=((i*163.1+Math.sin(T*1.3+i)*40)%AW+AW)%AW,y=((i*71.9+T*sp)%(AH+20))-10;cx.beginPath();cx.arc(x,y,1.6+(i%3)*.8,0,7);cx.fill()}
+  }
+  cx.globalAlpha=1;
+  const lab=WX_ICON[w.k]+' '+WX_NAME[w.k]+' '+Math.ceil(w.t)+'초';
+  cx.font='bold 14px sans-serif';cx.textAlign='center';
+  const tw=cx.measureText(lab).width+20;
+  cx.fillStyle='rgba(8,14,30,.62)';cx.fillRect(AW/2-tw/2,8,tw,24);
+  cx.strokeStyle=col;cx.lineWidth=1.5;cx.strokeRect(AW/2-tw/2,8,tw,24);
+  cx.fillStyle=col;cx.fillText(lab,AW/2,25);
+  cx.restore();
+}
 function dealDamage(att,def,mi,opt){
   if(W&&W.tut)return 0;   // 9BA: 구르기 연습 중엔 아무도 안 다침
   opt=opt||{};
@@ -418,6 +526,7 @@ function dealDamage(att,def,mi,opt){
   if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;{const _dd=((def.gear&&def.gear.def)||0)+((def.gear&&def.gear.aA&&def.gear.aA.def)||0);if(_dd)dmg*=1-Math.min(.6,_dd*(1-_ign)/100)}   // 8F 장비 공격력·방어력 (+아티팩트 방어력, 방어력 무시는 그만큼 깎아요)
   if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트: 총공격력·총데미지·모든속성·보스/일반 공격력
   if((att.ab&&att.ab.length)||(def.ab&&def.ab.length)){try{const _ab=abDmg(att,def,m,e,crit);if(_ab!==1)dmg*=_ab}catch(er){}}   // ② 특성 A: 배율형
+  if(W.wx){try{const _wx=wxMul(att,def,m);if(_wx!==1)dmg*=_wx}catch(er){}}   // ③ 날씨 1/2: 내 쪽 이로움 · 상대 쪽 해로움
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
   if(m.exec&&def.lv>att.lv)dmg*=.5;               // 즉사기: 상대 레벨이 높으면 절반
   let fixedDmg=null;
@@ -611,6 +720,7 @@ function fire(e,c){
         if(f.op==='heal'&&f.who==='user'){const fr=e.healRep>0?.25:.5;e.hp=Math.min(e.max,e.hp+Math.round((e.pctMax||e.max)*fr));e.healRep=30;floatTxt(e.x,e.y-90,'회복','#8f8')}
         if(f.op==='stat'&&f.who==='target'&&m.d.tg!=='User'){for(const s in f.stages)abStage(tgt,s,f.stages[s],false)}
         if(f.op==='counter'){e.counterT=1.7}
+        if(f.op==='weather')wxMove(e,f);   // ③ 날씨 기술 (내가 쓸 때만)
       }
       W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});skillFx(e,m,{x:e.x,y:e.y},{x:e.x,y:e.y},{force:1});
       c.phase='active';c.t=0;c.len=1;toRecovery(e,c);return;
@@ -650,6 +760,9 @@ function fire(e,c){
         if(!cone||Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=(e.side?65:95)*Math.PI/180||d<e.r+tgt.r+(e.side?18:40)){hit=true;dealDamage(e,tgt,c.mi)}}}
     if(hit&&m.st)applyEf(e,tgt,m,true);
     toRecovery(e,c);
+  } else if(k==='zone'&&(m.d.ef||[]).some(f=>f.op==='weather')){
+    for(const f of m.d.ef)if(f.op==='weather')wxMove(e,f);   // ③ 설경(zone 모양 날씨 기술)
+    W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});toRecovery(e,c);return;
   } else if(k==='zone'){
     const d=c.dist!=null?clamp(c.dist,40,230):Math.min(230,tgt.hp>0?len(tgt.x-e.x,tgt.y-e.y):230);
     W.zones=W.zones.filter(z=>z.o!==e||false);
@@ -827,6 +940,7 @@ function update(){
     h.n--;h.t=h.iv;if(h.n<=0)h.dead=1}
   W.chain=W.chain.filter(h=>!h.dead);
   if(W.gx){try{GYMFX.tick(W.gx,W)}catch(er){console.warn('gymfx tick',er);W.gx=null}}   // 1/3: 체육관 장치
+  if(W.wx){try{wxTick()}catch(er){console.warn('wx tick',er);W.wx=null}}   // ③ 날씨
   // 효과 시간
   for(const f of W.fx)f.t+=TICK;W.fx=W.fx.filter(f=>f.t<f.life);
   // 승패
@@ -1097,6 +1211,7 @@ function render(){try{teraUi()}catch(er){}
     if(e.inv>0&&e.invMax>60){cx.font='bold 13px sans-serif';cx.textAlign='center';cx.fillStyle='#ffe14a';cx.fillText('무적 '+Math.ceil(e.inv/60)+'초',bx+bw/2,by-(e.zb&&e.zb.on>0?20:6))}
   }
   if(W.gx&&GYMFX.over){try{GYMFX.over(W.gx,cx,W)}catch(er){}}   // 2/3: 어두운 도장(몸 위에 덮기)
+  if(W.wx){try{wxDraw(cx)}catch(er){}}   // ③ 날씨 그림
   // 발사체
   for(const c of W.clones){const o=c.o;const a=Math.min(1,c.t)*(.5+.12*Math.sin(W.time*10));cx.globalAlpha=a;   // 9F 태초 분신 그리기
     try{const S=window.TFX?TFX.spr(o.S,o.tier):o.S;C.drawPm(cx,S,'idle',o.row,o.at,c.x,c.y-18,o.sc*.85,{loop:true,alpha:a})}catch(er){}
