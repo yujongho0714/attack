@@ -24,6 +24,47 @@ const len=(x,y)=>Math.hypot(x,y);
 const norm=(x,y)=>{const L=Math.hypot(x,y)||1;return{x:x/L,y:y/L}};
 const angDiff=(a,b)=>{let d=b-a;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d};
 const stageMul=s=>s>=0?(2+s)/2:2/(2-s);
+// ===== ② 특성 A단계 (2026-11-22) — 난이도 6 이상에서만(C.abils가 목록을 줄 때). 한 포켓몬이 가진 특성 전부가 동시에 적용 =====
+const AB_NAME={"STENCH":"악취","DRIZZLE":"잔비","SPEEDBOOST":"가속","BATTLEARMOR":"전투무장","STURDY":"옹골참","DAMP":"습기","LIMBER":"유연","SANDVEIL":"모래숨기","STATIC":"정전기","VOLTABSORB":"축전","WATERABSORB":"저수","OBLIVIOUS":"둔감","CLOUDNINE":"날씨부정","COMPOUNDEYES":"복안","INSOMNIA":"불면","COLORCHANGE":"변색","IMMUNITY":"면역","FLASHFIRE":"타오르는불꽃","SHIELDDUST":"인분","OWNTEMPO":"마이페이스","SUCTIONCUPS":"흡반","INTIMIDATE":"위협","SHADOWTAG":"그림자밟기","ROUGHSKIN":"까칠한피부","WONDERGUARD":"불가사의부적","LEVITATE":"부유","EFFECTSPORE":"포자","SYNCHRONIZE":"싱크로","CLEARBODY":"클리어바디","NATURALCURE":"자연회복","LIGHTNINGROD":"피뢰침","SERENEGRACE":"하늘의은총","SWIFTSWIM":"쓱쓱","CHLOROPHYLL":"엽록소","ILLUMINATE":"발광","TRACE":"트레이스","HUGEPOWER":"천하장사","POISONPOINT":"독가시","INNERFOCUS":"정신력","MAGMAARMOR":"마그마의무장","WATERVEIL":"수의베일","MAGNETPULL":"자력","SOUNDPROOF":"방음","RAINDISH":"젖은접시","SANDSTREAM":"모래날림","PRESSURE":"프레셔","THICKFAT":"두꺼운지방","EARLYBIRD":"일찍기상","FLAMEBODY":"불꽃몸","RUNAWAY":"도주","KEENEYE":"날카로운눈","HYPERCUTTER":"괴력집게","PICKUP":"픽업","TRUANT":"게으름","HUSTLE":"의욕","CUTECHARM":"헤롱헤롱바디","PLUS":"플러스","MINUS":"마이너스","FORECAST":"기분파","STICKYHOLD":"점착","SHEDSKIN":"탈피","GUTS":"근성","MARVELSCALE":"이상한비늘","LIQUIDOOZE":"해감액","OVERGROW":"심록","BLAZE":"맹화","TORRENT":"급류","SWARM":"벌레의알림","ROCKHEAD":"돌머리","DROUGHT":"가뭄","ARENATRAP":"개미지옥","VITALSPIRIT":"의기양양","WHITESMOKE":"하얀연기","PUREPOWER":"순수한힘","SHELLARMOR":"조가비갑옷","AIRLOCK":"에어록","TANGLEDFEET":"갈지자걸음","MOTORDRIVE":"전기엔진","RIVALRY":"투쟁심","STEADFAST":"불굴의마음","SNOWCLOAK":"눈숨기","GLUTTONY":"먹보","ANGERPOINT":"분노의경혈","UNBURDEN":"곡예","HEATPROOF":"내열","SIMPLE":"단순","DRYSKIN":"건조피부","DOWNLOAD":"다운로드","IRONFIST":"철주먹","POISONHEAL":"포이즌힐","ADAPTABILITY":"적응력","SKILLLINK":"스킬링크","HYDRATION":"촉촉바디","SOLARPOWER":"선파워","QUICKFEET":"속보","NORMALIZE":"노말스킨","SNIPER":"스나이퍼","MAGICGUARD":"매직가드","NOGUARD":"노가드","STALL":"시간벌기","TECHNICIAN":"테크니션","LEAFGUARD":"리프가드","KLUTZ":"서투름","MOLDBREAKER":"틀깨기","SUPERLUCK":"대운","AFTERMATH":"유폭","ANTICIPATION":"위험예지","FOREWARN":"예지몽","UNAWARE":"천진","TINTEDLENS":"색안경","FILTER":"필터","SLOWSTART":"슬로스타트","SCRAPPY":"배짱","STORMDRAIN":"마중물","ICEBODY":"아이스바디","SOLIDROCK":"하드록","SNOWWARNING":"눈퍼뜨리기","HONEYGATHER":"꿀모으기","FRISK":"통찰","RECKLESS":"이판사판","MULTITYPE":"멀티타입","FLOWERGIFT":"플라워기프트","BADDREAMS":"나이트메어","PICKPOCKET":"나쁜손버릇","SHEERFORCE":"우격다짐","CONTRARY":"심술꾸러기","UNNERVE":"긴장감","DEFIANT":"오기","DEFEATIST":"무기력","CURSEDBODY":"저주받은바디","HEALER":"치유의마음","FRIENDGUARD":"프렌드가드","WEAKARMOR":"깨어진갑옷","HEAVYMETAL":"헤비메탈","LIGHTMETAL":"라이트메탈","MULTISCALE":"멀티스케일","TOXICBOOST":"독폭주","FLAREBOOST":"열폭주","HARVEST":"수확","TELEPATHY":"텔레파시","MOODY":"변덕쟁이","OVERCOAT":"방진","POISONTOUCH":"독수","REGENERATOR":"재생력","BIGPECKS":"부풀린가슴","SANDRUSH":"모래헤치기","WONDERSKIN":"미라클스킨","ANALYTIC":"애널라이즈","ILLUSION":"일루전","IMPOSTER":"괴짜","INFILTRATOR":"틈새포착","MUMMY":"미라","MOXIE":"자기과신","JUSTIFIED":"정의의마음","RATTLED":"주눅","MAGICBOUNCE":"매직미러","SAPSIPPER":"초식","PRANKSTER":"짓궂은마음","SANDFORCE":"모래의힘","IRONBARBS":"철가시","ZENMODE":"달마모드","VICTORYSTAR":"승리의별","TURBOBLAZE":"터보블레이즈","TERAVOLT":"테라볼티지","AROMAVEIL":"아로마베일","FLOWERVEIL":"플라워베일","CHEEKPOUCH":"볼주머니","PROTEAN":"변환자재","FURCOAT":"퍼코트","MAGICIAN":"매지션","BULLETPROOF":"방탄","COMPETITIVE":"승기","STRONGJAW":"옹골찬턱","REFRIGERATE":"프리즈스킨","SWEETVEIL":"스위트베일","STANCECHANGE":"배틀스위치","GALEWINGS":"질풍날개","MEGALAUNCHER":"메가런처","GRASSPELT":"풀모피","SYMBIOSIS":"공생","TOUGHCLAWS":"단단한발톱","PIXILATE":"페어리스킨","GOOEY":"미끈미끈","AERILATE":"스카이스킨","PARENTALBOND":"부자유친","DARKAURA":"다크오라","FAIRYAURA":"페어리오라","AURABREAK":"오라브레이크","PRIMORDIALSEA":"시작의바다","DESOLATELAND":"끝의대지","DELTASTREAM":"델타스트림","STAMINA":"지구력","WIMPOUT":"도망태세","EMERGENCYEXIT":"위기회피","WATERCOMPACTION":"꾸덕꾸덕굳기","MERCILESS":"무도한행동","SHIELDSDOWN":"리밋실드","STAKEOUT":"잠복","WATERBUBBLE":"수포","STEELWORKER":"강철술사","BERSERK":"발끈","SLUSHRUSH":"눈치우기","LONGREACH":"원격","LIQUIDVOICE":"촉촉보이스","TRIAGE":"힐링시프트","GALVANIZE":"일렉트릭스킨","SURGESURFER":"서핑테일","SCHOOLING":"어군","DISGUISE":"탈","BATTLEBOND":"유대변화","POWERCONSTRUCT":"스웜체인지","CORROSION":"부식","COMATOSE":"절대안깸","QUEENLYMAJESTY":"여왕의위엄","INNARDSOUT":"내용물분출","DANCER":"무희","BATTERY":"배터리","FLUFFY":"복슬복슬","DAZZLING":"비비드바디","SOULHEART":"소울하트","TANGLINGHAIR":"컬리헤어","RECEIVER":"리시버","POWEROFALCHEMY":"화학의힘","BEASTBOOST":"비스트부스트","RKSSYSTEM":"AR시스템","ELECTRICSURGE":"일렉트릭메이커","PSYCHICSURGE":"사이코메이커","MISTYSURGE":"미스트메이커","GRASSYSURGE":"그래스메이커","FULLMETALBODY":"메탈프로텍트","SHADOWSHIELD":"스펙터가드","PRISMARMOR":"프리즘아머","NEUROFORCE":"브레인포스","INTREPIDSWORD":"불요의검","DAUNTLESSSHIELD":"불굴의방패","LIBERO":"리베로","BALLFETCH":"볼줍기","COTTONDOWN":"솜털","PROPELLERTAIL":"스크루지느러미","MIRRORARMOR":"미러아머","GULPMISSILE":"그대로꿀꺽미사일","STALWART":"굳건한신념","STEAMENGINE":"증기기관","PUNKROCK":"펑크록","SANDSPIT":"모래뿜기","ICESCALES":"얼음인분","RIPEN":"숙성","ICEFACE":"아이스페이스","POWERSPOT":"파워스폿","MIMICRY":"의태","SCREENCLEANER":"배리어프리","STEELYSPIRIT":"강철정신","PERISHBODY":"멸망의바디","WANDERINGSPIRIT":"떠도는영혼","GORILLATACTICS":"무아지경","NEUTRALIZINGGAS":"화학변화가스","PASTELVEIL":"파스텔베일","HUNGERSWITCH":"꼬르륵스위치","QUICKDRAW":"퀵드로","UNSEENFIST":"보이지않는주먹","CURIOUSMEDICINE":"기묘한약","TRANSISTOR":"트랜지스터","DRAGONSMAW":"용의턱","CHILLINGNEIGH":"백의울음","GRIMNEIGH":"흑의울음","ASONECHILLINGNEIGH":"혼연일체","ASONEGRIMNEIGH":"혼연일체","ANGERSHELL":"분노의껍질","ARMORTAIL":"테일아머","BEADSOFRUIN":"재앙의구슬","COMMANDER":"사령탑","COSTAR":"협연","CUDCHEW":"되새김질","EARTHEATER":"흙먹기","ELECTROMORPHOSIS":"전기로바꾸기","GOODASGOLD":"황금몸","GUARDDOG":"파수견","HADRONENGINE":"하드론엔진","LINGERINGAROMA":"가시지않는향기","MYCELIUMMIGHT":"균사의힘","OPPORTUNIST":"편승","ORICHALCUMPULSE":"진홍빛고동","PROTOSYNTHESIS":"고대활성","PURIFYINGSALT":"정화의소금","QUARKDRIVE":"쿼크차지","ROCKYPAYLOAD":"바위나르기","SEEDSOWER":"넘치는씨","SHARPNESS":"예리함","SUPREMEOVERLORD":"총대장","SWORDOFRUIN":"재앙의검","TABLETSOFRUIN":"재앙의목간","THERMALEXCHANGE":"열교환","TOXICDEBRIS":"독치장","VESSELOFRUIN":"재앙의그릇","WELLBAKEDBODY":"노릇노릇바디","WINDPOWER":"풍력발전","WINDRIDER":"바람타기","ZEROTOHERO":"마이티체인지","SUPERSWEETSYRUP":"감미로운꿀","HOSPITALITY":"대접","TOXICCHAIN":"독사슬","MINDSEYE":"심안","EMBODYASPECT":"초상투영","EMBODYASPECT_1":"초상투영","EMBODYASPECT_2":"초상투영","EMBODYASPECT_3":"초상투영","POISONPUPPETEER":"독조종","TERASHIFT":"테라체인지","TERASHELL":"테라셸","TERAFORMZERO":"제로포밍","PIERCINGDRILL":"관통드릴","EELEVATE":"천정부지","DRAGONIZE":"드래곤스킨","MEGASOL":"메가솔라","SPICYSPRAY":"하바네로분출","FIREMANE":"불꽃의갈기","AURAGUARD":"파동의방호"};
+const AB_ST=['burn','poison','paralysis','sleep','freeze'];
+const abHas=(e,k)=>!!(e&&e.ab&&e.ab.length&&e.ab.includes(k));
+const abStatus=e=>AB_ST.some(s=>e.ail&&e.ail[s]!=null);
+const abNames=e=>(e&&e.ab||[]).map(k=>AB_NAME[k]||k).join('·');
+// 맞는 쪽·때리는 쪽 특성이 주는 피해 배율 (원본 consts.mul 값 그대로)
+function abDmg(att,def,m,e,crit){
+  let x=1;const a=att&&att.ab,d=def&&def.ab;
+  if(a&&a.length){
+    const ph=!!m.phys,fl=(m.d&&m.d.fl)||[],ef=(m.d&&m.d.ef)||[],hpF=att.hp/Math.max(1,att.max),st=abStatus(att),ty=m.type;
+    if(ph&&(abHas(att,'HUGEPOWER')||abHas(att,'PUREPOWER')))x*=2;
+    if(ph&&abHas(att,'GUTS')&&st){x*=1.5;if(att.ail.burn)x*=2}   // 근성: 화상 공격력 반감을 무시
+    if(ph&&abHas(att,'HUSTLE'))x*=1.5;
+    if(abHas(att,'DEFEATIST')&&hpF<=.5)x*=.5;
+    if(abHas(att,'ADAPTABILITY')&&!att.tera&&att.types.includes(ty))x*=2/1.5;
+    if(abHas(att,'TECHNICIAN')&&m.p>0&&m.p<=60)x*=1.5;
+    if(abHas(att,'IRONFIST')&&fl.includes('Punching'))x*=1.2;
+    if(abHas(att,'TOUGHCLAWS')&&fl.includes('Contact'))x*=1.3;
+    if(abHas(att,'STRONGJAW')&&fl.includes('Biting'))x*=1.5;
+    if(abHas(att,'MEGALAUNCHER')&&fl.includes('Pulse'))x*=1.5;
+    if(abHas(att,'RECKLESS')&&ef.some(f=>f.op==='recoil'))x*=1.2;
+    if(abHas(att,'SHEERFORCE')&&ef.some(f=>(f.op==='status'||(f.op==='stat'&&f.who!=='user'))&&f.chance!=null&&f.chance<100))x*=1.3;
+    if(abHas(att,'SNIPER')&&crit)x*=1.5;
+    if(abHas(att,'TINTEDLENS')&&e>0&&e<1)x*=2;
+    if(hpF<=1/3){if(abHas(att,'BLAZE')&&ty==='FIRE')x*=1.5;if(abHas(att,'TORRENT')&&ty==='WATER')x*=1.5;if(abHas(att,'OVERGROW')&&ty==='GRASS')x*=1.5;if(abHas(att,'SWARM')&&ty==='BUG')x*=1.5}
+  }
+  if(d&&d.length){
+    const ph=!!m.phys,fl=(m.d&&m.d.fl)||[],ty=m.type,full=def.hp>=def.max;
+    if(abHas(def,'THICKFAT')&&(ty==='FIRE'||ty==='ICE'))x*=.5;
+    if(abHas(def,'HEATPROOF')&&ty==='FIRE')x*=.5;
+    if(abHas(def,'WATERBUBBLE')&&ty==='FIRE')x*=.5;
+    if((abHas(def,'FILTER')||abHas(def,'SOLIDROCK')||abHas(def,'PRISMARMOR'))&&e>=2)x*=.75;
+    if((abHas(def,'MULTISCALE')||abHas(def,'SHADOWSHIELD'))&&full)x*=.5;
+    if(abHas(def,'FLUFFY')){if(fl.includes('Contact'))x*=.5;if(ty==='FIRE')x*=2}
+    if(abHas(def,'ICESCALES')&&!ph)x*=.5;
+    if(abHas(def,'DRYSKIN')&&ty==='FIRE')x*=1.25;
+    if(ph&&abHas(def,'FURCOAT'))x*=.5;
+    if(ph&&abHas(def,'MARVELSCALE')&&abStatus(def))x/=1.5;
+  }
+  return x}
 
 let C=null, W=null; // 게임 도구 / 현재 전투 상태
 
@@ -156,6 +197,7 @@ function mkEnt(mon,S,side,hp0){
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
   e.haste=hasteOf(s[5]);
+  e.ab=[];try{if(C.abils&&!C.net&&!C.pvp&&!C.meTeam)e.ab=C.abils(mon)||[]}catch(er){e.ab=[]}   // ② 특성(난이도 6 이상, 사람끼리 대전 제외)
   // 9AD 거대 월드보스(카오스·이터널): 보스는 화면 높이 72%까지 커지고(화면 밖으로 안 나감) 내 포켓몬은 70%
   if(C.giant){try{const A=S&&S.meta&&S.meta.anims&&S.meta.anims.idle;
     if(side===1&&A){const gv=Math.max(1.3,Math.min(AH*.72/Math.max(1,A.h*sc),AW*.42/Math.max(1,A.w*sc)));e.sc0=sc;e.gK=gv;e.gT=0;e.giant=1;e.gw=A.w*sc*gv;e.gh=A.h*sc*gv;e.r=Math.round(Math.min(e.r*1.6,SIZE.rmax*1.4))}
@@ -186,7 +228,7 @@ function mkEnt(mon,S,side,hp0){
   return e;
 }
 const foeOf=e=>e.side?W.me:W.foe;   // 6F-4b: 교대로 W.me가 바뀌어도 이미 나간 공격이 제 상대를 찾도록 side 기준
-const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;if(e.gxMul)v*=e.gxMul;   /* 1/3: 체육관 바닥(웅덩이·모래늪) */return clamp(v,60,320)};
+const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;if(e.ab&&e.ab.length&&abHas(e,'QUICKFEET')&&abStatus(e))v*=1.5;   /* ② 속보 */if(e.gxMul)v*=e.gxMul;   /* 1/3: 체육관 바닥(웅덩이·모래늪) */return clamp(v,60,320)};
 
 // ---------- 데미지 ----------
 function floatTxt(x,y,t,col,big){W.fx.push({k:'txt',x,y,t:0,life:.9,s:t,c:col||'#fff',big:!!big})}
@@ -266,6 +308,7 @@ function dealDamage(att,def,mi,opt){
   if(att.gxChgT>0&&m.type==='ELECTRIC'){dmg*=1.3;att.gxChgT=0}   // 3/3: 등대 충전 뒤 다음 전기 기술 ×1.3
   if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;{const _dd=((def.gear&&def.gear.def)||0)+((def.gear&&def.gear.aA&&def.gear.aA.def)||0);if(_dd)dmg*=1-Math.min(.6,_dd*(1-_ign)/100)}   // 8F 장비 공격력·방어력 (+아티팩트 방어력, 방어력 무시는 그만큼 깎아요)
   if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트: 총공격력·총데미지·모든속성·보스/일반 공격력
+  if((att.ab&&att.ab.length)||(def.ab&&def.ab.length)){try{const _ab=abDmg(att,def,m,e,crit);if(_ab!==1)dmg*=_ab}catch(er){}}   // ② 특성 A: 배율형
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
   if(m.exec&&def.lv>att.lv)dmg*=.5;               // 즉사기: 상대 레벨이 높으면 절반
   let fixedDmg=null;
@@ -1131,7 +1174,7 @@ async function doSwitch(uid){
   w.chain=w.chain.filter(c=>c.o!==old);w.clones=w.clones.filter(c=>c.o!==old);             // 나간 포켓몬의 연타·분신은 끊김
   w.proj=w.proj.filter(p=>{if(p.o!==old)return true;try{if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}return false});w.zones=w.zones.filter(z=>z.o!==old);w.delays=w.delays.filter(d=>d.o!==old);   // 9E: 나간 포켓몬 기술 그림이 멈춰 남지 않게
   w.delays.forEach(d=>{if(d.tgt===old)d.tgt=ne});   // 상대의 내려찍기 조준은 새 포켓몬을 따라감
-  w.me=ne;
+  w.me=ne;try{w.abUpd&&w.abUpd()}catch(er){}
   try{window.PKS&&PKS.cry(ne.mon,.8,150)}catch(er){}
   if(!w.used.includes(uid))w.used.push(uid);
   w.swCd=SW_CD;w.swapping=0;
@@ -1367,6 +1410,8 @@ async function start(ctx){
    const upd=()=>{ab.textContent=W.autoOn?'🤖 자동 ON':'🤖 자동 OFF';ab.style.background=W.autoOn?'#2bbf5a':'#2a3256';if(W.autoTag)W.autoTag.style.display=W.autoOn?'':'none'};
    ab.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.autoOn=!W.autoOn;W.manT=null;try{localStorage.setItem('pka-rtauto',W.autoOn?'1':'0')}catch(er){}upd()});W.root.appendChild(ab);W.autoBtn=ab;W.autoUpd=upd}
   {const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
+  {const t=document.createElement('div');t.style.cssText='position:absolute;left:6px;top:calc(8px + env(safe-area-inset-top));max-width:46vw;padding:3px 7px;border-radius:6px;background:rgba(0,0,0,.5);color:#cfe3ff;font:bold 11px "Galmuri11",sans-serif;line-height:1.35;pointer-events:none;z-index:4';
+   const upd=()=>{if(!W||!W.me||!W.foe)return;const a=abNames(W.me),b=abNames(W.foe);t.innerHTML=(a?'🟦 내 특성 '+a:'')+(a&&b?'<br>':'')+(b?'🟥 상대 특성 '+b:'');t.style.display=(a||b)?'':'none'};upd();W.root.appendChild(t);W.abUpd=upd}   // ② 특성 이름 표시
   if(W.gx&&window.GYMFX&&GYMFX.info(C.gx)){const h=document.createElement('div');h.style.cssText='position:absolute;left:50%;top:calc(92px + env(safe-area-inset-top));transform:translateX(-50%);max-width:86vw;padding:6px 12px;background:rgba(10,13,24,.82);color:#ffe14a;font:900 13px "Galmuri11",sans-serif;border:3px solid #ffd23f;box-shadow:0 3px 0 #000;pointer-events:none;text-align:center;transition:opacity .8s;z-index:4';h.textContent='🏟 '+GYMFX.info(C.gx);W.root.appendChild(h);setTimeout(()=>{h.style.opacity='0'},7000);setTimeout(()=>{try{h.remove()}catch(er){}},8000)}
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
