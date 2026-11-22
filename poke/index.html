@@ -8826,7 +8826,7 @@ css.textContent='#rtBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-i
 document.head.appendChild(css);
 function loadRtb(){return window.RTB?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='rtbattle.js?v='+Date.now();s.onload=()=>{const g=document.createElement('script');g.src='gymfx.js?v='+Date.now();g.onload=g.onerror=ok;document.head.appendChild(g)};s.onerror=()=>no(new Error('rtbattle.js'));document.head.appendChild(s)})}
 /* 1/3: 체육관 경기장 장치 — 지금 지방의 체육관 번호(1~8) → 장치 이름 (관동만, 호연·신오는 2/3·3/3에서) */
-const GXK={m:['pewter','cerulean','vermilion','celadon','fuchsia','saffron','cinnabar','viridian']};
+const GXK={m:['pewter','cerulean','vermilion','celadon','fuchsia','saffron','cinnabar','viridian'],h:['rustboro','dewford','mauville','lavaridge','petalburg','fortree','mossdeep','sootopolis']};
 function gxKeyOf(o){try{if(!o||!(o.gym>=1&&o.gym<=8))return null;const r=window.REGOF?REGOF():'m';const a=GXK[r];return a?a[o.gym-1]:null}catch(e){return null}}
 async function rtGo(){
   if(window.__rtRun)return;window.__rtRun=1;
@@ -9173,6 +9173,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112059,date:'11월 22일',t:'호연 체육관에도 장치가 생겼어요 (8곳)',items:[{img:"ui/news/n33_gym_hoenn.webp",h:"🏟 호연 체육관 장치 8가지",p:["<b>천계(호연 지방)</b> 체육관에서 새 전투로 싸우면 1번부터 <b>낙석 · 어두운 도장과 샌드백 · 전류줄 · 온천과 뜨거운 모래 · 훈련 메뉴 · 바람길과 구름 발판 · 트릭룸과 순간이동 발판 · 깨지는 얼음판</b>이 차례로 나와요.","전투 시작할 때 화면 위에 <b>그 체육관의 장치 설명</b>이 7초 동안 보여요. 빨간 점선이나 깜빡이는 노란 칸은 곧 터진다는 뜻이니 구르기로 피하세요.","장치에 면역인 타입이 있어요 (예: 전류줄은 전기·땅 타입이 안전, 바람길은 비행 타입이 안전)."]}]},
  {v:2026112058,date:'11월 22일',t:'체육관 경기장에 장치가 생겼어요 (관동 8곳)',items:[{img:"ui/news/n32_gym_arena.webp",h:"🏟 체육관마다 다른 장치",p:["관동 체육관에서 새 전투로 싸우면 <b>바위 · 물웅덩이 · 전기 발판 · 풀밭 · 독웅덩이 · 순간이동 발판 · 분화구 · 모래늪</b>이 나와요.","전투 시작할 때 화면 위에 <b>그 체육관의 장치 설명</b>이 7초 동안 보여요. 빨간 점선이 깜빡이면 곧 터진다는 뜻이니 구르기로 피하세요.","장치에 면역인 타입이 있어요 (예: 전기 발판은 전기·땅 타입이 안전)."]}]},
  {v:2026112057,date:'11월 22일',t:'하계 전투 배경이 새로 생겼어요',items:[{img:"",h:"🔥 하계에서 싸우면 배경이 달라져요",p:["하계의 길 · 마을에서 싸우면 <b>용암 · 버섯 숲 · 신사 · 뼈 무덤 · 안개 · 수정 동굴 · 감옥 · 룬 궁전</b> 등 장소마다 다른 배경이 나와요.","관장 · 챔피언 전투의 <b>왜곡세계</b> 배경도 새 그림으로 바뀌었어요. 어두운 허공에 떠 있는 룬 돌판이에요."]}]},
  {v:2026112056,date:'11월 21일',t:'하계 · 명계 이야기가 길어졌어요',items:[{img:"",h:"🎬 들어가면 이야기가 시작돼요",p:["하계·명계에 처음 들어가면 <b>인트로 장면</b>이 나와요.","마을 · 길마다 <b>처음 가면 짧은 이야기</b>가 나오고, 관장을 이기면 <b>빛의 조각 / 기억</b> 장면이 나와요.","맨 위 목표에도 <b>조각 · 기억 n/8</b>이 보여요."]},{img:"",h:"⚔ 관장이 달라졌어요",p:["관장 · 사천왕 <b>그림</b>이 새로 바뀌었어요.","관장마다 <b>전용 포켓몬 팀</b>이 있고, 싸우는 곳도 <b>왜곡세계 · 기원의 전당</b>이에요."]},{img:"",h:"📜 가이드 퀘스트 탭 2개 추가",p:["컨텐츠 → 가이드 퀘스트에 <b>하계</b> · <b>명계</b> 탭이 생겼어요. 조각 · 기억을 모을 때마다 보상을 받아요."]}]},

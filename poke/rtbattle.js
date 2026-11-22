@@ -583,7 +583,7 @@ function update(){
        if(m&&m.chg){if(e.ch[i]<m.chg.max){e.chT[i]-=TICK*r;if(e.chT[i]<=0){e.ch[i]++;e.chT[i]=e.ch[i]<m.chg.max?m.chg.per:0}}e.cd[i]=e.ch[i]>=1?0:Math.max(0,e.chT[i])}
        else e.cd[i]=Math.max(0,e.cd[i]-TICK*r)}}
     // 구르기 충전
-    if(e.rc<2)e.rc=Math.min(2,e.rc+TICK/3.2);
+    if(e.rc<2)e.rc=Math.min(2,e.rc+TICK/3.2*(e.gxRc||1));   /* 2/3: 회피 훈련 */
     // 상태이상
     for(const s in e.ail){e.ail[s]-=TICK;
       if(s==='burn'&&W.tick%60===0){const d=Math.max(1,Math.round((e.pctMax||e.max)*.01));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#f84')}
@@ -592,7 +592,7 @@ function update(){
     if(e.ailImm)for(const s in e.ailImm)e.ailImm[s]-=TICK;
     if(e.stgT>0){e.stgT-=TICK;if(e.stgT<=0){for(const k in e.stg)e.stg[k]-=Math.sign(e.stg[k]);e.stgT=8}}
     // 구르기
-    if(e.rollT>0){e.rollT--;e.x+=e.rdx*(150/14);e.y+=e.rdy*(150/14);if(e.rollT===0)e.perfect=0;e.anim='walk'}
+    if(e.rollT>0){e.rollT--;e.x+=e.rdx*(150/14)*(e.gxRoll||1);e.y+=e.rdy*(150/14)*(e.gxRoll||1);   /* 2/3: 구름 발판 */if(e.rollT===0)e.perfect=0;e.anim='walk'}
     else{
       if(e.stun>0){e.stun--;e.anim='hurt';if(e.stun===0)e.anim='idle'}
       else{
@@ -937,6 +937,7 @@ function render(){try{teraUi()}catch(er){}
     if(e.zb&&e.zb.on>0){cx.font='bold 13px sans-serif';cx.textAlign='center';cx.fillStyle='#ff4060';cx.fillText('⚡ 데미지 +30% '+Math.ceil(e.zb.on)+'초',bx+bw/2,by-6)}   // 9F 만제 버프
     if(e.inv>0&&e.invMax>60){cx.font='bold 13px sans-serif';cx.textAlign='center';cx.fillStyle='#ffe14a';cx.fillText('무적 '+Math.ceil(e.inv/60)+'초',bx+bw/2,by-(e.zb&&e.zb.on>0?20:6))}
   }
+  if(W.gx&&GYMFX.over){try{GYMFX.over(W.gx,cx,W)}catch(er){}}   // 2/3: 어두운 도장(몸 위에 덮기)
   // 발사체
   for(const c of W.clones){const o=c.o;const a=Math.min(1,c.t)*(.5+.12*Math.sin(W.time*10));cx.globalAlpha=a;   // 9F 태초 분신 그리기
     try{const S=window.TFX?TFX.spr(o.S,o.tier):o.S;C.drawPm(cx,S,'idle',o.row,o.at,c.x,c.y-18,o.sc*.85,{loop:true,alpha:a})}catch(er){}
