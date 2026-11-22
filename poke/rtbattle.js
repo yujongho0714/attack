@@ -477,7 +477,7 @@ function mkEnt(mon,S,side,hp0){
   //  태초: 들어오고 1초 뒤 분신 소환(같이 공격) 20초 + 각성마다 5초
   //  만제: 20초 동안 데미지 +30% 버프, 재사용 30초 − 각성마다 3초 (자동) · 파티 공격 +30%는 host(rtDmgMul)
   e.pctMax=(C.bossNoFrac&&side===1&&C.bossBase)?Math.max(1,C.bossBase):0;   // 9H: 월드보스는 '최대 체력의 몇 %' 효과(독·화상·장판·회복)를 원래 체력 기준으로
-  e.tier=0;try{e.tier=C.tierOf?(+C.tierOf(mon)||0):0}catch(er){}e.aw=Math.max(0,Math.min(6,(mon&&mon.aw)|0));
+  e.tier=0;try{e.tier=C.tierOf?(+C.tierOf(mon)||0):0}catch(er){}e.aw=Math.max(0,Math.min(6,(window.awEffMon&&mon?awEffMon(mon):(mon&&mon.aw))|0));
   e.undying=e.tier>=7;e.sh=0;e.shMax=0;e.cloneDur=e.tier>=8?20+5*e.aw:0;e.cloneUsed=0;e.life=0;
   e.zb=e.tier>=9?{cd:1,on:0,cdMax:Math.max(3,30-3*e.aw)}:null;
   if(e.tier>=6&&window.TFX)try{e.eng=TFX.eng()}catch(er){}

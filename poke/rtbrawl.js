@@ -161,13 +161,13 @@ function mkEnt(mon,S,side,hp0){
   try{e.K=C.numK?clamp(+C.numK(mon)||1,1,1e12):1}catch(er){e.K=1}   // 9G: 천상계 ×100 · 월드보스 억 단위 위해 상한 1조   // 7D 숫자 배율
   try{e.critX=C.critOf?C.critOf(mon)||{c:0,d:0}:{c:0,d:0}}catch(er){e.critX={c:0,d:0}}
   // 8F: 장비(출결 캐릭터 장비 · 스타포스 강화 · 큐브 옵션) — 내 포켓몬에게 모든 새 전투에서 (예전엔 월드보스에서만)
-  e.hm=1;e.gear=null;try{const g=C.gearOf?C.gearOf(mon):null;if(g){e.gear=g;e.hm=1+(g.hp||0)/100;e.max=Math.round(e.max*e.hm);e.hp=e.max;e.critX={c:Math.min(.75,(e.critX?e.critX.c:0)+(g.crt||0)/100),d:(e.critX?e.critX.d:0)+(g.cdm||0)/100}}}catch(er){}
+  e.hm=1;e.gear=null;try{const g=C.gearOf?C.gearOf(mon):null;if(g){e.gear=g;e.hm=1+((g.hp||0)+((g.aA&&g.aA.hp)||0))/100;e.max=Math.round(e.max*e.hm);e.hp=e.max;e.critX={c:Math.min(.75,(e.critX?e.critX.c:0)+(g.crt||0)/100),d:(e.critX?e.critX.d:0)+(g.cdm||0)/100}}}catch(er){}
   // 9F 초월 능력(위 등급은 아래 등급 능력도 가짐) — 각성 단계 e.aw(0~6)
   //  불멸: 쓰러지면 1번 부활(체력 50%) · 각성하면 부활 뒤 무적 10초 + 각성마다 3초
   //  태초: 들어오고 1초 뒤 분신 소환(같이 공격) 20초 + 각성마다 5초
   //  만제: 20초 동안 데미지 +30% 버프, 재사용 30초 − 각성마다 3초 (자동) · 파티 공격 +30%는 host(rtDmgMul)
   e.pctMax=(C.bossNoFrac&&side===1&&C.bossBase)?Math.max(1,C.bossBase):0;   // 9H: 월드보스는 '최대 체력의 몇 %' 효과(독·화상·장판·회복)를 원래 체력 기준으로
-  e.tier=0;try{e.tier=C.tierOf?(+C.tierOf(mon)||0):0}catch(er){}e.aw=Math.max(0,Math.min(6,(mon&&mon.aw)|0));
+  e.tier=0;try{e.tier=C.tierOf?(+C.tierOf(mon)||0):0}catch(er){}e.aw=Math.max(0,Math.min(6,(window.awEffMon&&mon?awEffMon(mon):(mon&&mon.aw))|0));
   e.undying=e.tier>=7;e.sh=0;e.shMax=0;e.cloneDur=e.tier>=8?20+5*e.aw:0;e.cloneUsed=0;e.life=0;
   e.zb=e.tier>=9?{cd:1,on:0,cdMax:Math.max(3,30-3*e.aw)}:null;
   if(e.tier>=6&&window.TFX)try{e.eng=TFX.eng()}catch(er){}
@@ -255,11 +255,13 @@ function dealDamage(att,def,mi,opt){
   const cx0=att.critX||{c:0,d:0};   // 7G: 크리티컬 확률·데미지 보너스(접두사·먹이 아이템·내 캐릭터 접두사)
   const crit=opt.net?!!opt.net.c:rnd()<(att.critWin>0?.5:1/24+cx0.c);
   let power=m.p*(opt.pm||1);
-  let base=((2*att.lv/5+2)*power*(A*Am)/Math.max(1,D*Dm)/50+2);
+  const _ign=Math.min(.9,((att.gear&&att.gear.aA&&att.gear.aA.ign)||0)/100);   // 9BZ 아티팩트 방어력 무시
+  let base=((2*att.lv/5+2)*power*(A*Am)/Math.max(1,D*Dm*(1-_ign))/50+2);
   let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1)*(att.zb&&att.zb.on>0?1.3:1);   // 9F 만제 버프
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
-  if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;if(def.gear&&def.gear.def)dmg*=1-Math.min(.6,def.gear.def/100);   // 8F 장비 공격력·방어력
+  if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;{const _dd=((def.gear&&def.gear.def)||0)+((def.gear&&def.gear.aA&&def.gear.aA.def)||0);if(_dd)dmg*=1-Math.min(.6,_dd*(1-_ign)/100)}   // 8F 장비 공격력·방어력 (+아티팩트 방어력, 방어력 무시는 그만큼 깎아요)
+  if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트: 총공격력·총데미지·모든속성·보스/일반 공격력
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
   if(m.exec&&def.lv>att.lv)dmg*=.5;               // 즉사기: 상대 레벨이 높으면 절반
   let fixedDmg=null;
@@ -275,7 +277,8 @@ function dealDamage(att,def,mi,opt){
   const rawD=opt.net?opt.net.d:capped;dmg=Math.max(e===0?0:1,Math.round(capped));if(opt.net)dmg=opt.net.d;
   if(e===0)dmg=0;
   if(def.sh>0&&dmg>0){const a=Math.min(def.sh,dmg);def.sh-=a;dmg-=a;if(def.sh<=0){def.sh=0;floatTxt(def.x,def.y-115,'보호막 깨짐','#ffe9a0')}if(dmg<=0){floatTxt(def.x,def.y-70,'보호막!','#ffe9a0');def.flash=.08;return 0}}   // 9B 태초 보호막
-  def.hp=Math.max(0,def.hp-dmg);
+  const _hb=def.hp;def.hp=Math.max(0,def.hp-dmg);
+  if(dmg>0&&att.gear&&att.gear.aA&&att.gear.aA.vamp&&att.hp>0){const _vh=Math.min(att.max-att.hp,att.max*.05,Math.round(Math.min(dmg,_hb)*att.gear.aA.vamp/100));if(_vh>0){att.hp+=_vh;floatTxt(att.x,att.y-100,'+'+fmtN(_vh*kOf(att)),'#6f6')}}   // 9BZ 아티팩트 흡혈
   if(NH()&&C.net.hit){try{C.net.hit(W.ents.indexOf(att),W.ents.indexOf(def),mi,dmg,crit?1:0,e,opt.chain?1:0,opt.last?1:0,opt.blink?1:0)}catch(er){}}   // 9Q: 방장이 맞은 결과를 모두에게 보냄
   if(def.hp<=0&&def.undying&&!def._ud){def._ud=1;def.hp=Math.round(def.max*.5);const s=def.aw>0?10+3*(def.aw-1):1;def.inv=Math.max(def.inv||0,Math.round(s*60));def.invMax=def.inv;cancelCast&&def.cast&&cancelCast(def,true);floatTxt(def.x,def.y-125,'불멸 부활!'+(def.aw>0?' 무적 '+s+'초':''),'#8fb4ff',true);W.hitstop=Math.max(W.hitstop||0,.15);try{W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.5,r:110,c:'#8fb4ff'})}catch(er){}}   // 9B 불멸: 한 번 버팀
   def.flash=.15;
