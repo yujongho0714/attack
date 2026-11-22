@@ -208,6 +208,8 @@ function abDmg(att,def,m,e,crit){
     if(abHas(def,'DRYSKIN')&&ty==='FIRE')x*=1.25;
     if(ph&&abHas(def,'FURCOAT'))x*=.5;
     if(abHas(def,'PUNKROCK')&&fl.includes('Sound'))x*=.5;
+    if(abHas(def,'TERASHELL')&&full&&e>.5)x*=.5/e;   // G: 테라셸 — 체력이 가득이면 효과가 굉장해도 '별로'(×0.5)로 받음
+    if(ph&&abHas(def,'GRASSPELT')){try{if(W.rz3&&W.rz3.ter==='grassy'&&rz3In(def))x/=1.5}catch(er){}}   // G: 풀모피 — 그래스필드 안에서 물리 방어 ×1.5
     if(ph&&abHas(def,'TABLETSOFRUIN'))x/=AB_RUIN;
     if(!ph&&abHas(def,'VESSELOFRUIN'))x/=AB_RUIN;
     if(ph&&abHas(def,'MARVELSCALE')&&abStatus(def))x/=1.5;
@@ -830,6 +832,7 @@ function dealDamage(att,def,mi,opt){
   opt=opt||{};
   if(def.hp<=0)return 0;
   let m=att.moves[mi]||opt.mi;
+  if(att.ab&&att.ab.length&&m&&!m.typeless&&m.type!=='NORMAL'&&abHas(att,'NORMALIZE')){m=Object.assign({},m,{type:'NORMAL'});opt._skin=1}   // G: 노말스킨 — 모든 기술이 노말 타입이 되고 ×1.2
   if(att.ab&&att.ab.length&&m&&m.type==='NORMAL'&&!m.typeless){const _sk=abSkin(att);if(_sk){m=Object.assign({},m,{type:_sk});opt._skin=1}}   // F: 스카이·페어리·프리즈·일렉트릭스킨 — 노말 기술이 그 타입이 되고 ×1.2
   if(def.hidden){return 0}
   if(def.protect>0){floatTxt(def.x,def.y-60,'막았다!','#9be7ff');W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.3,r:70,c:'#9be7ff'});return 0}
