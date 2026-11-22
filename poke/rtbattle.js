@@ -484,6 +484,15 @@ function wxMove(e,f){
   const sec=parseFloat(f.dur)||WX_SEC;
   wxSet(k,sec);
 }
+// 날씨 때문에 준비 동작이 짧아지는 기술(원본 noCharge): 쾌청=솔라빔·솔라블레이드 · 비=전기쇼트 → 내 쪽만, 준비 17틱까지 줄어듦
+// (원본 noChargeWindupSec 값은 자료에 없어서 속도 단축 바닥값 17틱을 씀)
+const WX_NOCHG={sun:['solarbeam','solarblade'],rain:['electroshot']},WX_NOCHG_T=17;
+function wxSu(e,m,su){
+  try{const w=W&&W.wx&&W.wx.k;if(e.side||!w||!(su>WX_NOCHG_T)||!wxOn())return su;
+    const a=WX_NOCHG[w];if(a&&m&&m.id&&a.indexOf(String(m.id).toLowerCase())>=0){
+      if(!e._wxNc||e._wxNc<(W.t||0)-1){e._wxNc=(W.t||0);floatTxt(e.x,e.y-135,'바로 발사!','#ffe14a',true)}
+      return WX_NOCHG_T}}catch(er){}
+  return su}
 // 날씨가 데미지에 주는 배율: 내 쪽 이로움만 / 상대 쪽 해로움만
 function wxMul(att,def,m){
   const w=W&&W.wx&&W.wx.k;if(!w)return 1;
@@ -965,7 +974,7 @@ function canCast(e,i){
 }
 function startCast(e,i,aimDir,dist){
   const m=e.moves[i];
-  const cast={mi:i,mv:m,phase:'startup',t:0,su:abSu(e,m),aim:Math.atan2(aimDir.y,aimDir.x),want:Math.atan2(aimDir.y,aimDir.x),dist:dist};
+  const cast={mi:i,mv:m,phase:'startup',t:0,su:wxSu(e,m,abSu(e,m)),aim:Math.atan2(aimDir.y,aimDir.x),want:Math.atan2(aimDir.y,aimDir.x),dist:dist};
   e.cast=cast;
   if(m.chg){if(e.ch[i]>=m.chg.max)e.chT[i]=m.chg.per;e.ch[i]=Math.max(0,e.ch[i]-1);e.cd[i]=e.ch[i]>=1?0:e.chT[i]}
   else e.cd[i]=e.cdMax[i]*(m.ramp?RAMP.cdMul:1)*pressMul(e); // 쏘는 순간부터 쿨타임 (연속기는 ×2)
