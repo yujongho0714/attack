@@ -43,7 +43,7 @@ function abStage(e,k,n,self){   // self=true: 내가 내 단계를 바꿈(막기
   if(!self&&n<0){if(abHas(e,'DEFIANT'))addStage(e,'atk',2);if(abHas(e,'COMPETITIVE'))addStage(e,'spa',2)}
   return true}
 // 프레셔: 상대(프레셔 가진 쪽의 적)의 기술 쿨타임 ×1.15
-function pressMul(e){try{if(!W||!W.me||!W.foe)return 1;const o=e===W.me?W.foe:e===W.foe?W.me:null;return o&&abHas(o,'PRESSURE')?1.15:1}catch(er){return 1}}
+function pressMul(e){try{if(!W||!W.me||!W.foe)return 1;const o=e===W.me?W.foe:e===W.foe?W.me:null;return(o&&abHas(o,'PRESSURE')?1.15:1)*(W.rz2?rz2Cd(e):1)}catch(er){return 1}}
 // E단계 주기(upkeep) 특성 — 내 포켓몬(side 0)만 e.ab가 있으니 자연히 내 쪽만 작동. 원본 upkeepSec=6 · speedBoostSec=7(상한 2) · moodySec=10 · shedSkinChance=1/3 · poisonHeal=1/8
 // (날씨가 필요한 선파워·건조피부·촉촉바디·아이스바디·젖은접시는 ③ 날씨 뒤, 수확은 열매 도구 뒤, 근성·이상한비늘·속보·무기력의 upkeep은 표시용이라 A단계 배율로 충분)
 function abEvery(e,k,sec){e.abTm=e.abTm||{};e.abTm[k]=(e.abTm[k]||0)+TICK;if(e.abTm[k]>=sec){e.abTm[k]-=sec;return true}return false}
@@ -346,7 +346,7 @@ function mkEnt(mon,S,side,hp0){
   return e;
 }
 const foeOf=e=>e.side?W.me:W.foe;   // 6F-4b: 교대로 W.me가 바뀌어도 이미 나간 공격이 제 상대를 찾도록 side 기준
-const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;if(e.ab&&e.ab.length&&abHas(e,'QUICKFEET')&&abStatus(e))v*=1.5;   /* ② 속보 */if(e.gxMul)v*=e.gxMul;   /* 1/3: 체육관 바닥(웅덩이·모래늪) */if(W&&W.wx&&e.ab&&e.ab.length)v*=wxSpeed(e);   /* ③ 날씨 특성 */return clamp(v,60,320)};
+const spdOf=e=>{let v=rz2Raw(e);if(e.ail.paralysis)v*=.6;if(e.ab&&e.ab.length&&abHas(e,'QUICKFEET')&&abStatus(e))v*=1.5;   /* ② 속보 */if(e.gxMul)v*=e.gxMul;   /* 1/3: 체육관 바닥(웅덩이·모래늪) */if(W&&W.wx&&e.ab&&e.ab.length)v*=wxSpeed(e);   /* ③ 날씨 특성 */if(W&&W.rz2){if(!e.side&&W.rz2.tw>0)v*=1.3;if(e.hzSlow>0)v*=.7}   /* ③ 2/2: 순풍(내 쪽 ×1.3) · 끈적네트(상대 ×0.7) */return clamp(v,60,320)};
 
 // ---------- 데미지 ----------
 function floatTxt(x,y,t,col,big){W.fx.push({k:'txt',x,y,t:0,life:.9,s:t,c:col||'#fff',big:!!big})}
@@ -491,6 +491,135 @@ function wxDraw(cx){
   cx.fillStyle=col;cx.fillText(lab,AW/2,25);
   cx.restore();
 }
+// ===== ③ 날씨 2/2: 함정·벽·순풍·트릭룸·대타·멸망의노래·길동무 (천계 이상 · 해로운 건 상대만, 이로운 건 내 쪽만) =====
+// 켜짐 조건은 날씨와 같음(wxOn). 상대(컴퓨터)가 이 기술을 쓰면 아무 일 없음. 원본 표에 없는 값(벽 ×0.5, 함정 반지름 90·유지 60초)은 아래 상수에서 바꿔요.
+const RZ_WALL_MUL=.5,RZ_WALL_SEC=25,RZ_HZ_R=90,RZ_HZ_LIFE=60,RZ_HZ_REARM=6,RZ_HZ_STAND=.5,RZ_HZ_CAP=8;
+const RZ_WALL_NAME={reflect:'리플렉터',lightScreen:'빛의장막',auroraVeil:'오로라베일'};
+const RZ_WALL_COL={reflect:'#8fd0ff',lightScreen:'#ffe58a',auroraVeil:'#c8f2ff'};
+const RZ_HZ_MAX={stealthRock:1,spikes:3,toxicSpikes:2,stickyWeb:1};
+const RZ_HZ_NAME={stealthRock:'스텔스록',spikes:'압정뿌리기',toxicSpikes:'독압정',stickyWeb:'끈적끈적네트'};
+function rz2(){return W.rz2||(W.rz2={hz:[],wl:{},tw:0,tr:0,trSw:0,pe:null})}
+// 이 기술에 2/2 효과가 있나
+function rz2Has(m){return(m.d.ef||[]).some(f=>f.op==='hazard'||(f.op==='field'&&(f.f==='tailwind'||f.f==='trickRoom'||RZ_WALL_NAME[f.f]))||(f.op==='shield'&&!f.on)||(f.op==='overTime'&&f.what==='perish')||(f.op==='counter'&&f.mode==='destinyBond'))}
+// 트릭룸 중에는 나와 상대의 속도를 서로 바꿔요(내가 더 느릴 때만 켜지므로 내가 빨라지고 상대가 느려짐)
+function rz2Raw(e){let v=e.spd*stageMul(e.stg.spe);const R=W&&W.rz2;if(R&&R.tr>0&&R.trSw){const o=e.side?W.me:W.foe;if(o&&o.spd)v=o.spd*stageMul(o.stg.spe)}return v}
+// 쿨타임 배율: 순풍(내 쪽 ×0.85) · 트릭룸(속도 바꿈에 맞춰 쿨타임도 바꿈)
+function rz2Cd(e){const R=W&&W.rz2;if(!R)return 1;let r=1;if(!e.side&&R.tw>0)r*=.85;if(R.tr>0&&R.trSw){const o=e.side?W.me:W.foe;if(o&&o.haste&&e.haste)r*=clamp(o.haste/e.haste,.8,1.1)}return r}
+// 내 쪽 벽: 상대가 나를 때릴 때 피해 ×0.5 (리플렉터=물리, 빛의장막=특수, 오로라베일=둘 다)
+function rz2Wall(att,def,m){const R=W&&W.rz2;if(!R||def.side||!att.side)return 1;const w=R.wl;return(m.phys?(w.reflect>0||w.auroraVeil>0):(w.lightScreen>0||w.auroraVeil>0))?RZ_WALL_MUL:1}
+function rz2Hazard(k,x,y){
+  const R=rz2();let h=R.hz.find(z=>z.k===k&&len(z.x-x,z.y-y)<RZ_HZ_R*1.6);
+  if(h){if(h.layers<RZ_HZ_MAX[k]){h.layers++;floatTxt(h.x,h.y-40,RZ_HZ_NAME[k]+' '+h.layers+'겹','#e0c88a')}h.life=RZ_HZ_LIFE;return h}
+  h={k,x,y,r:RZ_HZ_R,layers:1,life:RZ_HZ_LIFE,cd:0,in:0};R.hz.push(h);if(R.hz.length>RZ_HZ_CAP)R.hz.shift();
+  floatTxt(x,y-40,RZ_HZ_NAME[k],'#e0c88a',true);return h;
+}
+// 자리(zone) 모양 기술: 스텔스록·압정·독압정·끈적네트 · 순풍 · 트릭룸 — 내가 쓸 때만
+function rz2Zone(e,m,c,u,tgt){
+  if(e.side||!wxOn())return;
+  const R=rz2();
+  for(const f of m.d.ef||[]){
+    if(f.op==='hazard'&&RZ_HZ_MAX[f.h]){
+      const d=c&&c.dist!=null?clamp(c.dist,40,230):Math.min(230,tgt&&tgt.hp>0?len(tgt.x-e.x,tgt.y-e.y):230);
+      rz2Hazard(f.h,clamp(e.x+u.x*d,WALL,AW-WALL),clamp(e.y+u.y*d,WALL,AH-WALL));
+    }else if(f.op==='field'&&f.f==='tailwind'){
+      R.tw=parseFloat(f.dur)||16;floatTxt(e.x,e.y-130,'💨 순풍 — 빨라져요','#b8d0ff',true);W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.6,r:120,c:'#b8d0ff'});
+    }else if(f.op==='field'&&f.f==='trickRoom'){
+      const foe=W.foe;
+      if(R.tr>0){floatTxt(e.x,e.y-130,'이미 트릭룸이에요','#cfd8ea');continue}
+      if(!foe||foe.hp<=0)continue;
+      if(!(e.spd*stageMul(e.stg.spe)<foe.spd*stageMul(foe.stg.spe))){floatTxt(e.x,e.y-130,'이미 내가 더 빨라요','#cfd8ea');continue}   // 내가 느릴 때만 켜짐
+      R.tr=parseFloat(f.dur)||20;R.trSw=1;floatTxt(e.x,e.y-130,'🌀 트릭룸 — 느린 쪽이 빨라져요','#d9a8ff',true);W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.8,r:160,c:'#d9a8ff'});
+    }
+  }
+}
+// 나 자신에게 쓰는 기술(self): 벽 · 대타 · 멸망의노래 · 길동무 — 내가 쓸 때만
+function rz2Self(e,f,m){
+  if(e.side||!wxOn())return;
+  const R=rz2();
+  if(f.op==='field'&&RZ_WALL_NAME[f.f]){
+    if(f.f==='auroraVeil'&&!(W.wx&&W.wx.k==='snow')){floatTxt(e.x,e.y-130,'설경일 때만 써요','#cfd8ea');return}
+    R.wl[f.f]=parseFloat(f.dur)||RZ_WALL_SEC;floatTxt(e.x,e.y-130,'🛡 '+RZ_WALL_NAME[f.f],RZ_WALL_COL[f.f],true);
+    W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.6,r:110,c:RZ_WALL_COL[f.f]});
+  }else if(f.op==='shield'&&!f.on){
+    const cost=Math.round(e.max*.25);
+    if(e.sub>0){floatTxt(e.x,e.y-130,'이미 대타가 있어요','#cfd8ea');return}
+    if(e.hp<=cost+1){floatTxt(e.x,e.y-130,'체력이 모자라요','#f88');return}
+    e.hp-=cost;e.sub=Math.round(e.max*.25);e.subT=parseFloat(f.dur)||20;floatTxt(e.x,e.y-130,'🪆 대타!','#ffe9a0',true);
+    W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.6,r:90,c:'#ffe9a0'});
+  }else if(f.op==='overTime'&&f.what==='perish'){
+    const foe=W.foe;if(!foe||foe.hp<=0)return;
+    if(C.bossWarn||C.bossHit){floatTxt(foe.x,foe.y-130,'이 상대한텐 안 통해요','#cfd8ea');return}   // 월드보스엔 안 통함(원본도 레이드는 제외)
+    if(R.pe&&R.pe.o===foe)return;
+    R.pe={o:foe,t:parseFloat(f.after)||12};floatTxt(foe.x,foe.y-140,'☠ 멸망의 노래','#d9a8ff',true);
+  }else if(f.op==='counter'&&f.mode==='destinyBond'){
+    e.dbT=parseFloat(f.window)||4;floatTxt(e.x,e.y-130,'🔗 길동무','#d9a8ff',true);
+  }
+}
+// 매 틱 한 번: 시간 · 함정 닿음 · 멸망의노래
+function rz2Tick(){
+  const R=W.rz2;if(!R)return;
+  for(const k in R.wl){R.wl[k]-=TICK;if(R.wl[k]<=0){delete R.wl[k];const m=W.me;if(m)floatTxt(m.x,m.y-120,RZ_WALL_NAME[k]+' 끝','#cfd8ea')}}
+  if(R.tw>0)R.tw=Math.max(0,R.tw-TICK);
+  if(R.tr>0){R.tr-=TICK;if(R.tr<=0){R.tr=0;R.trSw=0;const m=W.me;if(m)floatTxt(m.x,m.y-120,'트릭룸 끝','#cfd8ea')}}
+  for(const e of[W.me,W.foe]){if(!e)continue;
+    if(e.subT>0){e.subT-=TICK;if(e.subT<=0&&e.sub>0){e.sub=0;floatTxt(e.x,e.y-110,'대타 사라짐','#cfd8ea')}}
+    if(e.dbT>0)e.dbT=Math.max(0,e.dbT-TICK);
+    if(e.hzSlow>0)e.hzSlow=Math.max(0,e.hzSlow-TICK)}
+  if(R.pe){const p=R.pe,o=p.o;
+    if(o!==W.foe||o.hp<=0){R.pe=null}
+    else{const b=Math.ceil(p.t);p.t-=TICK;const a=Math.ceil(Math.max(0,p.t));
+      if(a!==b&&a>0&&a<=5)floatTxt(o.x,o.y-140,'☠ '+a,'#d9a8ff',true);
+      if(p.t<=0){R.pe=null;o.hp=0;o.flash=.4;floatTxt(o.x,o.y-100,'멸망!','#d9a8ff',true)}}}
+  const f=W.foe;if(!f||f.hp<=0||f.hidden||!R.hz.length)return;
+  const ty=f.tera?[f.tera]:(f.types||[]);
+  for(let i=R.hz.length-1;i>=0;i--){const h=R.hz[i];
+    h.life-=TICK;if(h.life<=0){R.hz.splice(i,1);continue}
+    if(h.cd>0)h.cd-=TICK;
+    const near=len(f.x-h.x,f.y-h.y)<h.r+f.r*.5;
+    if(!near){h.in=0;continue}
+    const first=!h.in;h.in=1;if(h.cd>0)continue;
+    if(h.k!=='stealthRock'&&ty.includes('FLYING'))continue;   // 날아다니는 상대는 바닥 함정을 안 밟음
+    let fr=0;
+    if(h.k==='stealthRock')fr=Math.min(1/6,1/8*C.eff('ROCK',ty));
+    else if(h.k==='spikes')fr=[1/8,1/6,1/4][h.layers-1]||1/8;
+    else if(h.k==='toxicSpikes'){
+      if(ty.includes('POISON')){R.hz.splice(i,1);floatTxt(f.x,f.y-90,'독압정을 먹었다','#d9a8ff');continue}   // 독 타입이 밟으면 함정이 사라짐
+      if(ty.includes('STEEL'))continue;
+      fr=[1/12,1/8][h.layers-1]||1/12;if(h.layers>=2)setAil(f,'poison',100);
+    }else if(h.k==='stickyWeb'){f.hzSlow=4;floatTxt(f.x,f.y-90,'끈적끈적!','#e8f0ff')}
+    h.cd=RZ_HZ_REARM;
+    if(fr>0){fr*=first?1:RZ_HZ_STAND;const d=Math.max(1,Math.round((f.pctMax||f.max)*fr));f.hp=Math.max(0,f.hp-d);f.flash=Math.max(f.flash||0,.1);floatTxt(f.x,f.y-60,fmtN(d*kOf(f)),'#e0c88a')}
+  }
+}
+// 그림: 바닥 함정 · 내 쪽 벽 · 대타 막대 · 위쪽 왼쪽에 남은 시간 표지
+function rz2Draw(cx){
+  const R=W.rz2;if(!R)return;
+  cx.save();
+  for(const h of R.hz){
+    cx.globalAlpha=Math.min(1,h.life/3)*.9;
+    cx.strokeStyle='rgba(224,200,138,.35)';cx.lineWidth=2;cx.setLineDash([6,6]);cx.beginPath();cx.arc(h.x,h.y,h.r,0,7);cx.stroke();cx.setLineDash([]);
+    if(h.k==='stealthRock'){cx.fillStyle='#8d8878';for(let i=0;i<6;i++){const a=i*1.05+.3,x=h.x+Math.cos(a)*h.r*.55,y=h.y+Math.sin(a)*h.r*.4;cx.beginPath();cx.moveTo(x,y-11);cx.lineTo(x+9,y+4);cx.lineTo(x-9,y+6);cx.closePath();cx.fill()}}
+    else if(h.k==='stickyWeb'){cx.strokeStyle='#f0f4ff';cx.lineWidth=1.5;cx.beginPath();for(let i=0;i<8;i++){const a=i*.785;cx.moveTo(h.x,h.y);cx.lineTo(h.x+Math.cos(a)*h.r*.8,h.y+Math.sin(a)*h.r*.55)}cx.stroke();cx.beginPath();cx.ellipse(h.x,h.y,h.r*.45,h.r*.3,0,0,7);cx.stroke();cx.beginPath();cx.ellipse(h.x,h.y,h.r*.75,h.r*.5,0,0,7);cx.stroke()}
+    else{cx.fillStyle=h.k==='toxicSpikes'?'#b070d8':'#c9c9d4';const n=2+h.layers*2;for(let i=0;i<n;i++){const a=i*(6.28/n)+.4,x=h.x+Math.cos(a)*h.r*.5,y=h.y+Math.sin(a)*h.r*.35;cx.beginPath();cx.moveTo(x,y-10);cx.lineTo(x+5,y+5);cx.lineTo(x-5,y+5);cx.closePath();cx.fill()}}
+  }
+  cx.globalAlpha=1;
+  const me=W.me;
+  if(me&&me.hp>0){
+    let i=0;for(const k in R.wl){const T=W.time;cx.strokeStyle=RZ_WALL_COL[k];cx.globalAlpha=.55;cx.lineWidth=3;cx.setLineDash([10,8]);cx.lineDashOffset=-T*30;cx.beginPath();cx.arc(me.x,me.y-me.r*.3,me.r+34+i*9,0,7);cx.stroke();i++}
+    cx.setLineDash([]);cx.globalAlpha=1;
+    if(me.sub>0){const w=70,p=Math.max(0,Math.min(1,me.sub/(me.max*.25)));cx.fillStyle='rgba(8,14,30,.7)';cx.fillRect(me.x-w/2,me.y+me.r+8,w,7);cx.fillStyle='#ffe9a0';cx.fillRect(me.x-w/2,me.y+me.r+8,w*p,7)}
+  }
+  const L=[];
+  for(const k in R.wl)L.push(['🛡 '+RZ_WALL_NAME[k]+' '+Math.ceil(R.wl[k])+'초',RZ_WALL_COL[k]]);
+  if(R.tw>0)L.push(['💨 순풍 '+Math.ceil(R.tw)+'초','#b8d0ff']);
+  if(R.tr>0)L.push(['🌀 트릭룸 '+Math.ceil(R.tr)+'초','#d9a8ff']);
+  if(me&&me.sub>0)L.push(['🪆 대타 '+Math.ceil(me.subT)+'초','#ffe9a0']);
+  if(me&&me.dbT>0)L.push(['🔗 길동무 '+Math.ceil(me.dbT)+'초','#d9a8ff']);
+  if(R.pe)L.push(['☠ 멸망 '+Math.ceil(R.pe.t)+'초','#d9a8ff']);
+  cx.font='bold 13px sans-serif';cx.textAlign='left';
+  L.forEach((l,i)=>{const y=44+i*24,tw=cx.measureText(l[0]).width+16;cx.fillStyle='rgba(8,14,30,.62)';cx.fillRect(10,y,tw,21);cx.strokeStyle=l[1];cx.lineWidth=1.5;cx.strokeRect(10,y,tw,21);cx.fillStyle=l[1];cx.fillText(l[0],18,y+15)});
+  cx.restore();
+}
 function dealDamage(att,def,mi,opt){
   if(W&&W.tut)return 0;   // 9BA: 구르기 연습 중엔 아무도 안 다침
   opt=opt||{};
@@ -527,6 +656,7 @@ function dealDamage(att,def,mi,opt){
   if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트: 총공격력·총데미지·모든속성·보스/일반 공격력
   if((att.ab&&att.ab.length)||(def.ab&&def.ab.length)){try{const _ab=abDmg(att,def,m,e,crit);if(_ab!==1)dmg*=_ab}catch(er){}}   // ② 특성 A: 배율형
   if(W.wx){try{const _wx=wxMul(att,def,m);if(_wx!==1)dmg*=_wx}catch(er){}}   // ③ 날씨 1/2: 내 쪽 이로움 · 상대 쪽 해로움
+  if(W.rz2){try{const _wl=rz2Wall(att,def,m);if(_wl!==1)dmg*=_wl}catch(er){}}   // ③ 2/2: 내 쪽 벽(리플렉터·빛의장막·오로라베일)
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
   if(m.exec&&def.lv>att.lv)dmg*=.5;               // 즉사기: 상대 레벨이 높으면 절반
   let fixedDmg=null;
@@ -541,8 +671,10 @@ function dealDamage(att,def,mi,opt){
   const capped=fixedDmg!=null||opt.fixed?dmg:Math.min(dmg,def.max*.6);
   const rawD=capped;dmg=Math.max(e===0?0:1,Math.round(capped));
   if(e===0)dmg=0;
+  if(def.sub>0&&dmg>0){const a=Math.min(def.sub,dmg);def.sub-=a;dmg-=a;if(def.sub<=0){def.sub=0;def.subT=0;floatTxt(def.x,def.y-115,'대타 사라짐','#ffe9a0')}if(dmg<=0){floatTxt(def.x,def.y-70,'대타!','#ffe9a0');def.flash=.08;return 0}}   // ③ 2/2: 내 대타(체력 1/4짜리 방패)
   if(def.sh>0&&dmg>0){const a=Math.min(def.sh,dmg);def.sh-=a;dmg-=a;if(def.sh<=0){def.sh=0;floatTxt(def.x,def.y-115,'보호막 깨짐','#ffe9a0')}if(dmg<=0){floatTxt(def.x,def.y-70,'보호막!','#ffe9a0');def.flash=.08;return 0}}   // 9B 태초 보호막
   const _hb=def.hp;def.hp=Math.max(0,def.hp-dmg);
+  if(def.hp<=0&&def.dbT>0&&!def.side&&att.side===1&&att.hp>0&&!C.bossHit&&!C.bossWarn){att.hp=0;att.flash=.4;def.dbT=0;floatTxt(att.x,att.y-100,'🔗 길동무!','#d9a8ff',true)}   // ③ 2/2: 길동무(내가 쓰러지면 때린 상대도 같이)
   if(dmg>0&&att.gear&&att.gear.aA&&att.gear.aA.vamp&&att.hp>0){const _vh=Math.min(att.max-att.hp,att.max*.05,Math.round(Math.min(dmg,_hb)*att.gear.aA.vamp/100));if(_vh>0){att.hp+=_vh;floatTxt(att.x,att.y-100,'+'+fmtN(_vh*kOf(att)),'#6f6')}}   // 9BZ 아티팩트 흡혈
   if(def.hp<=0&&def.undying&&!def._ud){def._ud=1;def.hp=Math.round(def.max*.5);const s=def.aw>0?10+3*(def.aw-1):1;def.inv=Math.max(def.inv||0,Math.round(s*60));def.invMax=def.inv;cancelCast&&def.cast&&cancelCast(def,true);floatTxt(def.x,def.y-125,'불멸 부활!'+(def.aw>0?' 무적 '+s+'초':''),'#8fb4ff',true);W.hitstop=Math.max(W.hitstop||0,.15);try{W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.5,r:110,c:'#8fb4ff'})}catch(er){}}   // 9B 불멸: 한 번 버팀
   def.flash=.15;
@@ -612,6 +744,7 @@ function ppOut(e,i){floatTxt(e.x,e.y-120,e.moves[i].name+' PP 없음','#f88');
 function addStage(e,k,n){e.stg[k]=clamp(e.stg[k]+n,-3,3);e.stgT=8;floatTxt(e.x,e.y-90,({atk:'공격',def:'방어',spa:'특공',spd:'특방',spe:'스피드'}[k]||k)+(n>0?' ▲':' ▼'),n>0?'#8f8':'#f88')}
 function setAil(def,s,chance){
   if(chance!=null&&rnd()*100>=chance)return;
+  if(def.sub>0&&s!=='flinch'){floatTxt(def.x,def.y-110,'대타가 막았다','#ffe9a0');return}   // ③ 2/2: 대타가 있으면 상태이상 안 걸림
   const T={burn:8,poison:8,toxic:12,paralysis:6,sleep:2.5,freeze:2,confusion:3,flinch:0};
   if(!(s in T))return;
   if(def.ab&&def.ab.length&&abBlockSt(def,s)){floatTxt(def.x,def.y-110,'막았다!','#9be7ff');return}   // ② 특성 D: 상태이상 막기
@@ -719,8 +852,9 @@ function fire(e,c){
         if(f.op==='stat'&&(f.who==='user'||!f.who))for(const s in f.stages)abStage(e,s,f.stages[s],true);
         if(f.op==='heal'&&f.who==='user'){const fr=e.healRep>0?.25:.5;e.hp=Math.min(e.max,e.hp+Math.round((e.pctMax||e.max)*fr));e.healRep=30;floatTxt(e.x,e.y-90,'회복','#8f8')}
         if(f.op==='stat'&&f.who==='target'&&m.d.tg!=='User'){for(const s in f.stages)abStage(tgt,s,f.stages[s],false)}
-        if(f.op==='counter'){e.counterT=1.7}
+        if(f.op==='counter'&&f.mode!=='destinyBond'){e.counterT=1.7}
         if(f.op==='weather')wxMove(e,f);   // ③ 날씨 기술 (내가 쓸 때만)
+        try{rz2Self(e,f,m)}catch(er){console.warn('rz2Self',er)}   // ③ 2/2: 벽·대타·멸망의노래·길동무 (내가 쓸 때만)
       }
       W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});skillFx(e,m,{x:e.x,y:e.y},{x:e.x,y:e.y},{force:1});
       c.phase='active';c.t=0;c.len=1;toRecovery(e,c);return;
@@ -760,6 +894,9 @@ function fire(e,c){
         if(!cone||Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=(e.side?65:95)*Math.PI/180||d<e.r+tgt.r+(e.side?18:40)){hit=true;dealDamage(e,tgt,c.mi)}}}
     if(hit&&m.st)applyEf(e,tgt,m,true);
     toRecovery(e,c);
+  } else if(k==='zone'&&rz2Has(m)){
+    try{rz2Zone(e,m,c,u,tgt)}catch(er){console.warn('rz2Zone',er)}   // ③ 2/2: 스텔스록·압정·독압정·순풍·트릭룸 (내가 쓸 때만, 상대가 쓰면 아무 일 없음)
+    W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});toRecovery(e,c);return;
   } else if(k==='zone'&&(m.d.ef||[]).some(f=>f.op==='weather')){
     for(const f of m.d.ef)if(f.op==='weather')wxMove(e,f);   // ③ 설경(zone 모양 날씨 기술)
     W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});toRecovery(e,c);return;
@@ -941,6 +1078,7 @@ function update(){
   W.chain=W.chain.filter(h=>!h.dead);
   if(W.gx){try{GYMFX.tick(W.gx,W)}catch(er){console.warn('gymfx tick',er);W.gx=null}}   // 1/3: 체육관 장치
   if(W.wx){try{wxTick()}catch(er){console.warn('wx tick',er);W.wx=null}}   // ③ 날씨
+  if(W.rz2){try{rz2Tick()}catch(er){console.warn('rz2 tick',er);W.rz2=null}}   // ③ 2/2: 함정·벽·순풍·트릭룸·대타·멸망의노래·길동무
   // 효과 시간
   for(const f of W.fx)f.t+=TICK;W.fx=W.fx.filter(f=>f.t<f.life);
   // 승패
@@ -1212,6 +1350,7 @@ function render(){try{teraUi()}catch(er){}
   }
   if(W.gx&&GYMFX.over){try{GYMFX.over(W.gx,cx,W)}catch(er){}}   // 2/3: 어두운 도장(몸 위에 덮기)
   if(W.wx){try{wxDraw(cx)}catch(er){}}   // ③ 날씨 그림
+  if(W.rz2){try{rz2Draw(cx)}catch(er){}}   // ③ 2/2 그림
   // 발사체
   for(const c of W.clones){const o=c.o;const a=Math.min(1,c.t)*(.5+.12*Math.sin(W.time*10));cx.globalAlpha=a;   // 9F 태초 분신 그리기
     try{const S=window.TFX?TFX.spr(o.S,o.tier):o.S;C.drawPm(cx,S,'idle',o.row,o.at,c.x,c.y-18,o.sc*.85,{loop:true,alpha:a})}catch(er){}
