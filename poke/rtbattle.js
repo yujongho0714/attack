@@ -186,7 +186,7 @@ function mkEnt(mon,S,side,hp0){
   return e;
 }
 const foeOf=e=>e.side?W.me:W.foe;   // 6F-4b: 교대로 W.me가 바뀌어도 이미 나간 공격이 제 상대를 찾도록 side 기준
-const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;return clamp(v,60,320)};
+const spdOf=e=>{let v=e.spd*stageMul(e.stg.spe);if(e.ail.paralysis)v*=.6;if(e.gxMul)v*=e.gxMul;   /* 1/3: 체육관 바닥(웅덩이·모래늪) */return clamp(v,60,320)};
 
 // ---------- 데미지 ----------
 function floatTxt(x,y,t,col,big){W.fx.push({k:'txt',x,y,t:0,life:.9,s:t,c:col||'#fff',big:!!big})}
@@ -260,6 +260,7 @@ function dealDamage(att,def,mi,opt){
   let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1)*(att.zb&&att.zb.on>0?1.3:1);   // 9F 만제 버프
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
+  if(att.gxPow&&att.gxPow.t===m.type)dmg*=att.gxPow.m;   // 1/3: 체육관 물웅덩이 안 물 기술 ×1.25
   if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;{const _dd=((def.gear&&def.gear.def)||0)+((def.gear&&def.gear.aA&&def.gear.aA.def)||0);if(_dd)dmg*=1-Math.min(.6,_dd*(1-_ign)/100)}   // 8F 장비 공격력·방어력 (+아티팩트 방어력, 방어력 무시는 그만큼 깎아요)
   if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트: 총공격력·총데미지·모든속성·보스/일반 공격력
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
@@ -666,6 +667,7 @@ function update(){
     if(!h.melee||len(t.x-h.o.x,t.y-h.o.y)<=h.o.r+t.r+140){dealDamage(h.o,t,h.mi,{chain:1,last:h.n<=1,pm:h.pm,blink:h.bl});if(m&&!h.melee&&!h.sl)W.fx.push({k:'burst',x:t.x,y:t.y-20,t:0,life:.2,r:24,c:C.TCOL[m.type]||'#fff'})}
     h.n--;h.t=h.iv;if(h.n<=0)h.dead=1}
   W.chain=W.chain.filter(h=>!h.dead);
+  if(W.gx){try{GYMFX.tick(W.gx,W)}catch(er){console.warn('gymfx tick',er);W.gx=null}}   // 1/3: 체육관 장치
   // 효과 시간
   for(const f of W.fx)f.t+=TICK;W.fx=W.fx.filter(f=>f.t<f.life);
   // 승패
@@ -885,7 +887,7 @@ function render(){try{teraUi()}catch(er){}
   cx.setTransform(sc,0,0,sc,Wd/2-W.cam.x*sc+shx,Hd/2-W.cam.y*sc+shy);
   // 바닥
   // 7B: 전투 배경 = 게임의 장소 배경 그림(풀숲·숲·동굴·바다·체육관…). 그림이 없거나 아직 안 받아졌으면 예전 초록 바닥
-  let bim=null;try{bim=C.bg?C.bg():null}catch(er){}
+  let bim=null;try{bim=W.gx&&W.gx.img&&W.gx.img.complete&&W.gx.img.naturalWidth?W.gx.img:(C.bg?C.bg():null)}catch(er){}
   if(bim&&bim.complete&&bim.naturalWidth){
     const pad=60,BW=AW+pad*2,BH=AH+pad*2,k=Math.max(BW/bim.naturalWidth,BH/bim.naturalHeight);
     cx.drawImage(bim,-pad+(BW-bim.naturalWidth*k)/2,-pad+(BH-bim.naturalHeight*k)/2,bim.naturalWidth*k,bim.naturalHeight*k);
@@ -897,6 +899,7 @@ function render(){try{teraUi()}catch(er){}
     for(let x=0;x<=AW;x+=100){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,AH);cx.stroke()}
     for(let y=0;y<=AH;y+=100){cx.beginPath();cx.moveTo(0,y);cx.lineTo(AW,y);cx.stroke()}}
   cx.strokeStyle='#e8f0d8';cx.lineWidth=6;cx.strokeRect(WALL-3,WALL-3,AW-WALL*2+6,AH-WALL*2+6);
+  if(W.gx){try{GYMFX.draw(W.gx,cx,W)}catch(er){}}   // 1/3: 체육관 장치(포켓몬 아래)
   // 장판/예고
   for(const z of W.zones){const pul=.3+.08*Math.sin(W.time*4);cx.globalAlpha=pul;cx.fillStyle=z.col;cx.beginPath();cx.arc(z.x,z.y,z.r,0,7);cx.fill();cx.globalAlpha=.9;cx.strokeStyle='#fff';cx.lineWidth=3;cx.setLineDash([14,8]);cx.stroke();cx.setLineDash([]);
     cx.font='bold 14px sans-serif';cx.textAlign='center';cx.lineWidth=3;cx.strokeStyle='#000';cx.fillStyle='#fff';const tl=Math.ceil(z.life)+'초';cx.strokeText(tl,z.x,z.y+5);cx.fillText(tl,z.x,z.y+5);cx.globalAlpha=1}
@@ -1340,6 +1343,7 @@ async function start(ctx){
   W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],clones:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0,itCd:0};
   try{C.fxe&&C.fxe.VFX.clear&&C.fxe.VFX.clear();C.fxe&&C.fxe.FX2.clear()}catch(er){}   // 9E: 지난 전투 그림 지우고 시작
   W.me=mkEnt(C.me,S1,0);W.foe=mkEnt(C.foe,S2,1);
+  W.gx=null;try{if(C.gx&&window.GYMFX)W.gx=GYMFX.make(C.gx,{floatTxt,setAil,fmtN,kOf,cancelCast,rnd})}catch(er){console.warn('gymfx',er);W.gx=null}   // 1/3: 체육관 경기장 장치
   const AT=AI_T[C.aiTier]||AI_T.W;
   W.ai={T:AT,tier:AI_T[C.aiTier]?C.aiTier:'W',sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)};
   // AI 기본 사거리: 가진 기술 중 위력 높은 기술 기준
@@ -1358,6 +1362,7 @@ async function start(ctx){
    const upd=()=>{ab.textContent=W.autoOn?'🤖 자동 ON':'🤖 자동 OFF';ab.style.background=W.autoOn?'#2bbf5a':'#2a3256';if(W.autoTag)W.autoTag.style.display=W.autoOn?'':'none'};
    ab.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.autoOn=!W.autoOn;W.manT=null;try{localStorage.setItem('pka-rtauto',W.autoOn?'1':'0')}catch(er){}upd()});W.root.appendChild(ab);W.autoBtn=ab;W.autoUpd=upd}
   {const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
+  if(W.gx&&window.GYMFX&&GYMFX.info(C.gx)){const h=document.createElement('div');h.style.cssText='position:absolute;left:50%;top:calc(92px + env(safe-area-inset-top));transform:translateX(-50%);max-width:86vw;padding:6px 12px;background:rgba(10,13,24,.82);color:#ffe14a;font:900 13px "Galmuri11",sans-serif;border:3px solid #ffd23f;box-shadow:0 3px 0 #000;pointer-events:none;text-align:center;transition:opacity .8s;z-index:4';h.textContent='🏟 '+GYMFX.info(C.gx);W.root.appendChild(h);setTimeout(()=>{h.style.opacity='0'},7000);setTimeout(()=>{try{h.remove()}catch(er){}},8000)}
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
     const loop=now=>{
