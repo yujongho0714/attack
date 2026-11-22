@@ -38,6 +38,7 @@ const AB_MOLD=['MOLDBREAKER','TERAVOLT','TURBOBLAZE'];
 function abStage(e,k,n,self){   // self=true: 내가 내 단계를 바꿈(막기·오기 반응 없음, 심술꾸러기·단순은 적용)
   if(!e||e.hp<=0)return false;
   if(abHas(e,'CONTRARY'))n=-n;else if(abHas(e,'SIMPLE'))n*=2;
+  if(!self&&n<0&&!e.side&&W&&W.rz3&&W.rz3.fx.mist>0){floatTxt(e.x,e.y-90,'흰안개가 막았다!','#e8f0ff');return false}   // ③ 3/3 흰안개: 내 능력치를 못 깎음
   if(!self&&n<0&&(abHas(e,'CLEARBODY')||abHas(e,'WHITESMOKE')||abHas(e,'FULLMETALBODY')||(k==='atk'&&abHas(e,'HYPERCUTTER'))||(k==='def'&&abHas(e,'BIGPECKS')))){floatTxt(e.x,e.y-90,'막았다!','#9cf');return false}
   addStage(e,k,n);
   if(!self&&n<0){if(abHas(e,'DEFIANT'))addStage(e,'atk',2);if(abHas(e,'COMPETITIVE'))addStage(e,'spa',2)}
@@ -96,7 +97,7 @@ function abGuard(att,def,m,e){
   const ty=m.type,fl=(m.d&&m.d.fl)||[];
   const say=t=>floatTxt(def.x,def.y-95,t,'#9be7ff',true);
   const heal=()=>{const h=Math.min(def.max-def.hp,Math.round(def.max*.25));if(h>0){def.hp+=h;floatTxt(def.x,def.y-115,'+'+fmtN(h*kOf(def)),'#6f6')}};   // 원본 absorbHeal=.25
-  if(abHas(def,'LEVITATE')&&ty==='GROUND'){say('부유!');return true}
+  if(abHas(def,'LEVITATE')&&ty==='GROUND'&&!(W.rz3&&rz3Grav(att))){say('부유!');return true}
   if(abHas(def,'VOLTABSORB')&&ty==='ELECTRIC'){say('축전!');heal();return true}
   if((abHas(def,'WATERABSORB')||abHas(def,'DRYSKIN'))&&ty==='WATER'){say(abHas(def,'WATERABSORB')?'저수!':'건조피부!');heal();return true}
   if(abHas(def,'FLASHFIRE')&&ty==='FIRE'){say('타오르는불꽃!');def.ffOn=1;return true}   // 이후 내 불꽃 기술 ×1.5
@@ -593,7 +594,7 @@ function rz2Tick(){
 }
 // 그림: 바닥 함정 · 내 쪽 벽 · 대타 막대 · 위쪽 왼쪽에 남은 시간 표지
 function rz2Draw(cx){
-  const R=W.rz2;if(!R)return;
+  const R=W.rz2||(W.rz3?rz2():null);if(!R)return;
   cx.save();
   for(const h of R.hz){
     cx.globalAlpha=Math.min(1,h.life/3)*.9;
@@ -616,8 +617,112 @@ function rz2Draw(cx){
   if(me&&me.sub>0)L.push(['🪆 대타 '+Math.ceil(me.subT)+'초','#ffe9a0']);
   if(me&&me.dbT>0)L.push(['🔗 길동무 '+Math.ceil(me.dbT)+'초','#d9a8ff']);
   if(R.pe)L.push(['☠ 멸망 '+Math.ceil(R.pe.t)+'초','#d9a8ff']);
+  try{for(const l of rz3Labels())L.push(l)}catch(er){}   // ③ 3/3 표지
   cx.font='bold 13px sans-serif';cx.textAlign='left';
   L.forEach((l,i)=>{const y=44+i*24,tw=cx.measureText(l[0]).width+16;cx.fillStyle='rgba(8,14,30,.62)';cx.fillRect(10,y,tw,21);cx.strokeStyle=l[1];cx.lineWidth=1.5;cx.strokeRect(10,y,tw,21);cx.fillStyle=l[1];cx.fillText(l[0],18,y+15)});
+  cx.restore();
+}
+// ===== ③ 날씨 3/3 — 장 4종 · 신비의부적 · 흰안개 · 행운의주문 · 중력 · 원더룸 · 물놀이 · 흙놀이 (천계 이상, 내가 쓸 때만 — 상대가 쓰면 아무 일 없음)
+// 원본(replay·sessionEnv)에서 읽은 것: 장 20초(terrainSec) · 장은 필드 절반 넓이 원 안에서만 · 장 기술 ×(boostMul) · 미스트 안에서 드래곤 약해짐 · 그래스 회복 · 일렉트릭 잠 막음 · 미스트 상태이상 막음 · 사이코 선공기 막음. 원본 값 표(boostMul·회복량·부적 지속 등)는 이 자료에 없어서 아래 상수는 내가 정함.
+const RZ3_TER_SEC=20,RZ3_TER_R=380,RZ3_TER_MUL=1.3,RZ3_GRASS_FR=1/16,RZ3_GRASS_EVERY=6,RZ3_MISTY_DRAGON=.5,RZ3_SPORT_MUL=.5;
+const RZ3_SEC={safeguard:25,mist:25,luckyChant:25,gravity:20,wonderRoom:20,waterSport:20,mudSport:20};
+const RZ3_NAME={safeguard:'신비의부적',mist:'흰안개',luckyChant:'행운의주문',gravity:'중력',wonderRoom:'원더룸',waterSport:'물놀이',mudSport:'흙놀이'};
+const RZ3_COL={safeguard:'#ffb0d8',mist:'#e8f0ff',luckyChant:'#ffe58a',gravity:'#b07aff',wonderRoom:'#a98bff',waterSport:'#6fb8ff',mudSport:'#c9a070'};
+const RZ3_TER={grassy:{n:'그래스필드',c:'#59d46a',t:'GRASS'},electric:{n:'일렉트릭필드',c:'#ffe23d',t:'ELECTRIC'},misty:{n:'미스트필드',c:'#ff9ad8',t:null},psychic:{n:'사이코필드',c:'#c46bff',t:'PSYCHIC'}};
+const RZ3_ID={grassyterrain:'terrain:grassy',electricterrain:'terrain:electric',mistyterrain:'terrain:misty',psychicterrain:'terrain:psychic',safeguard:'safeguard',mist:'mist',luckychant:'luckyChant',gravity:'gravity',wonderroom:'wonderRoom',watersport:'waterSport',mudsport:'mudSport'};
+function rz3(){return W.rz3||(W.rz3={ter:null,tt:0,tx:0,ty:0,gt:RZ3_GRASS_EVERY,fx:{}})}
+// 이 기술의 3/3 효과 목록 [[키,효과표],…] — 효과표에서 못 찾으면 기술 이름표(id)로도 찾음
+function rz3Keys(m){
+  const r=[];
+  for(const f of (m.d&&m.d.ef)||[]){
+    if(f.op==='terrain'){const t=f.t||f.terrain||f.v;if(RZ3_TER[t])r.push(['terrain:'+t,f])}
+    else{const n=f.op==='field'?f.f:f.op;if(RZ3_SEC[n])r.push([n,f])}
+  }
+  if(!r.length&&m.id&&RZ3_ID[String(m.id).toLowerCase()])r.push([RZ3_ID[String(m.id).toLowerCase()],{}]);
+  return r;
+}
+function rz3Has(m){try{return rz3Keys(m).length>0}catch(er){return false}}
+// 내가 쓸 때만 켜짐
+function rz3Eff(e,m){
+  if(e.side||!wxOn())return;
+  const R=rz3();
+  for(const[k,f]of rz3Keys(m)){
+    const dur=parseFloat(f.dur||f.durationSec);
+    if(k.startsWith('terrain:')){
+      const t=k.slice(8),T=RZ3_TER[t];
+      if(R.ter===t&&R.tt>0){floatTxt(e.x,e.y-130,'이미 '+T.n+'예요','#cfd8ea');continue}
+      R.ter=t;R.tt=dur||RZ3_TER_SEC;R.tx=e.x;R.ty=e.y;R.gt=RZ3_GRASS_EVERY;
+      floatTxt(e.x,e.y-130,'🌐 '+T.n,T.c,true);W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.8,r:180,c:T.c});
+    }else{
+      R.fx[k]=dur||RZ3_SEC[k];
+      floatTxt(e.x,e.y-130,'✨ '+RZ3_NAME[k],RZ3_COL[k],true);W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.6,r:110,c:RZ3_COL[k]});
+    }
+  }
+}
+// 땅에 서 있나(날아다니거나 부유 중이면 장 효과 못 받음 — 중력이 켜져 있으면 모두 땅에 있음)
+function rz3Grounded(e){
+  const R=W&&W.rz3;if(R&&R.fx.gravity>0)return true;
+  const ty=e.tera?[e.tera]:(e.types||[]);
+  return !(ty.includes('FLYING')||abHas(e,'LEVITATE'));
+}
+function rz3In(e){const R=W&&W.rz3;return !!(R&&R.ter&&R.tt>0&&e&&rz3Grounded(e)&&len(e.x-R.tx,e.y-R.ty)<RZ3_TER_R)}
+// 피해 배율: 내 기술이 장 타입과 같으면 ×1.3(내가 장 안에 있을 때) · 상대가 나를 때릴 때 미스트 안 드래곤 ×0.5 · 물놀이(불꽃)·흙놀이(전기)는 상대 기술 ×0.5
+function rz3Mul(att,def,m){
+  const R=W&&W.rz3;if(!R||m.typeless)return 1;
+  let x=1;
+  if(!att.side){
+    const T=R.ter&&R.tt>0?RZ3_TER[R.ter]:null;
+    if(T&&T.t&&m.type===T.t&&rz3In(att))x*=RZ3_TER_MUL;
+  }else if(!def.side){
+    if(R.ter==='misty'&&R.tt>0&&m.type==='DRAGON'&&rz3In(def))x*=RZ3_MISTY_DRAGON;
+    if(R.fx.waterSport>0&&m.type==='FIRE')x*=RZ3_SPORT_MUL;
+    if(R.fx.mudSport>0&&m.type==='ELECTRIC')x*=RZ3_SPORT_MUL;
+  }
+  return x;
+}
+// 중력: 내 땅 기술이 날아다니는·부유 상대에게도 들어감
+function rz3Grav(att){const R=W&&W.rz3;return !!(R&&R.fx.gravity>0&&!att.side)}
+// 원더룸: 상대의 방어와 특수방어를 맞바꿔요(내 기술이 맞을 때만)
+function rz3Wonder(att,def){const R=W&&W.rz3;return !!(R&&R.fx.wonderRoom>0&&!att.side&&def.side)}
+// 행운의주문: 상대가 나를 칠 때 급소 없음
+function rz3Lucky(def){const R=W&&W.rz3;return !!(R&&R.fx.luckyChant>0&&!def.side)}
+// 사이코필드: 장 안의 나에게 상대의 선공 기술이 안 통함
+function rz3Prio(att,def,m){const R=W&&W.rz3;return !!(R&&R.ter==='psychic'&&R.tt>0&&att.side&&!def.side&&((m.d&&m.d.pr)|0)>0&&rz3In(def))}
+// 상태이상 막기(내 쪽만): 신비의부적 · 미스트필드 · 일렉트릭필드(잠). 막으면 글자를 돌려줘요
+function rz3BlockSt(def,s){
+  const R=W&&W.rz3;if(!R||def.side||s==='flinch')return null;
+  if(R.fx.safeguard>0)return '신비의부적이 막았다!';
+  if(R.ter==='misty'&&R.tt>0&&rz3In(def))return '미스트필드가 막았다!';
+  if(R.ter==='electric'&&R.tt>0&&s==='sleep'&&rz3In(def))return '일렉트릭필드가 막았다!';
+  return null;
+}
+function rz3Tick(){
+  const R=W.rz3;if(!R)return;
+  for(const k in R.fx){R.fx[k]-=TICK;if(R.fx[k]<=0){delete R.fx[k];const m=W.me;if(m)floatTxt(m.x,m.y-120,RZ3_NAME[k]+' 끝','#cfd8ea')}}
+  if(R.ter){R.tt-=TICK;
+    if(R.tt<=0){const T=RZ3_TER[R.ter];R.ter=null;R.tt=0;const m=W.me;if(m)floatTxt(m.x,m.y-120,T.n+' 끝','#cfd8ea')}
+    else if(R.ter==='grassy'){R.gt-=TICK;
+      if(R.gt<=0){R.gt=RZ3_GRASS_EVERY;const me=W.me;
+        if(me&&me.hp>0&&me.hp<me.max&&rz3In(me)){const h=Math.min(me.max-me.hp,Math.max(1,Math.round((me.pctMax||me.max)*RZ3_GRASS_FR)));me.hp+=h;floatTxt(me.x,me.y-100,'+'+fmtN(h*kOf(me)),'#6f6')}}}}
+}
+function rz3Labels(){
+  const R=W.rz3,L=[];if(!R)return L;
+  if(R.ter&&R.tt>0){const T=RZ3_TER[R.ter];L.push(['🌐 '+T.n+' '+Math.ceil(R.tt)+'초',T.c])}
+  for(const k in R.fx)L.push(['✨ '+RZ3_NAME[k]+' '+Math.ceil(R.fx[k])+'초',RZ3_COL[k]]);
+  return L;
+}
+// 그림: 장은 바닥에 큰 원(안쪽만 효과) · 내 몸 둘레 점선 원은 신비의부적·흰안개·행운의주문
+function rz3Draw(cx){
+  const R=W.rz3;if(!R)return;
+  cx.save();
+  if(R.ter&&R.tt>0){const T=RZ3_TER[R.ter],a=Math.min(1,R.tt/3);
+    cx.globalAlpha=.1*a;cx.fillStyle=T.c;cx.beginPath();cx.arc(R.tx,R.ty,RZ3_TER_R,0,7);cx.fill();
+    cx.globalAlpha=.55*a;cx.strokeStyle=T.c;cx.lineWidth=4;cx.setLineDash([14,10]);cx.lineDashOffset=-W.time*24;cx.beginPath();cx.arc(R.tx,R.ty,RZ3_TER_R,0,7);cx.stroke();cx.setLineDash([])}
+  const me=W.me;
+  if(me&&me.hp>0){let i=0;
+    for(const k of['safeguard','mist','luckyChant']){if(!(R.fx[k]>0))continue;
+      cx.globalAlpha=.55;cx.strokeStyle=RZ3_COL[k];cx.lineWidth=3;cx.setLineDash([4,8]);cx.lineDashOffset=W.time*30;cx.beginPath();cx.arc(me.x,me.y-me.r*.3,me.r+60+i*9,0,7);cx.stroke();i++}
+    cx.setLineDash([])}
   cx.restore();
 }
 function dealDamage(att,def,mi,opt){
@@ -634,14 +739,17 @@ function dealDamage(att,def,mi,opt){
       return 0}
   }
   if(def.inv>0){return 0}
+  if(W.rz3&&rz3Prio(att,def,m)){floatTxt(def.x,def.y-70,'사이코필드가 막았다!','#c46bff');return 0}   // ③ 3/3: 사이코필드 안의 나에게 선공 기술 안 통함
   if(def.gear&&def.gear.eva>0&&rnd()<Math.min(.5,def.gear.eva/100)){floatTxt(def.x,def.y-70,'회피!','#9be7ff');return 0}   // 8F 장비 회피
-  const A=m.phys?att.st[1]:att.st[3], D=m.phys?def.st[2]:def.st[4];
-  const Am=stageMul(m.phys?att.stg.atk:att.stg.spa), Dm=stageMul(m.phys?def.stg.def:def.stg.spd);
-  const e=m.typeless?1:C.eff(m.type,def.tera?[def.tera]:def.types);   // 9BC 테라스탈: 맞는 쪽은 테라 타입 하나로
+  const _wr=W.rz3&&rz3Wonder(att,def),_pd=_wr?!m.phys:m.phys;   // ③ 3/3 원더룸: 상대 방어↔특수방어 맞바꿈
+  const A=m.phys?att.st[1]:att.st[3], D=_pd?def.st[2]:def.st[4];
+  const Am=stageMul(m.phys?att.stg.atk:att.stg.spa), Dm=stageMul(_pd?def.stg.def:def.stg.spd);
+  let e=m.typeless?1:C.eff(m.type,def.tera?[def.tera]:def.types);   // 9BC 테라스탈: 맞는 쪽은 테라 타입 하나로
+  if(e===0&&m.type==='GROUND'&&W.rz3&&rz3Grav(att)){const _t=(def.tera?[def.tera]:def.types).filter(x=>x!=='FLYING');e=C.eff('GROUND',_t.length?_t:['NORMAL'])}   // ③ 3/3 중력: 날아다니는 상대에게도 땅 기술
   if(def.ab&&def.ab.length){try{if(abGuard(att,def,m,e))return 0}catch(er){}}   // ② 특성 D: 부유·흡수·방음·방진·불가사의부적
   const stab=att.tera&&att.tera===m.type?(att.types.includes(m.type)?2:1.5):att.types.includes(m.type)?1.5:1;
   const cx0=att.critX||{c:0,d:0};   // 7G: 크리티컬 확률·데미지 보너스(접두사·먹이 아이템·내 캐릭터 접두사)
-  const crit=rnd()<(att.critWin>0?.5:1/24+cx0.c);
+  const crit=!(W.rz3&&rz3Lucky(def))&&rnd()<(att.critWin>0?.5:1/24+cx0.c);   // ③ 3/3 행운의주문: 내가 맞을 땐 급소 없음
   let power=m.p*(opt.pm||1);
   const _ign=Math.min(.9,((att.gear&&att.gear.aA&&att.gear.aA.ign)||0)/100);   // 9BZ 아티팩트 방어력 무시
   let base=((2*att.lv/5+2)*power*(A*Am)/Math.max(1,D*Dm*(1-_ign))/50+2);
@@ -656,7 +764,8 @@ function dealDamage(att,def,mi,opt){
   if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트: 총공격력·총데미지·모든속성·보스/일반 공격력
   if((att.ab&&att.ab.length)||(def.ab&&def.ab.length)){try{const _ab=abDmg(att,def,m,e,crit);if(_ab!==1)dmg*=_ab}catch(er){}}   // ② 특성 A: 배율형
   if(W.wx){try{const _wx=wxMul(att,def,m);if(_wx!==1)dmg*=_wx}catch(er){}}   // ③ 날씨 1/2: 내 쪽 이로움 · 상대 쪽 해로움
-  if(W.rz2){try{const _wl=rz2Wall(att,def,m);if(_wl!==1)dmg*=_wl}catch(er){}}   // ③ 2/2: 내 쪽 벽(리플렉터·빛의장막·오로라베일)
+  if(W.rz2){try{const _wl=rz2Wall(att,def,m);if(_wl!==1)dmg*=_wl}catch(er){}}
+  if(W.rz3){try{const _r3=rz3Mul(att,def,m);if(_r3!==1)dmg*=_r3}catch(er){}}   // ③ 3/3: 장 기술 ×1.3 · 미스트 드래곤 · 물놀이·흙놀이   // ③ 2/2: 내 쪽 벽(리플렉터·빛의장막·오로라베일)
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
   if(m.exec&&def.lv>att.lv)dmg*=.5;               // 즉사기: 상대 레벨이 높으면 절반
   let fixedDmg=null;
@@ -745,6 +854,7 @@ function addStage(e,k,n){e.stg[k]=clamp(e.stg[k]+n,-3,3);e.stgT=8;floatTxt(e.x,e
 function setAil(def,s,chance){
   if(chance!=null&&rnd()*100>=chance)return;
   if(def.sub>0&&s!=='flinch'){floatTxt(def.x,def.y-110,'대타가 막았다','#ffe9a0');return}   // ③ 2/2: 대타가 있으면 상태이상 안 걸림
+  if(W&&W.rz3){const _b=rz3BlockSt(def,s);if(_b){floatTxt(def.x,def.y-110,_b,'#ffb0d8');return}}   // ③ 3/3: 신비의부적·미스트필드·일렉트릭필드(잠)
   const T={burn:8,poison:8,toxic:12,paralysis:6,sleep:2.5,freeze:2,confusion:3,flinch:0};
   if(!(s in T))return;
   if(def.ab&&def.ab.length&&abBlockSt(def,s)){floatTxt(def.x,def.y-110,'막았다!','#9be7ff');return}   // ② 특성 D: 상태이상 막기
@@ -856,6 +966,7 @@ function fire(e,c){
         if(f.op==='weather')wxMove(e,f);   // ③ 날씨 기술 (내가 쓸 때만)
         try{rz2Self(e,f,m)}catch(er){console.warn('rz2Self',er)}   // ③ 2/2: 벽·대타·멸망의노래·길동무 (내가 쓸 때만)
       }
+      try{rz3Eff(e,m)}catch(er){console.warn('rz3Eff',er)}   // ③ 3/3: 신비의부적·흰안개·행운의주문·중력·원더룸·물놀이·흙놀이·장 4종 (내가 쓸 때만)
       W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});skillFx(e,m,{x:e.x,y:e.y},{x:e.x,y:e.y},{force:1});
       c.phase='active';c.t=0;c.len=1;toRecovery(e,c);return;
     }
@@ -894,8 +1005,9 @@ function fire(e,c){
         if(!cone||Math.abs(angDiff(c.aim,Math.atan2(dy,dx)))<=(e.side?65:95)*Math.PI/180||d<e.r+tgt.r+(e.side?18:40)){hit=true;dealDamage(e,tgt,c.mi)}}}
     if(hit&&m.st)applyEf(e,tgt,m,true);
     toRecovery(e,c);
-  } else if(k==='zone'&&rz2Has(m)){
-    try{rz2Zone(e,m,c,u,tgt)}catch(er){console.warn('rz2Zone',er)}   // ③ 2/2: 스텔스록·압정·독압정·순풍·트릭룸 (내가 쓸 때만, 상대가 쓰면 아무 일 없음)
+  } else if(k==='zone'&&(rz2Has(m)||rz3Has(m))){
+    if(rz2Has(m)){try{rz2Zone(e,m,c,u,tgt)}catch(er){console.warn('rz2Zone',er)}}
+    try{rz3Eff(e,m)}catch(er){console.warn('rz3Eff',er)}   // ③ 3/3: 장·중력·원더룸 등이 zone 모양이면 여기서   // ③ 2/2: 스텔스록·압정·독압정·순풍·트릭룸 (내가 쓸 때만, 상대가 쓰면 아무 일 없음)
     W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});toRecovery(e,c);return;
   } else if(k==='zone'&&(m.d.ef||[]).some(f=>f.op==='weather')){
     for(const f of m.d.ef)if(f.op==='weather')wxMove(e,f);   // ③ 설경(zone 모양 날씨 기술)
@@ -1078,7 +1190,8 @@ function update(){
   W.chain=W.chain.filter(h=>!h.dead);
   if(W.gx){try{GYMFX.tick(W.gx,W)}catch(er){console.warn('gymfx tick',er);W.gx=null}}   // 1/3: 체육관 장치
   if(W.wx){try{wxTick()}catch(er){console.warn('wx tick',er);W.wx=null}}   // ③ 날씨
-  if(W.rz2){try{rz2Tick()}catch(er){console.warn('rz2 tick',er);W.rz2=null}}   // ③ 2/2: 함정·벽·순풍·트릭룸·대타·멸망의노래·길동무
+  if(W.rz2){try{rz2Tick()}catch(er){console.warn('rz2 tick',er);W.rz2=null}}
+  if(W.rz3){try{rz3Tick()}catch(er){console.warn('rz3 tick',er);W.rz3=null}}   // ③ 3/3: 장·부적·흰안개·행운의주문·중력·원더룸·놀이   // ③ 2/2: 함정·벽·순풍·트릭룸·대타·멸망의노래·길동무
   // 효과 시간
   for(const f of W.fx)f.t+=TICK;W.fx=W.fx.filter(f=>f.t<f.life);
   // 승패
@@ -1350,7 +1463,8 @@ function render(){try{teraUi()}catch(er){}
   }
   if(W.gx&&GYMFX.over){try{GYMFX.over(W.gx,cx,W)}catch(er){}}   // 2/3: 어두운 도장(몸 위에 덮기)
   if(W.wx){try{wxDraw(cx)}catch(er){}}   // ③ 날씨 그림
-  if(W.rz2){try{rz2Draw(cx)}catch(er){}}   // ③ 2/2 그림
+  if(W.rz3){try{rz3Draw(cx)}catch(er){}}   // ③ 3/3 그림
+  if(W.rz2||W.rz3){try{rz2Draw(cx)}catch(er){}}   // ③ 2/2 그림
   // 발사체
   for(const c of W.clones){const o=c.o;const a=Math.min(1,c.t)*(.5+.12*Math.sin(W.time*10));cx.globalAlpha=a;   // 9F 태초 분신 그리기
     try{const S=window.TFX?TFX.spr(o.S,o.tier):o.S;C.drawPm(cx,S,'idle',o.row,o.at,c.x,c.y-18,o.sc*.85,{loop:true,alpha:a})}catch(er){}
