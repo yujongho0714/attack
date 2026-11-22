@@ -35,12 +35,12 @@ const AB_NOINTIM=['OWNTEMPO','OBLIVIOUS','INNERFOCUS','SCRAPPY'];
 const AB_NOTRACE=['TRACE','MULTITYPE','STANCECHANGE','FORECAST','DISGUISE','ILLUSION','POWEROFALCHEMY','RECEIVER','IMPOSTER','FLOWERGIFT','ZENMODE','COMMANDER','ICEFACE','HUNGERSWITCH','SCHOOLING','BATTLEBOND','POWERCONSTRUCT','RKSSYSTEM','SHIELDSDOWN','NEUTRALIZINGGAS','GULPMISSILE','WONDERGUARD','PROTOSYNTHESIS','QUARKDRIVE','TERASHIFT','TERASHELL','TERAFORMZERO','EMBODYASPECT','ZEROTOHERO'];
 const AB_MOLD=['MOLDBREAKER','TERAVOLT','TURBOBLAZE'];
 // 능력치 단계를 바꿀 때 특성이 끼어드는 곳(클리어바디·괴력집게 막기, 심술꾸러기 뒤집기, 단순 2배, 오기·승기 반응)
-function abStage(e,k,n){
+function abStage(e,k,n,self){   // self=true: 내가 내 단계를 바꿈(막기·오기 반응 없음, 심술꾸러기·단순은 적용)
   if(!e||e.hp<=0)return false;
   if(abHas(e,'CONTRARY'))n=-n;else if(abHas(e,'SIMPLE'))n*=2;
-  if(n<0&&(abHas(e,'CLEARBODY')||abHas(e,'WHITESMOKE')||abHas(e,'FULLMETALBODY')||(k==='atk'&&abHas(e,'HYPERCUTTER'))||(k==='def'&&abHas(e,'BIGPECKS')))){floatTxt(e.x,e.y-90,'막았다!','#9cf');return false}
+  if(!self&&n<0&&(abHas(e,'CLEARBODY')||abHas(e,'WHITESMOKE')||abHas(e,'FULLMETALBODY')||(k==='atk'&&abHas(e,'HYPERCUTTER'))||(k==='def'&&abHas(e,'BIGPECKS')))){floatTxt(e.x,e.y-90,'막았다!','#9cf');return false}
   addStage(e,k,n);
-  if(n<0){if(abHas(e,'DEFIANT'))addStage(e,'atk',2);if(abHas(e,'COMPETITIVE'))addStage(e,'spa',2)}
+  if(!self&&n<0){if(abHas(e,'DEFIANT'))addStage(e,'atk',2);if(abHas(e,'COMPETITIVE'))addStage(e,'spa',2)}
   return true}
 // 프레셔: 상대(프레셔 가진 쪽의 적)의 기술 쿨타임 ×1.15
 function pressMul(e){try{if(!W||!W.me||!W.foe)return 1;const o=e===W.me?W.foe:e===W.foe?W.me:null;return o&&abHas(o,'PRESSURE')?1.15:1}catch(er){return 1}}
@@ -68,6 +68,29 @@ function abEnterOne(e,foe,k){
   else if(AB_MOLD.includes(k)){say((AB_NAME[k]||'틀깨기')+'!','#ffcf8a')}
 }
 function abEnter(e,foe){try{if(!e||!e.ab||!e.ab.length)return;for(const k of e.ab.slice())abEnterOne(e,foe,k)}catch(er){console.warn('abEnter',er)}}
+// ===== ② 특성 D단계 (2026-11-22) — 무효화(guard)·흡수·상태 막기(blockStatus) =====
+// 타입을 흡수하는 특성: 맞으면 피해 0 + 보너스(회복·능력치). 틀깨기 계열이 때리면 무시
+function abGuard(att,def,m,e){
+  if(!def||!def.ab||!def.ab.length)return false;
+  if(AB_MOLD.some(k=>abHas(att,k)))return false;
+  const ty=m.type,fl=(m.d&&m.d.fl)||[];
+  const say=t=>floatTxt(def.x,def.y-95,t,'#9be7ff',true);
+  const heal=()=>{const h=Math.min(def.max-def.hp,Math.round(def.max*.25));if(h>0){def.hp+=h;floatTxt(def.x,def.y-115,'+'+fmtN(h*kOf(def)),'#6f6')}};   // 원본 absorbHeal=.25
+  if(abHas(def,'LEVITATE')&&ty==='GROUND'){say('부유!');return true}
+  if(abHas(def,'VOLTABSORB')&&ty==='ELECTRIC'){say('축전!');heal();return true}
+  if((abHas(def,'WATERABSORB')||abHas(def,'DRYSKIN'))&&ty==='WATER'){say(abHas(def,'WATERABSORB')?'저수!':'건조피부!');heal();return true}
+  if(abHas(def,'FLASHFIRE')&&ty==='FIRE'){say('타오르는불꽃!');def.ffOn=1;return true}   // 이후 내 불꽃 기술 ×1.5
+  if(abHas(def,'LIGHTNINGROD')&&ty==='ELECTRIC'){say('피뢰침!');abStage(def,'spa',1,true);return true}
+  if(abHas(def,'STORMDRAIN')&&ty==='WATER'){say('마중물!');abStage(def,'spa',1,true);return true}
+  if(abHas(def,'MOTORDRIVE')&&ty==='ELECTRIC'){say('전기엔진!');abStage(def,'spe',1,true);return true}
+  if(abHas(def,'SAPSIPPER')&&ty==='GRASS'){say('초식!');abStage(def,'atk',1,true);return true}
+  if(abHas(def,'WONDERGUARD')&&m.p>0&&e<2){say('불가사의부적!');return true}
+  if(abHas(def,'SOUNDPROOF')&&fl.includes('Sound')){say('방음!');return true}
+  if(abHas(def,'OVERCOAT')&&fl.includes('Powder')){say('방진!');return true}
+  return false}
+// 상태이상 막기: 상태 이름 → 막는 특성
+const AB_BLOCK={paralysis:['LIMBER'],sleep:['INSOMNIA','VITALSPIRIT','SWEETVEIL'],poison:['IMMUNITY','PASTELVEIL'],toxic:['IMMUNITY','PASTELVEIL'],burn:['WATERVEIL','WATERBUBBLE'],freeze:['MAGMAARMOR'],confusion:['OWNTEMPO'],flinch:['INNERFOCUS']};
+function abBlockSt(e,s){const l=AB_BLOCK[s];return !!(l&&e&&e.ab&&e.ab.length&&l.some(k=>abHas(e,k)))}
 // ===== ② 특성 C단계 (2026-11-22) — 맞은 뒤(afterHit): 접촉 상태이상·반사 피해·능력치 반응·KO 보너스 =====
 // att=때린 쪽, def=맞은 쪽, hb=맞기 전 체력. 다단 기술의 뒤 타(opt.chain)는 안 부름(원본 contactOncePerCast)
 const AB_CONTACT_CH=.3;   // 원본 consts.contactChance
@@ -84,21 +107,21 @@ function abAfterHit(att,def,m,dmg,crit,hb){
       if(abHas(def,'POISONPOINT'))setAil(att,'poison',AB_CONTACT_CH*100);
       if(abHas(def,'EFFECTSPORE')&&!att.types.includes('GRASS')&&!abHas(att,'OVERCOAT')&&rnd()<AB_CONTACT_CH){const r=rnd();setAil(att,r<1/3?'poison':r<2/3?'paralysis':'sleep',100)}
       if(abHas(def,'ROUGHSKIN')||abHas(def,'IRONBARBS'))abChip(att,.0625,'까칠한 피부');
-      if(abHas(def,'TANGLINGHAIR')||abHas(def,'GOOEY')){floatTxt(def.x,def.y-130,'끈적!','#ffe14a');addStage(att,'spe',-1)}
+      if(abHas(def,'TANGLINGHAIR')||abHas(def,'GOOEY')){floatTxt(def.x,def.y-130,'끈적!','#ffe14a');abStage(att,'spe',-1,true)}
     }
     if(!alive&&contact&&att.hp>0&&abHas(def,'AFTERMATH')&&!abHas(att,'DAMP')&&!abHas(def,'DAMP'))abChip(att,.25,'유폭');
     if(alive&&abHas(def,'CURSEDBODY')&&rnd()<AB_CONTACT_CH){const i=att.moves.indexOf(m);if(i>=0){att.cd[i]=Math.max(att.cd[i],4);floatTxt(att.x,att.y-130,'저주받은바디!','#c9a0ff')}}   // 원본 disableSec=4
     if(alive){
-      if(abHas(def,'JUSTIFIED')&&ty==='DARK')addStage(def,'atk',1);
-      if(abHas(def,'RATTLED')&&(ty==='BUG'||ty==='DARK'||ty==='GHOST'))addStage(def,'spe',1);
-      if(abHas(def,'STAMINA'))addStage(def,'def',1);
-      if(abHas(def,'WEAKARMOR')&&m.phys){addStage(def,'def',-1);addStage(def,'spe',2)}   // 원본 weakArmorDef −1, weakArmorSpe +2
+      if(abHas(def,'JUSTIFIED')&&ty==='DARK')abStage(def,'atk',1,true);
+      if(abHas(def,'RATTLED')&&(ty==='BUG'||ty==='DARK'||ty==='GHOST'))abStage(def,'spe',1,true);
+      if(abHas(def,'STAMINA'))abStage(def,'def',1,true);
+      if(abHas(def,'WEAKARMOR')&&m.phys){abStage(def,'def',-1,true);abStage(def,'spe',2,true)}   // 원본 weakArmorDef −1, weakArmorSpe +2
       if(abHas(def,'ANGERPOINT')&&crit){def.stg.atk=3;def.stgT=8;floatTxt(def.x,def.y-130,'분노의경혈!','#ff6a4a',true)}   // 원본 angerPoint +3(최대)
-      if(abHas(def,'BERSERK')&&hb>def.max*.5&&def.hp<=def.max*.5)addStage(def,'spa',1);
+      if(abHas(def,'BERSERK')&&hb>def.max*.5&&def.hp<=def.max*.5)abStage(def,'spa',1,true);
     }
   }
   if(aab&&att.hp>0){
-    if(def.hp<=0&&abHas(att,'MOXIE')){addStage(att,'atk',1);floatTxt(att.x,att.y-130,'자기과신!','#ffb347',true)}
+    if(def.hp<=0&&abHas(att,'MOXIE')){abStage(att,'atk',1,true);floatTxt(att.x,att.y-130,'자기과신!','#ffb347',true)}
     if(def.hp>0&&contact&&abHas(att,'POISONTOUCH'))setAil(def,'poison',AB_CONTACT_CH*100);
     if(def.hp>0&&abHas(att,'STENCH'))setAil(def,'flinch',10);   // 원본 flinchChance=.1
   }
@@ -111,6 +134,7 @@ function abDmg(att,def,m,e,crit){
     if(ph&&(abHas(att,'HUGEPOWER')||abHas(att,'PUREPOWER')))x*=2;
     if(ph&&abHas(att,'GUTS')&&st){x*=1.5;if(att.ail.burn)x*=2}   // 근성: 화상 공격력 반감을 무시
     if(ph&&abHas(att,'HUSTLE'))x*=1.5;
+    if(att.ffOn&&abHas(att,'FLASHFIRE')&&ty==='FIRE')x*=1.5;   // 타오르는불꽃: 불꽃을 먹은 뒤 내 불꽃 기술
     if(abHas(att,'DEFEATIST')&&hpF<=.5)x*=.5;
     if(abHas(att,'ADAPTABILITY')&&!att.tera&&att.types.includes(ty))x*=2/1.5;
     if(abHas(att,'TECHNICIAN')&&m.p>0&&m.p<=60)x*=1.5;
@@ -366,6 +390,7 @@ function dealDamage(att,def,mi,opt){
   const A=m.phys?att.st[1]:att.st[3], D=m.phys?def.st[2]:def.st[4];
   const Am=stageMul(m.phys?att.stg.atk:att.stg.spa), Dm=stageMul(m.phys?def.stg.def:def.stg.spd);
   const e=m.typeless?1:C.eff(m.type,def.tera?[def.tera]:def.types);   // 9BC 테라스탈: 맞는 쪽은 테라 타입 하나로
+  if(def.ab&&def.ab.length){try{if(abGuard(att,def,m,e))return 0}catch(er){}}   // ② 특성 D: 부유·흡수·방음·방진·불가사의부적
   const stab=att.tera&&att.tera===m.type?(att.types.includes(m.type)?2:1.5):att.types.includes(m.type)?1.5:1;
   const cx0=att.critX||{c:0,d:0};   // 7G: 크리티컬 확률·데미지 보너스(접두사·먹이 아이템·내 캐릭터 접두사)
   const crit=rnd()<(att.critWin>0?.5:1/24+cx0.c);
@@ -469,6 +494,7 @@ function setAil(def,s,chance){
   if(chance!=null&&rnd()*100>=chance)return;
   const T={burn:8,poison:8,toxic:12,paralysis:6,sleep:2.5,freeze:2,confusion:3,flinch:0};
   if(!(s in T))return;
+  if(def.ab&&def.ab.length&&abBlockSt(def,s)){floatTxt(def.x,def.y-110,'막았다!','#9be7ff');return}   // ② 특성 D: 상태이상 막기
   const IMM={burn:'FIRE',poison:'POISON',toxic:'POISON',paralysis:'ELECTRIC',freeze:'ICE'};
   if(IMM[s]&&def.types.includes(IMM[s]))return;
   if(s==='toxic')s='poison';
@@ -486,7 +512,7 @@ function applyEf(att,def,m,hit){
       const who=f.who==='user'?att:def;
       if(f.who!=='user'&&!hit)continue;
       if(f.chance!=null&&rnd()*100>=f.chance)continue;
-      for(const k in f.stages)addStage(who,k,f.stages[k]);
+      for(const k in f.stages)abStage(who,k,f.stages[k],who===att);
     }
     else if(f.op==='heal'&&f.who==='user'){att.hp=Math.min(att.max,att.hp+Math.round((att.pctMax||att.max)*(f.frac||.5)));floatTxt(att.x,att.y-90,'회복','#8f8')}
     else if(f.op==='drain'&&hit){}
@@ -570,9 +596,9 @@ function fire(e,c){
     if(k==='self'){
       if(/guard/.test(names)){e.protect=36/60;floatTxt(e.x,e.y-90,'방어!','#9be7ff')}
       for(const f of ef){
-        if(f.op==='stat'&&(f.who==='user'||!f.who))for(const s in f.stages)addStage(e,s,f.stages[s]);
+        if(f.op==='stat'&&(f.who==='user'||!f.who))for(const s in f.stages)abStage(e,s,f.stages[s],true);
         if(f.op==='heal'&&f.who==='user'){const fr=e.healRep>0?.25:.5;e.hp=Math.min(e.max,e.hp+Math.round((e.pctMax||e.max)*fr));e.healRep=30;floatTxt(e.x,e.y-90,'회복','#8f8')}
-        if(f.op==='stat'&&f.who==='target'&&m.d.tg!=='User'){for(const s in f.stages)addStage(tgt,s,f.stages[s])}
+        if(f.op==='stat'&&f.who==='target'&&m.d.tg!=='User'){for(const s in f.stages)abStage(tgt,s,f.stages[s],false)}
         if(f.op==='counter'){e.counterT=1.7}
       }
       W.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.5,r:60,c:C.TCOL[m.type]||'#fff'});skillFx(e,m,{x:e.x,y:e.y},{x:e.x,y:e.y},{force:1});
