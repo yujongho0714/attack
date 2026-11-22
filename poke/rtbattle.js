@@ -1566,6 +1566,20 @@ function teraFront(e,ty){const cx=W.ctx,vs=e.vis||110,k=performance.now()/1000,t
   for(let i=0;i<6;i++){const a=k*1.4+i*1.047,r=vs*.45,px=e.x+Math.cos(a)*r,py=ty-vs*.25+Math.sin(a)*r*.5;cx.fillStyle=i%2?'#ffffff':C2;cx.beginPath();cx.moveTo(px,py-9);cx.lineTo(px+6,py);cx.lineTo(px,py+9);cx.lineTo(px-6,py);cx.closePath();cx.fill()}
   const u=(performance.now()-(e.teraAt||0))/900;if(u>=0&&u<1){cx.globalAlpha=1-u;cx.strokeStyle='#ffffff';cx.lineWidth=8*(1-u)+2;cx.beginPath();cx.arc(e.x,ty-vs*.25,vs*(.3+u*1.5),0,7);cx.stroke();cx.strokeStyle=C2;cx.lineWidth=4;cx.beginPath();cx.arc(e.x,ty-vs*.25,vs*(.2+u*1.1),0,7);cx.stroke()}
   cx.restore()}
+// ===== 렉 줄이기: 프레임이 계속 느리면 화면 크기(해상도)를 한 단계씩 낮춤 (이펙트 엔진들도 같이 가벼워짐) =====
+let _shP=null;
+function noShadowOn(){if(_shP)return;try{const d=Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,'shadowBlur');if(!d||!d.set)return;_shP=d;Object.defineProperty(CanvasRenderingContext2D.prototype,'shadowBlur',{configurable:true,enumerable:d.enumerable,get(){return d.get.call(this)},set(v){d.set.call(this,window.__rtNoShadow?0:v)}})}catch(er){}}
+function autoQ(raw){
+  if(!W||document.hidden||W.paused){W&&(W.qs=0);return}
+  W.qn=(W.qn||0)+1;if(W.qn<90)return;                    // 시작 직후 1.5초는 건너뜀(그림 불러오는 중)
+  if(raw>400){return}                                        // 탭 전환 등 큰 끊김은 무시
+  W.qe=W.qe==null?raw:W.qe*.9+raw*.1;                        // 프레임 간격 평균(ms)
+  if(W.qe>24&&(W.q||1)>.55){W.qs=(W.qs||0)+1}else W.qs=Math.max(0,(W.qs||0)-2);
+  if(W.qs>=40){W.qs=0;W.qe=null;W.qn=30;W.q=Math.max(.55,Math.round((W.q||1)*.8*100)/100);
+    try{W.rs()}catch(er){}
+    if(W.q<.85){window.__rtNoShadow=1;noShadowOn()}          // 품질이 내려가면 번짐(그림자) 효과도 끔
+    try{localStorage.setItem('pka-rtq',String(W.q))}catch(er){}}
+}
 function render(){try{teraUi()}catch(er){}
   const cv=W.cv,cx=W.ctx,Wd=cv.width,Hd=cv.height;
   const land=Wd>=Hd;
@@ -1655,10 +1669,10 @@ function render(){try{teraUi()}catch(er){}
     if(f.k==='dmg'&&f.tk){pxDraw(cx,f)}
     else if(f.k==='psq'){cx.globalAlpha=Math.max(0,1-f.t/f.life);cx.fillStyle=f.c;cx.fillRect(Math.round(f.x+f.vx*f.t),Math.round(f.y+f.vy*f.t+400*f.t*f.t),f.z,f.z)}
     else if(f.k==='dmg'){const e0=1-Math.pow(1-Math.min(1,u*1.6),3),pop=1+.55*Math.max(0,1-u*7);cx.globalAlpha=Math.min(1,(1-u)*4);
-      cx.font='italic 900 '+Math.round(30*f.sc*pop)+'px sans-serif';cx.textAlign='center';cx.lineJoin='round';cx.lineWidth=6;cx.strokeStyle='#000';cx.fillStyle='#fff';cx.shadowColor=f.c;cx.shadowBlur=14;
+      cx.font='italic 900 '+Math.round(30*f.sc*pop)+'px sans-serif';cx.textAlign='center';cx.lineJoin='round';cx.lineWidth=6;cx.strokeStyle='#000';cx.fillStyle='#fff';if(!W.q||W.q>=.99){cx.shadowColor=f.c;cx.shadowBlur=14}
       const y=f.y-e0*46;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
     else if(f.k==='shock'){cx.globalAlpha=Math.max(0,1-u);cx.strokeStyle=f.c;cx.lineWidth=Math.max(1,f.w*(1-u));const R=f.r*(.2+.8*Math.sqrt(u));cx.beginPath();cx.ellipse(f.x,f.y,R,R*.7,0,0,7);cx.stroke()}
-    else if(f.k==='spk'){cx.globalAlpha=Math.max(0,1-u);cx.fillStyle=f.c;cx.shadowColor=f.c;cx.shadowBlur=8;for(const q of f.P){const px=f.x+q.vx*f.t,py=f.y+q.vy*f.t+260*f.t*f.t;cx.beginPath();cx.arc(px,py,q.z*(1-u*.6),0,7);cx.fill()}}
+    else if(f.k==='spk'){cx.globalAlpha=Math.max(0,1-u);cx.fillStyle=f.c;for(const q of f.P){const px=f.x+q.vx*f.t,py=f.y+q.vy*f.t+260*f.t*f.t;cx.beginPath();cx.arc(px,py,q.z*(1-u*.6),0,7);cx.fill()}}
     else if(f.k==='txt'){cx.font=(f.big?'bold 34px':'bold 24px')+' sans-serif';cx.textAlign='center';cx.lineWidth=5;cx.strokeStyle='#000';cx.fillStyle=f.c;const y=f.y-u*40;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
     else if(f.k==='callout'){cx.font='bold 22px sans-serif';cx.textAlign='center';cx.lineWidth=4;cx.strokeStyle='#000';cx.fillStyle=f.c;const y=f.y-u*14;cx.strokeText(f.s,f.x,y);cx.fillText(f.s,f.x,y)}
     else if(f.k==='burst'){cx.fillStyle=f.c;cx.beginPath();cx.arc(f.x,f.y,f.r*(.4+u*.8),0,7);cx.fill()}
@@ -1692,8 +1706,8 @@ function hud(cx,Wd,Hd){
   const left=Math.max(0,Math.ceil(180-W.time));cx.fillStyle='#fff';cx.fillText(Math.floor(left/60)+':'+String(left%60).padStart(2,'0'),Wd/2,24*u);
   // 구르기 충전
   cx.font='bold '+(13*u)+'px sans-serif';cx.textAlign='left';cx.fillStyle='#fff';
-  // 버튼은 DOM으로 따로 그림
-  updBtns();
+  // 버튼은 DOM으로 따로 그림 (렉 줄이기: 3프레임에 한 번만 갱신)
+  W.ub=(W.ub||0)+1;if(W.ub%3===1)updBtns();
   if(W.over){
     cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(0,0,Wd,Hd);
     cx.fillStyle='#fff';cx.textAlign='center';cx.font='bold '+(44*u)+'px sans-serif';
@@ -1995,7 +2009,7 @@ function buildUI(){
     if(k==='Escape'&&!W.over&&!C.noQuit)stop('quit')};
   W.ku=e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;IN.keys[k]=0};
   addEventListener('keydown',W.kd);addEventListener('keyup',W.ku);
-  W.rs=()=>{const dpr=Math.min(2,devicePixelRatio||1);cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr)};
+  W.rs=()=>{const dpr=Math.min(1.5,devicePixelRatio||1)*(W.q||1);cv.width=Math.max(320,Math.round(innerWidth*dpr));cv.height=Math.max(180,Math.round(innerHeight*dpr))};   // 렉 줄이기: 기본 1.5배까지, 느리면 자동으로 더 낮춤
   W.rs();addEventListener('resize',W.rs);
 }
 function updSide(){try{   // 9R: 교대·약 버튼에 남은 시간·개수 표시
@@ -2020,7 +2034,7 @@ function updBtns(){updSide();
 
 // ---------- 실행 ----------
 function stop(r){
-  if(!W||W.stopped)return;W.stopped=1;try{window.BEAMFX&&BEAMFX.clear()}catch(er){}cancelAnimationFrame(W.raf);
+  if(!W||W.stopped)return;W.stopped=1;window.__rtNoShadow=0;try{window.BEAMFX&&BEAMFX.clear()}catch(er){}cancelAnimationFrame(W.raf);
   removeEventListener('keydown',W.kd);removeEventListener('keyup',W.ku);removeEventListener('resize',W.rs);
   try{for(const p of W.proj)if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}   // 9E: 날아가던 기술 그림(돌·소용돌이)이 다음 전투에 남던 문제
   if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear();C.fxe.VFX.clear&&C.fxe.VFX.clear()}catch(er){}}
@@ -2044,6 +2058,7 @@ async function start(ctx){
   C=ctx;
   const [S1,S2]=await Promise.all([C.getSpr(C.sprKey(C.me)),C.getSpr(C.sprKey(C.foe))]);
   W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],clones:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0,itCd:0};
+  W.q=1;try{const sq=parseFloat(localStorage.getItem('pka-rtq'));if(sq>=.5&&sq<=1)W.q=sq}catch(er){}   // 렉 줄이기: 이 폰에서 배운 화면 품질
   try{C.fxe&&C.fxe.VFX.clear&&C.fxe.VFX.clear();C.fxe&&C.fxe.FX2.clear()}catch(er){}   // 9E: 지난 전투 그림 지우고 시작
   W.me=mkEnt(C.me,S1,0);W.foe=mkEnt(C.foe,S2,1);
   W.gx=null;try{if(C.gx&&window.GYMFX)W.gx=GYMFX.make(C.gx,{floatTxt,setAil,fmtN,kOf,cancelCast,rnd})}catch(er){console.warn('gymfx',er);W.gx=null}   // 1/3: 체육관 경기장 장치
@@ -2056,6 +2071,7 @@ async function start(ctx){
   W.aiMe=mkAi('ME');W.aiMe.uid=W.me.mon.uid;W.aiMe.range=aiRange(W.me);
   try{window.PKS&&(PKS.cry(C.foe,.85,250),PKS.cry(C.me,.85,1150))}catch(er){}
   buildUI();
+  if(W.q<.85){window.__rtNoShadow=1;noShadowOn()}
   if(C.rollTut)tutStart();
   {W.fast=false;try{W.fast=(C.fast&&C.fast())||localStorage.getItem('pka-rtfast')==='1'}catch(er){}   // 9O: 전투 안 ⏩ 2배속 버튼
    const fb=document.createElement('div');fb.style.cssText='position:absolute;left:calc(50% + 82px);top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 12px;color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #56627f;pointer-events:auto;cursor:pointer;user-select:none;z-index:4;white-space:nowrap';
@@ -2073,7 +2089,8 @@ async function start(ctx){
     W.res=res;let last=performance.now(),acc=0;
     const loop=now=>{
       if(!W||W.stopped)return;
-      let dt=Math.min(.1,(now-last)/1000);last=now;acc+=dt*(W.fast?2:1);let n=0;   // 9O: 2배속
+      const raw=now-last;let dt=Math.min(.1,raw/1000);last=now;acc+=dt*(W.fast?2:1);let n=0;   // 9O: 2배속
+      autoQ(raw);
       if(W.paused){acc=0}else while(acc>=TICK&&n<(W.fast?10:5)){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
       if(n>=(W.fast?10:5))acc=0;
       if(W.autoUpd&&W.autoBtn&&W.autoBtn._s!==W.autoOn){W.autoBtn._s=W.autoOn;W.autoUpd()}

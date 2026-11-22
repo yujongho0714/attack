@@ -6342,7 +6342,7 @@ function teraUi(){let b=document.getElementById('teraBtn');
   const ok=teraOn()&&SCENE==='battle'&&BS.on&&BS.me&&BS.me.m&&BS.me.m.hp>0&&!A2T.used&&!(ACT.on&&ACT.down);
   if(!b){if(!ok)return;b=document.createElement('button');b.id='teraBtn';b.style.cssText='position:fixed;left:10px;top:calc(44% + env(safe-area-inset-top));z-index:46;display:none;flex-direction:column;align-items:center;gap:1px;min-width:78px;padding:6px 8px;border:3px solid #2c3050;border-radius:12px;background:#fffdf0;color:#2c3050;font-weight:900;font-size:13px;line-height:1.15;box-shadow:0 3px 0 #2c3050';b.onclick=()=>{try{sfx('tap')}catch(e){}teraGo()};document.body.appendChild(b)}
   if(!ok){b.style.display='none';return}
-  const T=teraType(BS.me.m);b.style.display='flex';b.style.background=tcol(T);b.style.color='#fff';b.style.textShadow='0 1px 2px #000a';b.innerHTML='<span>💎 테라스탈</span><small style="font-weight:700;font-size:11px">'+(TN[T]||T)+' · 배틀당 1번</small>'}
+  const T=teraType(BS.me.m);const h='<span>💎 테라스탈</span><small style="font-weight:700;font-size:11px">'+(TN[T]||T)+' · 배틀당 1번</small>';if(b._h!==h){b._h=h;b.style.display='flex';b.style.background=tcol(T);b.style.color='#fff';b.style.textShadow='0 1px 2px #000a';b.innerHTML=h}else if(b.style.display!=='flex')b.style.display='flex'}   // 렉 줄이기: 매 프레임 innerHTML 다시 쓰던 것 → 바뀔 때만
 {const _d3=drawBattle;drawBattle=function(dt){_d3.apply(this,arguments);try{teraUi();
     // 자동 배틀: 트레이너 · 관장 · 월드보스를 만나면 시작하자마자 한 번 써요 (야생은 아껴요)
     if(teraOn()&&!A2T.used&&BS.on&&BS.me&&BS.me.m&&BS.me.m.hp>0&&(BS.me.in==null||BS.me.in>=1)&&(BS.trainer||BS.boss||BS.wb||BS.world)&&autoActive())teraGo();
@@ -9204,6 +9204,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112089,date:'11월 22일',t:'전투 렉 줄이기',items:[{h:"⚡ 전투가 한결 부드러워졌어요",p:["<b>무엇이 달라졌어요?</b> 전투 화면 크기를 폰에 맞게 줄이고, 화면이 느려지면 <b>저절로 한 단계씩 더 가볍게</b> 바꿔요. 그림이 아주 조금 거칠어 보일 수 있지만 훨씬 덜 끊겨요.","<b>어떻게 해요?</b> 아무것도 안 해도 돼요. 그래도 끊기면 전투를 한두 판 더 하면 자동으로 맞춰져요."]}]},
  {v:2026112088,date:'11월 22일',t:'천계·천상계 리그·챔피언 입장 연출',items:[{img:"ui/news/n41_celintro.webp",h:"⛩ 리그와 챔피언 앞에서 문이 열리고 포털이 켜져요",p:["<b>어디서 보여요?</b> 난이도 6(천계)에서 사천왕·챔피언과 싸우기 직전에 <b>흰 대리석 문이 열리는</b> 장면이, 난이도 7(천상계)에서는 <b>은하 포털이 깨어나는</b> 장면이 한 번 나와요.","<b>어떻게 해요?</b> 기다리면 저절로 전투가 시작돼요. 건너뛰고 싶으면 <b>화면을 한 번 누르면</b> 바로 넘어가요. 난이도 5 이하·하계·명계는 그대로예요."]}]},
  {v:2026112087,date:'11월 22일',t:'하계 리그·챔피언 배경',items:[{img:"ui/news/n40_u_league.webp",h:"🔥 하계의 리그와 챔피언 방이 새 그림으로 바뀌었어요",p:["<b>어디서 보여요?</b> 난이도 8(하계)에서 <b>사천왕·리그</b>와 싸우면 쇠창살 문과 깃발, 불꽃 화로가 있는 용암 지옥 홀이 나와요. <b>챔피언</b>과 싸우면 마법진 한가운데 불꽃 고리가 타오르는 방이 나와요.","<b>어떻게 해요?</b> 평소처럼 싸우면 돼요. 판정과 장치는 그대로, 그림만 바뀌었어요. 난이도 7 이하와 명계는 예전 그대로예요."]}]},
  {v:2026112086,date:'11월 22일',t:'천계·천상계 전투 배경과 체육관 바닥',items:[{img:"ui/news/n39_celmaps.webp",h:"☁ 천계는 흰 대리석 신전, 천상계는 우주 황금 그림으로 바뀌었어요",p:["<b>어디서 보여요?</b> 난이도 6(천계)과 7(천상계)에서 야생·트레이너·체육관 관장과 싸울 때 바닥과 둘레 장식이 <b>새 그림</b>으로 나와요. 체육관 1~8번은 바닥 그림이 서로 달라요.","<b>천계 7곳</b>: 구름 길 · 신전 · 룬 돌바닥 · 별 흑요석 · 황금 무늬 · 부서진 신전 · 리그의 문. <b>천상계 7곳</b>: 우주 심연 · 황금 격자 · 천상 모래 · 원시 돌 · 전송 마법진 · 대리석 광장 · 리그 탑.","<b>어떻게 해요?</b> 평소처럼 싸우면 돼요. 판정과 장치는 그대로, 그림만 바뀌었어요. 난이도 5 이하·하계·명계는 예전 그대로예요."]}]},
