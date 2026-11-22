@@ -30,6 +30,51 @@ const AB_ST=['burn','poison','paralysis','sleep','freeze'];
 const abHas=(e,k)=>!!(e&&e.ab&&e.ab.length&&e.ab.includes(k));
 const abStatus=e=>AB_ST.some(s=>e.ail&&e.ail[s]!=null);
 const abNames=e=>(e&&e.ab||[]).map(k=>AB_NAME[k]||k).join('·');
+// ===== ② 특성 H단계 (2026-11-22) — 코드 없는 특성 나머지 중 이 게임에서 뜻이 통하는 것 =====
+// 내 포켓몬(side 0)만 특성이 있음. 값(×1.33·×1.3·×2·1/8 등)은 원작 기준으로 내가 정함.
+// 배율은 abDmg · 무효화는 abGuard · 맞은 뒤는 abHAfter · 상태 막기는 abHBlock · 등장은 abHEnter · 주기는 abHUp
+function abHTer(e,t){if(!wxOn())return false;const T=RZ3_TER[t],R=rz3();R.ter=t;R.tt=RZ3_TER_SEC;R.tx=e.x;R.ty=e.y;R.gt=RZ3_GRASS_EVERY;W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.8,r:180,c:T.c});return true}
+function abHEnter(e,foe,k){
+  const say=(t,c)=>floatTxt(e.x,e.y-135,t,c||'#ffe14a',true);
+  if(k==='HADRONENGINE'){if(abHTer(e,'electric'))say('하드론엔진!','#ffe14a');return true}
+  if(k==='ORICHALCUMPULSE'){if(wxSet('sun',WX_AB_SEC))say('진홍빛고동!','#ff9a4a');return true}
+  if(k==='DESOLATELAND'){if(wxSet('sun',180))say('끝의대지!','#ff7a3a');return true}   // 원작은 있는 동안 계속 → 전투 길이만큼
+  if(k==='PRIMORDIALSEA'){if(wxSet('rain',180))say('시작의바다!','#6aa8ff');return true}
+  return false}
+// 상태이상 막기: 정화의소금·절대안깸=전부 / 플라워베일=풀 타입 / 열교환=화상
+function abHBlock(e,s){
+  if(s!=='toxic'&&!AB_ST.includes(s))return false;
+  if(abHas(e,'PURIFYINGSALT')||abHas(e,'COMATOSE'))return true;
+  if(abHas(e,'FLOWERVEIL')&&e.types.includes('GRASS'))return true;
+  if(s==='burn'&&abHas(e,'THERMALEXCHANGE'))return true;
+  return false}
+function abHUp(e){
+  const tw=!!(W&&W.rz2&&W.rz2.tw>0);
+  if(abHas(e,'WINDRIDER')){if(tw&&!e._wrT){e._wrT=1;floatTxt(e.x,e.y-135,'바람타기!','#b8d0ff',true);abStage(e,'atk',1,true)}if(!tw)e._wrT=0}   // 순풍이 켜질 때마다 공격 +1
+  if(abHas(e,'BADDREAMS')){const f=foeOf(e);if(f&&f.hp>0&&f.ail&&f.ail.sleep!=null&&abEvery(e,'BADDREAMS',6))abChip(f,.125,'나이트메어')}}   // 잠든 상대 6초마다 1/8
+function abHAfter(att,def,m,dmg,crit,hb){
+  if(!(dmg>0))return;
+  const ty=m.type,fl=(m.d&&m.d.fl)||[];
+  const say=(x,t,c)=>floatTxt(x.x,x.y-130,t,c||'#ffe14a',true);
+  if(def&&def.ab&&def.ab.length){
+    if(def.hp>0){
+      if(abHas(def,'COLORCHANGE')&&!m.typeless&&!def.tera&&!(def.types.length===1&&def.types[0]===ty)){def.types=[ty];say(def,'변색!','#ffb0ff')}
+      if(abHas(def,'THERMALEXCHANGE')&&ty==='FIRE'){say(def,'열교환!','#ff9a4a');abStage(def,'atk',1,true)}
+      if(abHas(def,'STEAMENGINE')&&(ty==='FIRE'||ty==='WATER')){say(def,'증기기관!','#ffd9a0');abStage(def,'spe',3,true)}
+      if(abHas(def,'WATERCOMPACTION')&&ty==='WATER'){say(def,'꾸덕꾸덕굳기!','#9cf');abStage(def,'def',2,true)}
+      if(abHas(def,'ELECTROMORPHOSIS')||(abHas(def,'WINDPOWER')&&fl.includes('Wind'))){def.chgE=1;say(def,'충전!','#ffe14a')}
+      if(abHas(def,'COTTONDOWN')&&att.hp>0){say(def,'솜털!','#fff');abStage(att,'spe',-1,false)}
+      if(abHas(def,'SANDSPIT')&&wxSet('sand',WX_AB_SEC))say(def,'모래뿜기!','#e6c27a');
+      if(abHas(def,'SEEDSOWER')&&abHTer(def,'grassy'))say(def,'넘치는씨!','#7dff8a');
+      if(abHas(def,'ANGERSHELL')&&hb>def.max*.5&&def.hp<=def.max*.5){say(def,'분노의껍질!','#ff6a4a');abStage(def,'atk',1,true);abStage(def,'spa',1,true);abStage(def,'spe',1,true);abStage(def,'def',-1,true);abStage(def,'spd',-1,true)}
+    }else if(att.hp>0&&abHas(def,'INNARDSOUT')){abChip(att,Math.min(.6,hb/Math.max(1,def.max)),'내용물분출')}   // 쓰러질 때 받던 체력만큼 상대도 아픔
+  }
+  if(att&&att.ab&&att.ab.length&&att.hp>0&&def.hp<=0){
+    if(abHas(att,'SOULHEART')||abHas(att,'GRIMNEIGH')||abHas(att,'ASONEGRIMNEIGH')){say(att,AB_NAME[abHas(att,'SOULHEART')?'SOULHEART':'GRIMNEIGH']+'!','#ffb347');abStage(att,'spa',1,true)}
+    if(abHas(att,'CHILLINGNEIGH')||abHas(att,'ASONECHILLINGNEIGH')){say(att,'백의울음!','#ffb347');abStage(att,'atk',1,true)}
+  }}
+
+
 // ===== ② 특성 B단계 (2026-11-22) — 등장할 때(처음 나올 때·교대로 나올 때) 발동. 날씨·장(場) 특성은 ③에서 =====
 const AB_NOINTIM=['OWNTEMPO','OBLIVIOUS','INNERFOCUS','SCRAPPY'];
 const AB_NOTRACE=['TRACE','MULTITYPE','STANCECHANGE','FORECAST','DISGUISE','ILLUSION','POWEROFALCHEMY','RECEIVER','IMPOSTER','FLOWERGIFT','ZENMODE','COMMANDER','ICEFACE','HUNGERSWITCH','SCHOOLING','BATTLEBOND','POWERCONSTRUCT','RKSSYSTEM','SHIELDSDOWN','NEUTRALIZINGGAS','GULPMISSILE','WONDERGUARD','PROTOSYNTHESIS','QUARKDRIVE','TERASHIFT','TERASHELL','TERAFORMZERO','EMBODYASPECT','ZEROTOHERO'];
@@ -39,7 +84,7 @@ function abStage(e,k,n,self){   // self=true: 내가 내 단계를 바꿈(막기
   if(!e||e.hp<=0)return false;
   if(abHas(e,'CONTRARY'))n=-n;else if(abHas(e,'SIMPLE'))n*=2;
   if(!self&&n<0&&!e.side&&W&&W.rz3&&W.rz3.fx.mist>0){floatTxt(e.x,e.y-90,'흰안개가 막았다!','#e8f0ff');return false}   // ③ 3/3 흰안개: 내 능력치를 못 깎음
-  if(!self&&n<0&&(abHas(e,'CLEARBODY')||abHas(e,'WHITESMOKE')||abHas(e,'FULLMETALBODY')||(k==='atk'&&abHas(e,'HYPERCUTTER'))||(k==='def'&&abHas(e,'BIGPECKS')))){floatTxt(e.x,e.y-90,'막았다!','#9cf');return false}
+  if(!self&&n<0&&(abHas(e,'CLEARBODY')||abHas(e,'WHITESMOKE')||abHas(e,'FULLMETALBODY')||(k==='atk'&&abHas(e,'HYPERCUTTER'))||(k==='def'&&abHas(e,'BIGPECKS'))||(abHas(e,'FLOWERVEIL')&&e.types.includes('GRASS')))){floatTxt(e.x,e.y-90,'막았다!','#9cf');return false}
   addStage(e,k,n);
   if(!self&&n<0){if(abHas(e,'DEFIANT'))addStage(e,'atk',2);if(abHas(e,'COMPETITIVE'))addStage(e,'spa',2)}
   return true}
@@ -50,6 +95,7 @@ function pressMul(e){try{if(!W||!W.me||!W.foe)return 1;const o=e===W.me?W.foe:e=
 function abEvery(e,k,sec){e.abTm=e.abTm||{};e.abTm[k]=(e.abTm[k]||0)+TICK;if(e.abTm[k]>=sec){e.abTm[k]-=sec;return true}return false}
 function abUpkeep(e){
   if(!e.ab||!e.ab.length||e.hp<=0)return;
+  if(typeof abHUp==='function')abHUp(e);   // H: 바람타기·나이트메어
   if(abHas(e,'SPEEDBOOST')&&e.stg.spe<2&&abEvery(e,'SPEEDBOOST',7)){floatTxt(e.x,e.y-135,'가속!','#ffe14a',true);abStage(e,'spe',1,true)}
   if(abHas(e,'PICKUP')&&!e._pick&&e.hp>0&&e.hp<=e.max*.5){e._pick=1;const h=Math.max(1,Math.round((e.pctMax||e.max)*.125));e.hp=Math.min(e.max,e.hp+h);floatTxt(e.x,e.y-135,'픽업! +'+fmtN(h*kOf(e)),'#7dff8a',true)}   // F: 픽업 — 나올 때마다 한 번, 체력 절반 아래에서 1/8 회복(원본 pickupHeal·pickupHpFrac)
   if(abHas(e,'SHEDSKIN')&&abStatus(e)&&abEvery(e,'SHEDSKIN',6)&&rnd()<1/3){for(const k of AB_ST)delete e.ail[k];floatTxt(e.x,e.y-135,'탈피!','#9cf',true)}
@@ -63,6 +109,7 @@ function abUpkeep(e){
 }
 function abEnterOne(e,foe,k){
   const say=(t,c)=>floatTxt(e.x,e.y-135,t,c||'#ffe14a',true);
+  if(abHEnter(e,foe,k))return;   // H: 하드론엔진·진홍빛고동·끝의대지·시작의바다
   if(k==='DROUGHT'||k==='DRIZZLE'||k==='SANDSTREAM'||k==='SNOWWARNING'){   // ③ 날씨 특성: 가뭄·잔비·모래날림·눈퍼뜨리기 (20초)
     const wk={DROUGHT:'sun',DRIZZLE:'rain',SANDSTREAM:'sand',SNOWWARNING:'snow'}[k];
     if(wxSet(wk,WX_AB_SEC))say(AB_NAME[k]+'!');
@@ -119,10 +166,12 @@ function abGuard(att,def,m,e){
   if(abHas(def,'BULLETPROOF')&&fl.includes('Bullet')){say('방탄!');return true}
   if(abHas(def,'EARTHEATER')&&ty==='GROUND'&&!(W.rz3&&rz3Grav(att))){say('흙먹기!');heal();return true}
   if(abHas(def,'OVERCOAT')&&fl.includes('Powder')){say('방진!');return true}
+  if(abHas(def,'WELLBAKEDBODY')&&ty==='FIRE'){say('노릇노릇바디!');abStage(def,'def',2,true);return true}   // H
+  if(abHas(def,'WINDRIDER')&&fl.includes('Wind')){say('바람타기!');abStage(def,'atk',1,true);return true}   // H
   return false}
 // 상태이상 막기: 상태 이름 → 막는 특성
 const AB_BLOCK={paralysis:['LIMBER'],sleep:['INSOMNIA','VITALSPIRIT','SWEETVEIL'],poison:['IMMUNITY','PASTELVEIL'],toxic:['IMMUNITY','PASTELVEIL'],burn:['WATERVEIL','WATERBUBBLE'],freeze:['MAGMAARMOR'],confusion:['OWNTEMPO'],flinch:['INNERFOCUS']};
-function abBlockSt(e,s){const l=AB_BLOCK[s];if(e&&e.ab&&e.ab.length&&abHas(e,'LEAFGUARD')&&W&&W.wx&&W.wx.k==='sun'&&(s==='burn'||s==='poison'||s==='toxic'||s==='paralysis'||s==='sleep'||s==='freeze'))return true;   /* F: 리프가드 — 쾌청일 때 상태이상 막음 */return !!(l&&e&&e.ab&&e.ab.length&&l.some(k=>abHas(e,k)))}
+function abBlockSt(e,s){const l=AB_BLOCK[s];if(e&&e.ab&&e.ab.length&&abHBlock(e,s))return true;if(e&&e.ab&&e.ab.length&&abHas(e,'LEAFGUARD')&&W&&W.wx&&W.wx.k==='sun'&&(s==='burn'||s==='poison'||s==='toxic'||s==='paralysis'||s==='sleep'||s==='freeze'))return true;   /* F: 리프가드 — 쾌청일 때 상태이상 막음 */return !!(l&&e&&e.ab&&e.ab.length&&l.some(k=>abHas(e,k)))}
 // ===== ② 특성 C단계 (2026-11-22) — 맞은 뒤(afterHit): 접촉 상태이상·반사 피해·능력치 반응·KO 보너스 =====
 // att=때린 쪽, def=맞은 쪽, hb=맞기 전 체력. 다단 기술의 뒤 타(opt.chain)는 안 부름(원본 contactOncePerCast)
 const AB_CONTACT_CH=.3;   // 원본 consts.contactChance
@@ -159,6 +208,7 @@ function abAfterHit(att,def,m,dmg,crit,hb){
     if(def.hp>0&&abHas(att,'TOXICCHAIN'))setAil(def,'poison',30);
     if(def.hp>0&&abHas(att,'STENCH'))setAil(def,'flinch',10);   // 원본 flinchChance=.1
   }
+  try{abHAfter(att,def,m,dmg,crit,hb)}catch(er){console.warn('abHAfter',er)}   // H
 }
 // 맞는 쪽·때리는 쪽 특성이 주는 피해 배율 (원본 consts.mul 값 그대로)
 const AB_AURA=1.33,AB_RUIN=1/.75;   // 다크·페어리오라 ×1.33 · 재앙의 4종은 상대 능력치 ×0.75라서 내 피해 ×1.333 / 받는 피해 ×0.75
@@ -194,6 +244,13 @@ function abDmg(att,def,m,e,crit){
     if(abHas(att,'ANALYTIC')&&def&&def.cast&&def.cast.phase==='recovery')x*=1.3;   // F: 애널라이즈 — 상대가 기술을 쓰고 쉬는 중일 때
     if(abHas(att,'PARENTALBOND')&&m.k!=='beam'&&!(m.hits>1)&&!(m.d&&m.d.fan>1))x*=1.25;   // F: 부자유친 — 한 방짜리 기술
     if(abHas(att,'TINTEDLENS')&&e>0&&e<1)x*=2;
+    // H(코드 없는 특성 나머지): 값은 원작 기준으로 내가 정함
+    if(abHas(att,'HADRONENGINE')&&!ph&&W&&W.rz3&&W.rz3.ter==='electric'&&W.rz3.tt>0&&rz3In(att))x*=1.33;   // 일렉트릭필드 안 특수 ×1.33
+    if(abHas(att,'ORICHALCUMPULSE')&&ph&&W&&W.wx&&W.wx.k==='sun')x*=1.33;   // 쾌청일 때 물리 ×1.33
+    if(abHas(att,'TRANSISTOR')&&ty==='ELECTRIC')x*=1.3;
+    if(att.chgE&&ty==='ELECTRIC'&&(abHas(att,'ELECTROMORPHOSIS')||abHas(att,'WINDPOWER'))){x*=2;att.chgE=0;floatTxt(att.x,att.y-130,'충전 방전!','#ffe14a',true)}   // 전기로바꾸기·풍력발전: 충전 뒤 다음 전기 기술 ×2
+    if(abHas(att,'NEUROFORCE')&&e>1)x*=1.25;
+    if((abHas(att,'PROTEAN')||abHas(att,'LIBERO'))&&!m.typeless&&!att.tera&&!att.types.includes(ty))x*=1.5;   // 변환자재·리베로: 쓰는 기술 타입이 내 타입이 됨 → 자속 보너스
     if(hpF<=1/3){if(abHas(att,'BLAZE')&&ty==='FIRE')x*=1.5;if(abHas(att,'TORRENT')&&ty==='WATER')x*=1.5;if(abHas(att,'OVERGROW')&&ty==='GRASS')x*=1.5;if(abHas(att,'SWARM')&&ty==='BUG')x*=1.5}
   }
   if(d&&d.length&&!(a&&AB_MOLD.some(k=>abHas(att,k)))){   // 틀깨기·테라볼티지·터보블레이즈는 맞는 쪽 특성을 무시
@@ -213,12 +270,13 @@ function abDmg(att,def,m,e,crit){
     if(ph&&abHas(def,'TABLETSOFRUIN'))x/=AB_RUIN;
     if(!ph&&abHas(def,'VESSELOFRUIN'))x/=AB_RUIN;
     if(ph&&abHas(def,'MARVELSCALE')&&abStatus(def))x/=1.5;
+    if(abHas(def,'PURIFYINGSALT')&&ty==='GHOST')x*=.5;   // H: 정화의소금
   }
   return x}
 
 // ===== ② 특성 F단계 (2026-11-22) — 나머지 특성: 옹골참·대운·전투무장·조가비갑옷·복안·하늘의은총·불굴의마음·싱크로·일찍기상·재생력·픽업·서핑테일·스킨 4종·매직가드·돌머리·인분·해감액·천진·모래숨기·눈숨기·갈지자걸음·리프가드·짓궂은마음·퀵드로·매직미러·미라클스킨·장 4종 메이커·애널라이즈·부자유친·스킬링크 =====
 // 내 포켓몬(side 0)만 특성이 있어 이로운 건 자연히 내 쪽만. 해로운 건 상대만(싱크로·해감액·매직미러는 상대가 받음). 도구·성별·도망 막기·무게가 필요한 특성은 이 게임에 없어서 뺌.
-const AB_SKIN={AERILATE:'FLYING',PIXILATE:'FAIRY',REFRIGERATE:'ICE',GALVANIZE:'ELECTRIC'};
+const AB_SKIN={AERILATE:'FLYING',PIXILATE:'FAIRY',REFRIGERATE:'ICE',GALVANIZE:'ELECTRIC',DRAGONIZE:'DRAGON'};
 const AB_VEIL_EVA=.12,AB_TANGLED_EVA=.15;   // 원본 evadeMul .88(회피 12%)·tangledMul .85(15%)
 const abMold=a=>AB_MOLD.some(k=>abHas(a,k));
 function abSkin(att){for(const k in AB_SKIN)if(abHas(att,k))return AB_SKIN[k];return null}   // 노말 기술을 다른 타입으로 바꿈(위력 ×1.2)
@@ -248,6 +306,7 @@ function abAfterStatus(def,s){
 // 상대(컴퓨터)가 나에게 거는 변화 기술 효과: 미라클스킨(50% 막음) · 매직미러(상대에게 되돌림)
 function abFoeStatus(att,def,m,f){
   if(!att||!def||att.side!==1||def.side!==0||!def.ab||!def.ab.length||abMold(att))return false;
+  if(abHas(def,'GOODASGOLD')){floatTxt(def.x,def.y-110,'황금몸!','#ffd23f',true);return true}   // H
   if(abHas(def,'WONDERSKIN')&&rnd()<.5){floatTxt(def.x,def.y-110,'미라클스킨!','#ffb0d8',true);return true}
   if(abHas(def,'MAGICBOUNCE')){floatTxt(def.x,def.y-110,'매직미러!','#c9a0ff',true);for(const s in f.stages)abStage(att,s,f.stages[s],false);return true}
   return false}
@@ -258,6 +317,7 @@ function abEfFilter(att,def,m){
   const tg=f=>f.op==='status'||(f.op==='stat'&&f.who!=='user');
   if(!ef.some(tg))return ef;
   if(m.st){
+    if(abHas(def,'GOODASGOLD')){floatTxt(def.x,def.y-110,'황금몸!','#ffd23f',true);return ef.filter(f=>!tg(f))}   // H: 황금몸 — 상대 변화 기술 효과 무효
     if(abHas(def,'WONDERSKIN')&&rnd()<.5){floatTxt(def.x,def.y-110,'미라클스킨!','#ffb0d8',true);return ef.filter(f=>!tg(f))}
     if(abHas(def,'MAGICBOUNCE')){floatTxt(def.x,def.y-110,'매직미러!','#c9a0ff',true);
       const back=ef.filter(tg);try{applyEf(def,att,Object.assign({},m,{d:Object.assign({},m.d,{ef:back})}),true)}catch(er){}
@@ -843,7 +903,8 @@ function dealDamage(att,def,mi,opt){
       return 0}
   }
   if(def.inv>0){return 0}
-  if(W.rz3&&rz3Prio(att,def,m)){floatTxt(def.x,def.y-70,'사이코필드가 막았다!','#c46bff');return 0}   // ③ 3/3: 사이코필드 안의 나에게 선공 기술 안 통함
+  if(W.rz3&&rz3Prio(att,def,m)){floatTxt(def.x,def.y-70,'사이코필드가 막았다!','#c46bff');return 0}
+  if(def.ab&&def.ab.length&&att.side&&!abMold(att)&&((m.d&&m.d.pr)|0)>0){const _pk=['ARMORTAIL','QUEENLYMAJESTY','DAZZLING'].find(k=>abHas(def,k));if(_pk){floatTxt(def.x,def.y-70,AB_NAME[_pk]+'! 선공을 막았다','#ffb0ff',true);return 0}}   // H: 테일아머·여왕의위엄·비비드바디   // ③ 3/3: 사이코필드 안의 나에게 선공 기술 안 통함
   {let _ev=def.gear&&def.gear.eva>0?Math.min(.5,def.gear.eva/100):0;if(def.ab&&def.ab.length&&!abMold(att)){const _q=abEvade(def);if(_q>0)_ev=1-(1-_ev)*(1-_q)}if(_ev>0&&rnd()<_ev){floatTxt(def.x,def.y-70,'회피!','#9be7ff');return 0}}   // 8F 장비 회피 (+F 모래숨기·눈숨기·갈지자걸음)
   const _wr=W.rz3&&rz3Wonder(att,def),_pd=_wr?!m.phys:m.phys;   // ③ 3/3 원더룸: 상대 방어↔특수방어 맞바꿈
   const A=m.phys?att.st[1]:att.st[3], D=_pd?def.st[2]:def.st[4];
@@ -851,11 +912,12 @@ function dealDamage(att,def,mi,opt){
   if(def.ab&&def.ab.length&&abHas(def,'UNAWARE')&&!abMold(att))Am=1;   // F: 천진 — 맞을 땐 상대의 공격 단계를 무시
   if(att.ab&&att.ab.length&&abHas(att,'UNAWARE'))Dm=1;   // F: 천진 — 때릴 땐 상대의 방어 단계를 무시
   let e=m.typeless?1:C.eff(m.type,def.tera?[def.tera]:def.types);   // 9BC 테라스탈: 맞는 쪽은 테라 타입 하나로
+  if(e===0&&att.ab&&att.ab.length&&(abHas(att,'SCRAPPY')||abHas(att,'MINDSEYE'))&&!m.typeless&&(m.type==='NORMAL'||m.type==='FIGHTING')){const _t0=def.tera?[def.tera]:def.types,_t=_t0.filter(x=>x!=='GHOST');if(_t.length!==_t0.length)e=_t.length?C.eff(m.type,_t):1}   // H: 배짱·심안 — 노말·격투가 고스트에도 들어감
   if(e===0&&m.type==='GROUND'&&W.rz3&&rz3Grav(att)){const _t=(def.tera?[def.tera]:def.types).filter(x=>x!=='FLYING');e=C.eff('GROUND',_t.length?_t:['NORMAL'])}   // ③ 3/3 중력: 날아다니는 상대에게도 땅 기술
   if(def.ab&&def.ab.length){try{if(abGuard(att,def,m,e))return 0}catch(er){}}   // ② 특성 D: 부유·흡수·방음·방진·불가사의부적
   const stab=att.tera&&att.tera===m.type?(att.types.includes(m.type)?2:1.5):att.types.includes(m.type)?1.5:1;
   const cx0=att.critX||{c:0,d:0};   // 7G: 크리티컬 확률·데미지 보너스(접두사·먹이 아이템·내 캐릭터 접두사)
-  const crit=!(W.rz3&&rz3Lucky(def))&&!(def.ab&&def.ab.length&&abNoCrit(def,att))&&rnd()<(att.critWin>0?.5:(att.ab&&att.ab.length&&abHas(att,'SUPERLUCK')?1/8:1/24)+cx0.c);   // F: 대운=급소 단계 +1(1/24→1/8) · 전투무장·조가비갑옷=급소 안 맞음   // ③ 3/3 행운의주문: 내가 맞을 땐 급소 없음
+  const crit=!(W.rz3&&rz3Lucky(def))&&!(def.ab&&def.ab.length&&abNoCrit(def,att))&&((att.ab&&att.ab.length&&abHas(att,'MERCILESS')&&def.ail&&def.ail.poison!=null)||rnd()<(att.critWin>0?.5:(att.ab&&att.ab.length&&abHas(att,'SUPERLUCK')?1/8:1/24)+cx0.c));   // H: 무도한행동 — 독인 상대엔 항상 급소   // F: 대운=급소 단계 +1(1/24→1/8) · 전투무장·조가비갑옷=급소 안 맞음   // ③ 3/3 행운의주문: 내가 맞을 땐 급소 없음
   let power=m.p*(opt.pm||1)*(opt._skin?1.2:1);
   const _ign=Math.min(.9,((att.gear&&att.gear.aA&&att.gear.aA.ign)||0)/100);   // 9BZ 아티팩트 방어력 무시
   let base=((2*att.lv/5+2)*power*(A*Am)/Math.max(1,D*Dm*(1-_ign))/50+2);
