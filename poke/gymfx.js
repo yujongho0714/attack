@@ -3,7 +3,9 @@
    2/3: 호연 8곳 (rustboro·dewford·mauville·lavaridge·petalburg·fortree·mossdeep·sootopolis)
    3/3: 신오 8곳 (oreburgh·eterna·hearthome·veilstone·pastoria·canalave·snowpoint·sunyshore) + 바다(sea, 장치 없는 바닥 그림)
    쓰는 법: rtbattle.js가 start()에서 GYMFX.make(key,H) → 매 틱 GYMFX.tick(g,W) → render에서 GYMFX.draw(g,cx,W)
-   H = rtbattle가 넘겨 주는 도구(floatTxt, setAil, fmtN, kOf, cancelCast, rnd) */
+   H = rtbattle가 넘겨 주는 도구(floatTxt, setAil, fmtN, kOf, cancelCast, rnd)
+   ★ 유저 편들기(2026-11-22, 사용자 결정): 장치는 난이도 6(천계) 이상에서만 켜지고, '해로운 효과는 상대(CPU)만 · 이로운 효과는 내 포켓몬만' 받는다.
+     eb = 해로운 장치를 받는 쪽(상대), eg = 이로운 장치를 받는 쪽(나). 끄고 싶으면 H.pro=false (기본 켜짐) */
 (function(){
 'use strict';
 const AW=1200,AH=760,CX=600,CY=380,TICK=1/60;
@@ -94,7 +96,7 @@ const DEF={
 };
 
 function key(k){return DEF[k]?k:null}
-function info(k){return DEF[k]?DEF[k].info:''}
+function info(k){const i=DEF[k]?DEF[k].info:'';return i?i+' ★ 해로운 장치는 상대에게만, 이로운 장치는 나에게만 걸려요':''}
 
 const _img={};
 function bg(k){const d=DEF[k];if(!d)return null;if(_img[k])return _img[k];const im=new Image();im.src='arena/'+d.img+'.webp';_img[k]=im;return im}
@@ -108,7 +110,9 @@ function phase(c,t){const u=(((t-(c.off||0))%c.period)+c.period)%c.period,fs=c.p
 // ───────── 만들기 ─────────
 function make(k,H){
   const d=DEF[k];if(!d)return null;
-  const g={key:k,H,t:0,img:bg(k),powerOff:0,msgT:0,fx:[],feats:[],slides:[]};
+  const pro=!(H&&H.pro===false);
+  const g={key:k,H,pro,t:0,img:bg(k),powerOff:0,msgT:0,fx:[],feats:[],slides:[]};
+  if(pro&&H&&H.setAil){const sa=H.setAil;g.H=Object.assign({},H,{setAil:(e,st,c)=>{if(g.W&&e===g.W.me)return;return sa(e,st,c)}})}   // 안전망: 내 몸에는 장치 상태이상 안 걸림
   for(const f of d.f){
     const o=Object.assign({},f);
     if(o.k==='boulder'){o.maxhp=o.hp;o.dead=0;o.rt=0}
@@ -141,6 +145,7 @@ function make(k,H){
 // ───────── 피해 도우미 ─────────
 function hurt(g,e,frac,col){
   if(e.hp<=0||e.inv>0||e.hidden||g.W.tut)return 0;
+  if(g.pro&&e===g.W.me)return 0;   // 유저 편들기: 장치 피해는 상대만
   const H=g.H,d=Math.max(1,Math.round((e.pctMax||e.max)*frac));
   e.hp=Math.max(0,e.hp-d);e.flash=.12;
   H.floatTxt(e.x,e.y-70,H.fmtN(d*H.kOf(e)),col||'#ff8a4a');return d}
@@ -149,6 +154,7 @@ const ground=e=>!(e.types&&e.types.includes('FLYING'));
 // ───────── 한 틱 ─────────
 function tick(g,W){
   g.W=W;g.t+=TICK;const t=g.t,H=g.H,ents=[W.me,W.foe].filter(e=>e&&e.hp>0&&!e.hidden);
+  const PRO=g.pro,eb=ents.filter(e=>!PRO||e===W.foe),eg=ents.filter(e=>!PRO||e===W.me);   // eb: 해로운 장치 대상(상대) · eg: 이로운 장치 대상(나)
   if(g.powerOff>0)g.powerOff=Math.max(0,g.powerOff-TICK);
   for(const e of [W.me,W.foe]){e.gxMul=1;e.gxPow=null;e.gxRoll=1;e.gxRc=1;e.gxTake=1;e.gxHide=0;if(e.gxMelT>0)e.gxMelT-=TICK;if(e.gxChgT>0)e.gxChgT-=TICK;if(e.vnCd>0)e.vnCd-=TICK;if(e.ropeCd>0)e.ropeCd-=TICK;if(e.bmCd>0)e.bmCd-=TICK;
     if(e.gxB&&e.gxB.t>0){e.gxB.t-=TICK;e.gxTake*=e.gxB.m}if(e.slowT>0){e.slowT-=TICK;e.gxMul*=.5}if(e.gxMelT<=0)e.gxMelT=0;if(e.gxChgT<=0)e.gxChgT=0;if(e.padCd>0)e.padCd-=TICK;if(e.sbCd>0)e.sbCd-=TICK;e.gxT=(e.gxT||0)-TICK;e.gxTk=e.gxT<=0}
@@ -160,25 +166,25 @@ function tick(g,W){
       if(f.flash>0)f.flash-=TICK;if(f.dead){f.rt-=TICK;if(f.rt<=0){f.dead=0;f.hp=f.maxhp}}break}
     case 'breaker':{if(f.flash>0)f.flash-=TICK;break}
     case 'pool':
-      for(const e of ents){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3){
-        if(!has(e,['WATER']))e.gxMul*=.6;e.gxPow={t:'WATER',m:1.25}}}
+      for(const e of eb){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3&&!has(e,['WATER']))e.gxMul*=.6}
+      for(const e of eg){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3)e.gxPow={t:'WATER',m:1.25}}
       break;
     case 'grass':
-      for(const e of ents){if(e.gxTk&&has(e,['GRASS'])&&dist(e.x,e.y,f.x,f.y)<=f.r){
+      for(const e of eg){if(e.gxTk&&has(e,['GRASS'])&&dist(e.x,e.y,f.x,f.y)<=f.r){
         const h=Math.min(e.max-e.hp,Math.max(1,Math.round((e.pctMax||e.max)*.006)));
         if(h>0&&e.hp<e.max){e.hp+=h;H.floatTxt(e.x,e.y-80,'+'+H.fmtN(h*H.kOf(e)),'#7dff8a')}}}
       break;
     case 'puddle':
-      for(const e of ents){if(!has(e,['POISON','STEEL'])&&dist(e.x,e.y,f.x,f.y)<=f.r){
+      for(const e of eb){if(!has(e,['POISON','STEEL'])&&dist(e.x,e.y,f.x,f.y)<=f.r){
         if(e.gxTk){hurt(g,e,.006,'#c77dd8');e.pdT=(e.pdT||0)+.5;if(e.pdT>=3){e.pdT=0;H.setAil(e,'poison',100)}}}}
       break;
     case 'sand':
-      for(const e of ents){if(!has(e,['GROUND'])&&dist(e.x,e.y,f.x,f.y)<=f.r){
+      for(const e of eb){if(!has(e,['GROUND'])&&dist(e.x,e.y,f.x,f.y)<=f.r){
         e.gxMul*=.55;const dx=f.x-e.x,dy=f.y-e.y,L=Math.hypot(dx,dy)||1,p=55*TICK;e.x+=dx/L*p;e.y+=dy/L*p}}
       break;
     case 'pad':
       if(f.wander){const w=f.wander,a=(t/w.per)*6.2832,sg=w.mir?-1:1;f.x=f.bx+sg*w.ax*Math.sin(a);f.y=f.by+sg*w.ay*Math.sin(a)}
-      for(const e of ents){if(e.padCd>0||e.rollT>0)continue;
+      for(const e of eb){if(e.padCd>0||e.rollT>0)continue;
         if(dist(e.x,e.y,f.x,f.y)<=f.r){const to=g.pads[f.to];if(!to)continue;
           g.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.4,c:'#ff7ad0'},{k:'ring',x:to.x,y:to.y,t:0,life:.4,c:'#ff7ad0'});
           e.x=to.x;e.y=to.y;e.padCd=3;e.vx=e.vy=0;H.floatTxt(e.x,e.y-90,'순간이동!','#ff9ae0')}}
@@ -188,7 +194,7 @@ function tick(g,W){
       const live=f.k==='vent'||g.powerOff<=0;
       if(ph.p==='fire'&&f.lastN!==ph.n){f.lastN=ph.n;
         if(live){
-          for(const e of ents){
+          for(const e of eb){
             const inside=f.k==='plate'?(Math.abs(e.x-f.x)<=f.w/2+e.r*.4&&Math.abs(e.y-f.y)<=f.h/2+e.r*.4):dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.4;
             if(!inside||!ground(e))continue;
             if(f.k==='plate'){if(has(e,['ELECTRIC','GROUND']))continue;hurt(g,e,.08,'#ffe14a');H.setAil(e,'paralysis',35)}
@@ -199,7 +205,7 @@ function tick(g,W){
       if(f.vis){
         f.life-=TICK;const a=(t/22)*6.2832+f.ph*6.2832;let x=CX+330*Math.sin(a),y=CY+210*Math.sin(a*1.5);
         if(f.mir){x=AW-x;y=AH-y}f.x=x;f.y=y;
-        for(const e of ents){if(has(e,['GRASS']))continue;
+        for(const e of eb){if(has(e,['GRASS']))continue;
           if(dist(e.x,e.y,f.x,f.y)<=28+e.r*.5){H.setAil(e,'sleep',100);f.vis=0;f.rest=2;g.fx.push({k:'ring',x:f.x,y:f.y,t:0,life:.4,c:'#ffd0f0'});break}}
         if(f.life<=0){f.vis=0;f.rest=1}
       }else{f.rest-=TICK;if(f.rest<=0){f.vis=1;f.life=8}}
@@ -211,7 +217,7 @@ function tick(g,W){
       f.pend=f.pend.filter(p=>p.t>0);
       while(f.spots.length>6)f.spots.shift();
       for(const s of f.spots){s.life-=TICK;if(s.cd>0)s.cd-=TICK;
-        if(s.cd<=0)for(const e of ents){if(!ground(e)||has(e,['STEEL']))continue;
+        if(s.cd<=0)for(const e of eb){if(!ground(e)||has(e,['STEEL']))continue;
           if(dist(e.x,e.y,s.x,s.y)<=34+e.r*.4){
             if(has(e,['POISON'])){s.life=0;H.floatTxt(s.x,s.y-30,'독 흡수','#c77dd8');break}
             hurt(g,e,.03,'#c77dd8');H.setAil(e,'poison',100);s.cd=1}}}
@@ -219,9 +225,9 @@ function tick(g,W){
       break}
     case 'rockfall2':{
       const ph=phase({period:5,warn:1,fire:.3,off:2.3},t);f.ph=ph;
-      if(ph.p==='warn'&&f.lastW!==ph.n){f.lastW=ph.n;f.marks=ents.map(e=>({x:e.x,y:e.y}))}
+      if(ph.p==='warn'&&f.lastW!==ph.n){f.lastW=ph.n;f.marks=eb.map(e=>({x:e.x,y:e.y}))}
       if(ph.p==='fire'&&f.lastN!==ph.n){f.lastN=ph.n;
-        for(const e of ents){if(has(e,['ROCK'])||!f.marks.some(m=>dist(e.x,e.y,m.x,m.y)<=100+e.r*.3))continue;
+        for(const e of eb){if(has(e,['ROCK'])||!f.marks.some(m=>dist(e.x,e.y,m.x,m.y)<=100+e.r*.3))continue;
           hurt(g,e,.14,'#c8a878');e.stun=Math.max(e.stun,24);try{H.cancelCast(e,false)}catch(er){}}
         W.qk=Math.max(W.qk||0,.4);for(const m of f.marks)g.fx.push({k:'boom',x:m.x,y:m.y,w:200,t:0,life:.35});f.marks=[]}
       break}
@@ -230,7 +236,7 @@ function tick(g,W){
       if(f.dead){f.rt-=TICK;if(f.rt<=0){f.dead=0;f.hp=f.maxhp}}
       break}
     case 'ore':{
-      for(const e of ents){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3){
+      for(const e of eg){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3){
         e.gxB=has(e,['ROCK'])?{m:.7,t:16}:{m:.9,t:6};f.gone=1;
         g.fx.push({k:'ring',x:f.x,y:f.y,t:0,life:.4,c:'#ffd27a'});H.floatTxt(e.x,e.y-80,'광석! 받는 피해 감소','#ffd27a');break}}
       break}
@@ -249,7 +255,7 @@ function tick(g,W){
       if(f.mir){x=AW-x;y=AH-y}f.x=x;f.y=y;
       if(f===g.feats.find(q=>q.k==='spot')){
         const L=g.feats.filter(q=>q.k==='spot');
-        for(const e of ents){const lit=L.some(q=>dist(e.x,e.y,q.x,q.y)<=120+e.r*.3);e.gxLit=lit;
+        for(const e of ents){const lit=L.some(q=>dist(e.x,e.y,q.x,q.y)<=120+e.r*.3);e.gxLit=lit;if(!eg.includes(e))continue;
           if(lit)e.gxPow={all:1,m:1.2};else if(has(e,['GHOST'])){e.gxPow={t:'GHOST',m:1.2};e.gxHide=1}}}
       break}
     case 'ring':{
@@ -261,9 +267,9 @@ function tick(g,W){
         e.x=clamp(e.x,L+m,R-m);e.y=clamp(e.y,T+m,B-m);
         if(side&&!(e.ropeCd>0)){e.ropeCd=.8;
           const dx=side===1?1:side===2?-1:0,dy=side===3?1:side===4?-1:0;
-          g.slides.push({e,dx:dx*120,dy:dy*120,t:.25,tt:.25});
-          if(has(e,['FIGHTING'])){e.gxMelT=2;H.floatTxt(e.x,e.y-80,'로프 반동! 다음 근접 강화','#ffd27a')}
-          else{hurt(g,e,.1,'#ff8a8a');e.stun=Math.max(e.stun,60);try{H.cancelCast(e,false)}catch(er){}}
+          if(eb.includes(e))g.slides.push({e,dx:dx*120,dy:dy*120,t:.25,tt:.25});
+          if(has(e,['FIGHTING'])){if(eg.includes(e)){e.gxMelT=2;H.floatTxt(e.x,e.y-80,'로프 반동! 다음 근접 강화','#ffd27a')}}
+          else if(eb.includes(e)){hurt(g,e,.1,'#ff8a8a');e.stun=Math.max(e.stun,60);try{H.cancelCast(e,false)}catch(er){}}
           g.fx.push({k:'ring',x:e.x,y:e.y,t:0,life:.3,c:'#ff8a8a'})}}
       break}
     case 'tide':{
@@ -271,27 +277,27 @@ function tick(g,W){
       else if(f.lvl<2){f.next-=TICK;f.warn=f.next<=1;
         if(f.next<=0){f.lvl++;f.next=10;f.warn=0;H.floatTxt(CX,150,f.lvl===1?'💧 물이 차올랐어요':'🌊 물이 깊어졌어요!','#7ad0ff',true)}}
       else f.warn=0;
-      for(const e of ents){const w=has(e,['WATER']);
-        if(f.lvl===1)e.gxMul*=w?1.1:.8;
-        else if(f.lvl===2){e.gxMul*=w?1.3:.55;if(has(e,['GROUND']))e.gxMul*=.7;if(!w&&e.gxTk)hurt(g,e,.01,'#7ad0ff')}}
+      for(const e of ents){const w=has(e,['WATER']),G=eg.includes(e),B=eb.includes(e);
+        if(f.lvl===1){if(w){if(G)e.gxMul*=1.1}else if(B)e.gxMul*=.8}
+        else if(f.lvl===2){if(w){if(G)e.gxMul*=1.3}else if(B)e.gxMul*=.55;if(B&&has(e,['GROUND']))e.gxMul*=.7;if(B&&!w&&e.gxTk)hurt(g,e,.01,'#7ad0ff')}}
       break}
     case 'tsw':{
       if(f.cd>0)f.cd-=TICK;
       const td=g.feats.find(q=>q.k==='tide');
       if(td&&td.lvl>=2&&f.cd<=0)for(const e of ents){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3){
         td.lvl=0;td.next=10;td.block=8;td.warn=0;for(const q of g.feats)if(q.k==='tsw')q.cd=2;
-        if(!has(e,['WATER']))e.stun=Math.max(e.stun,60);
+        if(!has(e,['WATER'])&&eb.includes(e))e.stun=Math.max(e.stun,60);
         g.fx.push({k:'ring',x:f.x,y:f.y,t:0,life:.5,c:'#7ad0ff'});H.floatTxt(f.x,f.y-60,'물이 빠졌어요!','#7ad0ff',true);break}}
       break}
     case 'lift':{
       const u=t%8,up=u>=4;f.u=u;f.warn=u>=3&&u<4;
       const inside=e=>Math.abs(e.x-f.x)<=f.w/2+e.r*.3&&Math.abs(e.y-f.y)<=f.h/2+e.r*.3;
       if(up&&!f.up){   // 올라오는 순간: 밑에 있던 몸은 눌림
-        for(const e of ents){if(!has(e,['STEEL'])&&inside(e)){hurt(g,e,.12,'#bcc8d8');e.stun=Math.max(e.stun,24);try{H.cancelCast(e,false)}catch(er){}}}
+        for(const e of eb){if(!has(e,['STEEL'])&&inside(e)){hurt(g,e,.12,'#bcc8d8');e.stun=Math.max(e.stun,24);try{H.cancelCast(e,false)}catch(er){}}}
         W.qk=Math.max(W.qk||0,.3);g.fx.push({k:'boom',x:f.x,y:f.y,w:260,t:0,life:.35})}
       f.up=up;
       if(up)for(const e of ents){
-        if(has(e,['STEEL'])){if(inside(e)){e.gxTake*=.85;e.gxPow={all:1,m:1.3}}}
+        if(has(e,['STEEL'])){if(inside(e)&&eg.includes(e)){e.gxTake*=.85;e.gxPow={all:1,m:1.3}}}
         else if(inside(e)){const dl=e.x-(f.x-f.w/2),dr=(f.x+f.w/2)-e.x,dt=e.y-(f.y-f.h/2),db=(f.y+f.h/2)-e.y,mn=Math.min(dl,dr,dt,db),m=e.r*.4;
           if(mn===dl)e.x=f.x-f.w/2-m;else if(mn===dr)e.x=f.x+f.w/2+m;else if(mn===dt)e.y=f.y-f.h/2-m;else e.y=f.y+f.h/2+m}}
       break}
@@ -304,7 +310,7 @@ function tick(g,W){
           if(dist(p.x,p.y,f.x,f.y)<=f.r+(p.r||10)*.6){roll(p.dx||0,p.dy||1);p.dead=1;break}}
       }else{
         f.x+=f.vx*TICK;f.y+=f.vy*TICK;f.d+=480*TICK;f.r=22+26*Math.min(1,f.d/520);
-        for(const e of ents){if(has(e,['ICE'])||f.hit[e.side])continue;
+        for(const e of eb){if(has(e,['ICE'])||f.hit[e.side])continue;
           if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.4){f.hit[e.side]=1;
             hurt(g,e,.08+.04*(f.r-22)/26,'#bfe8ff');e.stun=Math.max(e.stun,24);e.slowT=2;try{H.cancelCast(e,false)}catch(er){}
             g.fx.push({k:'boom',x:f.x,y:f.y,w:f.r*3,t:0,life:.35});f.st=2;f.rt=6;break}}
@@ -314,7 +320,7 @@ function tick(g,W){
     case 'snowmgr':{
       if(!f.pend&&t>=f.next){f.next+=14;
         const balls=g.feats.filter(q=>q.k==='snowb'&&q.st===0);
-        if(balls.length&&ents.length){const e=ents[Math.floor(H.rnd()*ents.length)%ents.length];
+        if(balls.length&&eb.length){const e=eb[Math.floor(H.rnd()*eb.length)%eb.length];
           balls.sort((a,b)=>dist(a.x,a.y,e.x,e.y)-dist(b.x,b.y,e.x,e.y));f.pend={b:balls[0],e,t:1}}}
       if(f.pend){f.pend.t-=TICK;if(f.pend.t<=0){const b=f.pend.b,e=f.pend.e;
         if(b.st===0){const dx=e.x-b.x,dy=e.y-b.y,L=Math.hypot(dx,dy)||1;b.st=1;b.vx=dx/L*480;b.vy=dy/L*480;b.d=0;b.hit={}}f.pend=null}}
@@ -327,15 +333,15 @@ function tick(g,W){
         for(const e of ents){if(e.bmCd>0)continue;
           const vx=ex-f.x,vy=ey-f.y,wx=e.x-f.x,wy=e.y-f.y,u=clamp((wx*vx+wy*vy)/(vx*vx+vy*vy),0,1),d=dist(e.x,e.y,f.x+vx*u,f.y+vy*u);
           if(d<=f.wid/2+e.r*.3){e.bmCd=1.5;
-            if(has(e,['ELECTRIC'])){e.gxChgT=20;H.floatTxt(e.x,e.y-80,'⚡ 충전! 다음 전기 기술 강화','#ffe14a')}
-            else{H.setAil(e,'paralysis',100);e.stun=Math.max(e.stun,48);try{H.cancelCast(e,false)}catch(er){}H.floatTxt(e.x,e.y-80,'빛줄기!','#fff6a0')}}}}
+            if(has(e,['ELECTRIC'])){if(eg.includes(e)){e.gxChgT=20;H.floatTxt(e.x,e.y-80,'⚡ 충전! 다음 전기 기술 강화','#ffe14a')}}
+            else if(eb.includes(e)){H.setAil(e,'paralysis',100);e.stun=Math.max(e.stun,48);try{H.cancelCast(e,false)}catch(er){}H.floatTxt(e.x,e.y-80,'빛줄기!','#fff6a0')}}}}
       break}
     case 'rock':{f.life-=TICK;break}
     case 'rockfall':{
       const ph=phase({period:12,warn:1.6,fire:.3,off:4.4},t);f.ph=ph;
-      if(ph.p==='warn'&&f.lastW!==ph.n){f.lastW=ph.n;f.marks=ents.map(e=>({x:e.x,y:e.y}))}
+      if(ph.p==='warn'&&f.lastW!==ph.n){f.lastW=ph.n;f.marks=eb.map(e=>({x:e.x,y:e.y}))}
       if(ph.p==='fire'&&f.lastN!==ph.n){f.lastN=ph.n;
-        for(const e of ents){if(!f.marks.some(m=>dist(e.x,e.y,m.x,m.y)<=56+e.r*.3))continue;
+        for(const e of eb){if(!f.marks.some(m=>dist(e.x,e.y,m.x,m.y)<=56+e.r*.3))continue;
           hurt(g,e,has(e,['ROCK','GROUND','STEEL'])?.05:.1,'#c8a878');e.stun=Math.max(e.stun,24);try{H.cancelCast(e,false)}catch(er){}}
         W.qk=Math.max(W.qk||0,.4);
         for(const m of f.marks){g.fx.push({k:'boom',x:m.x,y:m.y,w:120,t:0,life:.35});
@@ -350,45 +356,45 @@ function tick(g,W){
       const inside=e=>Math.abs(e.x-f.x)<=f.w/2+e.r*.3&&Math.abs(e.y-f.y)<=f.h/2+e.r*.3;
       if(ph.p==='fire'){
         if(f.lastN!==ph.n){f.lastN=ph.n;
-          for(const e of ents){if(!inside(e)||has(e,['ELECTRIC','GROUND']))continue;hurt(g,e,.04,'#ffe14a');H.setAil(e,'paralysis',30)}}
-        for(const e of ents){if(e.gxTk&&inside(e)&&!has(e,['ELECTRIC','GROUND']))hurt(g,e,.03,'#ffe14a')}}
+          for(const e of eb){if(!inside(e)||has(e,['ELECTRIC','GROUND']))continue;hurt(g,e,.04,'#ffe14a');H.setAil(e,'paralysis',30)}}
+        for(const e of eb){if(e.gxTk&&inside(e)&&!has(e,['ELECTRIC','GROUND']))hurt(g,e,.03,'#ffe14a')}}
       break}
     case 'heat':
-      for(const e of ents){if(has(e,['FIRE','GROUND']))continue;
+      for(const e of eb){if(has(e,['FIRE','GROUND']))continue;
         if(g.feats.some(q=>q.k==='spring'&&dist(e.x,e.y,q.x,q.y)<=q.r))continue;
         e.heatT=(e.heatT||0)+TICK;if(e.heatT>=2){e.heatT=0;hurt(g,e,.012,'#ff9a50')}}
       break;
     case 'spring':
       for(const e of ents){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3){
-        if(!has(e,['FIRE']))e.gxMul*=.65;
-        if(e.gxTk){const h=Math.min(e.max-e.hp,Math.max(1,Math.round((e.pctMax||e.max)*.006)));
+        if(!has(e,['FIRE'])&&eb.includes(e))e.gxMul*=.65;
+        if(e.gxTk&&eg.includes(e)){const h=Math.min(e.max-e.hp,Math.max(1,Math.round((e.pctMax||e.max)*.006)));
           if(h>0&&e.hp<e.max){e.hp+=h;H.floatTxt(e.x,e.y-80,'+'+H.fmtN(h*H.kOf(e)),'#7dff8a')}}}}
       break;
     case 'drill':{
       const st=Math.floor(t/15)%3;
       if(st!==f.step){f.step=st;H.floatTxt(CX,150,['⚡ 스피드 훈련! 모두 빨라져요','💨 회피 훈련! 구르기가 빨리 차올라요','💪 노말 훈련! 노말 기술이 세져요'][st],'#ffe14a',true)}
-      for(const e of ents){if(st===0)e.gxMul*=1.3;else if(st===1)e.gxRc=1.6;else e.gxPow={t:'NORMAL',m:1.2}}
+      for(const e of eg){if(st===0)e.gxMul*=1.3;else if(st===1)e.gxRc=1.6;else e.gxPow={t:'NORMAL',m:1.2}}
       break}
     case 'gust':{
       const ph=phase(f.cyc,t);f.ph=ph;
       if(ph.p==='fire'&&f.lastN!==ph.n){f.lastN=ph.n;
         const dx=f.dx*f.sign;
-        for(const e of ents){if(has(e,['FLYING'])||Math.abs(e.y-f.y)>60+e.r*.3)continue;
+        for(const e of eb){if(has(e,['FLYING'])||Math.abs(e.y-f.y)>60+e.r*.3)continue;
           g.slides.push({e,dx:dx*140,dy:0,t:.25,tt:.25});H.floatTxt(e.x,e.y-80,'바람!','#bfe8ff')}
         f.sign*=-1;g.fx.push({k:'ring',x:CX,y:f.y,t:0,life:.4,c:'#bfe8ff'})}
       break}
     case 'cloudpad':
-      for(const e of ents){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3)e.gxRoll=1.25}
+      for(const e of eg){if(dist(e.x,e.y,f.x,f.y)<=f.r+e.r*.3)e.gxRoll=1.25}
       break;
     case 'mirror':{
       const ph=phase({period:20,warn:2,fire:10,off:0},t);f.ph=ph;f.on=ph.p==='fire';
       if(f.on&&f.lastN!==ph.n){f.lastN=ph.n;H.floatTxt(CX,150,'🌀 트릭룸! 느린 쪽이 빨라져요','#d08cff',true)}
-      if(f.on&&W.me&&W.foe&&W.me.spd>0&&W.foe.spd>0){
+      if(f.on&&W.me&&W.foe&&W.me.spd>0&&W.foe.spd>0&&(!PRO||W.foe.spd>W.me.spd)){
         W.me.gxMul*=clamp(W.foe.spd/W.me.spd,.5,2);W.foe.gxMul*=clamp(W.me.spd/W.foe.spd,.5,2)}
       break}
     case 'crackice':{
       const occ={};
-      for(const e of ents){if(has(e,['WATER','ICE','FLYING']))continue;
+      for(const e of eb){if(has(e,['WATER','ICE','FLYING']))continue;
         const c=Math.floor((e.x-f.x0)/f.cw),r=Math.floor((e.y-f.y0)/f.ch);
         if(c<0||r<0||c>=f.cols||r>=f.rows)continue;const i=r*f.cols+c;occ[i]=1;
         if(f.br[i]>0)e.gxMul*=.6;
@@ -397,9 +403,9 @@ function tick(g,W){
       break}
     case 'tremor':{
       const ph=phase({period:8,warn:1.4,fire:.3,off:.3},t);f.ph=ph;
-      if(ph.p==='warn'&&f.lastW!==ph.n){f.lastW=ph.n;f.marks=ents.filter(e=>ground(e)&&!has(e,['GROUND'])).map(e=>({x:e.x,y:e.y}))}
+      if(ph.p==='warn'&&f.lastW!==ph.n){f.lastW=ph.n;f.marks=eb.filter(e=>ground(e)&&!has(e,['GROUND'])).map(e=>({x:e.x,y:e.y}))}
       if(ph.p==='fire'&&f.lastN!==ph.n){f.lastN=ph.n;
-        for(const e of ents){if(!ground(e)||has(e,['GROUND']))continue;
+        for(const e of eb){if(!ground(e)||has(e,['GROUND']))continue;
           if(f.marks.some(m=>dist(e.x,e.y,m.x,m.y)<=72+e.r*.3)){hurt(g,e,.09,'#d2a24a');e.stun=Math.max(e.stun,21);try{H.cancelCast(e,false)}catch(er){}}}
         W.qk=Math.max(W.qk||0,.5);for(const m of f.marks)g.fx.push({k:'boom',x:m.x,y:m.y,w:140,t:0,life:.35});f.marks=[]}
       break}
@@ -410,9 +416,9 @@ function tick(g,W){
   for(const s of g.solids){
     if(s.dead)continue;
     for(const e of ents){if(s.k==='vine'&&has(e,['GRASS']))continue;let dx=e.x-s.x,dy=e.y-s.y,L=Math.hypot(dx,dy);if(L<1e-3){dx=1;dy=0;L=1}const min=s.r+e.r*.55;
-      if(s.k==='sandbag'&&L<min+4&&!has(e,['FIGHTING'])&&!(e.sbCd>0)&&e.rollT<=0){e.sbCd=.6;s.sw=.5;g.slides.push({e,dx:dx/L*150,dy:dy/L*150,t:.2,tt:.2});H.floatTxt(e.x,e.y-70,'퉁!','#ffd29a')}
+      if(s.k==='sandbag'&&L<min+4&&eb.includes(e)&&!has(e,['FIGHTING'])&&!(e.sbCd>0)&&e.rollT<=0){e.sbCd=.6;s.sw=.5;g.slides.push({e,dx:dx/L*150,dy:dy/L*150,t:.2,tt:.2});H.floatTxt(e.x,e.y-70,'퉁!','#ffd29a')}
       if(L<min){e.x=s.x+dx/L*min;e.y=s.y+dy/L*min}
-      if(s.k==='vine'&&L<min+8&&!(e.vnCd>0)){e.vnCd=1.5;hurt(g,e,.06,'#7dd05a');e.stun=Math.max(e.stun,24);try{H.cancelCast(e,false)}catch(er){}H.floatTxt(e.x,e.y-70,'가시!','#7dd05a')}}
+      if(s.k==='vine'&&L<min+8&&eb.includes(e)&&!(e.vnCd>0)){e.vnCd=1.5;hurt(g,e,.06,'#7dd05a');e.stun=Math.max(e.stun,24);try{H.cancelCast(e,false)}catch(er){}H.floatTxt(e.x,e.y-70,'가시!','#7dd05a')}}
     if(s.tall)for(const p of W.proj){if(p.dead||p.wait>0)continue;
       if(dist(p.x,p.y,s.x,s.y)<=s.r+p.r*.6){p.dead=1;
         g.fx.push({k:'ring',x:p.x,y:p.y,t:0,life:.2,c:'#fff'});
@@ -596,6 +602,7 @@ function over(g,cx,W){
 // 근접 기술이 맞은 뒤 (veilstone 링: 때리면 상대가 200px 날아감)
 function melee(g,att,def){
   if(!g||!g.feats.some(f=>f.k==='ring')||!att||!def||def.hp<=0)return;
+  if(g.pro&&g.W&&att!==g.W.me)return;   // 유저 편들기: 링에서 날려 보내기는 내가 때릴 때만
   const dx=def.x-att.x,dy=def.y-att.y,L=Math.hypot(dx,dy)||1;
   g.slides.push({e:def,dx:dx/L*200,dy:dy/L*200,t:.25,tt:.25});
   g.fx.push({k:'ring',x:def.x,y:def.y,t:0,life:.3,c:'#ffd0a0'})}

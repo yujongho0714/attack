@@ -44,6 +44,16 @@ function abStage(e,k,n,self){   // self=true: 내가 내 단계를 바꿈(막기
   return true}
 // 프레셔: 상대(프레셔 가진 쪽의 적)의 기술 쿨타임 ×1.15
 function pressMul(e){try{if(!W||!W.me||!W.foe)return 1;const o=e===W.me?W.foe:e===W.foe?W.me:null;return o&&abHas(o,'PRESSURE')?1.15:1}catch(er){return 1}}
+// E단계 주기(upkeep) 특성 — 내 포켓몬(side 0)만 e.ab가 있으니 자연히 내 쪽만 작동. 원본 upkeepSec=6 · speedBoostSec=7(상한 2) · moodySec=10 · shedSkinChance=1/3 · poisonHeal=1/8
+// (날씨가 필요한 선파워·건조피부·촉촉바디·아이스바디·젖은접시는 ③ 날씨 뒤, 수확은 열매 도구 뒤, 근성·이상한비늘·속보·무기력의 upkeep은 표시용이라 A단계 배율로 충분)
+function abEvery(e,k,sec){e.abTm=e.abTm||{};e.abTm[k]=(e.abTm[k]||0)+TICK;if(e.abTm[k]>=sec){e.abTm[k]-=sec;return true}return false}
+function abUpkeep(e){
+  if(!e.ab||!e.ab.length||e.hp<=0)return;
+  if(abHas(e,'SPEEDBOOST')&&e.stg.spe<2&&abEvery(e,'SPEEDBOOST',7)){floatTxt(e.x,e.y-135,'가속!','#ffe14a',true);abStage(e,'spe',1,true)}
+  if(abHas(e,'SHEDSKIN')&&abStatus(e)&&abEvery(e,'SHEDSKIN',6)&&rnd()<1/3){for(const k of AB_ST)delete e.ail[k];floatTxt(e.x,e.y-135,'탈피!','#9cf',true)}
+  if(abHas(e,'POISONHEAL')&&e.ail&&e.ail.poison!=null&&e.hp<e.max&&abEvery(e,'POISONHEAL',6)){const h=Math.min(e.max-e.hp,Math.max(1,Math.round((e.pctMax||e.max)*.125)));e.hp+=h;floatTxt(e.x,e.y-80,'+'+fmtN(h*kOf(e)),'#7dff8a')}
+  if(abHas(e,'MOODY')&&abEvery(e,'MOODY',10)){const K=['atk','def','spa','spd','spe'],up=K.filter(k=>e.stg[k]<3);if(up.length){const a=up[Math.floor(rnd()*up.length)%up.length],dn=K.filter(k=>k!==a&&e.stg[k]>-3),b=dn.length?dn[Math.floor(rnd()*dn.length)%dn.length]:null;floatTxt(e.x,e.y-135,'변덕쟁이!','#ffb347',true);abStage(e,a,2,true);if(b)abStage(e,b,-1,true)}}
+}
 function abEnterOne(e,foe,k){
   const say=(t,c)=>floatTxt(e.x,e.y-135,t,c||'#ffe14a',true);
   if(k==='INTIMIDATE'){
@@ -732,10 +742,11 @@ function update(){
        else e.cd[i]=Math.max(0,e.cd[i]-TICK*r)}}
     // 구르기 충전
     if(e.rc<2)e.rc=Math.min(2,e.rc+TICK/3.2*(e.gxRc||1));   /* 2/3: 회피 훈련 */
+    abUpkeep(e);   // E단계: 가속·탈피·포이즌힐·변덕쟁이
     // 상태이상
     for(const s in e.ail){e.ail[s]-=TICK;
       if(s==='burn'&&W.tick%60===0){const d=Math.max(1,Math.round((e.pctMax||e.max)*.01));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#f84')}
-      if(s==='poison'&&W.tick%60===0){const d=Math.max(1,Math.round((e.pctMax||e.max)*.015));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#c6c')}
+      if(s==='poison'&&W.tick%60===0&&!abHas(e,'POISONHEAL')){const d=Math.max(1,Math.round((e.pctMax||e.max)*.015));e.hp=Math.max(0,e.hp-d);floatTxt(e.x,e.y-60,fmtN(d*kOf(e)),'#c6c')}
       if(e.ail[s]<=0){delete e.ail[s];e.ailImm=e.ailImm||{};if(s==='burn')e.ailImm.burn=6;if(s==='paralysis')e.ailImm.paralysis=8}}
     if(e.ailImm)for(const s in e.ailImm)e.ailImm[s]-=TICK;
     if(e.stgT>0){e.stgT-=TICK;if(e.stgT<=0){for(const k in e.stg)e.stg[k]-=Math.sign(e.stg[k]);e.stgT=8}}
