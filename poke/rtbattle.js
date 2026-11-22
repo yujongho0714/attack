@@ -30,6 +30,44 @@ const AB_ST=['burn','poison','paralysis','sleep','freeze'];
 const abHas=(e,k)=>!!(e&&e.ab&&e.ab.length&&e.ab.includes(k));
 const abStatus=e=>AB_ST.some(s=>e.ail&&e.ail[s]!=null);
 const abNames=e=>(e&&e.ab||[]).map(k=>AB_NAME[k]||k).join('·');
+// ===== ② 특성 B단계 (2026-11-22) — 등장할 때(처음 나올 때·교대로 나올 때) 발동. 날씨·장(場) 특성은 ③에서 =====
+const AB_NOINTIM=['OWNTEMPO','OBLIVIOUS','INNERFOCUS','SCRAPPY'];
+const AB_NOTRACE=['TRACE','MULTITYPE','STANCECHANGE','FORECAST','DISGUISE','ILLUSION','POWEROFALCHEMY','RECEIVER','IMPOSTER','FLOWERGIFT','ZENMODE','COMMANDER','ICEFACE','HUNGERSWITCH','SCHOOLING','BATTLEBOND','POWERCONSTRUCT','RKSSYSTEM','SHIELDSDOWN','NEUTRALIZINGGAS','GULPMISSILE','WONDERGUARD','PROTOSYNTHESIS','QUARKDRIVE','TERASHIFT','TERASHELL','TERAFORMZERO','EMBODYASPECT','ZEROTOHERO'];
+const AB_MOLD=['MOLDBREAKER','TERAVOLT','TURBOBLAZE'];
+// 능력치 단계를 바꿀 때 특성이 끼어드는 곳(클리어바디·괴력집게 막기, 심술꾸러기 뒤집기, 단순 2배, 오기·승기 반응)
+function abStage(e,k,n){
+  if(!e||e.hp<=0)return false;
+  if(abHas(e,'CONTRARY'))n=-n;else if(abHas(e,'SIMPLE'))n*=2;
+  if(n<0&&(abHas(e,'CLEARBODY')||abHas(e,'WHITESMOKE')||abHas(e,'FULLMETALBODY')||(k==='atk'&&abHas(e,'HYPERCUTTER'))||(k==='def'&&abHas(e,'BIGPECKS')))){floatTxt(e.x,e.y-90,'막았다!','#9cf');return false}
+  addStage(e,k,n);
+  if(n<0){if(abHas(e,'DEFIANT'))addStage(e,'atk',2);if(abHas(e,'COMPETITIVE'))addStage(e,'spa',2)}
+  return true}
+// 프레셔: 상대(프레셔 가진 쪽의 적)의 기술 쿨타임 ×1.15
+function pressMul(e){try{if(!W||!W.me||!W.foe)return 1;const o=e===W.me?W.foe:e===W.foe?W.me:null;return o&&abHas(o,'PRESSURE')?1.15:1}catch(er){return 1}}
+function abEnterOne(e,foe,k){
+  const say=(t,c)=>floatTxt(e.x,e.y-135,t,c||'#ffe14a',true);
+  if(k==='INTIMIDATE'){
+    if(!foe||foe.hp<=0)return;say('위협!','#ffb347');
+    if(AB_NOINTIM.some(x=>abHas(foe,x))){floatTxt(foe.x,foe.y-90,'소용없다!','#9cf');return}
+    if(abStage(foe,'atk',-1))foe.stgT=Math.max(foe.stgT,16);   // 원본 intimidateSec=16초
+    if(abHas(foe,'RATTLED'))abStage(foe,'spe',1);
+  }else if(k==='DOWNLOAD'){
+    if(!foe||foe.hp<=0)return;say('다운로드!','#7fe3ff');
+    const d=foe.st[2]*stageMul(foe.stg.def),sp=foe.st[4]*stageMul(foe.stg.spd);
+    abStage(e,d<sp?'atk':'spa',1);
+  }else if(k==='TRACE'){
+    if(!foe)return;const t=(foe.ab||[]).find(x=>!AB_NOTRACE.includes(x));if(!t)return;
+    const i=e.ab.indexOf('TRACE');if(i>=0)e.ab[i]=t;say('트레이스! '+(AB_NAME[t]||t),'#c9a0ff');abEnterOne(e,foe,t);
+  }else if(k==='FOREWARN'){
+    if(!foe)return;let b=null;for(const m of foe.moves){if(m&&(!b||(m.p||0)>(b.p||0)))b=m}
+    if(b)say('예지몽! '+(foe.mon&&foe.mon.n!=null?'':'')+b.name,'#ffe14a');
+  }else if(k==='ANTICIPATION'){
+    if(!foe)return;const ty=e.tera?[e.tera]:e.types;
+    if(foe.moves.some(m=>m&&m.p>0&&!m.typeless&&C.eff(m.type,ty)>=2))say('위험예지! 위험한 기술이 있다','#ff8a8a');
+  }else if(k==='PRESSURE'){say('프레셔!','#ffb0ff')}
+  else if(AB_MOLD.includes(k)){say((AB_NAME[k]||'틀깨기')+'!','#ffcf8a')}
+}
+function abEnter(e,foe){try{if(!e||!e.ab||!e.ab.length)return;for(const k of e.ab.slice())abEnterOne(e,foe,k)}catch(er){console.warn('abEnter',er)}}
 // 맞는 쪽·때리는 쪽 특성이 주는 피해 배율 (원본 consts.mul 값 그대로)
 function abDmg(att,def,m,e,crit){
   let x=1;const a=att&&att.ab,d=def&&def.ab;
@@ -51,7 +89,7 @@ function abDmg(att,def,m,e,crit){
     if(abHas(att,'TINTEDLENS')&&e>0&&e<1)x*=2;
     if(hpF<=1/3){if(abHas(att,'BLAZE')&&ty==='FIRE')x*=1.5;if(abHas(att,'TORRENT')&&ty==='WATER')x*=1.5;if(abHas(att,'OVERGROW')&&ty==='GRASS')x*=1.5;if(abHas(att,'SWARM')&&ty==='BUG')x*=1.5}
   }
-  if(d&&d.length){
+  if(d&&d.length&&!(a&&AB_MOLD.some(k=>abHas(att,k)))){   // 틀깨기·테라볼티지·터보블레이즈는 맞는 쪽 특성을 무시
     const ph=!!m.phys,fl=(m.d&&m.d.fl)||[],ty=m.type,full=def.hp>=def.max;
     if(abHas(def,'THICKFAT')&&(ty==='FIRE'||ty==='ICE'))x*=.5;
     if(abHas(def,'HEATPROOF')&&ty==='FIRE')x*=.5;
@@ -431,7 +469,7 @@ function startCast(e,i,aimDir,dist){
   const cast={mi:i,mv:m,phase:'startup',t:0,su:m.su,aim:Math.atan2(aimDir.y,aimDir.x),want:Math.atan2(aimDir.y,aimDir.x),dist:dist};
   e.cast=cast;
   if(m.chg){if(e.ch[i]>=m.chg.max)e.chT[i]=m.chg.per;e.ch[i]=Math.max(0,e.ch[i]-1);e.cd[i]=e.ch[i]>=1?0:e.chT[i]}
-  else e.cd[i]=e.cdMax[i]*(m.ramp?RAMP.cdMul:1); // 쏘는 순간부터 쿨타임 (연속기는 ×2)
+  else e.cd[i]=e.cdMax[i]*(m.ramp?RAMP.cdMul:1)*pressMul(e); // 쏘는 순간부터 쿨타임 (연속기는 ×2)
   if(m.ppMax>0&&e.pp){e.pp[i]=Math.max(0,e.pp[i]-1);if(e.pp[i]<=0)ppOut(e,i)}
   if(!e.side&&C.onUse){try{const up=C.onUse(e.mon,m.id);if(up)floatTxt(e.x,e.y-130,'⬆ '+m.name+' Lv.'+up,'#ffd23f',true)}catch(er){}}   // 7G 기술 레벨 올리기
   if(m.ramp){cast.pm=RAMP.powerMul;e.ramp={mi:i,left:(RAMP.min-1)+(rnd()<.5?1:0)}}   // 연속기: 2~3번, 한 번 위력 ×0.75
@@ -1174,7 +1212,7 @@ async function doSwitch(uid){
   w.chain=w.chain.filter(c=>c.o!==old);w.clones=w.clones.filter(c=>c.o!==old);             // 나간 포켓몬의 연타·분신은 끊김
   w.proj=w.proj.filter(p=>{if(p.o!==old)return true;try{if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}return false});w.zones=w.zones.filter(z=>z.o!==old);w.delays=w.delays.filter(d=>d.o!==old);   // 9E: 나간 포켓몬 기술 그림이 멈춰 남지 않게
   w.delays.forEach(d=>{if(d.tgt===old)d.tgt=ne});   // 상대의 내려찍기 조준은 새 포켓몬을 따라감
-  w.me=ne;try{w.abUpd&&w.abUpd()}catch(er){}
+  w.me=ne;try{abEnter(ne,w.foe);w.abUpd&&w.abUpd()}catch(er){}
   try{window.PKS&&PKS.cry(ne.mon,.8,150)}catch(er){}
   if(!w.used.includes(uid))w.used.push(uid);
   w.swCd=SW_CD;w.swapping=0;
@@ -1412,6 +1450,7 @@ async function start(ctx){
   {const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
   {const t=document.createElement('div');t.style.cssText='position:absolute;left:6px;top:calc(8px + env(safe-area-inset-top));max-width:46vw;padding:3px 7px;border-radius:6px;background:rgba(0,0,0,.5);color:#cfe3ff;font:bold 11px "Galmuri11",sans-serif;line-height:1.35;pointer-events:none;z-index:4';
    const upd=()=>{if(!W||!W.me||!W.foe)return;const a=abNames(W.me),b=abNames(W.foe);t.innerHTML=(a?'🟦 내 특성 '+a:'')+(a&&b?'<br>':'')+(b?'🟥 상대 특성 '+b:'');t.style.display=(a||b)?'':'none'};upd();W.root.appendChild(t);W.abUpd=upd}   // ② 특성 이름 표시
+  try{abEnter(W.me,W.foe);abEnter(W.foe,W.me);W.abUpd&&W.abUpd()}catch(er){}   // ② 특성 B: 등장 때 발동(위협·다운로드·트레이스 …)
   if(W.gx&&window.GYMFX&&GYMFX.info(C.gx)){const h=document.createElement('div');h.style.cssText='position:absolute;left:50%;top:calc(92px + env(safe-area-inset-top));transform:translateX(-50%);max-width:86vw;padding:6px 12px;background:rgba(10,13,24,.82);color:#ffe14a;font:900 13px "Galmuri11",sans-serif;border:3px solid #ffd23f;box-shadow:0 3px 0 #000;pointer-events:none;text-align:center;transition:opacity .8s;z-index:4';h.textContent='🏟 '+GYMFX.info(C.gx);W.root.appendChild(h);setTimeout(()=>{h.style.opacity='0'},7000);setTimeout(()=>{try{h.remove()}catch(er){}},8000)}
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
