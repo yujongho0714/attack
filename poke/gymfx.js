@@ -131,7 +131,7 @@ function key(k){return DEF[k]?k:null}
 function info(k){const i=DEF[k]?DEF[k].info:'';return i?i+' ★ 해로운 장치는 상대에게만, 이로운 장치는 나에게만 걸려요':''}
 
 const _img={};
-function bg(k){const d=DEF[k];if(!d)return null;const RC=window.REGCUR,pre=(RC==='d')?'d_':(RC==='u'&&k!=='sea')?'u_':'',ck=pre?k+'#'+pre:k;if(_img[ck])return _img[ck];const im=new Image();if(pre){im.onerror=()=>{im.onerror=null;im.src='arena/'+d.img+'.webp'};im.src='arena/'+pre+k+'.webp'}else im.src='arena/'+d.img+'.webp';_img[ck]=im;return im}   // 명계(9)=arena/d_<장치>.webp · 하계(8)=arena/u_<장치>.webp 먼저(하계 바다 제외), 없으면 예전 그림
+function bg(k){const d=DEF[k];if(!d)return null;const RC=window.REGCUR,pre=(RC==='d')?'d_':(RC==='u')?'u_':'',ck=pre?k+'#'+pre:k;if(_img[ck])return _img[ck];const im=new Image();if(pre){im.onerror=()=>{im.onerror=null;im.src='arena/'+d.img+'.webp'};im.src='arena/'+pre+k+'.webp'}else im.src='arena/'+d.img+'.webp';_img[ck]=im;return im}   // 명계(9)=arena/d_<장치>.webp · 하계(8)=arena/u_<장치>.webp 먼저(바다 포함), 없으면 예전 그림
 
 // 주기 계산: 한 주기의 끝쪽 fire초 동안 발동, 그 앞 warn초는 예고
 function phase(c,t){const u=(((t-(c.off||0))%c.period)+c.period)%c.period,fs=c.period-c.fire;
