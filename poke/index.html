@@ -787,7 +787,10 @@ const CH={NORMAL:{ROCK:.5,GHOST:0,STEEL:.5},FIRE:{FIRE:.5,WATER:.5,GRASS:2,ICE:2
  POISON:{GRASS:2,POISON:.5,GROUND:.5,ROCK:.5,GHOST:.5,STEEL:0,FAIRY:2},GROUND:{FIRE:2,ELECTRIC:2,GRASS:.5,POISON:2,FLYING:0,BUG:.5,ROCK:2,STEEL:2},FLYING:{ELECTRIC:.5,GRASS:2,FIGHTING:2,BUG:2,ROCK:.5,STEEL:.5},
  PSYCHIC:{FIGHTING:2,POISON:2,PSYCHIC:.5,DARK:0,STEEL:.5},BUG:{FIRE:.5,GRASS:2,FIGHTING:.5,POISON:.5,FLYING:.5,PSYCHIC:2,GHOST:.5,DARK:2,STEEL:.5,FAIRY:.5},ROCK:{FIRE:2,ICE:2,FIGHTING:.5,GROUND:.5,FLYING:2,BUG:2,STEEL:.5},
  GHOST:{NORMAL:0,PSYCHIC:2,GHOST:2,DARK:.5},DRAGON:{DRAGON:2,STEEL:.5,FAIRY:0},DARK:{FIGHTING:.5,PSYCHIC:2,GHOST:2,DARK:.5,FAIRY:.5},STEEL:{FIRE:.5,WATER:.5,ELECTRIC:.5,ICE:2,ROCK:2,STEEL:.5,FAIRY:2},FAIRY:{FIRE:.5,FIGHTING:2,POISON:.5,DRAGON:2,DARK:2,STEEL:.5}};
-const eff=(t,def)=>(def||[]).reduce((m,d)=>m*((CH[t]||{})[d]??1),1);
+const effRaw=(t,def)=>(def||[]).reduce((m,d)=>m*((CH[t]||{})[d]??1),1);
+/* 하계(난이도 8) 전용 규칙 「타입 상성 반전」: 타입 하나마다 효과 굉장(×2)↔별로(×0.5), 효과 없음(×0)은 ×2. 사람끼리 대전·월드보스는 그대로 */
+const effInv=(t,def)=>(def||[]).reduce((m,d)=>{const v=(CH[t]||{})[d]??1;return m*(v===1?1:v>1?.5:2)},1);
+const eff=(t,def)=>{try{if(window.REGOF&&REGOF()==='u'&&!(typeof BS!=='undefined'&&BS&&(BS.pvpLast||BS.wb)))return effInv(t,def)}catch(e){}return effRaw(t,def)};
 const PHYS_T=new Set(['NORMAL','FIGHTING','ROCK','GROUND','STEEL','BUG','POISON','FLYING','GHOST']);
 // 타입마다 기본 기술 3단계 [id, 이름, 위력, 물리?]
 const TM={NORMAL:[['tackle','몸통박치기',40,1],['headbutt','박치기',70,1],['hyperbeam','파괴광선',130,0]],
@@ -9009,7 +9012,7 @@ async function rtWB(o){
   while(left>.5){
     const m=alive()[0];if(!m)break;
     const me=Object.assign({},m,{moves:m.moves.slice()});
-    const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
+    const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff:effRaw,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
       meHp:m.hp,foeHp:f.hp,aiTier:(window.WBAI&&WBAI())||'T2',bg:rtBgOf,...rtCommon(),numK:()=>SC,
       party:()=>G.party.map(q=>({uid:q.uid,name:nm(q),lv:dLv(q),hp:q.hp,max:stOf(q)[0]})),
       pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
@@ -9042,14 +9045,14 @@ async function rtPvp3(o){
   SCENE='battle';BS.on=1;BS.trainer=o.trainer||'PVP';BS.bg=o.bg||'stadium';BS.potN=0;BS.me=BS.foe=null;
   try{FX2.clear()}catch(e){}try{BGM.battle(o)}catch(e){}try{sfx('enc')}catch(e){}
   try{await trainerScene('trainers/CHAMPION_Red.png',o.trainer||'PVP',['⚔ 3대3 실시간 대전!','내 포켓몬 '+mine.map(nm).join(' · ')+' vs 상대 '+foes.map(nm).join(' · '),'자동으로 싸워요. 한쪽 3마리가 다 쓰러지면 끝!'])}catch(e){}
-  const r=await RTB3.start(Object.assign({meTeam:mine.map(m=>Object.assign({},m,{moves:m.moves.slice()})),foeTeam:foes,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
+  const r=await RTB3.start(Object.assign({meTeam:mine.map(m=>Object.assign({},m,{moves:m.moves.slice()})),foeTeam:foes,getSpr,sprKey,drawPm,stOf,eff:effRaw,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
     hp0:m=>{const q=G.party.find(x=>x.uid===m.uid);return q?q.hp:null},aiTier:'T2',bg:rtBgOf,...rtCommon(),sfx,autoMe:1,noQuit:0,quitText:'대전을 포기할까요? (지는 것으로 돼요)',maxTime:240,
     loseTxt:'졌다… 다음엔 이길 거야!',drawTxt:'무승부!',endHint:'자동으로 돌아가요'}));
   const res=r==='win'?'win':r==='draw'?'draw':'lose';
   try{FX2.clear()}catch(e){}showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();try{BGM.area()}catch(e){}
   return res}
 window.rtPvp3=rtPvp3;
-window.rtCtxBase=()=>({getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},bg:rtBgOf,...rtCommon(),sfx});window.rtLoadBase=loadRtb;   // 9Q 난투전용
+window.rtCtxBase=()=>({getSpr,sprKey,drawPm,stOf,eff:effRaw,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},bg:rtBgOf,...rtCommon(),sfx});window.rtLoadBase=loadRtb;   // 9Q 난투전용
 window.rtWild=rtWild;window.rtWildOn=rtWildOn;
 css.textContent+='#rtWBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(384px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 13px "Galmuri11",sans-serif;color:#1c2550;background:#ffd9a0;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#rtWBtn.show{display:flex}#rtWBtn.on{background:#9bf0a8}';
 setInterval(()=>{try{
@@ -9194,6 +9197,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112081,date:'11월 22일',t:'하계 규칙: 타입 상성 반전',items:[{img:"",h:"🌀 하계(난이도 8)에서는 타입 상성이 뒤집혀요",p:["<b>무슨 일이에요?</b> 반전세계라서 효과 굉장이 <b>별로</b>가 되고, 별로가 <b>굉장</b>이 돼요. 효과 없음은 오히려 <b>굉장</b>이 돼요. (예: 불꽃이 풀에게 별로 · 물이 불꽃에게 별로 · 노말이 고스트에게 굉장)","<b>어디서 적용돼요?</b> 하계의 야생·트레이너·체육관·리그 전투 전부, 나와 상대 양쪽에 똑같이 적용돼요. 전투 화면의 효과 글자와 AI의 기술 고르기도 같이 뒤집혀요.","<b>안 뒤집히는 곳</b>: 난이도 7 이하, 명계(9), 친구 대전·난투전, 월드보스는 예전 그대로예요.","<b>어떻게 해요?</b> 평소처럼 싸우되, 불리하던 타입 상성을 일부러 노려 보세요!"]}]},
  {v:2026112080,date:'11월 22일',t:'명계 체육관 장치 8곳',items:[{img:"",h:"🏟 명계의 체육관마다 장치가 생겼어요",p:["<b>어떻게 만나요?</b> 난이도 9(명계)에서 체육관 8곳에 차례로 들어가 관장과 싸우면 바닥에 장치가 나와요. 싸움 시작 때 위쪽에 설명 글이 떠요.","<b>장치 섞기</b>: 관동·호연·성도의 장치를 관장 타입에 맞춰 골라 왔어요. 1번 바위=<b>낙석</b> · 2번 풀=<b>풀밭과 꽃가루</b> · 3번 격투=<b>상자와 파도</b> · 4번 물=<b>얼음판이 깨져 물웅덩이</b> · 5번 고스트=<b>어두운 도장과 도깨비불</b> · 6번 강철=<b>자석 기둥과 전류</b> · 7번 얼음=<b>미끄러운 바닥과 싸라기눈</b> · 8번 전기=<b>전기 발판과 기둥 스위치</b>.","<b>누가 당해요?</b> 해로운 장치는 상대에게만, 이로운 장치는 내 포켓몬에게만 걸려요. 관장과 같은 타입은 그 장치 피해를 안 받아요."]}]},
  {v:2026112079,date:'11월 22일',t:'특성 9부: 남은 특성 35개',items:[{img:"",h:"✨ 특성이 또 늘었어요 (천계 이상, 내 포켓몬만)",p:["<b>필드·날씨 특성</b>: <b>하드론엔진</b>은 등장 때 일렉트릭필드가 깔리고 그 안에서 특수 ×1.33, <b>진홍빛고동</b>은 쾌청을 켜고 물리 ×1.33, <b>끝의대지·시작의바다</b>는 전투 내내 쾌청·비예요.","<b>맞으면 반응</b>: <b>전기로바꾸기·풍력발전</b>은 맞으면 충전되어 다음 전기 기술 ×2, <b>열교환</b>은 불꽃에 맞으면 공격 ▲, <b>증기기관</b>은 물·불꽃에 맞으면 스피드 ▲, <b>꾸덕꾸덕굳기</b>는 물에 맞으면 방어 ▲▲, <b>솜털</b>은 상대 스피드 ▼, <b>모래뿜기·넘치는씨</b>는 모래바람·그래스필드, <b>분노의껍질</b>은 체력 절반 아래에서 능력 변화, <b>변색</b>은 맞은 기술 타입으로 변해요.","<b>무효·막기</b>: <b>노릇노릇바디</b>(불꽃 무효), <b>바람타기</b>(바람 기술 무효, 순풍이 켜지면 공격 ▲), <b>정화의소금·절대안깸</b>(상태이상 전부 막기), <b>플라워베일</b>(풀 타입 보호), <b>테일아머·여왕의위엄·비비드바디</b>(상대 선공기 막기), <b>황금몸</b>(상대 변화 기술 무효).","<b>공격 쪽</b>: <b>트랜지스터</b>(전기 ×1.3), <b>브레인포스</b>(효과 굉장 ×1.25), <b>변환자재·리베로</b>(모든 기술에 자속 보너스), <b>드래곤스킨</b>, <b>배짱·심안</b>(노말·격투가 고스트에도 들어가요), <b>무도한행동</b>(독인 상대엔 항상 급소), <b>소울하트·백의울음·흑의울음</b>(쓰러뜨리면 능력 ▲), <b>나이트메어</b>(잠든 상대가 서서히 아파요), <b>내용물분출</b>(쓰러질 때 상대도 아파요).","<b>어떻게 써요?</b> 해당 특성 포켓몬으로 천계(난이도 6) 이상에서 싸우면 자동 적용돼요."]}]},
  {v:2026112078,date:'11월 22일',t:'하계 체육관 장치 8곳',items:[{img:"",h:"🏟 하계(성도)의 체육관마다 다른 장치가 생겼어요",p:["<b>어떻게 만나요?</b> 난이도 8(하계)에서 도라지·고동·금빛·인주·담청·진청·황토·검은먹 체육관에 들어가 관장과 싸우면 바닥에 장치가 나와요. 싸움 시작 때 위쪽에 설명 글이 떠요.","<b>도라지(비행)</b> 돌풍이 위아래로 몰아쳐요 · <b>고동(벌레)</b> 거미줄·끈끈한 실로 느려져요 · <b>금빛(노말)</b> 범퍼와 구르는 공 · <b>인주(고스트)</b> 어두운 곳에서 도깨비불을 피해요.","<b>담청(격투)</b> 상자가 기술을 막아 주고 파도가 휩쓸어요 · <b>진청(강철)</b> 자석 기둥이 끌어당기고 전류가 흘러요 · <b>황토(얼음)</b> 바닥이 미끄럽고 싸라기눈이 내려요 · <b>검은먹(드래곤)</b> 가운데 불길과 용의 숨결이 와요.","<b>누가 당해요?</b> 해로운 장치는 <b>상대에게만</b> 걸리고, 이로운 장치는 <b>내 포켓몬만</b> 받아요. 빨간 점선 칸이 보이면 곧 지나가니 피하세요. 체육관 타입과 같은 타입은 장치 피해를 안 받아요."]}]},
