@@ -74,6 +74,8 @@ function abEnterOne(e,foe,k){
     R.ter=t;R.tt=RZ3_TER_SEC;R.tx=e.x;R.ty=e.y;R.gt=RZ3_GRASS_EVERY;say(AB_NAME[k]+'!',T.c);W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.8,r:180,c:T.c});
     return;
   }
+  if(k==='INTREPIDSWORD'){abStage(e,'atk',1,true);say('불요의검!','#ffb347');return}   // G
+  if(k==='DAUNTLESSSHIELD'){abStage(e,'def',1,true);say('불굴의방패!','#7fb5ff');return}
   if(k==='INTIMIDATE'){
     if(!foe||foe.hp<=0)return;say('위협!','#ffb347');
     if(AB_NOINTIM.some(x=>abHas(foe,x))){floatTxt(foe.x,foe.y-90,'소용없다!','#9cf');return}
@@ -114,6 +116,8 @@ function abGuard(att,def,m,e){
   if(abHas(def,'SAPSIPPER')&&ty==='GRASS'){say('초식!');abStage(def,'atk',1,true);return true}
   if(abHas(def,'WONDERGUARD')&&m.p>0&&e<2){say('불가사의부적!');return true}
   if(abHas(def,'SOUNDPROOF')&&fl.includes('Sound')){say('방음!');return true}
+  if(abHas(def,'BULLETPROOF')&&fl.includes('Bullet')){say('방탄!');return true}
+  if(abHas(def,'EARTHEATER')&&ty==='GROUND'&&!(W.rz3&&rz3Grav(att))){say('흙먹기!');heal();return true}
   if(abHas(def,'OVERCOAT')&&fl.includes('Powder')){say('방진!');return true}
   return false}
 // 상태이상 막기: 상태 이름 → 막는 특성
@@ -151,10 +155,13 @@ function abAfterHit(att,def,m,dmg,crit,hb){
   if(aab&&att.hp>0){
     if(def.hp<=0&&abHas(att,'MOXIE')){abStage(att,'atk',1,true);floatTxt(att.x,att.y-130,'자기과신!','#ffb347',true)}
     if(def.hp>0&&contact&&abHas(att,'POISONTOUCH'))setAil(def,'poison',AB_CONTACT_CH*100);
+    if(def.hp<=0&&abHas(att,'BEASTBOOST')){abStage(att,m.phys?'atk':'spa',1,true);floatTxt(att.x,att.y-130,'비스트부스트!','#ffb347',true)}   // G: 쓰러뜨리면 방금 쓴 기술 쪽 능력 +1(원작은 가장 높은 능력치)
+    if(def.hp>0&&abHas(att,'TOXICCHAIN'))setAil(def,'poison',30);
     if(def.hp>0&&abHas(att,'STENCH'))setAil(def,'flinch',10);   // 원본 flinchChance=.1
   }
 }
 // 맞는 쪽·때리는 쪽 특성이 주는 피해 배율 (원본 consts.mul 값 그대로)
+const AB_AURA=1.33,AB_RUIN=1/.75;   // 다크·페어리오라 ×1.33 · 재앙의 4종은 상대 능력치 ×0.75라서 내 피해 ×1.333 / 받는 피해 ×0.75
 function abDmg(att,def,m,e,crit){
   let x=1;const a=att&&att.ab,d=def&&def.ab;
   if(a&&a.length){
@@ -173,6 +180,17 @@ function abDmg(att,def,m,e,crit){
     if(abHas(att,'RECKLESS')&&ef.some(f=>f.op==='recoil'))x*=1.2;
     if(abHas(att,'SHEERFORCE')&&ef.some(f=>(f.op==='status'||(f.op==='stat'&&f.who!=='user'))&&f.chance!=null&&f.chance<100))x*=1.3;
     if(abHas(att,'SNIPER')&&crit)x*=1.5;
+    // G(코드 없는 특성 중 배율형): 값은 원작 기준으로 내가 정함
+    if(abHas(att,'DARKAURA')&&ty==='DARK')x*=AB_AURA;
+    if(abHas(att,'FAIRYAURA')&&ty==='FAIRY')x*=AB_AURA;
+    if((abHas(att,'STEELWORKER')||abHas(att,'STEELYSPIRIT'))&&ty==='STEEL')x*=1.5;
+    if(abHas(att,'DRAGONSMAW')&&ty==='DRAGON')x*=1.5;
+    if(abHas(att,'SHARPNESS')&&fl.includes('Slicing'))x*=1.5;
+    if(abHas(att,'PUNKROCK')&&fl.includes('Sound'))x*=1.3;
+    if(ph&&abHas(att,'TOXICBOOST')&&att.ail.poison)x*=1.5;
+    if(!ph&&abHas(att,'FLAREBOOST')&&att.ail.burn)x*=1.5;
+    if(ph&&abHas(att,'SWORDOFRUIN'))x*=AB_RUIN;
+    if(!ph&&abHas(att,'BEADSOFRUIN'))x*=AB_RUIN;
     if(abHas(att,'ANALYTIC')&&def&&def.cast&&def.cast.phase==='recovery')x*=1.3;   // F: 애널라이즈 — 상대가 기술을 쓰고 쉬는 중일 때
     if(abHas(att,'PARENTALBOND')&&m.k!=='beam'&&!(m.hits>1)&&!(m.d&&m.d.fan>1))x*=1.25;   // F: 부자유친 — 한 방짜리 기술
     if(abHas(att,'TINTEDLENS')&&e>0&&e<1)x*=2;
@@ -189,6 +207,9 @@ function abDmg(att,def,m,e,crit){
     if(abHas(def,'ICESCALES')&&!ph)x*=.5;
     if(abHas(def,'DRYSKIN')&&ty==='FIRE')x*=1.25;
     if(ph&&abHas(def,'FURCOAT'))x*=.5;
+    if(abHas(def,'PUNKROCK')&&fl.includes('Sound'))x*=.5;
+    if(ph&&abHas(def,'TABLETSOFRUIN'))x/=AB_RUIN;
+    if(!ph&&abHas(def,'VESSELOFRUIN'))x/=AB_RUIN;
     if(ph&&abHas(def,'MARVELSCALE')&&abStatus(def))x/=1.5;
   }
   return x}
