@@ -294,7 +294,8 @@ function mkEnt(mon,S,side,hp0){
     stg:{atk:0,def:0,spa:0,spd:0,spe:0},stgT:0,
     ail:{},hidden:false,protect:0,critWin:0,anim:'idle',at:0,row:side?6:2,blink:0,hold:0,beam:null,counter:0,flash:0};
   e.haste=hasteOf(s[5]);
-  e.ab=[];try{if(C.abils&&!C.net&&!C.pvp&&!C.meTeam)e.ab=C.abils(mon)||[]}catch(er){e.ab=[]}   // ② 특성(난이도 6 이상, 사람끼리 대전 제외)
+  e.ab=[];try{if(C.abils&&!C.net&&!C.pvp&&!C.meTeam&&!side)e.ab=C.abils(mon)||[]}catch(er){e.ab=[]}   // 사용자 결정(2026-11-22): 특성은 내 포켓몬(side 0)만 — 컴퓨터(상대)는 특성 없이 당하기만 함
+  //   // ② 특성(난이도 6 이상, 사람끼리 대전 제외)
   // 9AD 거대 월드보스(카오스·이터널): 보스는 화면 높이 72%까지 커지고(화면 밖으로 안 나감) 내 포켓몬은 70%
   if(C.giant){try{const A=S&&S.meta&&S.meta.anims&&S.meta.anims.idle;
     if(side===1&&A){const gv=Math.max(1.3,Math.min(AH*.72/Math.max(1,A.h*sc),AW*.42/Math.max(1,A.w*sc)));e.sc0=sc;e.gK=gv;e.gT=0;e.giant=1;e.gw=A.w*sc*gv;e.gh=A.h*sc*gv;e.r=Math.round(Math.min(e.r*1.6,SIZE.rmax*1.4))}
