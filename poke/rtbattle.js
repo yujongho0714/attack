@@ -487,6 +487,11 @@ function wxMove(e,f){
 // 날씨 때문에 준비 동작이 짧아지는 기술(원본 noCharge): 쾌청=솔라빔·솔라블레이드 · 비=전기쇼트 → 내 쪽만, 준비 17틱까지 줄어듦
 // (원본 noChargeWindupSec 값은 자료에 없어서 속도 단축 바닥값 17틱을 씀)
 const WX_NOCHG={sun:['solarbeam','solarblade'],rain:['electroshot']},WX_NOCHG_T=17;
+// 비 오면 내 허리케인이 빨리 떨어짐(원본 weatherFall rain delaySec .22). 쾌청에서 느려지는 쪽은 내게 해로워서 뺌
+function wxFall(e,m,t){
+  try{if(!e.side&&W&&W.wx&&W.wx.k==='rain'&&wxOn()&&m&&m.id&&String(m.id).toLowerCase()==='hurricane'){
+    floatTxt(e.x,e.y-135,'바로 떨어진다!','#6ab0ff',true);return .22}}catch(er){}
+  return t}
 function wxSu(e,m,su){
   try{const w=W&&W.wx&&W.wx.k;if(e.side||!w||!(su>WX_NOCHG_T)||!wxOn())return su;
     const a=WX_NOCHG[w];if(a&&m&&m.id&&a.indexOf(String(m.id).toLowerCase())>=0){
@@ -1102,7 +1107,7 @@ function fire(e,c){
     {const z=W.zones[W.zones.length-1];skillFx(e,m,{x:e.x,y:e.y},{x:z.x,y:z.y},{force:1})}
     toRecovery(e,c);
   } else if(k==='delayed'){
-    W.delays.push({o:e,mi:c.mi,x:tgt.x,y:tgt.y,t:2.2,r:e.side?58:88,col:C.TCOL[m.type]||'#fff',lock:false,tgt});
+    W.delays.push({o:e,mi:c.mi,x:tgt.x,y:tgt.y,t:wxFall(e,m,2.2),r:e.side?58:88,col:C.TCOL[m.type]||'#fff',lock:false,tgt});
     toRecovery(e,c);
   } else if(k==='target'){
     if(tgt.hp>0&&len(tgt.x-e.x,tgt.y-e.y)<=550+tgt.r){
