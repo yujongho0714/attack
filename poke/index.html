@@ -2869,7 +2869,7 @@ async function itRun(k,it,m,go){
   try{if(!document.querySelector('.panel'))bagOpen()}catch(e){}}
 
 // ===== 포켓몬 편성 (출전 최대 6마리 · 나머지는 보관함) =====
-function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf${m.aw?' awk':''}"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${dLv(m)}</small>${m.lb?`<small class="tlb">${'★'.repeat(m.lb)}</small>`:''}${(w==='p'&&(lbEff(m)>(m.lb|0)||awEff(m)>awOf(m)))?`<small class="tlb" style="color:#1d8a3a">🤝 팀 공유 ★${lbEff(m)} · 각성 ${awEff(m)}</small>`:''}<div>${awStars(m)}</div><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
+function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf${m.aw?' awk':''}"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${dLv(m)}</small>${m.lb?`<small class="tlb">${window.lbStars?window.lbStars(m.lb):'★'.repeat(m.lb)}</small>`:''}${(w==='p'&&(lbEff(m)>(m.lb|0)||awEff(m)>awOf(m)))?`<small class="tlb" style="color:#1d8a3a">🤝 팀 공유 ★${lbEff(m)} · 각성 ${awEff(m)}</small>`:''}<div>${awStars(m)}</div><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
   openPanel('포켓몬 편성 · 출전 '+G.party.length+' / 6',`<h4>출전 중 (최대 6마리)</h4><div class="tg">${G.party.map((m,i)=>row(m,i,'p')).join('')}${Array(6-G.party.length).fill(nxt?`<div class="tm empty add"><span>빈 자리</span><button data-add="1">＋ 추천순 <small>${nm(nxt)} Lv.${dLv(nxt)}</small></button></div>`:'<div class="tm empty">빈 자리</div>').join('')}</div>
     <h4>보관함 ${G.box.length}마리</h4><div class="tg">${G.box.length?G.box.map((m,i)=>row(m,i,'b')).join(''):'<small>보관함이 비어 있어요</small>'}</div>`,null,p=>{
     p.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{if(G.party.length>=6||!G.box.length)return;const best=G.box.map((m,i)=>({i,s:recScore(m)})).sort((a,c)=>c.s-a.s)[0];const m=G.box.splice(best.i,1)[0];G.party.push(m);sfx('get');save();refreshSpr();toast('추천순 · '+nm(m)+' 출전!');teamOpen()});
@@ -3499,7 +3499,7 @@ function lbCanUp(m){const lb=m.lb||0,need=lb+1;return lb<LBMAX&&m.lv>=lvCapOf(m)
 function lbCan(){try{return [...G.party,...G.box].some(lbCanUp)}catch(e){return false}}
 function lbOpen(){if(!G)return;const L=[...G.party,...G.box].filter(m=>m.lv>=lvCapOf(m)||(m.lb||0)>0).sort((a,b)=>((b.lv>=lvCapOf(b))-(a.lv>=lvCapOf(a)))||((b.lb||0)-(a.lb||0))||(b.lv-a.lv)).slice(0,60);
   const body=L.length?L.map((m,i)=>{const lb=m.lb||0,need=lb+1,d=lbDupes(m),c=G.bag.candy||0,max=lb>=LBMAX,cap=lvCapOf(m),ready=m.lv>=cap;
-    return `<div class="hrow ${max?'ok':''}"><img src="${THUMB[m.n]||''}" style="width:48px;height:48px;object-fit:contain"><span><b>${nm(m)} <u class="lbs">${'★'.repeat(lb)}${'☆'.repeat(LBMAX-lb)}</u></b><small>Lv.${m.lv} / ${cap} · 능력치 +${lb*4}% · ${max?'최대!':'다음 ★'+(lb+1)+' → 레벨 제한 Lv.'+(cap+100)+' · 능력치 +'+(lb+1)*4+'%'}</small>${max?'':ready?`<small>재료: 같은 포켓몬 중복 카드 ${need}장 (가진 것 ${d}) 또는 이상한사탕 ${need*5}개 (가진 것 ${c})</small>`:`<small>Lv.${cap}까지 키우면 한계돌파할 수 있어요</small>`}</span>
+    return `<div class="hrow ${max?'ok':''}"><img src="${THUMB[m.n]||''}" style="width:48px;height:48px;object-fit:contain"><span><b>${nm(m)} <u class="lbs">${window.lbStars?window.lbStars(lb,1):'★'.repeat(lb)+'☆'.repeat(LBMAX-lb)}</u></b><small>Lv.${m.lv} / ${cap} · 능력치 +${lb*4}% · ${max?'최대!':'다음 ★'+(lb+1)+' → 레벨 제한 Lv.'+(cap+100)+' · 능력치 +'+(lb+1)*4+'%'}</small>${max?'':ready?`<small>재료: 같은 포켓몬 중복 카드 ${need}장 (가진 것 ${d}) 또는 이상한사탕 ${need*5}개 (가진 것 ${c})</small>`:`<small>Lv.${cap}까지 키우면 한계돌파할 수 있어요</small>`}</span>
      ${max||!ready?'':`<button data-lbd="${i}" ${d>=need?'':'disabled'}>카드로</button><button data-lbc="${i}" ${c>=need*5?'':'disabled'}>사탕으로</button>`}</div>`}).join(''):'<p class="hhint">아직 한계돌파할 포켓몬이 없어요. 포켓몬을 Lv.100까지 키우면 한계돌파 ★를 올릴 수 있어요.</p>';
   openPanel('한계돌파',`<p class="hhint">환생은 <b>한계돌파</b>로 바뀌었어요! 레벨이 1로 돌아가지 않아요. ★ 하나마다 <b>레벨 제한 +100</b> · 모든 능력치 +4% (최대 ★${LBMAX} = Lv.${100+100*LBMAX}). 중복 카드는 카드팩·사파리·도감 사냥으로 모아요.</p><p class="hhint">이상한사탕은 <b>Lv.100까지만</b> 레벨업에 써요. 그 위는 싸워서 키워요 (사탕은 한계돌파 재료로는 계속 써요).</p>${body}`,null,p=>{
     const go=(i,kind)=>{const m=L[i];if(!m||!lbCanUp(m))return;const need=(m.lb||0)+1;if(kind==='d'){if(lbDupes(m)<need)return;let n=need;G.dupes=G.dupes.filter(x=>{if(n>0&&x.kind==='P'&&x.id===META[m.n].dex){n--;return false}return true})}else{if((G.bag.candy||0)<need*5)return;G.bag.candy-=need*5}
@@ -8361,7 +8361,9 @@ const st=document.createElement('style');st.textContent=`
 .aw2 .sg.x{--bd:#262b40;--hi:#6f7896;--c1:#a2abc6;--c2:#6c7491;--c3:#454c68;--gl:transparent;--dk:#1b1f30;opacity:.85}
 .aw2 .sg.x::before,.aw2 .sg.x::after,.aw2 .sg.o::before{display:none}
 .aw2 .sg.o::after{opacity:.55;animation-duration:3.6s}
-.aw2.full .sg.p{--bd:#6a4300;--hi:#fff2b0;--dk:#7a4a00;--gl:#ffd23fcc}
+.aw2 .sg.r{--bd:#4a0505;--hi:#ffd0c8;--c1:#ff9a8a;--c2:#ff3b2a;--c3:#a30f0f;--gl:#ff4d3acc;--dk:#6a0a0a}
+.aw2 .sg.g{--bd:#8a5a00;--hi:#ffe680;--c1:#fff0a0;--c2:#ffc933;--c3:#d98a00;--gl:#ffd23f88;--dk:#7a4a00}
+.aw2.lbw{--sz:14px;gap:2px}
 @keyframes awsw{0%{background-position:-80% 0}55%,100%{background-position:170% 0}}
 @keyframes awsp{0%,100%{opacity:0;transform:scale(.2) rotate(0)}14%{opacity:1;transform:scale(1) rotate(45deg)}30%{opacity:0;transform:scale(.3) rotate(90deg)}}
 .tm .tmM{display:block;margin-top:3px;font-size:11.5px!important;padding:3px 9px!important;border:2px solid #2c3050;border-radius:8px;background:#ffe9a8;color:#2c3050;font-weight:900}
@@ -8377,7 +8379,7 @@ const awAdmin=()=>{try{return !!(OPER.on||(typeof isGM==='function'&&isGM()))}ca
 const mkN=(a,b)=>'<b class="'+(a>=b?'awx-ok':'awx-no')+'">'+a.toLocaleString()+' / '+b.toLocaleString()+'</b>'+(a>=b?' ✅':' ❌');
 
 // ---------- ① 2.5D 별 ----------
-function awStarsRaw(a,sl,big){let h='';for(let i=0;i<AWMAX;i++){const k=i<a?'p':i<sl?'o':'x';h+='<i class="sg '+k+'" style="--i:'+i+'"><b></b></i>'}return '<span class="aws aw2'+(big?' big':'')+(a>=AWMAX?' full':'')+'">'+h+'</span>'}
+function awStarsRaw(a,sl,big){let h='';for(let i=0;i<5;i++){const k=a>5?(i<a-5?'r':'p'):(i<a?'p':i<sl?'o':'x');h+='<i class="sg '+k+'" style="--i:'+i+'"><b></b></i>'}return '<span class="aws aw2'+(big?' big':'')+(a>=AWMAX?' full':'')+'">'+h+'</span>'}
 awStars=function(m,big){return awStarsRaw(awOf(m),awSlots(),big)};
 const AWK={p:['#2a0a55','#f0deff','#e2b8ff','#a257ff','#5b1fc7','#b46bff','#3b1480'],o:['#5a3b00','#fff2b0','#ffe680','#ffb81f','#c77800','#ffc933','#7a4a00'],x:['#262b40','#6f7896','#a2abc6','#6c7491','#454c68','#000000','#1b1f30']};
 function awDrawStar(g,x,y,r,kind,T,i){const P=AWK[kind];
@@ -9140,6 +9142,7 @@ setInterval(()=>{try{
 (()=>{
 const B=v=>Math.round((+v||0)*10).toString(36),U=s=>(parseInt(s,36)||0)/10;
 const IX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};
+window.lbStars=function(lb,empty){lb=Math.max(0,Math.min(10,lb|0));let h='';for(let i=0;i<5;i++){let k;if(lb>5)k=i<lb-5?'p':'g';else k=i<lb?'g':(empty?'x':null);if(!k)continue;h+='<i class="sg '+k+'" style="--i:'+i+'"><b></b></i>'}return '<span class="aws aw2 lbw">'+h+'</span>'};   // 한계돌파 ★: 보이는 건 5칸
 // 올릴 때: '@S장비6칸.캐릭터접두사.포켓몬1.포켓몬2…' 한 칸 (옛 클라이언트는 이 칸을 못 읽고 그냥 건너뛰어요)
 window.pvSnap=function(mons){try{const T=gearStats();const g=[T.atk,T.hp,T.def,T.eva,T.crt,T.cdm].map(B).join(',');
  const ms=mons.map(m=>{const a=(window.artStats&&window.artStats(m))||{};return [m.aw|0,a.hp,a.def,a.ign,a.tatk,a.tdmg,a.elem,a.vamp,a.norm].map(B).join(',')});
