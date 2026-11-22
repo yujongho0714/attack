@@ -1956,7 +1956,7 @@ function chooseStarter(){return new Promise(async r=>{await say(['포켓몬 박�
 // ---------- 야생 · 트레이너 ----------
 function wpick(T){const W=T.map(e=>{const r=rarOf(e.n);return e.w*ENCW[r]*(r?DRARE[DIFF()]:1)});const tot=W.reduce((a,b)=>a+b,0);let u=R()*tot;for(let i=0;i<T.length;i++){u-=W[i];if(u<=0)return T[i].n}return T[0].n}
 async function wild(A,kind){const T=kind==='w'?A.enc.w:A.enc.g;if(!T||!T.length)return;let n=wpick(T);try{if(typeof wxSpecial==='function'){const sp=wxSpecial(A,kind,T);if(sp)n=sp}}catch(e){}try{if(typeof rarCapOk==='function'&&!rarCapOk(n)){const L=T.filter(e=>rarCapOk(e.n));if(L.length)n=wpick(L)}}catch(e){}if(AUTO.hunt&&AUTO.hunt.a===G.a&&T.some(e=>e.n===AUTO.hunt.n)&&R()<.35*[1,.6,.35,.15,.1,.1,.1][rarOf(AUTO.hunt.n)])n=AUTO.hunt.n;const [lo,hi]=areaLv(G.a);
-  const wm=mkMon(n,ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc();toast('✨ 반짝! '+SHC[wm.shc].n+' 포켓몬이 나타났다!')}const r=await battle({foes:[wm],rtOk:1,bg:A.th===THEME.town?'meadow':RTH[(G.a-1)/2]});P.grace=ri(4,7);if(r==='lose')await blackout()}
+  const wm=mkMon(n,ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc();toast('✨ 반짝! '+SHC[wm.shc].n+' 포켓몬이 나타났다!')}const r=await battle({foes:[wm],rtOk:1,sea:(kind==='w'&&DIFF()>=6)?1:0,bg:A.th===THEME.town?'meadow':RTH[(G.a-1)/2]});P.grace=ri(4,7);if(r==='lose')await blackout()}
 async function trainerSpot(n){P.busy=1;sfx('enc');toast('❗');await sleep(400);P.busy=0;await say([n.name+': '+n.lines[0]]);
   const r=await battle({trainer:n.name,foes:n.team.map(t=>mkMon(t.n,t.lv)),money:Math.max(...n.team.map(t=>t.lv))*30,lose:pick(['으악, 졌다!','강하구나…!','다음엔 안 질 거야!']),bg:RTH[(G.a-1)/2]});
   if(r==='win'){G.beat[n.id]=1;save()}else if(r==='lose')await blackout()}
@@ -8825,9 +8825,9 @@ const css=document.createElement('style');
 css.textContent='#rtBtn{position:fixed;z-index:6;left:calc(8px + env(safe-area-inset-left));bottom:calc(344px + env(safe-area-inset-bottom));display:none;align-items:center;gap:6px;padding:6px 10px;border:0;cursor:pointer;font:700 14px "Galmuri11",sans-serif;color:#1c2550;background:#ffb3b3;box-shadow:0 0 0 3px #1c2550,0 0 0 5px #ffd23f}#rtBtn.show{display:flex}';
 document.head.appendChild(css);
 function loadRtb(){return window.RTB?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='rtbattle.js?v='+Date.now();s.onload=()=>{const g=document.createElement('script');g.src='gymfx.js?v='+Date.now();g.onload=g.onerror=ok;document.head.appendChild(g)};s.onerror=()=>no(new Error('rtbattle.js'));document.head.appendChild(s)})}
-/* 1/3: 체육관 경기장 장치 — 지금 지방의 체육관 번호(1~8) → 장치 이름 (관동만, 호연·신오는 2/3·3/3에서) */
-const GXK={m:['pewter','cerulean','vermilion','celadon','fuchsia','saffron','cinnabar','viridian'],h:['rustboro','dewford','mauville','lavaridge','petalburg','fortree','mossdeep','sootopolis']};
-function gxKeyOf(o){try{if(!o||!(o.gym>=1&&o.gym<=8))return null;const r=window.REGOF?REGOF():'m';const a=GXK[r];return a?a[o.gym-1]:null}catch(e){return null}}
+/* 1/3: 체육관 경기장 장치 — 지금 지방의 체육관 번호(1~8) → 장치 이름 (관동·호연·신오, 난이도 6 이상만) */
+const GXK={m:['pewter','cerulean','vermilion','celadon','fuchsia','saffron','cinnabar','viridian'],h:['rustboro','dewford','mauville','lavaridge','petalburg','fortree','mossdeep','sootopolis'],s:['oreburgh','eterna','veilstone','pastoria','hearthome','canalave','snowpoint','sunyshore']};
+function gxKeyOf(o){try{if(DIFF()<6)return null;if(o&&o.sea)return 'sea';if(!o||!(o.gym>=1&&o.gym<=8))return null;const r=window.REGOF?REGOF():'m';const a=GXK[r];return a?a[o.gym-1]:null}catch(e){return null}}
 async function rtGo(){
   if(window.__rtRun)return;window.__rtRun=1;
   try{
@@ -9173,6 +9173,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112060,date:'11월 22일',t:'신오 체육관과 바다에도 장치가 생겼어요',items:[{img:"ui/news/n34_gym_sinnoh.webp",h:"🏟 신오 체육관 장치 8가지 + 바다 경기장",p:["<b>천상계(신오 지방)</b> 체육관에서 새 전투로 싸우면 1번부터 <b>떨어지는 바위와 광석 · 덩굴벽 · 링 로프 · 차오르는 물 · 조명 무대 · 올라오는 강철 판 · 굴러가는 눈덩이 · 등대 빛줄기</b>가 차례로 나와요.","전투 시작할 때 화면 위에 <b>장치 설명</b>이 7초 동안 보여요. 빨간 원이나 깜빡이는 칸은 곧 터진다는 뜻이니 구르기로 피하세요.","<b>천계(6) 이상의 물 위 야생 전투</b>는 바다 경기장에서 싸워요 (장치는 없고 그림만 바뀌어요).","⚠ 이제 체육관 장치는 <b>천계(6) 이상</b>에서만 나와요. 쉬움~종말의 관동 체육관에서는 장치가 없어졌어요."]}]},
  {v:2026112059,date:'11월 22일',t:'호연 체육관에도 장치가 생겼어요 (8곳)',items:[{img:"ui/news/n33_gym_hoenn.webp",h:"🏟 호연 체육관 장치 8가지",p:["<b>천계(호연 지방)</b> 체육관에서 새 전투로 싸우면 1번부터 <b>낙석 · 어두운 도장과 샌드백 · 전류줄 · 온천과 뜨거운 모래 · 훈련 메뉴 · 바람길과 구름 발판 · 트릭룸과 순간이동 발판 · 깨지는 얼음판</b>이 차례로 나와요.","전투 시작할 때 화면 위에 <b>그 체육관의 장치 설명</b>이 7초 동안 보여요. 빨간 점선이나 깜빡이는 노란 칸은 곧 터진다는 뜻이니 구르기로 피하세요.","장치에 면역인 타입이 있어요 (예: 전류줄은 전기·땅 타입이 안전, 바람길은 비행 타입이 안전)."]}]},
  {v:2026112058,date:'11월 22일',t:'체육관 경기장에 장치가 생겼어요 (관동 8곳)',items:[{img:"ui/news/n32_gym_arena.webp",h:"🏟 체육관마다 다른 장치",p:["관동 체육관에서 새 전투로 싸우면 <b>바위 · 물웅덩이 · 전기 발판 · 풀밭 · 독웅덩이 · 순간이동 발판 · 분화구 · 모래늪</b>이 나와요.","전투 시작할 때 화면 위에 <b>그 체육관의 장치 설명</b>이 7초 동안 보여요. 빨간 점선이 깜빡이면 곧 터진다는 뜻이니 구르기로 피하세요.","장치에 면역인 타입이 있어요 (예: 전기 발판은 전기·땅 타입이 안전)."]}]},
  {v:2026112057,date:'11월 22일',t:'하계 전투 배경이 새로 생겼어요',items:[{img:"",h:"🔥 하계에서 싸우면 배경이 달라져요",p:["하계의 길 · 마을에서 싸우면 <b>용암 · 버섯 숲 · 신사 · 뼈 무덤 · 안개 · 수정 동굴 · 감옥 · 룬 궁전</b> 등 장소마다 다른 배경이 나와요.","관장 · 챔피언 전투의 <b>왜곡세계</b> 배경도 새 그림으로 바뀌었어요. 어두운 허공에 떠 있는 룬 돌판이에요."]}]},

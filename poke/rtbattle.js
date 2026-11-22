@@ -260,7 +260,10 @@ function dealDamage(att,def,mi,opt){
   let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1)*(att.zb&&att.zb.on>0?1.3:1);   // 9F 만제 버프
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
-  if(att.gxPow&&att.gxPow.t===m.type)dmg*=att.gxPow.m;   // 1/3: 체육관 물웅덩이 안 물 기술 ×1.25
+  if(att.gxPow&&(att.gxPow.all||att.gxPow.t===m.type))dmg*=att.gxPow.m;   // 1/3: 체육관 물웅덩이 안 물 기술 ×1.25 (3/3: all=모든 기술)
+  if(def.gxTake>0&&def.gxTake!==1)dmg*=def.gxTake;   // 3/3: 받는 피해 배율(광석·강철 판)
+  if(att.gxMelT>0&&m.melee&&!opt.chain){dmg*=1.3;att.gxMelT=0}   // 3/3: 로프 반동 뒤 다음 근접 ×1.3
+  if(att.gxChgT>0&&m.type==='ELECTRIC'){dmg*=1.3;att.gxChgT=0}   // 3/3: 등대 충전 뒤 다음 전기 기술 ×1.3
   if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;{const _dd=((def.gear&&def.gear.def)||0)+((def.gear&&def.gear.aA&&def.gear.aA.def)||0);if(_dd)dmg*=1-Math.min(.6,_dd*(1-_ign)/100)}   // 8F 장비 공격력·방어력 (+아티팩트 방어력, 방어력 무시는 그만큼 깎아요)
   if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트: 총공격력·총데미지·모든속성·보스/일반 공격력
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}   // 7D: 기술 레벨 +8%/레벨 · 난이도별 상대 데미지(예전 전투 DDMG)
@@ -282,6 +285,7 @@ function dealDamage(att,def,mi,opt){
   if(dmg>0&&att.gear&&att.gear.aA&&att.gear.aA.vamp&&att.hp>0){const _vh=Math.min(att.max-att.hp,att.max*.05,Math.round(Math.min(dmg,_hb)*att.gear.aA.vamp/100));if(_vh>0){att.hp+=_vh;floatTxt(att.x,att.y-100,'+'+fmtN(_vh*kOf(att)),'#6f6')}}   // 9BZ 아티팩트 흡혈
   if(def.hp<=0&&def.undying&&!def._ud){def._ud=1;def.hp=Math.round(def.max*.5);const s=def.aw>0?10+3*(def.aw-1):1;def.inv=Math.max(def.inv||0,Math.round(s*60));def.invMax=def.inv;cancelCast&&def.cast&&cancelCast(def,true);floatTxt(def.x,def.y-125,'불멸 부활!'+(def.aw>0?' 무적 '+s+'초':''),'#8fb4ff',true);W.hitstop=Math.max(W.hitstop||0,.15);try{W.fx.push({k:'ring',sys:1,x:def.x,y:def.y,t:0,life:.5,r:110,c:'#8fb4ff'})}catch(er){}}   // 9B 불멸: 한 번 버팀
   def.flash=.15;
+  if(dmg>0&&m.melee&&!opt.chain&&W.gx&&window.GYMFX&&GYMFX.melee){try{GYMFX.melee(W.gx,att,def)}catch(er){}}   // 3/3: 링에서 근접으로 때리면 상대가 날아감
   if(dmg>0){
     try{window.PKS&&PKS.hit(m,e,crit,!att.side)}catch(er){}
     W._dp={dmg,raw:Math.max(rawD,dmg>0?1:0),e,crit,col:e>1?'#ffb030':crit?'#ffe14a':(C.TCOL[m.type]||'#fff')};
@@ -739,7 +743,7 @@ function doRoll(e){
 }
 function aimFor(e,manual){
   const f=foeOf(e);
-  const toF=f.hp>0?norm(f.x-e.x,f.y-e.y):e.face;
+  const toF=(f.hp>0&&!f.gxHide)?norm(f.x-e.x,f.y-e.y):e.face;   // 3/3: 조명 밖 고스트는 자동조준에 안 잡힘
   if(manual)return manual;
   if(e===W.me&&e.wish&&len(e.wish.x,e.wish.y)>.4){
     const a=Math.atan2(e.wish.y,e.wish.x),b=Math.atan2(toF.y,toF.x);
