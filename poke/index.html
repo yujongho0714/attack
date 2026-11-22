@@ -8955,6 +8955,7 @@ async function rtWild(o){
   const setBS=async(f,faint)=>{const me2=(lastMon&&lastMon.hp>0)?lastMon:(alive()[0]||lastMon||G.party[0]);
     BS.foe={m:f,S:await getSpr(sprKey(f)),st:faint?'faint':'idle',t:0,in:0,hide:faint?1:0};
     BS.me={m:me2,S:await getSpr(sprKey(me2)),st:me2.hp<=0?'faint':'idle',t:0,in:0,hide:me2.hp<=0?1:0};bbox()};
+  try{if(window.leagueIntro)await window.leagueIntro(o)}catch(e){}   // ⑬ 천계·천상계 리그·챔피언 연출
   for(let fi=0;fi<foes.length;fi++){
     const f=foes[fi];try{G.dex.s[META[f.n].dex]=1}catch(e){}
     if(tr){lastMon=alive()[0];await setBS(f,0);showBattleUI(1);
@@ -9203,6 +9204,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112088,date:'11월 22일',t:'천계·천상계 리그·챔피언 입장 연출',items:[{img:"ui/news/n41_celintro.webp",h:"⛩ 리그와 챔피언 앞에서 문이 열리고 포털이 켜져요",p:["<b>어디서 보여요?</b> 난이도 6(천계)에서 사천왕·챔피언과 싸우기 직전에 <b>흰 대리석 문이 열리는</b> 장면이, 난이도 7(천상계)에서는 <b>은하 포털이 깨어나는</b> 장면이 한 번 나와요.","<b>어떻게 해요?</b> 기다리면 저절로 전투가 시작돼요. 건너뛰고 싶으면 <b>화면을 한 번 누르면</b> 바로 넘어가요. 난이도 5 이하·하계·명계는 그대로예요."]}]},
  {v:2026112087,date:'11월 22일',t:'하계 리그·챔피언 배경',items:[{img:"ui/news/n40_u_league.webp",h:"🔥 하계의 리그와 챔피언 방이 새 그림으로 바뀌었어요",p:["<b>어디서 보여요?</b> 난이도 8(하계)에서 <b>사천왕·리그</b>와 싸우면 쇠창살 문과 깃발, 불꽃 화로가 있는 용암 지옥 홀이 나와요. <b>챔피언</b>과 싸우면 마법진 한가운데 불꽃 고리가 타오르는 방이 나와요.","<b>어떻게 해요?</b> 평소처럼 싸우면 돼요. 판정과 장치는 그대로, 그림만 바뀌었어요. 난이도 7 이하와 명계는 예전 그대로예요."]}]},
  {v:2026112086,date:'11월 22일',t:'천계·천상계 전투 배경과 체육관 바닥',items:[{img:"ui/news/n39_celmaps.webp",h:"☁ 천계는 흰 대리석 신전, 천상계는 우주 황금 그림으로 바뀌었어요",p:["<b>어디서 보여요?</b> 난이도 6(천계)과 7(천상계)에서 야생·트레이너·체육관 관장과 싸울 때 바닥과 둘레 장식이 <b>새 그림</b>으로 나와요. 체육관 1~8번은 바닥 그림이 서로 달라요.","<b>천계 7곳</b>: 구름 길 · 신전 · 룬 돌바닥 · 별 흑요석 · 황금 무늬 · 부서진 신전 · 리그의 문. <b>천상계 7곳</b>: 우주 심연 · 황금 격자 · 천상 모래 · 원시 돌 · 전송 마법진 · 대리석 광장 · 리그 탑.","<b>어떻게 해요?</b> 평소처럼 싸우면 돼요. 판정과 장치는 그대로, 그림만 바뀌었어요. 난이도 5 이하·하계·명계는 예전 그대로예요."]}]},
  {v:2026112085,date:'11월 22일',t:'천계·천상계 바다 싸움터',items:[{img:"ui/news/n38_celsea.webp",h:"🌊 천계와 천상계에도 하늘 바다가 생겼어요",p:["<b>어디서 보여요?</b> 난이도 6(천계)과 난이도 7(천상계)의 <b>바닷가 전투와 바다 경기장</b>이 반짝이는 하늘 바다 그림으로 나와요. 천상계는 무지개빛이 살짝 더 많아요.","<b>무엇이 새로워요?</b> 날개 달린 심판석, 황금 아치 터널, 대리석 부두, 날개 달린 경계 표지, 신성한 바위 구석이 놓여 있어요.","<b>어떻게 해요?</b> 평소처럼 싸우면 돼요. 판정과 장치는 그대로, 그림만 바뀌었어요. 난이도 5 이하와 하계·명계 바다는 예전 그대로예요."]}]},
@@ -10614,5 +10616,41 @@ setInterval(()=>{try{if(!G||!ur()||!G.party||!G.party.length||SCENE!=='over'||DL
  else if(b>lb){S.b[r]=b;save();const T=TAG[r];say([T.e+' <b>'+T.n+' '+b+'/8</b>'+(r==='u'?'을 손에 넣었다.':'이 돌아왔다.')].concat(BADGE[r][b]||[]))}
 }catch(e){}},1200);
 }catch(e){console.warn('b10c',e)}})();
+</script>
+<script id="b9lg">
+// ⑬ 천계·천상계 리그·챔피언 연출: 전투 시작 때 한 번 — 천계=문 열림, 천상계=포털 켜짐 (그림만, 판정 영향 없음)
+(function(){
+  const IMG={};
+  const load=u=>IMG[u]||(IMG[u]=new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=no;im.src=u}));
+  window.leagueIntro=async function(o){
+    try{
+      const rg=window.REGCUR;if(rg!=='h'&&rg!=='s')return;
+      const champ=o&&(o.bg==='champ'||/챔피언/.test(o.trainer||''));
+      if(!(o&&(o.bg==='league'||o.bg==='champ'||o.league||champ)))return;
+      const h=rg==='h';
+      const im=await load(h?'ui/cel/intro_door.webp':'ui/cel/intro_portal.webp');
+      const FW=h?208:186,FH=h?182:176;
+      const seq=h?[0,0,1,1,2,2,3,3,3]:[2,2,1,1,0,0,3,3,3];          // 천상계: 성진 입자 → 은하핵 → 심연의 빔 → 후광
+      const title=h?(champ?'👑 챔피언의 문이 열린다…':'⛩ 리그의 문이 열린다…'):(champ?'👑 챔피언의 포털이 열린다…':'🌌 천상의 포털이 깨어난다…');
+      const ov=document.createElement('div');
+      ov.style.cssText='position:fixed;inset:0;z-index:99990;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(4,4,14,.94);opacity:0;transition:opacity .35s;touch-action:none';
+      const w=Math.min(innerWidth*.78,520),hh=w*FH/FW;
+      const cv=document.createElement('canvas');cv.width=FW;cv.height=FH;
+      cv.style.cssText='width:'+w+'px;height:'+hh+'px;image-rendering:pixelated;-webkit-mask-image:radial-gradient(ellipse at center,#000 58%,transparent 98%);mask-image:radial-gradient(ellipse at center,#000 58%,transparent 98%);'+(h?'filter:drop-shadow(0 0 18px rgba(255,230,150,.65))':'mix-blend-mode:screen;filter:drop-shadow(0 0 22px rgba(170,140,255,.8))');
+      const tx=document.createElement('div');
+      tx.textContent=title;tx.style.cssText='color:#ffe9a8;font:900 20px/1.3 sans-serif;text-shadow:0 0 12px #c9a64a,0 2px 0 #000;letter-spacing:1px;opacity:0;transition:opacity .5s';
+      ov.appendChild(cv);ov.appendChild(tx);document.body.appendChild(ov);
+      const cx=cv.getContext('2d');
+      const draw=i=>{cx.clearRect(0,0,FW,FH);cx.drawImage(im,i*FW,0,FW,FH,0,0,FW,FH)};
+      draw(seq[0]);
+      await new Promise(r=>requestAnimationFrame(()=>{ov.style.opacity='1';tx.style.opacity='1';r()}));
+      await new Promise(done=>{
+        let n=0,fin=0;const end=()=>{if(fin)return;fin=1;clearInterval(tm);ov.style.opacity='0';setTimeout(()=>{try{ov.remove()}catch(e){}done()},350)};
+        const tm=setInterval(()=>{n++;if(n>=seq.length+3)return end();draw(seq[Math.min(n,seq.length-1)])},300);
+        ov.addEventListener('pointerdown',end);
+      });
+    }catch(e){try{console.warn('leagueIntro',e)}catch(_){}}
+  };
+})();
 </script>
 </body></html>
