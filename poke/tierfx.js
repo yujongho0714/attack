@@ -126,10 +126,10 @@ class KiAura {
   _renderFlameLayer(ctx, cx, footY, maxW, maxH, color, t, intensity) {
     ctx.save();
     ctx.fillStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = KC.lite?0:18 * intensity;
+    const seeds = this.flameSeeds, N = seeds.length, paths = [];
+    const glow = !KC.lite;   // 렉 줄이기: 번짐(shadowBlur)은 불꽃마다가 아니라 층마다 딱 한 번
 
-    this.flameSeeds.forEach(s => {
+    seeds.forEach(s => {
       const wave = Math.sin(t * s.freq + s.phase);
       const flutter = Math.cos(t * (s.freq * 1.3) + s.phase);
 
@@ -138,23 +138,34 @@ class KiAura {
       const fh = maxH * s.heightRatio * (0.82 + flutter * 0.22);
       const tipX = bx + wave * (maxW * 0.22) - s.offsetX * (maxW * 0.15); 
 
-      ctx.beginPath();
-      ctx.moveTo(bx - bw, footY);
-      
-      ctx.bezierCurveTo(
+      const p = new Path2D();
+      p.moveTo(bx - bw, footY);
+      p.bezierCurveTo(
         bx - bw * 1.15, footY - fh * 0.35,
         tipX - bw * 0.35, footY - fh * 0.75,
         tipX, footY - fh
       );
-      
-      ctx.bezierCurveTo(
+      p.bezierCurveTo(
         tipX + bw * 0.35, footY - fh * 0.75,
         bx + bw * 1.15, footY - fh * 0.35,
         bx + bw, footY
       );
-      ctx.closePath();
-      ctx.fill();
+      p.closePath();
+      paths.push(p);
+      ctx.fill(p);
     });
+
+    if (glow) {
+      // 번짐 한 번: 모양은 화면 밖으로 멀리 그리고 그림자만 제자리에 남김
+      const OFF = 6000, k = (ctx.getTransform ? ctx.getTransform().a : 1) || 1;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 18 * intensity;
+      ctx.shadowOffsetX = OFF;
+      ctx.translate(-OFF / k, 0);
+      const all = new Path2D();
+      paths.forEach(p => all.addPath(p));
+      ctx.fill(all);
+    }
 
     ctx.restore();
   }
@@ -170,7 +181,7 @@ class KiAura {
     ctx.globalCompositeOperation = 'lighter';
 
     
-    this.motes.forEach(m => {
+    this.motes.forEach((m, mi) => {
       m.ry -= 0.025 * m.speed * KC.flowSpeed;
       if (m.ry < -0.95) {
         m.ry = 0.65;
@@ -182,6 +193,7 @@ class KiAura {
       const alpha = Math.sin(((0.65 - m.ry) / 1.6) * Math.PI) * 0.85;
       if (alpha <= 0.05) return;
 
+      if (KC.lite && (mi & 1)) return;   // 느릴 땐 알갱이 절반만
       ctx.save();
       ctx.globalAlpha = alpha;
       if (m.isStreak) {
@@ -198,9 +210,15 @@ class KiAura {
         ctx.stroke();
       } else {
         
+        if (!KC.lite) {   // 번짐 대신 흐린 원 (훨씬 가벼워요)
+          ctx.globalAlpha = alpha * 0.35;
+          ctx.fillStyle = p.particleColor;
+          ctx.beginPath();
+          ctx.arc(px, py, 5.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = alpha;
+        }
         ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = p.particleColor;
-        ctx.shadowBlur = KC.lite?0:10;
         ctx.beginPath();
         ctx.arc(px, py, 2.2, 0, Math.PI * 2);
         ctx.fill();
@@ -275,7 +293,9 @@ function bbox(S){if(S._bb)return S._bb;const A=S.meta.anims.idle,im=S.img.idle;l
   return S._bb=bb}
 // 그리기: 그림 중심 (x,y)·배율 sc 기준으로 몸 상자에 맞춰 기운을 둘러요
 function box(S,x,y,sc){const A=S.meta.anims.idle,b=bbox(S);return[x+(b.x+b.w/2-A.w/2)*sc,y+(b.y+b.h/2-A.h/2)*sc,b.w*sc,b.h*sc]}
-function back(eng,c,S,x,y,sc,r,ms){const k=KEY[r];if(!k||!S||!S.meta)return;const q=box(S,x,y,sc);eng.drawBackKi(c,q[0],q[1],q[2],q[3],k,ms)}
-function front(eng,c,S,x,y,sc,r,ms){const k=KEY[r];if(!k||!S||!S.meta)return;const q=box(S,x,y,sc);eng.drawFrontKi(c,q[0],q[1],q[2],q[3],k,ms)}
+let _fb=-1,_fn=0;
+function budget(ms){const b=Math.floor(ms/12);if(b!==_fb){_fb=b;_fn=0}_fn++;KC.lite=_fn>3?1:0;return _fn<=10}   // 한 프레임 안에서 4번째부터 번짐 끔 · 11번째부터 생략
+function back(eng,c,S,x,y,sc,r,ms){const k=KEY[r];if(!k||!S||!S.meta)return;if(!budget(ms))return;const q=box(S,x,y,sc);eng.drawBackKi(c,q[0],q[1],q[2],q[3],k,ms)}
+function front(eng,c,S,x,y,sc,r,ms){const k=KEY[r];if(!k||!S||!S.meta)return;if(_fn>10)return;const q=box(S,x,y,sc);eng.drawFrontKi(c,q[0],q[1],q[2],q[3],k,ms)}
 window.TFX={KC,KEY,KiAura,spr,back,front,recolor,eng:()=>new KiAura()};
 })();

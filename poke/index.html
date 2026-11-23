@@ -2897,7 +2897,7 @@ async function itRun(k,it,m,go){
   try{if(!document.querySelector('.panel'))bagOpen()}catch(e){}}
 
 // ===== 포켓몬 편성 (출전 최대 6마리 · 나머지는 보관함) =====
-function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf${m.aw?' awk':''}"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${dLv(m)}</small>${m.lb?`<small class="tlb">${window.lbStars?window.lbStars(m.lb):'★'.repeat(m.lb)} <span style="font-size:11px;color:#7a5a10">한계돌파 ${m.lb}/${LBMAX}</span></small>`:''}${(w==='p'&&(lbEff(m)>(m.lb|0)||awEff(m)>awOf(m)))?`<small class="tlb" style="color:#1d8a3a">🤝 팀 공유 ★${lbEff(m)} · 각성 ${awEff(m)}</small>`:''}<div>${awStars(m)} <small style="font-size:11px;color:#6a3aa8">각성 ${awOf(m)}/${AWMAX}</small></div><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
+function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf${m.aw?' awk':''}"><img src="${faceUrl(m.n,r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${dLv(m)}</small>${(w==='p'&&(lbEff(m)>(m.lb|0)||awEff(m)>awOf(m)))?`<small class="tlb" style="color:#1d8a3a">🤝 팀 공유 ★${lbEff(m)} · 각성 ${awEff(m)}</small>`:''}<div>${awStars(m)} <small style="font-size:11px;color:#6a3aa8">한계돌파 ${m.lb|0}/${LBMAX} · 각성 ${awOf(m)}/${AWMAX}</small></div><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
   openPanel('포켓몬 편성 · 출전 '+G.party.length+' / 6',`<h4>출전 중 (최대 6마리)</h4><div class="tg">${G.party.map((m,i)=>row(m,i,'p')).join('')}${Array(6-G.party.length).fill(nxt?`<div class="tm empty add"><span>빈 자리</span><button data-add="1">＋ 추천순 <small>${nm(nxt)} Lv.${dLv(nxt)}</small></button></div>`:'<div class="tm empty">빈 자리</div>').join('')}</div>
     <h4>보관함 ${G.box.length}마리</h4><div class="tg">${G.box.length?G.box.map((m,i)=>row(m,i,'b')).join(''):'<small>보관함이 비어 있어요</small>'}</div>`,null,p=>{
     p.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{if(G.party.length>=6||!G.box.length)return;const best=G.box.map((m,i)=>({i,s:recScore(m)})).sort((a,c)=>c.s-a.s)[0];const m=G.box.splice(best.i,1)[0];G.party.push(m);sfx('get');save();refreshSpr();toast('추천순 · '+nm(m)+' 출전!');teamOpen()});
@@ -8436,14 +8436,19 @@ const st=document.createElement('style');st.textContent=`
  background:linear-gradient(112deg,transparent 38%,rgba(255,255,255,.95) 50%,transparent 62%) -80% 0/260% 100% no-repeat;animation:awsw 2.4s linear infinite;animation-delay:calc(var(--i,0)*.3s)}
 .aw2 .sg::before{content:"";position:absolute;right:-20%;top:-24%;width:48%;height:48%;background:#fff;z-index:3;opacity:0;pointer-events:none;
  clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);animation:awsp 2.4s ease-in-out infinite;animation-delay:calc(var(--i,0)*.3s + .9s)}
-.aw2 .sg.p{--bd:#2a0a55;--hi:#f0deff;--c1:#e2b8ff;--c2:#a257ff;--c3:#5b1fc7;--gl:#b46bffcc;--dk:#3b1480}
+.aw2 .sg.p{--bd:#000;--hi:#f0deff;--c1:#e2b8ff;--c2:#a257ff;--c3:#5b1fc7;--gl:#b46bffcc;--dk:#3b1480}
 .aw2 .sg.o{--bd:#5a3b00;--hi:#fff2b0;--c1:#ffe680;--c2:#ffb81f;--c3:#c77800;--gl:#ffc93388;--dk:#7a4a00}
 .aw2 .sg.x{--bd:#262b40;--hi:#6f7896;--c1:#a2abc6;--c2:#6c7491;--c3:#454c68;--gl:transparent;--dk:#1b1f30;opacity:.85}
 .aw2 .sg.x::before,.aw2 .sg.x::after,.aw2 .sg.o::before{display:none}
 .aw2 .sg.o::after{opacity:.55;animation-duration:3.6s}
-.aw2 .sg.r{--bd:#4a0505;--hi:#ffd0c8;--c1:#ff9a8a;--c2:#ff3b2a;--c3:#a30f0f;--gl:#ff4d3acc;--dk:#6a0a0a}
+.aw2 .sg.r{--bd:#000;--hi:#ffd0c8;--c1:#ff9a8a;--c2:#ff3b2a;--c3:#a30f0f;--gl:#ff4d3acc;--dk:#6a0a0a}
 .aw2 .sg.g{--bd:#8a5a00;--hi:#ffe680;--c1:#fff0a0;--c2:#ffc933;--c3:#d98a00;--gl:#ffd23f88;--dk:#7a4a00}
 .aw2.lbw{--sz:14px;gap:2px}
+.aw2 .sg b s{display:none}
+.aw2 .sg.d{--bd:#000;--hi:var(--c2)}
+.aw2 .sg.d b::before{inset:10%}
+.aw2 .sg.d b s{display:block;position:absolute;inset:17%;background:#000;clip-path:var(--st)}
+.aw2 .sg.d b::after{inset:23%}
 @keyframes awsw{0%{background-position:-80% 0}55%,100%{background-position:170% 0}}
 @keyframes awsp{0%,100%{opacity:0;transform:scale(.2) rotate(0)}14%{opacity:1;transform:scale(1) rotate(45deg)}30%{opacity:0;transform:scale(.3) rotate(90deg)}}
 .tm .tmM{display:block;margin-top:3px;font-size:11.5px!important;padding:3px 9px!important;border:2px solid #2c3050;border-radius:8px;background:#ffe9a8;color:#2c3050;font-weight:900}
@@ -8460,7 +8465,10 @@ const mkN=(a,b)=>'<b class="'+(a>=b?'awx-ok':'awx-no')+'">'+a.toLocaleString()+'
 
 // ---------- ① 2.5D 별 ----------
 function awStarsRaw(a,sl,big){let h='';for(let i=0;i<5;i++){const k=a>5?(i<a-5?'r':'p'):(i<a?'p':i<sl?'o':'x');h+='<i class="sg '+k+'" style="--i:'+i+'"><b></b></i>'}return '<span class="aws aw2'+(big?' big':'')+(a>=AWMAX?' full':'')+'">'+h+'</span>'}
-awStars=function(m,big){return awStarsRaw(awOf(m),awSlots(m),big)};
+// 통합 별 5칸: 한계돌파(노랑 → 6~10은 검정 이중테두리 노랑) 위에 각성(보라 → 6~10은 빨강)이 앞칸부터 덮어써요
+function unStarsRaw(lb,aw,big){lb=Math.max(0,Math.min(10,lb|0));aw=Math.max(0,Math.min(10,aw|0));let h='';for(let i=0;i<5;i++){let k;if(aw>5)k=i<aw-5?'r':'p';else if(i<aw)k='p';else if(lb>5)k=i<lb-5?'g d':'g';else k=i<lb?'g':'x';h+='<i class="sg '+k+'" style="--i:'+i+'"><b><s></s></b></i>'}return '<span class="aws aw2'+(big?' big':'')+(aw>=10?' full':'')+'">'+h+'</span>'}
+window.unStars=unStarsRaw;
+awStars=function(m,big){const a=awOf(m);return unStarsRaw(Math.max(((m&&m.lb)|0),a),a,big)};
 const AWK={p:['#2a0a55','#f0deff','#e2b8ff','#a257ff','#5b1fc7','#b46bff','#3b1480'],o:['#5a3b00','#fff2b0','#ffe680','#ffb81f','#c77800','#ffc933','#7a4a00'],x:['#262b40','#6f7896','#a2abc6','#6c7491','#454c68','#000000','#1b1f30']};
 function awDrawStar(g,x,y,r,kind,T,i){const P=AWK[kind];
   const path=(cx,cy,R)=>{g.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,q=k%2?R*.45:R;g.lineTo(cx+Math.cos(a)*q,cy+Math.sin(a)*q)}g.closePath()};
@@ -9022,7 +9030,7 @@ async function rtGo(){
 window.rtGo=rtGo;
 // ===== 6F-2: 진짜 야생 조우를 새 전투로 (GM/운영자가 켰을 때만 · 자동 중에는 예전 전투) =====
 const rtWildOn=()=>{try{return !!(G&&!BS.on)}catch(e){return false}};   // 10A: 모두(아이들·GM) 새 전투 고정 — 끄는 스위치 없음
-const rtPartyRow=q=>({uid:q.uid,name:nm(q),lv:dLv(q),hp:q.hp,max:stOf(q)[0],face:(()=>{try{return faceUrl(q.n,'Normal')}catch(e){return ''}})(),lbS:(()=>{try{return window.lbStars?window.lbStars(q.lb|0,1):''}catch(e){return ''}})(),awS:(()=>{try{return awStars(q)}catch(e){return ''}})()});   // 10A: 왼쪽 교대 목록용(초상화·별)   // 7C: 모두에게 기본 ON (메뉴 → 🔧 설정에서 끄기)   // 7A: 자동(AUTO) 중에도 새 전투 (내 포켓몬은 AI가 조종)
+const rtPartyRow=q=>({uid:q.uid,name:nm(q),lv:dLv(q),hp:q.hp,max:stOf(q)[0],face:(()=>{try{return faceUrl(q.n,'Normal')}catch(e){return ''}})(),lbS:(()=>{try{return awStars(q)}catch(e){return ''}})(),awS:''});   // 10A: 왼쪽 교대 목록용(초상화·별)   // 7C: 모두에게 기본 ON (메뉴 → 🔧 설정에서 끄기)   // 7A: 자동(AUTO) 중에도 새 전투 (내 포켓몬은 AI가 조종)
 // 7D: 숫자 배율 K = 10^(표시레벨/200) → Lv.1 ×1 · Lv.100 ×3 · 환생3(Lv.400) ×100 · 환생9(Lv.1000) ×10만 (체력·데미지 숫자만, 승패 밸런스와 무관)
 const rtNumK=m=>{try{return Math.min(1e9,Math.pow(10,dLv(m)/200)*(DIFF()>=9?1e4:DIFF()>=8?1e3:DIFF()>=7?100:DIFF()>=6?10:1))}catch(e){return 1}};   // 9C: 천계 숫자 ×10 · 천상계 ×100 (보이는 숫자만)
 // 7D: 예전 전투와 같은 보정 — 기술 레벨(+8%/레벨) · 난이도별 상대 데미지(DDMG)
@@ -9070,7 +9078,7 @@ const rtDmgSkin=(m,id)=>{if(RT_SKMV[id]!=null)return RT_SKMV[id];try{return isMi
 const rtGearOf=m=>{try{const r0=rtReal(m);if(!isMine(r0)){const _g=r0&&r0.pvG;return _g?Object.assign({},_g,_g.aA?{aA:Object.assign({},_g.aA)}:{}):null}let T=null;if(typeof gearStats==='function'){const t=gearStats();if(t.atk||t.hp||t.def||t.eva||t.crt||t.cdm)T=t}
   let A=null;try{A=window.artStats?window.artStats(r0):null}catch(e){}   // 9BZ 아티팩트: 포켓몬마다 따로 (장비와 별개로 g.aA에 담아요)
   if(!T&&!A)return null;const g=T||{atk:0,hp:0,def:0,eva:0,crt:0,cdm:0};if(A)g.aA=A;return g}catch(e){return null}};
-const rtCommon=()=>({wxOn:()=>{try{return DIFF()>=6}catch(e){return false}},abils:m=>{try{if(DIFF()<6)return[];const r=rtReal(m)||m,M=META[r.n]||META[m.n],R=M&&M.rzk&&RZD[M.rzk];return R&&R[4]?R[4].slice():[]}catch(e){return[]}},teraOk:()=>{try{return teraOn()}catch(e){return true}},teraInfo:m=>{try{const T=teraType(m);return{T,n:TN[T]||T,c:tcol(T)}}catch(e){return null}},SGD,hitTier:(m,id)=>{try{return hitTierOf(rtReal(m),id)}catch(e){return{n:1,aw:0}}},mlvOf:(m,id)=>{try{return mlv(rtReal(m),id)}catch(e){return 1}},dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
+const rtCommon=()=>({gmOk:m=>{try{const M=META[m.n];return !!(M&&(M.form==='gmax'||M.form==='emax'))}catch(e){return false}},wxOn:()=>{try{return DIFF()>=6}catch(e){return false}},abils:m=>{try{if(DIFF()<6)return[];const r=rtReal(m)||m,M=META[r.n]||META[m.n],R=M&&M.rzk&&RZD[M.rzk];return R&&R[4]?R[4].slice():[]}catch(e){return[]}},teraOk:()=>{try{return teraOn()}catch(e){return true}},teraInfo:m=>{try{const T=teraType(m);return{T,n:TN[T]||T,c:tcol(T)}}catch(e){return null}},SGD,hitTier:(m,id)=>{try{return hitTierOf(rtReal(m),id)}catch(e){return{n:1,aw:0}}},mlvOf:(m,id)=>{try{return mlv(rtReal(m),id)}catch(e){return 1}},dmgSkin:rtDmgSkin,gearOf:rtGearOf,critOf:m=>rtCritOf(rtReal(m)),onUse:(m,id)=>{const r=rtReal(m);if(!isMine(r)||!r.moves.includes(id))return 0;return useMv(r,id)?mlv(r,id):0},bodySize:rtBody,stOf:m=>stOf(rtReal(m)),numK:m=>rtNumK(rtReal(m)),dLv:m=>{try{return dLv(rtReal(m))}catch(e){return m.lv}},dmgMul:(a,d,id)=>rtDmgMul(rtReal(a),rtReal(d),id),tierOf:m=>{try{return rarM(rtReal(m))}catch(e){return 0}},fast:()=>!!(G&&G.fast),setFast:v=>{try{G.fast=!!v;save()}catch(e){}},potLeft:()=>{const L=POTLIM();return L?Math.max(0,L-(BS.potN||0)):null},tfxOff:()=>!!(G.opt&&G.opt.tfx===0)});
 const rtBgOf=()=>{try{if(BS.bg==='stadium'&&typeof STAD!=='undefined'&&STAD.complete&&STAD.naturalWidth)return STAD;return bgImg(STG[BS.bg]||'grass')}catch(e){return null}};   // 7B: 새 전투 배경
 async function rtWild(o){
   if(!rtWildOn()||!o||o.wb||o.pvp||!o.foes||!o.foes.length)return undefined;
@@ -9102,13 +9110,14 @@ async function rtWild(o){
     if(tr){lastMon=alive()[0];await setBS(f,0);showBattleUI(1);
       if(fi===0)await msg('<b>'+o.trainer+'</b>(이)가 승부를 걸어왔다!',FAST()?500:1000);
       await msg(o.trainer+'(은)는 <b>'+nm(f)+'</b>(을)를 내보냈다!',FAST()?400:800)}
-    const part=new Set();let fres=null;
+    const part=new Set();let fres=null;const gmS={n:0};   // 거다이맥스는 한 트레이너전에서 2번(포켓몬이 바뀌어도 이어서 셈)
+
     while(true){
       const m=alive()[0];if(!m){fres='lose';break}
       lastMon=m;part.add(m.uid);
       const me=Object.assign({},m,{moves:m.moves.slice()});const reserve=alive().length>1;
       const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
-        meHp:m.hp,foeHp:f.hp,aiTier:tier,bg:rtBgOf,gx:gxKeyOf(o),...rtCommon(),party:()=>G.party.map(rtPartyRow),
+        gmS,meHp:m.hp,foeHp:f.hp,aiTier:tier,bg:rtBgOf,gx:gxKeyOf(o),...rtCommon(),party:()=>G.party.map(rtPartyRow),
         pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
         // 6F-4c: 전투 중 회복 아이템(가방에서 1개 차감). 상처약·좋은상처약·고급상처약·오랭/시트러스열매
         items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal})),
@@ -9156,12 +9165,12 @@ async function rtWB(o){
   SCENE='battle';BS.on=1;BS.trainer='월드보스';BS.bg=o.bg||'worldboss';BS.turn=0;BS.potN=0;BS.fx=[];BS.me=BS.foe=null;BS.foes=[f];
   try{FX2.clear()}catch(e){}try{BGM.battle(o)}catch(e){}try{sfx('enc')}catch(e){}
   f.hpx=hx/SC;const H0=stOf(f)[0];f.hp=Math.max(1,Math.min(H0,hp0/SC));
-  let left=WB_TLIM,res='lose';
+  let left=WB_TLIM,res='lose';const gmS={n:0};
   while(left>.5){
     const m=alive()[0];if(!m)break;
     const me=Object.assign({},m,{moves:m.moves.slice()});
     const r=await RTB.start(Object.assign({me,foe:f,getSpr,sprKey,drawPm,stOf,eff:effRaw,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},
-      meHp:m.hp,foeHp:f.hp,aiTier:(window.WBAI&&WBAI())||'T2',bg:rtBgOf,...rtCommon(),numK:()=>SC,
+      gmS,meHp:m.hp,foeHp:f.hp,aiTier:(window.WBAI&&WBAI())||'T2',bg:rtBgOf,...rtCommon(),numK:()=>SC,
       party:()=>G.party.map(rtPartyRow),
       pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
       items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal})),
@@ -9223,7 +9232,7 @@ setInterval(()=>{try{
 (()=>{
 const B=v=>Math.round((+v||0)*10).toString(36),U=s=>(parseInt(s,36)||0)/10;
 const IX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};
-window.lbStars=function(lb,empty){lb=Math.max(0,Math.min(10,lb|0));let h='';for(let i=0;i<5;i++){let k;if(lb>5)k=i<lb-5?'p':'g';else k=i<lb?'g':(empty?'x':null);if(!k)continue;h+='<i class="sg '+k+'" style="--i:'+i+'"><b></b></i>'}return '<span class="aws aw2 lbw">'+h+'</span>'};   // 한계돌파 ★: 보이는 건 5칸
+window.lbStars=function(lb,empty){return window.unStars?window.unStars(lb|0,0):''};   // 한계돌파 ★: 5칸(6~10은 검정 이중테두리)
 // 올릴 때: '@S장비6칸.캐릭터접두사.포켓몬1.포켓몬2…' 한 칸 (옛 클라이언트는 이 칸을 못 읽고 그냥 건너뛰어요)
 window.pvSnap=function(mons){try{const T=gearStats();const g=[T.atk,T.hp,T.def,T.eva,T.crt,T.cdm].map(B).join(',');
  const ms=mons.map(m=>{const a=(window.artStats&&window.artStats(m))||{};return [m.aw|0,a.hp,a.def,a.ign,a.tatk,a.tdmg,a.elem,a.vamp,a.norm].map(B).join(',')});

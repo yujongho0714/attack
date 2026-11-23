@@ -924,6 +924,7 @@ function dealDamage(att,def,mi,opt){
   let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1)*(att.zb&&att.zb.on>0?1.3:1);   // 9F 만제 버프
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
+  if(att.gmx)dmg*=1.6;if(def.gmx)dmg*=.55;   // 거다이맥스: 공격 ×1.6 · 받는 피해 ×0.55
   if(att.gxPow&&(att.gxPow.all||att.gxPow.t===m.type))dmg*=att.gxPow.m;   // 1/3: 체육관 물웅덩이 안 물 기술 ×1.25 (3/3: all=모든 기술)
   if(def.gxTake>0&&def.gxTake!==1)dmg*=def.gxTake;   // 3/3: 받는 피해 배율(광석·강철 판)
   if(att.gxMelT>0&&m.melee&&!opt.chain){dmg*=1.3;att.gxMelT=0}   // 3/3: 로프 반동 뒤 다음 근접 ×1.3
@@ -1266,6 +1267,7 @@ function update(){
     e.at+=TICK;
     e.flash=Math.max(0,e.flash-TICK);e.critWin=Math.max(0,e.critWin-TICK);e.protect=Math.max(0,e.protect-TICK);e.counterT=Math.max(0,(e.counterT||0)-TICK);
     e.healRep=Math.max(0,(e.healRep||0)-TICK);
+    if(e.gmx)gmTick(e);
     if(e.inv>0)e.inv--;   // 9F: 무적 시간 줄어듦(전엔 안 줄어서 불멸 뒤 계속 무적이던 버그)
     e.life+=TICK;
     if(e.cloneDur>0&&!e.cloneUsed&&e.life>1){e.cloneUsed=1;W.clones.push({o:e,t:e.cloneDur,t0:e.cloneDur,cd:.6,ang:rnd()*6,x:e.x,y:e.y});floatTxt(e.x,e.y-115,'분신 소환! '+e.cloneDur+'초','#ffe14a',true);W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.45,r:100,c:'#ffe14a'})}
@@ -1533,7 +1535,8 @@ function aiRange(e){const b=e.moves.filter(m=>m&&m.p>0).sort((x,y)=>y.p-x.p)[0];
 function mkAi(tier){const AT=AI_T[tier]||AI_T.G4;return{T:AT,tier,sawT:0,t:0,s:1,cd:1.2,range:240,tok:Math.min(AT.tokenCap,2),hes:0,burst:0,side:0,phase:'press',pt:rr(AT.pressMinSec,AT.pressMaxSec)}}
 function autoMe(me,foe){
   if(me.hp<=0){me.wish={x:0,y:0};return}
-  if(!W.teraUsed&&W.time>1.2)teraGo();   // 9BC 자동 전투는 알아서 테라스탈
+  if(!W.teraUsed&&W.time>1.2)teraGo();
+  if(W.time>1.2&&gmCan(me))gmGo(me);   // 거다이맥스: 자동 전투는 2번 다 알아서 변신   // 9BC 자동 전투는 알아서 테라스탈
   const ai=W.aiMe;if(ai.uid!==me.mon.uid){ai.uid=me.mon.uid;ai.range=aiRange(me)}   // 교대하면 사거리 다시 계산
   // 잡고 싶은 포켓몬이면(host가 볼 종류를 알려 줌) 체력을 깎다가 낮아지면 공격을 멈추고 볼을 던짐
   let bk=null;if(C.autoBall&&!W.ball&&foe.hp>0){try{bk=C.autoBall()}catch(e){}}
@@ -1566,6 +1569,28 @@ function teraFront(e,ty){const cx=W.ctx,vs=e.vis||110,k=performance.now()/1000,t
   for(let i=0;i<6;i++){const a=k*1.4+i*1.047,r=vs*.45,px=e.x+Math.cos(a)*r,py=ty-vs*.25+Math.sin(a)*r*.5;cx.fillStyle=i%2?'#ffffff':C2;cx.beginPath();cx.moveTo(px,py-9);cx.lineTo(px+6,py);cx.lineTo(px,py+9);cx.lineTo(px-6,py);cx.closePath();cx.fill()}
   const u=(performance.now()-(e.teraAt||0))/900;if(u>=0&&u<1){cx.globalAlpha=1-u;cx.strokeStyle='#ffffff';cx.lineWidth=8*(1-u)+2;cx.beginPath();cx.arc(e.x,ty-vs*.25,vs*(.3+u*1.5),0,7);cx.stroke();cx.strokeStyle=C2;cx.lineWidth=4;cx.beginPath();cx.arc(e.x,ty-vs*.25,vs*(.2+u*1.1),0,7);cx.stroke()}
   cx.restore()}
+// ---------- 거다이맥스 (배틀 전체에서 2번 · 내 거다이맥스 포켓몬만 · 몸이 커지고 16초 동안 공격 ×1.6 · 받는 피해 ×0.55 · 변신 직후 제일 센 기술을 자동 발사) ----------
+const GM_MAX=2,GM_DUR=16;
+const gmS=()=>W.gm||(W.gm=(C&&C.gmS)||{n:0});
+function gmCan(e){try{return !!(W&&!W.over&&!W.tut&&!C.net&&!C.pvp&&C.gmOk&&e&&e===W.me&&e.hp>0&&!e.gmx&&gmS().n<GM_MAX&&C.gmOk(e.mon))}catch(er){return false}}
+function gmGo(e){e=e||(W&&W.me);if(!gmCan(e))return;gmS().n++;
+  e.gmx={t:GM_DUR,fire:.9,tries:0,sc:e.sc,vis:e.vis,r:e.r};e.gmxAt=performance.now();
+  e.sc*=1.5;e.vis*=1.5;e.r=Math.round(e.r*1.25);e.inv=Math.max(e.inv||0,75);W.hitstop=Math.max(W.hitstop||0,.25);
+  try{floatTxt(e.x,e.y-(e.vis||110)-30,'🌋 거다이맥스!','#ff6a5a',true)}catch(er){}
+  try{W.fx.push({k:'ring',sys:1,x:e.x,y:e.y,t:0,life:.7,r:220,c:'#ff4a3a'})}catch(er){}
+  if(W.gBtn)W.gBtn.style.display='none'}
+function gmEnd(e){const g=e.gmx;if(!g)return;e.sc=g.sc;e.vis=g.vis;e.r=g.r;e.gmx=null;try{floatTxt(e.x,e.y-(e.vis||110)-20,'거다이맥스 끝','#cfd8ea',true)}catch(er){}}
+function gmFire(e){const foe=e===W.me?W.foe:W.me;if(!foe||foe.hp<=0)return true;
+  let bi=-1,bs=-1;e.moves.forEach((m,i)=>{if(!m||!(m.p>0)||!canCast(e,i))return;const s=m.p*(m.typeless?1:C.eff(m.type,foe.tera?[foe.tera]:foe.types));if(s>bs){bs=s;bi=i}});
+  if(bi<0)return false;const dx=foe.x-e.x,dy=foe.y-e.y,L=len(dx,dy)||1;startCast(e,bi,{x:dx/L,y:dy/L},L);return true}
+function gmTick(e){const g=e.gmx;if(!g)return;g.t-=TICK;
+  if(g.fire>0){g.fire-=TICK;if(g.fire<=0){if(gmFire(e)||++g.tries>=5)g.fire=0;else g.fire=.3}}
+  if(g.t<=0)gmEnd(e)}
+function gmUi(){const b=W&&W.gBtn;if(!b)return;const ok=gmCan(W.me);b.style.display=ok?'flex':'none';if(ok){b._n.textContent=String(GM_MAX-gmS().n);b._n.style.display='block'}}
+function gmDraw(e,ty){const cx=W.ctx,vs=e.vis||110,k=performance.now()/1000,gy=ty-vs*.3;cx.save();
+  cx.globalAlpha=.45+.15*Math.sin(k*5);const g=cx.createRadialGradient(e.x,gy,vs*.1,e.x,gy,vs*.8);g.addColorStop(0,'rgba(255,90,60,.9)');g.addColorStop(.6,'rgba(200,30,40,.45)');g.addColorStop(1,'rgba(120,0,40,0)');cx.fillStyle=g;cx.beginPath();cx.ellipse(e.x,gy,vs*.8,vs*.7,0,0,7);cx.fill();
+  const u=(performance.now()-(e.gmxAt||0))/1000;if(u>=0&&u<1){cx.globalAlpha=1-u;cx.strokeStyle='#ffffff';cx.lineWidth=10*(1-u)+2;cx.beginPath();cx.arc(e.x,gy,vs*(.3+u*1.3),0,7);cx.stroke();cx.strokeStyle='#ff4a3a';cx.lineWidth=5;cx.beginPath();cx.arc(e.x,gy,vs*(.2+u*1),0,7);cx.stroke()}
+  cx.restore()}
 // ===== 렉 줄이기: 프레임이 계속 느리면 화면 크기(해상도)를 한 단계씩 낮춤 (이펙트 엔진들도 같이 가벼워짐) =====
 let _shP=null;
 function noShadowOn(){if(_shP)return;try{const d=Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,'shadowBlur');if(!d||!d.set)return;_shP=d;Object.defineProperty(CanvasRenderingContext2D.prototype,'shadowBlur',{configurable:true,enumerable:d.enumerable,get(){return d.get.call(this)},set(v){d.set.call(this,window.__rtNoShadow?0:v)}})}catch(er){}}
@@ -1580,7 +1605,7 @@ function autoQ(raw){
     if(W.q<.85){window.__rtNoShadow=1;noShadowOn()}          // 품질이 내려가면 번짐(그림자) 효과도 끔
     try{localStorage.setItem('pka-rtq',String(W.q))}catch(er){}}
 }
-function render(){try{teraUi()}catch(er){}
+function render(){try{teraUi()}catch(er){}try{gmUi()}catch(er){}
   const cv=W.cv,cx=W.ctx,Wd=cv.width,Hd=cv.height;
   const land=Wd>=Hd;
   let viewW=land?AW:Math.min(AW,Math.max(620,Wd/Hd*520));
@@ -1635,6 +1660,7 @@ function render(){try{teraUi()}catch(er){}
     const st=e.anim;
     const VT=e.vt||e.tier,TR=e.eng&&VT>=6&&window.TFX&&!(C.tfxOff&&C.tfxOff())&&!e.capt&&!e.hidden&&e.hp>0,ty=e.y-(e.lift||0)-18,tms=performance.now();   // 9B 등급 기운
     if(TR){const a0=cx.globalAlpha;try{TFX.back(e.eng,cx,e.S,e.x,ty,e.sc,VT,tms)}catch(er){}cx.globalAlpha=a0}
+    if(e.gmx){try{gmDraw(e,ty)}catch(er){}}
     if(e.tera){const vs=e.vis||110,gy=ty-vs*.2,k=(performance.now()%1600)/1600;cx.save();cx.globalAlpha=.6+.2*Math.sin(k*6.283);const g=cx.createRadialGradient(e.x,gy,6,e.x,gy,vs*.85);g.addColorStop(0,'#ffffff');g.addColorStop(.4,e.teraC||'#c8a0ff');g.addColorStop(1,'rgba(0,0,0,0)');cx.fillStyle=g;cx.beginPath();cx.arc(e.x,gy,vs*.85,0,7);cx.fill();cx.restore()}   // 9BC 테라스탈 보석 빛
     try{C.drawPm(cx,TR?TFX.spr(e.S,VT):e.S,st,e.row,e.at,e.x,ty,e.sc,{loop:!(st==='attack'||st==='hurt'||st==='shoot'),white:e.flash>0,alpha:cx.globalAlpha})}catch(er){cx.fillStyle='#fff';cx.beginPath();cx.arc(e.x,e.y-30,30,0,7);cx.fill()}
     if(TR){try{TFX.front(e.eng,cx,e.S,e.x,ty,e.sc,VT,tms)}catch(er){}}
@@ -1956,6 +1982,7 @@ function buildUI(){
   }
   // 9BC: 테라스탈 버튼 (배틀마다 1번 · 기본 설정이 꺼져 있으면 안 보여요)
   try{if(C.teraOk&&C.teraOk()&&!C.net&&!C.pvp){const tb=SB('💎','테라스탈','#7a3fd0');place2(tb);tb.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();teraGo()});W.tBtn=tb;tb.style.display='none'}}catch(er){}
+  try{if(C.gmOk&&!C.net&&!C.pvp){const gb=SB('🌋','거다이맥스','#c0392b');place2(gb);gb.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();gmGo(W.me)});W.gBtn=gb;gb.style.display='none'}}catch(er){}
   document.body.appendChild(root);
   W.root=root;W.cv=cv;W.ctx=cv.getContext('2d');W.ui={jb,jk,btns,rb,rcnt,bb,bsw};
   // 9BA: 구르기 버튼 대신 화면 아무 데나 쓱 밀면 그 방향으로 구르기 · 볼 버튼은 왼쪽 아래 줄로
@@ -2040,8 +2067,8 @@ function updPartyCol(){
     const inf=document.createElement('div');inf.style.cssText='min-width:0;flex:1;display:flex;flex-direction:column;gap:1px';
     const nm=document.createElement('div');nm.textContent=q.name;nm.style.cssText='font:700 10px "Galmuri11",sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';inf.appendChild(nm);
     const bar=document.createElement('div');bar.style.cssText='height:3px;background:#222';const bi=document.createElement('i');bi.style.cssText='display:block;height:100%;background:#3be06a;width:'+Math.max(0,Math.min(100,hp/Math.max(1,q.max)*100))+'%';bar.appendChild(bi);inf.appendChild(bar);
-    const s1=document.createElement('div');s1.style.cssText='--sz:7px;line-height:0;height:9px;display:flex;align-items:center';s1.innerHTML=q.lbS||'';inf.appendChild(s1);
-    const s2=document.createElement('div');s2.style.cssText='--sz:7px;line-height:0;height:9px;display:flex;align-items:center';s2.innerHTML=q.awS||'';inf.appendChild(s2);
+    const s1=document.createElement('div');s1.style.cssText='--sz:9px;line-height:0;height:11px;display:flex;align-items:center';s1.innerHTML=q.lbS||'';inf.appendChild(s1);   // 한계돌파+각성 통합 별 한 줄
+    if(q.awS){const s2=document.createElement('div');s2.style.cssText='--sz:7px;line-height:0;height:9px;display:flex;align-items:center';s2.innerHTML=q.awS;inf.appendChild(s2)}
     row.appendChild(inf);
     row.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(can)doSwitch(q.uid)});
     col.appendChild(row);
