@@ -1,5 +1,6 @@
 // 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스) — 게임 본체는 poke/sb/ 의 「서바이버 버스트」(sb/game.src.html 수정 → python3 build.py)
 // 컨텐츠 카드 svx(경험치) svg(골드) svs(영혼) svb(월드보스) svk(코인 상점) · 일일 숙제 팝업(드래그 · 접기 · 다 하면 사라짐)
+// 소탕: G.svRec = {던전:{난이도:{got,kills,bdmg,r}}} 난이도별 최고 기록 (날이 바뀌어도 안 지워짐) · 소탕은 그 기록 그대로 보상 + 하루 횟수 1번 사용 · 자동 조종은 sb/ 안의 🤖 버튼(localStorage 'sb-auto')
 // 값: G.svd = {k:날짜, n:{play,gold,soul,boss 오늘 들어간 횟수}, best:{...}, c:오늘 번 코인, xp:오늘 받은 경험치, fc:오늘 첫 클리어, buy:{오늘 산 것}} · G.svc = 서바이버 코인 · G.svClr = 난이도 첫 클리어 기록 · G.svLast = 마지막에 고른 난이도
 (function(){try{
 const DG={
@@ -47,9 +48,11 @@ function pickTier(k){
  if(mx<=0){closePanel(1);start(k,0);return}
  const left=lim(k)?DAILY-sv().n[k]:99;
  const rows=TN().slice(0,mx+1).map((n,t)=>`<div class="row"><span><b>${n}</b><br><small>적 체력 ×${(1+t*.9).toFixed(1)} · 보상 ×${mulT(t)}</small></span><button data-t="${t}" ${left<=0?'disabled':''}>들어가기</button></div>`).join('');
- openPanel(D.e+' '+D.n+' · 난이도 고르기','<div style="padding:6px;font-size:14px">'+(lim(k)?'오늘 남은 횟수 '+left+'/'+DAILY+' · ':'횟수 제한 없음 · ')+'지금 게임 난이도('+TN()[DIFF()]+')까지 고를 수 있어요. 어려울수록 보상이 커져요.</div>'+rows);
+ let au=0;try{au=localStorage.getItem('sb-auto')==='1'?1:0}catch(e){}
+ openPanel(D.e+' '+D.n+' · 난이도 고르기','<div class="row"><span><b>🤖 자동 조종</b><br><small>켜면 알아서 피해 다니고 구슬을 주워요 · 레벨업도 알아서 골라요 (직접 움직이면 내 조작이 먼저)</small></span><button id="svAu">'+(au?'켜짐 (끄기)':'꺼짐 (켜기)')+'</button></div><div style="padding:6px;font-size:14px">'+(lim(k)?'오늘 남은 횟수 '+left+'/'+DAILY+' · ':'횟수 제한 없음 · ')+'지금 게임 난이도('+TN()[DIFF()]+')까지 고를 수 있어요. 어려울수록 보상이 커져요.</div>'+rows);
  const p=document.querySelector('.panel');if(!p)return;
  p.querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{closePanel(1);start(k,+b.dataset.t)});
+ const au2=p.querySelector('#svAu');if(au2)au2.onclick=()=>{let v=0;try{v=localStorage.getItem('sb-auto')==='1'?0:1;localStorage.setItem('sb-auto',v?'1':'0')}catch(e){}au2.textContent=v?'켜짐 (끄기)':'꺼짐 (켜기)';try{toast(v?'자동 조종을 켰어요':'자동 조종을 껐어요')}catch(e){}};
 }
 function quick(k){const mx=Math.min(9,DIFF());G.svLast=G.svLast||{};const t=Math.min(mx,G.svLast[k]!=null?G.svLast[k]:mx);start(k,t)}
 
@@ -67,14 +70,55 @@ function start(k,tier){tier=tier|0;
  const ex=document.createElement('button');ex.textContent='✕ 나가기';
  ex.style.cssText='position:absolute;left:8px;top:calc(env(safe-area-inset-top,0px) + 28px);z-index:2;padding:6px 10px;font-size:13px';
  ov.appendChild(ifr);ov.appendChild(ex);document.body.appendChild(ov);
- const finish=res=>{if(done)return;done=1;removeEventListener('message',onMsg);ov.remove();try{BGM.area()}catch(e){}reward(k,res);pop()};
+ const finish=res=>{if(done)return;done=1;removeEventListener('message',onMsg);ov.remove();try{BGM.area()}catch(e){}try{saveRec(k,res)}catch(e){}reward(k,res);pop()};
  const onMsg=e=>{if(e.source!==ifr.contentWindow)return;const d=e.data;if(d&&d.sb)finish(d)};
  addEventListener('message',onMsg);
  ex.onclick=()=>{try{ifr.contentWindow.postMessage({cmd:'quit'},'*')}catch(e){}setTimeout(()=>finish({sb:1,mode:D.m,tier,r:2,kills:0,got:0,bdmg:0}),1200)};
 }
 
+
+// ---------- 소탕: 난이도마다 내 최고 기록을 그대로 보상으로 (하루 횟수 1번 사용 · 첫 클리어 보너스는 직접 해야 받아요) ----------
+const mulR=r=>r===1?1.5:r===3?1:.5;
+const scoreOf=x=>(x.got|0)*mulR(x.r|0);
+const tieOf=(k,x)=>k==='boss'?(x.bdmg|0):(x.kills|0);
+const recs=k=>(G.svRec&&G.svRec[k])||{};
+const hasRec=k=>Object.keys(recs(k)).some(t=>+t<=Math.min(9,DIFF()));
+function saveRec(k,res){
+ const got=res.got|0,kills=res.kills|0,bdmg=res.bdmg|0;if(!got&&!kills&&!bdmg)return;
+ G.svRec=G.svRec||{};const m=G.svRec[k]=G.svRec[k]||{},t=res.tier|0,nw={got,kills,bdmg,r:res.r|0},o=m[t];
+ if(!o||scoreOf(nw)>scoreOf(o)||(scoreOf(nw)===scoreOf(o)&&tieOf(k,nw)>tieOf(k,o)))m[t]=nw;save();
+}
+// 예상 보상이 제일 큰 난이도 (난이도 배율 × 기록이 꽉 찬 정도)
+function bestTier(k){
+ const R=recs(k),mx=Math.min(9,DIFF()),F=k==='boss'?100:k==='play'?300:GOLD_FULL;let bt=-1,bv=-1;
+ Object.keys(R).forEach(t=>{t=+t;if(t>mx)return;const v=mulT(t)*Math.max(.05,Math.min(1,scoreOf(R[t])/F));if(v>bv){bv=v;bt=t}});return bt;
+}
+const recTxt=(k,x)=>k==='boss'?'보스 피해 '+(x.bdmg|0).toLocaleString()+' ('+(x.got|0)+'%)':'모은 것 '+(x.got|0)+' · 처치 '+(x.kills|0);
+async function sweepRun(k,tier,quiet){
+ const s=sv(),x=(G.svRec&&G.svRec[k]&&G.svRec[k][tier])||null;if(!x)return null;
+ if(lim(k)&&s.n[k]>=DAILY){toast('오늘은 다 했어요 (하루 '+DAILY+'번)');return null}
+ if(lim(k))s.n[k]++;G.svLast=G.svLast||{};G.svLast[k]=tier;save();
+ return await reward(k,{sb:1,mode:DG[k].m,tier,r:x.r,kills:x.kills,got:x.got,bdmg:x.bdmg},{sw:1,quiet});
+}
+async function sweepAll(k){
+ const s=sv(),left=lim(k)?DAILY-s.n[k]:1,t=bestTier(k);if(t<0||left<=0)return;
+ const lines=[];for(let i=0;i<left;i++){const r=await sweepRun(k,t,true);if(r==null)break;lines.push((i+1)+'번째 · '+r)}
+ pop();if(!lines.length)return;const D=DG[k];
+ openPanel('⚡ '+D.n+' 소탕 결과','<div style="padding:10px;font-size:14px"><b>난이도 '+TN()[t]+'의 최고 기록으로 '+lines.length+'번 소탕했어요</b><br><small>'+recTxt(k,recs(k)[t])+'</small><br>'+lines.join('<br>')+'</div>');
+}
+function sweepPick(k){
+ const D=DG[k],s=sv(),R=recs(k),mx=Math.min(9,DIFF());
+ if(!hasRec(k)){toast('먼저 한 번 직접 해야 소탕할 수 있어요 (그 기록으로 소탕해요)');return}
+ const left=lim(k)?DAILY-s.n[k]:99,bt=bestTier(k);
+ const rows=TN().slice(0,mx+1).map((n,t)=>R[t]?`<div class="row"><span><b>${n}</b>${t===bt?' ⭐':''}<br><small>${recTxt(k,R[t])} · 보상 ×${mulT(t)}</small></span><button data-t="${t}" ${left<=0?'disabled':''}>소탕</button></div>`:'').join('');
+ openPanel('⚡ '+D.n+' · 소탕','<div style="padding:6px;font-size:14px">직접 해서 세운 <b>난이도별 최고 기록</b> 그대로 바로 보상을 받아요.'+(lim(k)?' 소탕도 하루 '+DAILY+'번에 들어가요 (오늘 남은 횟수 '+left+'/'+DAILY+').':' 횟수 제한은 없지만 경험치·코인 하루 한도는 그대로예요.')+' 기록은 더 잘하면 자동으로 올라가요.</div>'+(lim(k)?`<div class="row"><span><b>⭐ 남은 횟수 모두 소탕</b><br><small>예상 보상이 제일 큰 난이도 (${TN()[bt]}) 기록으로 ${Math.max(0,left)}번</small></span><button id="svAll" ${left<=0?'disabled':''}>모두 소탕</button></div>`:'')+rows);
+ const p=document.querySelector('.panel');if(!p)return;
+ const a=p.querySelector('#svAll');if(a)a.onclick=()=>{closePanel(1);sweepAll(k)};
+ p.querySelectorAll('button[data-t]').forEach(b=>b.onclick=async()=>{closePanel(1);await sweepRun(k,+b.dataset.t,false);pop()});
+}
+
 // ---------- 보상 ----------
-async function reward(k,res){
+async function reward(k,res,opt){opt=opt||{};
  const s=sv(),r=res.r|0,got=res.got|0,kills=res.kills|0,tier=res.tier|0,mul=r===1?1.5:r===3?1:.5,D=DG[k],tm=mulT(tier),lv=avgLv(),pl=pool();
  s.best[k]=Math.max(s.best[k]||0,k==='boss'?(res.bdmg|0):kills);
  const n=got*mul,out=[];
@@ -94,23 +138,25 @@ async function reward(k,res){
  // 🪙 서바이버 코인 (경험치 던전만): 기본 (4+2·난이도) × 보상배율 × 처치 비율 · 하루 한도 · 오늘 첫 클리어 · 난이도 첫 클리어
  if(k==='play'){const perf=Math.min(1,kills/PERF_KILLS);let c0=Math.round((4+2*tier)*mul*perf);if(r===1)c0=Math.max(1,c0);
   const room=Math.max(0,COIN_DAY-s.c);const capHit=c0>room;c0=Math.min(c0,room);let fc=0,tb=0;
-  if(r===1&&!s.fc){s.fc=1;fc=COIN_FC_DAY}
-  G.svClr=G.svClr||{};if(r===1&&!G.svClr[tier]){G.svClr[tier]=1;tb=COIN_FC_TIER[0]+COIN_FC_TIER[1]*tier}
+  if(r===1&&!s.fc&&!opt.sw){s.fc=1;fc=COIN_FC_DAY}
+  G.svClr=G.svClr||{};if(r===1&&!G.svClr[tier]&&!opt.sw){G.svClr[tier]=1;tb=COIN_FC_TIER[0]+COIN_FC_TIER[1]*tier}
   const tot=c0+fc+tb;if(tot>0){G.svc=(G.svc|0)+tot;s.c+=c0+fc;out.push('🪙 서바이버 코인 +'+tot+(fc||tb?' ('+(c0?'기본 '+c0:'')+(fc?(c0?' · ':'')+'오늘 첫 클리어 '+fc:'')+(tb?' · '+TN()[tier]+' 첫 클리어 '+tb:'')+')':'')+' · 지금 '+G.svc)}
   if(capHit)out.push('<small>오늘 코인 한도('+COIN_DAY+')를 다 채웠어요</small>')}
  if(f>0.0005){for(const m of G.party){if(m.hp<=0)continue;if(m.exp<expAt(m.lv))m.exp=expAt(m.lv);m.exp+=Math.round(f*(expAt(m.lv+XP_RUN_LV)-expAt(m.lv)));const cap=lvCapOf(m);while(m.exp>=expAt(m.lv+1)&&m.lv<cap){await gainLv(m,1)}if(m.lv>=cap)m.exp=Math.min(m.exp,expAt(m.lv+1)-1)}out.push('🧪 경험치 레벨 약 +'+(f*XP_RUN_LV).toFixed(2)+' (파티 전원)'+(xcut?' <small>(오늘 한도까지만 받았어요)</small>':''))}
  else if(fWant>0&&xcut)out.push('<small>오늘 경험치 한도를 다 채웠어요</small>')
  save();
- const head=k==='boss'?(r===1?'🎉 월드보스를 쓰러뜨렸어요! (보상 ×1.5)':r===0?'💀 쓰러졌어요 (보상 ×0.5)':r===3?'⏱ 시간이 끝났어요 (보상 ×1)':'🚪 나왔어요 (보상 ×0.5)')
-  :(r===1?'🎉 끝까지 살아남았어요! (보상 ×1.5)':r===0?'💀 쓰러졌어요 (보상 ×0.5)':'🚪 나왔어요 (보상 ×0.5)');
+ if(opt.quiet)return out.filter(x=>!/^<small>/.test(x)).join(' · ')||'받을 게 없어요';
+ const head=(opt.sw?'⚡ 소탕 완료 · ':'')+(k==='boss'?(r===1?'🎉 월드보스를 쓰러뜨렸어요! (보상 ×1.5)':r===0?'💀 쓰러졌어요 (보상 ×0.5)':r===3?'⏱ 시간이 끝났어요 (보상 ×1)':'🚪 나왔어요 (보상 ×0.5)')
+  :(r===1?'🎉 끝까지 살아남았어요! (보상 ×1.5)':r===0?'💀 쓰러졌어요 (보상 ×0.5)':'🚪 나왔어요 (보상 ×0.5)'));
  const line=k==='boss'?'보스에게 준 피해 '+(res.bdmg|0).toLocaleString()+' ('+got+'%) · 처치 '+kills+'마리':'처치 '+kills+'마리 · 모은 것 '+got+'개';
- openPanel(D.e+' '+D.n+' 결과','<div style="padding:10px;font-size:15px"><b>'+head+'</b><br><small>난이도 '+TN()[tier]+' (보상 ×'+tm+')</small><br>'+line+'<br>'+(out.length?out.join('<br>'):'받을 게 없어요')+'</div><div class="row"><button id="svAgain">한 번 더</button></div>');
+ openPanel(D.e+' '+D.n+' 결과','<div style="padding:10px;font-size:15px"><b>'+head+'</b><br><small>난이도 '+TN()[tier]+' (보상 ×'+tm+')</small><br>'+line+'<br>'+(out.length?out.join('<br>'):'받을 게 없어요')+'</div><div class="row"><button id="svAgain">한 번 더</button><button id="svSw">⚡ 소탕</button></div>');
  const b=$('svAgain');if(b){if(lim(k)&&sv().n[k]>=DAILY){b.disabled=true;b.textContent='오늘은 다 했어요'}else b.onclick=()=>pickTier(k)}
+ const bs=$('svSw');if(bs){if(!hasRec(k)||(lim(k)&&sv().n[k]>=DAILY))bs.disabled=true;else bs.onclick=()=>sweepPick(k)}
 }
 
 // ---------- 컨텐츠 카드: 던전마다 따로 바로 보이게 ----------
 const stOf=k=>()=>{const s=sv(),b=s.best[k]||0;return (lim(k)?'오늘 남은 횟수 '+(DAILY-s.n[k])+'/'+DAILY:'오늘 '+s.n[k]+'번 · 횟수 제한 없음')+' · 최고 '+(k==='boss'?b.toLocaleString()+' 피해':b+'마리')};
-const cards=KEYS.map(k=>{const D=DG[k];return{k:D.key,n:D.e+' '+D.n+' (매일)',d:D.d+' '+(lim(k)?'하루 '+DAILY+'번까지, ':'')+(D.dur)+'초 동안 손가락(또는 방향키·WASD)으로 움직이면 공격은 자동이에요. 레벨이 오르면 기술을 골라요.',st:stOf(k),go:[['들어가기',()=>quick(k)],['난이도 고르기',()=>pickTier(k)]]}});
+const cards=KEYS.map(k=>{const D=DG[k];return{k:D.key,n:D.e+' '+D.n+' (매일)',d:D.d+' '+(lim(k)?'하루 '+DAILY+'번까지, ':'')+(D.dur)+'초 동안 손가락(또는 방향키·WASD)으로 움직이면 공격은 자동이에요. 🤖 자동 조종을 켜면 움직임과 기술 고르기까지 알아서 해요. 한 번 해 보면 최고 기록으로 ⚡소탕할 수 있어요.',st:stOf(k),go:[['들어가기',()=>quick(k)],['난이도 고르기',()=>pickTier(k)],['⚡ 소탕',()=>sweepPick(k)]]}});
 cards.push({k:'svk',n:'🪙 서바이버 코인 상점',d:'경험치 던전을 끝까지 해서 받은 🪙코인으로 수상한 · 명장의 큐브, 이상한사탕, 앱솔루트 · 어메이징 큐브를 사요.',st:()=>'가진 코인 '+(G.svc|0)+' · 오늘 번 코인 '+sv().c+'/'+COIN_DAY,go:[['코인 상점 열기',()=>shop()]]});
 {const i=HUB.findIndex(h=>h.k==='tg'),j=HUB.findIndex(h=>h.k==='wb'),at=i>=0?i:j;if(at>=0)HUB.splice(at+1,0,...cards);else HUB.push(...cards)}
 window.svOpen=()=>pickTier('play');
