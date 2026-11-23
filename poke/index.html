@@ -2107,7 +2107,7 @@ function bagItBind(p){
   p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.lv&&candyLock()){candyLockInfo();return}if(it.heal||it.lv){const m=(typeof ITPICK!=='undefined'&&ITPICK)||G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+HEALV(it,stOf(m)[0]));toast(nm(m)+' 회복!')}else{if(m.lv>=lvCap()){G.bag[k]++;lvCapInfo();return}const S0c=stOf(m);m.lv++;m.exp=expAt(m.lv);const S1c=stOf(m);m.hp=Math.min(S1c[0],m.hp+S1c[0]-S0c[0]);m.evoReady=1;let lrn='';for(const [l,id] of learnset(META[m.n]))if(l===m.lv&&!m.moves.includes(id)){const nmv=mv(id);if(m.moves.length<4){m.moves.push(id);lrn+=' · '+nmv.name+' 습득!'}else{const w=m.moves.filter(x=>(mv(x).pw||0)>0).sort((a,b)=>mv(a).pw-mv(b).pw)[0];if(w&&mv(w).pw<nmv.pw){m.moves[m.moves.indexOf(w)]=id;lrn+=' · '+mv(w).name+' → '+nmv.name+'!'}}}toast(nm(m)+' 레벨 '+dLv(m)+'!'+lrn);evolveAfterMenu()}save();bagOpen()}});
 }
 const BCN=['🔴 볼','🍎 열매','💊 회복 · 성장','🏷 접두사 주문서','⭐ 타입 부적','📊 스탯 부적','✨ 변신 · 특수','🧊 큐브 · 알 · 기타'];
-function bagCat(k){const it=ITEMS[k];if(!it)return 7;if(k==='oran'||k==='sitrus'||k==='razz')return 1;if(it.ball)return 0;if(it.heal||it.lv)return 2;if(k==='pxsc'||k==='spxsc')return 3;if(it.charm)return 4;if(it.stat)return 5;if(it.form||it.shinyItem||k==='dmax'||k==='porb')return 6;return 7}
+function bagCat(k){const it=ITEMS[k];if(!it)return 7;if(it.tkt)return 8;if(k==='oran'||k==='sitrus'||k==='razz')return 1;if(it.ball)return 0;if(it.heal||it.lv)return 2;if(k==='pxsc'||k==='spxsc')return 3;if(it.charm)return 4;if(it.stat)return 5;if(it.form||it.shinyItem||k==='dmax'||k==='porb')return 6;return 7}
 function bagCards(){const c={};for(const g of (G.gifts||[])){if(g.kind!=='M'||!GMOVES[g.id])continue;const id=GMOVES[g.id][0];const x=c[id]||(c[id]={id,n:0,rar:0});x.n++;x.rar=Math.max(x.rar,g.rar||0)}return Object.values(c)}
 let BAGTAB=-1;
 function bagOpen(tab){if(SCENE!=='over')return;
@@ -3439,7 +3439,7 @@ function itemInfo(k,onUse){const it=ITEMS[k],D=itD(k),can=itCanUse(k);
    <div class="wbt">${onUse&&!it.ball?`<button class="main" id="iiU">${it.charm?'먹이기':'사용하기'}</button>`:''}<button id="iiX">닫기</button></div></div>`;
   document.body.appendChild(d);const x=()=>d.remove();d.onclick=e=>{if(e.target===d)x()};d.querySelector('#iiX').onclick=()=>{sfx('tap');x()};const u=d.querySelector('#iiU');if(u)u.onclick=()=>{x();onUse()}}
 // 가방에서 아이템을 누르면 먼저 설명 → "사용하기"를 눌러야 써요
-let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];if(k==='dmax'||k==='porb'){itemInfo(k);return}if(k==='pxsc'){itemInfo(k,()=>{const L=(itRec(k)||[]).slice(0,12).map(x=>x.m);if(!L.length){toast('접두사를 바꿀 포켓몬이 없어요');return}itPick(L,it,m=>{closePanel(1);return pxReroll(m)})});return}if(it.charm){itemInfo(k,()=>{const L=itCanUse(k);if(!L.length){toast('먹일 수 있는 포켓몬이 없어요 (1마리 최대 '+chMax()+'개)');return}itPick(L,it,m=>{if(!(G.bag[k]>0))return;G.bag[k]--;m.chN=chFed(m)+1;m.ch=m.ch||{};m.ch[it.charm]=(m.ch[it.charm]||0)+1;save();sfx('badge');toast(nm(m)+'(이)가 '+it.n+'을(를) 먹었어요! '+TN[it.charm]+' 기술 +'+m.ch[it.charm]*5+'% ('+chFed(m)+'/'+chMax()+')');try{bagOpen()}catch(e){}})});return}itemInfo(k,()=>{const go=m=>{if(k==='candy'&&m&&window.candyBulk)return window.candyBulk(m);ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){if(it.lv&&candyLock())candyLockInfo();else if(it.lv)lvCapInfo();else toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
+let ITSKIP=0;document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.panel [data-it]');if(!b)return;if(ITSKIP){ITSKIP=0;return}e.stopPropagation();e.preventDefault();sfx('tap');const k=b.dataset.it,it=ITEMS[k];if(it&&it.tkt){itemInfo(k,()=>window.tkUse(k));return}if(k==='dmax'||k==='porb'){itemInfo(k);return}if(k==='pxsc'){itemInfo(k,()=>{const L=(itRec(k)||[]).slice(0,12).map(x=>x.m);if(!L.length){toast('접두사를 바꿀 포켓몬이 없어요');return}itPick(L,it,m=>{closePanel(1);return pxReroll(m)})});return}if(it.charm){itemInfo(k,()=>{const L=itCanUse(k);if(!L.length){toast('먹일 수 있는 포켓몬이 없어요 (1마리 최대 '+chMax()+'개)');return}itPick(L,it,m=>{if(!(G.bag[k]>0))return;G.bag[k]--;m.chN=chFed(m)+1;m.ch=m.ch||{};m.ch[it.charm]=(m.ch[it.charm]||0)+1;save();sfx('badge');toast(nm(m)+'(이)가 '+it.n+'을(를) 먹었어요! '+TN[it.charm]+' 기술 +'+m.ch[it.charm]*5+'% ('+chFed(m)+'/'+chMax()+')');try{bagOpen()}catch(e){}})});return}itemInfo(k,()=>{const go=m=>{if(k==='candy'&&m&&window.candyBulk)return window.candyBulk(m);ITPICK=m||null;ITSKIP=1;b.click();ITPICK=null};if((it.heal||it.lv)){const L=itCanUse(k);if(!L.length){if(it.lv&&candyLock())candyLockInfo();else if(it.lv)lvCapInfo();else toast('쓸 포켓몬이 없어요');return}if(L.length===1)return go(L[0]);itPick(L,it,go)}else go()})},true);
 let ITPICK=null;
 function itPick(L,it,go){const k=Object.keys(ITEMS).find(q=>ITEMS[q]===it);try{if(k)itSortRows(k,L,x=>x)}catch(e){}
   const d=document.createElement('div');d.id='itInfo';d.innerHTML=`<div class="iic"><div class="iih">${it.e}<div><b>${it.n}</b><small>누구에게 쓸까요? (추천 순서)</small></div></div>${L.map((m,i)=>{const S=stOf(m);return `<button class="iip" data-i="${i}"><img src="${THUMB[m.n]||''}"><span><b>${nm(m)}</b> Lv.${dLv(m)}${k?itTag(k,m):''}<small>체력 ${m.hp}/${S[0]}</small><i style="width:${m.hp/S[0]*100}%"></i></span></button>`}).join('')}<div class="wbt"><button id="iiX">취소</button></div></div>`;
@@ -3778,7 +3778,7 @@ async function wbFight(){const w=wbS(),day=dayKey();if((w.tries[day]||0)>=WB_TRY
   const keepP=G.party;G.party=SQ;BS.wbT=0;BS.wb=1;BS.wbKeep=keepP;
   try{await trainerScene(THUMB[n]||'trainers/CHAMPION_Red.png','월드보스 '+META[n].name,['이번 주의 '+(window.WBNM?WBNM():'월드보스')+', '+(window.WBLB?WBLB():'전설')+' 등급 '+META[n].name+'(이)가 나타났다!','모두의 데미지를 합쳐서 쓰러뜨리자! 내 포켓몬 '+SQ.length+'마리 · 시간 제한 없음 · 다 쓰러질 때까지!'])}catch(e){}
   BS.wbRecd=0;BS.wbPushT=0;let r;try{r=await battle({scaled:1,trainer:'월드보스',foes:[boss],noMoney:1,wb:1,lose:'…',bg:'worldboss'})}catch(e){console.warn('wbFight',e);r='lose'}finally{G.party=keepP;BS.wb=0;BS.wbKeep=null}
-  if(r==='run'){w.tries[day]=Math.max(0,(w.tries[day]||1)-1);save();toast('도중에 나왔어요 · 도전 횟수는 그대로예요');wbOpen();return}
+  if(r==='run'){w.tries[day]=(w.tries[day]||0)-1;save();toast('도중에 나왔어요 · 도전 횟수는 그대로예요');wbOpen();return}
   const dmg=Math.max(BS.wbRecd||0,hp0-Math.max(0,boss.hp));w.dmg+=Math.max(0,dmg-(BS.wbRecd||0));BS.wbRecd=0;w.best=Math.max(w.best||0,dmg);save();
   const ok=await wbPush();try{WBC.t=0}catch(e){}sfx('badge');await say(['월드보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!','이번 주 내 누적 데미지 '+w.dmg.toLocaleString()+(wbCfg()?(ok?' · 랭킹에 올렸어요':' · 인터넷이 되면 자동으로 올려요'):'')]);wbOpen()}
 // 시간 제한: 지나면 보스가 날아가 버려요 (내 포켓몬은 다치지 않게 되돌려요)
@@ -7881,7 +7881,7 @@ const pvCp=ms=>ms.reduce((a,m)=>a+stOf(m).reduce((x,y)=>x+y,0),0);
 async function pvDel(id){const B=fsBase();if(!B)return false;try{const r=await fetch(B.u+PV.BOARD+'/players/'+encodeURIComponent(id)+'?key='+B.k,{method:'DELETE'});return r.ok}catch(e){return false}}
 function pvAll(){const all=[...G.party.map(m=>({m,w:'p'})),...G.box.map(m=>({m,w:'b'}))];all.forEach(x=>{if(!x.m.uid)x.m.uid=Date.now().toString(36)+ri(0,1e6)});return all.sort((a,b)=>rarM(b.m)-rarM(a.m)||b.m.lv-a.m.lv)}
 const pvNet=()=>{if(!wbCfg()||!navigator.onLine){toast('PVP는 인터넷이 켜져 있어야 해요');return false}return true};
-const pvInfo=()=>{const W=pvWeek(),R=G.pvpR||{w:0,l:0};return '이번 주 <b>'+W.n+'점</b> · 누적 '+(G.pvpS||0)+'점 · '+R.w+'승 '+R.l+'패 · 오늘 도전 '+pvC().n+'/'+PV.DAILY+' · 코인 <b>'+(G.pvpCoin||0)+'</b>'};
+const pvInfo=()=>{const W=pvWeek(),R=G.pvpR||{w:0,l:0};return '이번 주 <b>'+W.n+'점</b> · 누적 '+(G.pvpS||0)+'점 · '+R.w+'승 '+R.l+'패 · 오늘 도전 '+Math.max(0,pvC().n)+'/'+PV.DAILY+' · 코인 <b>'+(G.pvpCoin||0)+'</b>'};
 // ---- 방어덱 편성 ----
 function pvDeckOpen(){if(!G||!pvNet())return;const all=pvAll();const sel=((G.pvpDef&&G.pvpDef.u)||[]).filter(u=>all.some(x=>x.m.uid===u));
   const dd=G.pvpDef&&G.pvpDef.id&&!G.pvpDef.off?G.pvpDef:null;
@@ -9770,12 +9770,12 @@ async function brPlay(net,seed){if(!M)return;M.playing=1;closePanel(1);clearInte
   setTimeout(()=>brClean(),4000);
   openPanel('⚔ 난투전 결과',`<div class="brRes">${place?`<div class="brBig">${place===1?'🏆 1등!':place+'등'}</div>`:'<div class="brBig">나갔어요</div>'}
     <ol>${names.map((x,i)=>`<li class="${(last.rank||[])[i]===net.me?'me':''}"><b>${i+1}등</b> ${esc(x)}</li>`).join('')}</ol>
-    ${coin?`<p>보상: 🪙 PVP 코인 <b>+${coin}</b> · 💰 <b>+${money.toLocaleString()}</b>원</p>`:''}<p class="hhint">오늘 ${s.n} / ${BRDAY}판 · 1등 ${s.w}번</p>
+    ${coin?`<p>보상: 🪙 PVP 코인 <b>+${coin}</b> · 💰 <b>+${money.toLocaleString()}</b>원</p>`:''}<p class="hhint">오늘 ${Math.max(0,s.n)} / ${BRDAY}판 · 1등 ${s.w}번</p>
     <button class="brGo" onclick="brOpen()">⚔ 한 판 더</button></div>`)}
 // --- 화면 ---
 function brDraw(){const b=document.getElementById('brBox');if(!b)return;const s=brS(),m=brPick();const al=G.party.filter(x=>x&&META[x.n]);
   b.innerHTML=`<div class="brHead"><b>⚔ 실시간 난투전</b><small>사람끼리만 · 2명 모이면 3초 뒤 시작 · 2~6명이 한 경기장에서 · 마지막까지 살아남으면 1등!</small></div>
-   <div class="brRule"><span>👥 랜덤 1:1 ~ 6명</span><span>🎮 내가 직접 조작</span><span>⚖ 모두 Lv.50으로 공평하게</span><span>📅 오늘 <b>${s.n}</b> / ${BRDAY}판</span></div>
+   <div class="brRule"><span>👥 랜덤 1:1 ~ 6명</span><span>🎮 내가 직접 조작</span><span>⚖ 모두 Lv.50으로 공평하게</span><span>📅 오늘 <b>${Math.max(0,s.n)}</b> / ${BRDAY}판</span></div>
    <h4>싸울 포켓몬 (눌러서 고르기)</h4><div class="brMons">${al.map(x=>`<button class="${m&&x.uid===m.uid?'on':''}" data-u="${x.uid}" ${M?'disabled':''}><img src="${THUMB[x.n]||''}" alt=""><span>${nm(x)}</span></button>`).join('')}</div>
    <div id="brSt" class="brSt">${M?'':'<b>준비 완료!</b><small>같이 할 친구도 지금 「상대 찾기」를 눌러야 만나요</small>'}</div>
    ${M?'<button class="brGo cancel" id="brX">✋ 그만 찾기</button>':`<button class="brGo" id="brF" ${s.n>=BRDAY?'disabled':''}>🔍 상대 찾기</button>`}
@@ -9784,7 +9784,7 @@ function brDraw(){const b=document.getElementById('brBox');if(!b)return;const s=
   const f=b.querySelector('#brF');if(f)f.onclick=()=>{sfxS();brFind()};const c=b.querySelector('#brX');if(c)c.onclick=()=>{sfxS();brCancel()}}
 function brOpen(){if(!G)return;if(M&&M.playing)return;openPanel('⚔ 실시간 난투전','<div id="brBox"></div>',()=>{if(M&&!M.playing)brCancel()});brDraw()}
 window.brOpen=brOpen;window.brDbg=()=>M;
-try{HUB.unshift({k:'brawl',n:'⚔ 실시간 난투전 (친구랑 진짜 대결)',d:'같은 시간에 「상대 찾기」를 누른 친구들과 한 경기장에서 직접 조작하며 싸워요. 2~6명, 하루 '+BRDAY+'판.',st:()=>'오늘 '+brS().n+'/'+BRDAY+'판',go:[['난투전 열기',()=>brOpen()]]})}catch(e){}
+try{HUB.unshift({k:'brawl',n:'⚔ 실시간 난투전 (친구랑 진짜 대결)',d:'같은 시간에 「상대 찾기」를 누른 친구들과 한 경기장에서 직접 조작하며 싸워요. 2~6명, 하루 '+BRDAY+'판.',st:()=>'오늘 '+Math.max(0,brS().n)+'/'+BRDAY+'판',go:[['난투전 열기',()=>brOpen()]]})}catch(e){}
 const c=document.createElement('style');c.textContent=`#brBox{font-family:"Galmuri11",sans-serif}.brHead{background:#1c2550;color:#ffd23f;padding:10px 12px;border:3px solid #0a0d18;box-shadow:0 4px 0 #0a0d18;margin:2px 4px 10px}.brHead b{font-size:20px;display:block}.brHead small{color:#cfd6ff;font-size:12px}
 .brRule{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px 8px}.brRule span{background:#fffaf0;border:2px solid #1c2550;padding:4px 8px;font-size:12px;font-weight:700}.brRule b{color:#c0392b}
 .brMons{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px 10px}.brMons button{display:flex;flex-direction:column;align-items:center;width:74px;padding:4px;background:#fffaf0;border:3px solid #1c2550;box-shadow:0 3px 0 #1c2550;cursor:pointer;font:700 11px "Galmuri11",sans-serif}.brMons button img{width:48px;height:48px;image-rendering:pixelated}.brMons button.on{background:#ffd23f!important;box-shadow:0 0 0 3px #c0392b,0 3px 0 #1c2550!important}
@@ -10971,6 +10971,77 @@ window.candyBulk=async function(m){
     evolveAfterMenu();save();try{bagOpen()}catch(e){}
   }catch(e){console.warn('candyBulk',e)}};
 }catch(e){console.warn('9CA 로드 실패',e)}})();
+
+// ===== 🎫 던전 입장권 (9AK) =====
+// 운영자(GM)가 선물 창 「아이템」 탭에서 뿌리고, 아이들이 가방 「🎫 입장권」 탭에서 「사용하기」를 누르면 그 컨텐츠의 "오늘" 도전 횟수가 1번 늘어요.
+// 방식: 그날 쓴 횟수를 1 줄여요 (월드보스 G.wb.tries[날짜] · 서바이버 G.svd.n[던전] · 난투전 G.brawl.n · PVP G.pvpC.n · 재대결 G.rematch[배지].n).
+//       횟수 검사는 모두 "쓴 횟수 >= 최대" 라서 -1 이면 한 번 더 할 수 있어요. 날이 바뀌면 그날 기록이 새로 시작돼서 남은 늘림은 사라져요 (오늘 하루만).
+// 새 입장권을 더 만들려면 아래 TK 배열에 한 줄만 더하면 돼요 (k=아이템 이름 · left=오늘 남은 횟수 · add=1번 늘리기 · ok=쓸 수 있는 때).
+(function(){try{
+const day=()=>dayKey();
+// ---- 월드보스 (노말 n · 카오스 c · 이터널 e: 종류마다 기록이 따로라 wbKind로 바꿔 끼웠다가 되돌려요) ----
+const wbWith=(kk,fn)=>{const prev=G.wbK||'n';try{if(typeof window.wbKind==='function')window.wbKind(kk);return fn(wbS())}finally{try{if(typeof window.wbKind==='function')window.wbKind(prev)}catch(e){}}};
+const wbLeft=kk=>wbWith(kk,w=>WB_TRY-(w.tries[day()]||0));
+const wbAdd=kk=>wbWith(kk,w=>{w.tries[day()]=(w.tries[day()]||0)-1});
+const wbOk=kk=>{try{return !window.WBOPEN||!!window.WBOPEN(kk)}catch(e){return true}};
+// ---- 서바이버 던전 (하루 3번 · 골드 gold / 영혼 soul / 서바이버 월드보스 boss) ----
+const SV_DAILY=3;
+const svFix=()=>{const d=day();if(!G.svd||G.svd.k!==d)G.svd={k:d,n:{play:0,gold:0,soul:0,boss:0},best:(G.svd&&G.svd.best)||{}};G.svd.n=G.svd.n||{};return G.svd};
+const svLeft=key=>SV_DAILY-(svFix().n[key]|0);
+const svAdd=key=>{const s=svFix();s.n[key]=(s.n[key]|0)-1};
+// ---- 난투전 (하루 10판) ----
+const BR_DAILY=10;
+const brFix=()=>{const d=day();let b=G.brawl||{};if(b.d!==d)b=G.brawl={d,n:0,w:b.w||0,g:b.g||0,pick:b.pick};return b};
+const brLeft=()=>BR_DAILY-(brFix().n|0);
+const brAdd=()=>{const b=brFix();b.n=(b.n|0)-1};
+// ---- PVP (하루 10번) ----
+const pvMax=()=>{try{return (typeof PV!=='undefined'&&PV.DAILY)||10}catch(e){return 10}};
+const pvFix=()=>{const d=day();let c=G.pvpC||{};if(c.day!==d)c=G.pvpC={day:d,n:0};return c};
+const pvLeft=()=>pvMax()-(pvFix().n|0);
+const pvAdd=()=>{const c=pvFix();c.n=(c.n|0)-1};
+// ---- 관장 재대결 (배지마다 하루 5번 · 다 쓴 배지가 있으면 그중 제일 센 관장, 없으면 남은 게 제일 적은 배지에 +1) ----
+const rmTarget=()=>{let bi=-1,bl=1e9;const n=Math.min(8,G.badges|0);for(let i=0;i<n;i++){const l=rmLeft(i);if(l<bl||(l===bl&&i>bi)){bl=l;bi=i}}return bi};
+const rmAll=()=>{let t=0;const n=Math.min(8,G.badges|0);for(let i=0;i<n;i++)t+=Math.max(0,rmLeft(i));return t};
+const rmAdd=()=>{const i=rmTarget();if(i<0)throw 0;rmRec(i).n=(rmRec(i).n|0)-1};
+const rmName=()=>{const i=rmTarget();return i<0?'':(TOWNS[i+1]||'')+' '+GYM[i].n+' 체육관'};
+
+const TK=[
+ {k:'tkwn',n:'월드보스 입장권',emo:'🐉',col:'#f4c542',what:'월드보스(전설)',max:()=>WB_TRY,left:()=>wbLeft('n'),add:()=>wbAdd('n'),ok:()=>wbOk('n')},
+ {k:'tkwc',n:'카오스 월드보스 입장권',emo:'🌀',col:'#b56bff',what:'카오스 월드보스(신화)',max:()=>WB_TRY,left:()=>wbLeft('c'),add:()=>wbAdd('c'),ok:()=>wbOk('c'),no:'카오스 월드보스가 아직 열리지 않았어요'},
+ {k:'tkwe',n:'이터널 월드보스 입장권',emo:'♾️',col:'#ff6a9a',what:'이터널 월드보스(환상)',max:()=>WB_TRY,left:()=>wbLeft('e'),add:()=>wbAdd('e'),ok:()=>wbOk('e'),no:'이터널 월드보스가 아직 열리지 않았어요'},
+ {k:'tksg',n:'골드 던전 입장권',emo:'💰',col:'#ffd60a',what:'골드 던전',max:()=>SV_DAILY,left:()=>svLeft('gold'),add:()=>svAdd('gold')},
+ {k:'tkss',n:'영혼 던전 입장권',emo:'👻',col:'#b388ff',what:'영혼 던전',max:()=>SV_DAILY,left:()=>svLeft('soul'),add:()=>svAdd('soul')},
+ {k:'tksb',n:'서바이버 월드보스 입장권',emo:'👑',col:'#ff7a5a',what:'서바이버 월드보스 던전',max:()=>SV_DAILY,left:()=>svLeft('boss'),add:()=>svAdd('boss')},
+ {k:'tkbr',n:'난투전 입장권',emo:'🥊',col:'#4cc9f0',what:'실시간 난투전',max:()=>BR_DAILY,left:brLeft,add:brAdd},
+ {k:'tkpv',n:'PVP 도전권',emo:'⚔️',col:'#6ee7a0',what:'PVP 도전',max:pvMax,left:pvLeft,add:pvAdd},
+ {k:'tkrm',n:'관장 재대결권',emo:'🏟️',col:'#ff9f45',what:'관장 재대결',max:()=>5,left:rmAll,add:rmAdd,ok:()=>(G.badges|0)>=1,no:'배지를 하나 이상 모은 뒤에 쓸 수 있어요',extra:()=>{const t=rmName();return t?'<br><small>'+t+'에 +1번이 들어가요</small>':''}}
+];
+
+// ---- 그림(티켓 모양 · 던전마다 색과 그림) · 아이템 · 설명 등록 ----
+const tkIcon=(c,e)=>{const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M2 7h28v6a2.5 2.5 0 0 0 0 5v6H2v-6a2.5 2.5 0 0 0 0-5z' fill='"+c+"' stroke='#1c2550' stroke-width='1.6' stroke-linejoin='round'/><path d='M24 8.5v15' stroke='#1c2550' stroke-width='1' stroke-dasharray='1.6 1.6'/><text x='13' y='20.5' font-size='11' text-anchor='middle'>"+e+"</text></svg>";return '<img class="ic" src="data:image/svg+xml;utf8,'+encodeURIComponent(svg)+'" alt="">'};
+for(const T of TK){
+  ITEMS[T.k]={n:T.n,e:tkIcon(T.col,T.emo),tkt:1};
+  ITD[T.k]={s:T.what+' 오늘 도전 횟수를 1번 늘려 주는 입장권',use:'가방 「🎫 입장권」에서 누르고 「사용하기」 (마을이나 길에서만 써요)',good:'하루 횟수를 다 쓴 뒤에도 한 번 더 도전할 수 있어요 · 운영자(GM)가 선물로 줘요',who:T.what+'을(를) 더 하고 싶은 때',tip:'늘어난 횟수는 <b>오늘 하루만</b> 가요. 날이 바뀌면 사라지니까 오늘 횟수를 다 쓰고 나서 써요.'};
+}
+try{BCN.push('🎫 입장권')}catch(e){}
+
+// ---- 쓰기 ----
+window.tkUse=function(k){
+  const T=TK.find(x=>x.k===k);if(!T||!G||!(G.bag[k]>0))return;
+  if(SCENE!=='over'){toast('마을이나 길에서만 쓸 수 있어요');return}
+  try{if(T.ok&&!T.ok()){toast(T.no||'지금은 쓸 수 없어요');return}}catch(e){}
+  let l=0;try{l=T.left()}catch(e){toast('지금은 쓸 수 없어요');return}
+  const warn=l>0?'<br><b style="color:#c0304a">아직 '+l+'번 남아 있어요.</b> 늘어난 횟수는 오늘 하루만 가니까, 다 쓴 뒤에 쓰는 게 좋아요.':'';
+  itAsk('🎫 '+T.n+' 쓸까요?',T.what+' 오늘 도전 횟수 <b>'+l+'번 → '+(l+1)+'번</b>이 돼요 (오늘 하루만).'+(T.extra?T.extra():'')+warn,()=>{
+    if(!(G.bag[k]>0))return;
+    try{T.add()}catch(e){console.warn('tkUse',e);toast('지금은 쓸 수 없어요');return}
+    G.bag[k]=Math.max(0,(G.bag[k]||0)-1);save();try{sfx('badge')}catch(e){}
+    let nl=l+1;try{nl=T.left()}catch(e){}
+    toast('🎫 '+T.what+' 오늘 도전 +1! (이제 '+nl+'번 남음)');try{hud()}catch(e){}try{bagOpen()}catch(e){}
+  });
+};
+window.TKLIST=TK.map(T=>T.k);
+}catch(e){console.warn('입장권 로드 실패',e)}})();
 </script>
 <script src="survivor.js"></script>
 </body></html>

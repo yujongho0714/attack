@@ -49,7 +49,7 @@ function pickTier(k){
  const left=lim(k)?DAILY-sv().n[k]:99;
  const rows=TN().slice(0,mx+1).map((n,t)=>`<div class="row"><span><b>${n}</b><br><small>적 체력 ×${(1+t*.9).toFixed(1)} · 보상 ×${mulT(t)}</small></span><button data-t="${t}" ${left<=0?'disabled':''}>들어가기</button></div>`).join('');
  let au=0;try{au=localStorage.getItem('sb-auto')==='1'?1:0}catch(e){}
- openPanel(D.e+' '+D.n+' · 난이도 고르기','<div class="row"><span><b>🤖 자동 조종</b><br><small>켜면 알아서 피해 다니고 구슬을 주워요 · 레벨업도 알아서 골라요 (직접 움직이면 내 조작이 먼저)</small></span><button id="svAu">'+(au?'켜짐 (끄기)':'꺼짐 (켜기)')+'</button></div><div style="padding:6px;font-size:14px">'+(lim(k)?'오늘 남은 횟수 '+left+'/'+DAILY+' · ':'횟수 제한 없음 · ')+'지금 게임 난이도('+TN()[DIFF()]+')까지 고를 수 있어요. 어려울수록 보상이 커져요.</div>'+rows);
+ openPanel(D.e+' '+D.n+' · 난이도 고르기','<div class="row"><span><b>🤖 자동 조종</b><br><small>켜면 알아서 피해 다니고 구슬을 주워요 · 레벨업도 알아서 골라요 (직접 움직이면 내 조작이 먼저)</small></span><button id="svAu">'+(au?'켜짐 (끄기)':'꺼짐 (켜기)')+'</button></div><div style="padding:6px;font-size:14px">'+(lim(k)?'오늘 남은 횟수 '+left+'/'+Math.max(DAILY,left)+' · ':'횟수 제한 없음 · ')+'지금 게임 난이도('+TN()[DIFF()]+')까지 고를 수 있어요. 어려울수록 보상이 커져요.</div>'+rows);
  const p=document.querySelector('.panel');if(!p)return;
  p.querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{closePanel(1);start(k,+b.dataset.t)});
  const au2=p.querySelector('#svAu');if(au2)au2.onclick=()=>{let v=0;try{v=localStorage.getItem('sb-auto')==='1'?0:1;localStorage.setItem('sb-auto',v?'1':'0')}catch(e){}au2.textContent=v?'켜짐 (끄기)':'꺼짐 (켜기)';try{toast(v?'자동 조종을 켰어요':'자동 조종을 껐어요')}catch(e){}};
@@ -153,7 +153,7 @@ function sweepPick(k){
  if(!hasRec(k)){toast('먼저 한 번 직접 해야 소탕할 수 있어요 (그 기록으로 소탕해요)');return}
  const left=lim(k)?DAILY-s.n[k]:99,bt=bestTier(k);
  const rows=TN().slice(0,mx+1).map((n,t)=>R[t]?`<div class="row"><span><b>${n}</b>${t===bt?' ⭐':''}<br><small>${recTxt(k,R[t])} · 보상 ×${mulT(t)}</small></span><button data-t="${t}" ${left<=0?'disabled':''}>소탕</button></div>`:'').join('');
- openPanel('⚡ '+D.n+' · 소탕','<div style="padding:6px;font-size:14px">직접 해서 세운 <b>난이도별 최고 기록</b> 그대로 바로 보상을 받아요.'+(lim(k)?' 소탕도 하루 '+DAILY+'번에 들어가요 (오늘 남은 횟수 '+left+'/'+DAILY+').':' 횟수 제한은 없지만 경험치·코인 하루 한도는 그대로예요.')+' 기록은 더 잘하면 자동으로 올라가요.</div>'+(lim(k)?`<div class="row"><span><b>⭐ 남은 횟수 모두 소탕</b><br><small>예상 보상이 제일 큰 난이도 (${TN()[bt]}) 기록으로 ${Math.max(0,left)}번</small></span><button id="svAll" ${left<=0?'disabled':''}>모두 소탕</button></div>`:'')+rows);
+ openPanel('⚡ '+D.n+' · 소탕','<div style="padding:6px;font-size:14px">직접 해서 세운 <b>난이도별 최고 기록</b> 그대로 바로 보상을 받아요.'+(lim(k)?' 소탕도 하루 '+DAILY+'번에 들어가요 (오늘 남은 횟수 '+left+'/'+Math.max(DAILY,left)+').':' 횟수 제한은 없지만 경험치·코인 하루 한도는 그대로예요.')+' 기록은 더 잘하면 자동으로 올라가요.</div>'+(lim(k)?`<div class="row"><span><b>⭐ 남은 횟수 모두 소탕</b><br><small>예상 보상이 제일 큰 난이도 (${TN()[bt]}) 기록으로 ${Math.max(0,left)}번</small></span><button id="svAll" ${left<=0?'disabled':''}>모두 소탕</button></div>`:'')+rows);
  const p=document.querySelector('.panel');if(!p)return;
  const a=p.querySelector('#svAll');if(a)a.onclick=()=>{closePanel(1);sweepAll(k)};
  p.querySelectorAll('button[data-t]').forEach(b=>b.onclick=async()=>{closePanel(1);await sweepRun(k,+b.dataset.t,false);pop()});
@@ -197,7 +197,7 @@ async function reward(k,res,opt){opt=opt||{};
 }
 
 // ---------- 컨텐츠 카드: 던전마다 따로 바로 보이게 ----------
-const stOf=k=>()=>{const s=sv(),b=s.best[k]||0;return (lim(k)?'오늘 남은 횟수 '+(DAILY-s.n[k])+'/'+DAILY:'오늘 '+s.n[k]+'번 · 횟수 제한 없음')+' · 최고 '+(k==='boss'?b.toLocaleString()+' 피해':b+'마리')};
+const stOf=k=>()=>{const s=sv(),b=s.best[k]||0;return (lim(k)?'오늘 남은 횟수 '+(DAILY-s.n[k])+'/'+Math.max(DAILY,DAILY-s.n[k]):'오늘 '+s.n[k]+'번 · 횟수 제한 없음')+' · 최고 '+(k==='boss'?b.toLocaleString()+' 피해':b+'마리')};
 const cards=KEYS.map(k=>{const D=DG[k];return{k:D.key,n:D.e+' '+D.n+' (매일)',d:D.d+' '+(lim(k)?'하루 '+DAILY+'번까지, ':'')+(D.dur)+'초 동안 손가락(또는 방향키·WASD)으로 움직이면 공격은 자동이에요. 🤖 자동 조종을 켜면 움직임과 기술 고르기까지 알아서 해요. 한 번 해 보면 최고 기록으로 ⚡소탕할 수 있어요.',st:stOf(k),go:[['들어가기',()=>quick(k)],['난이도 고르기',()=>pickTier(k)],['⚡ 소탕',()=>sweepPick(k)]]}});
 cards.push({k:'svk',n:'🪙 서바이버 코인 상점',d:'경험치 던전을 끝까지 해서 받은 🪙코인으로 수상한 · 명장의 큐브, 이상한사탕, 앱솔루트 · 어메이징 큐브를 사요.',st:()=>'가진 코인 '+(G.svc|0)+' · 오늘 번 코인 '+sv().c+'/'+COIN_DAY,go:[['코인 상점 열기',()=>shop()]]});
 {const i=HUB.findIndex(h=>h.k==='tg'),j=HUB.findIndex(h=>h.k==='wb'),at=i>=0?i:j;if(at>=0)HUB.splice(at+1,0,...cards);else HUB.push(...cards)}
