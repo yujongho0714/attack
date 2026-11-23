@@ -30,6 +30,7 @@
 <body>
 <canvas id="c"></canvas>
 <button id="snd" class="sub" style="position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 66px);z-index:5;padding:4px 10px;font-size:16px">🔊</button>
+<button id="auto" class="sub" style="position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 104px);z-index:5;padding:4px 10px;font-size:14px">🤖 자동 꺼짐</button>
 
 <div class="ov" id="start">
   <h1>SURVIVOR BURST</h1>
@@ -139,11 +140,34 @@ cv.addEventListener('pointerdown',e=>{const [px,py]=pt(e);touch={sx:px,sy:py,x:p
 cv.addEventListener('pointermove',e=>{if(touch){const [px,py]=pt(e);touch.x=px;touch.y=py;}});
 cv.addEventListener('pointerup',()=>{touch=null;});
 cv.addEventListener('pointercancel',()=>{touch=null;});
+/* ───────── 자동 조종 (🤖): 적을 피해 다니고 구슬·금화·영혼을 주워요 · 직접 키보드·터치를 하면 그동안은 내 조작이 우선 ───────── */
+let AUTO=false;try{AUTO=QS.get('auto')==='1'||(QS.get('auto')!=='0'&&localStorage.getItem('sb-auto')==='1');}catch(e){}
+let _av=[0,0];
+function autoVec(){
+  const p=S.p,sp=p.sp;let cxs=0,cys=0,cn=0;
+  for(const e of S.en){if(e.dead)continue;if(Math.abs(e.x-p.x)<420&&Math.abs(e.y-p.y)<420){cxs+=e.x;cys+=e.y;cn++;}}
+  const cx=cn?cxs/cn:p.x,cy=cn?cys/cn:p.y;
+  let tg=null,td=1e9;                                   // 주울 것: 금화·영혼(kind) 먼저, 그다음 경험치 구슬 · 피가 모자라면 회복
+  for(const g of S.gem){const d=Math.hypot(g.x-p.x,g.y-p.y)-(g.kind?160:0);if(d<td&&d<520){td=d;tg=g;}}
+  if(p.hp<p.max*.6)for(const h of S.drop){const d=Math.hypot(h.x-p.x,h.y-p.y)-120;if(d<td){td=d;tg=h;}}
+  let best=0,bs=-1e18;
+  for(let i=0;i<16;i++){
+    const a=i*Math.PI/8,dx=Math.cos(a),dy=Math.sin(a),qx=p.x+dx*sp*.55,qy=p.y+dy*sp*.55;let sc=0;
+    for(const e of S.en){if(e.dead)continue;const ex=e.x-qx,ey=e.y-qy;if(ex>300||ex<-300||ey>300||ey<-300)continue;
+      const d=Math.hypot(ex,ey),R=e.rad+((e.boss||e.wb)?120:64);
+      if(d<R)sc-=(R-d)*(R-d)/R*(e.dmg>=25?1.7:1);}
+    if(tg){const d0=Math.hypot(tg.x-p.x,tg.y-p.y),d1=Math.hypot(tg.x-qx,tg.y-qy);sc+=(d0-d1)*(tg.kind?1.6:.9)*(p.hp<p.max*.35?.3:1);}
+    if(cn)sc+=(Math.hypot(qx-cx,qy-cy)-Math.hypot(p.x-cx,p.y-cy))*.35;
+    sc+=(dx*_av[0]+dy*_av[1])*5;
+    if(sc>bs){bs=sc;best=a;}}
+  _av=[Math.cos(best),Math.sin(best)];return _av;
+}
 function inputVec(){
   let x=0,y=0;
   if(keys['a']||keys['arrowleft'])x--; if(keys['d']||keys['arrowright'])x++;
   if(keys['w']||keys['arrowup'])y--;   if(keys['s']||keys['arrowdown'])y++;
   if(touch){const dx=touch.x-touch.sx,dy=touch.y-touch.sy,d=Math.hypot(dx,dy);if(d>8){x=dx/Math.max(d,50);y=dy/Math.max(d,50);}}
+  if(AUTO&&S&&!S.over&&!x&&!y&&!touch)return autoVec();
   const m=Math.hypot(x,y); if(m>1){x/=m;y/=m;}
   return [x,y];
 }
@@ -326,6 +350,9 @@ function levelUp(){
   paused=true;const box=document.getElementById('opts');box.innerHTML='';
   pick.forEach(c=>addCard(box,c));
   document.getElementById('lvl').classList.remove('hide');
+  if(AUTO)setTimeout(()=>{if(!AUTO||!S||S.over)return;const cs=[...box.children];if(!cs.length)return;
+    const sc=cs.map((el,i)=>{const t=pick[i]&&pick[i].tag||'';return (/^NEW/.test(t)?(wcount()<4?3:1):/^Lv/.test(t)?2:1)+Math.random()});
+    cs[sc.indexOf(Math.max(...sc))].click();},450);
 }
 
 /* ───────── 업데이트 ───────── */
@@ -539,6 +566,12 @@ const sndBtn=document.getElementById('snd');
 sndBtn.textContent=SND?'🔊':'🔇';
 sndBtn.onclick=()=>{SND=!SND;try{localStorage.setItem('sb-snd',SND?'1':'0');}catch(e){}sndBtn.textContent=SND?'🔊':'🔇';if(SND)playBgm();else if(bgm)bgm.pause();};
 sndBtn.addEventListener('pointerdown',e=>e.stopPropagation());
+const autoBtn=document.getElementById('auto');
+const autoTxt=()=>{autoBtn.textContent=AUTO?'🤖 자동 켜짐':'🤖 자동 꺼짐';autoBtn.style.background=AUTO?'#2f9e44':''};
+autoTxt();
+autoBtn.onclick=()=>{AUTO=!AUTO;try{localStorage.setItem('sb-auto',AUTO?'1':'0');}catch(e){}autoTxt();
+  if(AUTO&&!document.getElementById('lvl').classList.contains('hide')){const c=document.querySelector('#opts .card');if(c)c.click();}};
+autoBtn.addEventListener('pointerdown',e=>e.stopPropagation());
 addEventListener('message',e=>{const d=e.data;if(d&&d.cmd==='quit'&&S&&!S.over)finish(false,'quit');else if(d&&d.cmd==='quit'&&!S)postResult({sb:1,mode:MODE,tier:DTIER,r:2,kills:0,got:0,t:0,lv:1,bdmg:0,bmax:0});});
 if(MODE){document.getElementById('start').classList.add('hide');chosen=+QS.get('hero')>=0&&QS.get('hero')!==null&&QS.get('hero')!==''?(+QS.get('hero')%WALK.length):Math.floor(Math.random()*WALK.length);}
 buildPick();requestAnimationFrame(t=>{last=t;loop(t);});
