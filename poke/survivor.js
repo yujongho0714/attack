@@ -7,7 +7,7 @@ const DG={
  play:{key:'svx',m:'exp',n:'경험치 던전',e:'🧪',c:'#4cc9f0',dur:150,d:'경험치 구슬을 모아요. 경험치와 🪙서바이버 코인을 줘요. (경험치는 하루 한도까지)'},
  gold:{key:'svg',m:'gold',n:'골드 던전',e:'💰',c:'#ffd60a',dur:150,d:'적을 쓰러뜨리면 금화가 떨어져요. 골드를 제일 많이 줘요 (경험치 · 영혼도 조금).'},
  soul:{key:'svs',m:'soul',n:'영혼 던전',e:'👻',c:'#b388ff',dur:150,d:'적을 쓰러뜨리면 영혼 불꽃이 떨어져요. 영혼을 제일 많이 줘요 (경험치 · 골드도 조금).'},
- boss:{key:'svb',m:'boss',n:'서바이버 월드보스',e:'👑',c:'#ff6a5a',dur:75,d:'거대한 보스가 나와요! 졸개들을 피하면서 보스에게 최대한 많은 피해를 줘요. 쓰러뜨리면 ×1.5, 피해를 준 만큼 골드 · 영혼 · 경험치를 줘요.'}};
+ boss:{key:'svb',m:'boss',n:'일일보스',e:'👑',c:'#ff6a5a',dur:75,d:'매일 열리는 거대한 보스예요! 난이도가 높을수록 내 파티 화력만큼 단단하고 사나워져요 (체력이 절반 아래면 더 화내요). 졸개들을 피하면서 보스에게 최대한 많은 피해를 줘요. 쓰러뜨리면 ×1.5, 피해를 준 만큼 골드 · 영혼 · 경험치를 줘요.'}};
 const DAILY=3,$=id=>document.getElementById(id);
 // ★ 보상 한도 (밸런스 5차 · 숫자만 바꾸면 돼요 · 괄호 안은 5차 전 값)
 // 경험치: 한 판 = 파티 전원 +XP_RUN_LV 레벨(각자 자기 레벨 기준) · 하루 합계 XP_DAY_RUNS 판 분량 · XP_FULL 마리(월드보스는 피해 100%)를 잡아야 100%
@@ -192,7 +192,7 @@ async function reward(k,res,opt){opt=opt||{};
  else if(fWant>0&&xcut)out.push('<small>오늘 경험치 한도를 다 채웠어요</small>')
  save();
  if(opt.quiet)return out.filter(x=>!/^<small>/.test(x)).join(' · ')||'받을 게 없어요';
- const head=(opt.sw?'⚡ 소탕 완료 · ':'')+(k==='boss'?(r===1?'🎉 월드보스를 쓰러뜨렸어요! (보상 ×1.5)':r===0?'💀 쓰러졌어요 (보상 ×0.5)':r===3?'⏱ 시간이 끝났어요 (보상 ×1)':'🚪 나왔어요 (보상 ×0.5)')
+ const head=(opt.sw?'⚡ 소탕 완료 · ':'')+(k==='boss'?(r===1?'🎉 일일보스를 쓰러뜨렸어요! (보상 ×1.5)':r===0?'💀 쓰러졌어요 (보상 ×0.5)':r===3?'⏱ 시간이 끝났어요 (보상 ×1)':'🚪 나왔어요 (보상 ×0.5)')
   :(r===1?'🎉 끝까지 살아남았어요! (보상 ×1.5)':r===0?'💀 쓰러졌어요 (보상 ×0.5)':'🚪 나왔어요 (보상 ×0.5)'));
  const line=k==='boss'?'보스에게 준 피해 '+(res.bdmg|0).toLocaleString()+' ('+got+'%) · 처치 '+kills+'마리':'처치 '+kills+'마리 · 모은 것 '+got+'개';
  openPanel(D.e+' '+D.n+' 결과','<div style="padding:10px;font-size:15px"><b>'+head+'</b><br><small>난이도 '+TN()[tier]+' (보상 ×'+tm+')</small><br>'+line+'<br>'+(out.length?out.join('<br>'):'받을 게 없어요')+'</div><div class="row"><button id="svAgain">한 번 더</button><button id="svSw">⚡ 소탕</button></div>');
