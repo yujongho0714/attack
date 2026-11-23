@@ -13,10 +13,12 @@ const DAILY=3,$=id=>document.getElementById(id);
 // 경험치: 한 판 = 파티 전원 +XP_RUN_LV 레벨(각자 자기 레벨 기준) · 하루 합계 XP_DAY_RUNS 판 분량 · XP_FULL 마리(월드보스는 피해 100%)를 잡아야 100%
 const XP_RUN_LV=1,XP_DAY_RUNS=5,XP_FULL=300;                       // (3레벨 · 10판 · 처치 수 상관없이 항상 꽉 참)
 // 골드: 명계에서 GOLD_FULL 개 이상 모으면 한 판 최대 GOLD_MAX (쉬운 난이도는 본편 상금 배율만큼 줄어요)
-const GOLD_MAX=300000,GOLD_FULL=150;                               // (1,000,000 · 100개)
+const GOLD_MAX=2000000,GOLD_FULL=150;                              // (5차 밸런스 300,000 · 150개)
 // 영혼: 한 판 최대 SOUL_BASE+난이도·SOUL_TIER 개 · SOUL_DIV 마리당 1개
 //  등급: 본편 난이도 보너스(DRARE)는 희귀·에픽에만, 그것도 SOUL_RAR 비율만큼 반영 · 전설 이상(레전드리·신화·환상·유일)은 기본 확률 × SOUL_HI
-const SOUL_BASE=10,SOUL_TIER=2,SOUL_DIV=6,SOUL_RAR=.5,SOUL_HI=1;   // (30+5·난이도 · 4 · 보너스 100%를 전 등급에 · 전설 이상도 난이도 배율을 그대로 받음)
+const SOUL_BASE=30,SOUL_TIER=5,SOUL_DIV=4,SOUL_RAR=1,SOUL_HI=1;   // (5차 밸런스: 10+2·난이도 · 6 / 그 전: 보너스 100%를 전 등급에 · 전설 이상도 난이도 배율을 그대로 받음)
+// 보스 처치 보너스: 던전 안에서 보스(👑)를 한 마리 잡을 때마다 골드 · 영혼 +BOSS_BONUS (골드·영혼 던전만)
+const BOSS_BONUS=.5;
 // 서바이버 코인
 const COIN_DAY=200,COIN_FC_DAY=10,COIN_FC_TIER=[20,10],PERF_KILLS=150;  // (400 · 20 · [40,25])
 // 코인 상점: [아이템, 코인, 하루 구매 한도(0=없음), 천계 이상만(1)]
@@ -89,7 +91,7 @@ async function packParty(){
    if(!moves.some(x=>x.p>0)){const x=mvOf('struggle');x.p=x.p||40;x.melee=true;x.k='melee';x.d=calc(x);moves.push(x)}
    let S0=null;try{S0=await Promise.race([C.getSpr(C.sprKey(m)),new Promise(r=>setTimeout(()=>r(null),4000))])}catch(e){}
    out.push({uid:m.uid,n:m.n,name:C.nm(m),lv,types,hp:Math.max(1,Math.round(st[0]*(1+(((g&&g.hp)||0)+(aA.hp||0))/100))),spd:Math.max(120,Math.min(230,110+.55*(st[5]||60))),
-    crit:cx,best:Math.max(1,...moves.map(x=>x.d||0)),moves,S:S0})
+    crit:cx,aw:(()=>{try{return typeof awEff==='function'?awEff(m):((m.aw|0)||0)}catch(e){return m.aw|0}})(),best:Math.max(1,...moves.map(x=>x.d||0)),moves,S:S0})
   }catch(e){console.warn('sb party',e)}}
   return out
  }catch(e){console.warn('packParty',e);return null}
@@ -127,7 +129,7 @@ const recs=k=>(G.svRec&&G.svRec[k])||{};
 const hasRec=k=>Object.keys(recs(k)).some(t=>+t<=Math.min(9,DIFF()));
 function saveRec(k,res){
  const got=res.got|0,kills=res.kills|0,bdmg=res.bdmg|0;if(!got&&!kills&&!bdmg)return;
- G.svRec=G.svRec||{};const m=G.svRec[k]=G.svRec[k]||{},t=res.tier|0,nw={got,kills,bdmg,r:res.r|0},o=m[t];
+ G.svRec=G.svRec||{};const m=G.svRec[k]=G.svRec[k]||{},t=res.tier|0,nw={got,kills,bdmg,r:res.r|0,bk:res.bk|0},o=m[t];
  if(!o||scoreOf(nw)>scoreOf(o)||(scoreOf(nw)===scoreOf(o)&&tieOf(k,nw)>tieOf(k,o)))m[t]=nw;save();
 }
 // 예상 보상이 제일 큰 난이도 (난이도 배율 × 기록이 꽉 찬 정도)
@@ -140,7 +142,7 @@ async function sweepRun(k,tier,quiet){
  const s=sv(),x=(G.svRec&&G.svRec[k]&&G.svRec[k][tier])||null;if(!x)return null;
  if(lim(k)&&s.n[k]>=DAILY){toast('오늘은 다 했어요 (하루 '+DAILY+'번)');return null}
  if(lim(k))s.n[k]++;G.svLast=G.svLast||{};G.svLast[k]=tier;save();
- return await reward(k,{sb:1,mode:DG[k].m,tier,r:x.r,kills:x.kills,got:x.got,bdmg:x.bdmg},{sw:1,quiet});
+ return await reward(k,{sb:1,mode:DG[k].m,tier,r:x.r,kills:x.kills,got:x.got,bdmg:x.bdmg,bk:x.bk|0},{sw:1,quiet});
 }
 async function sweepAll(k){
  const s=sv(),left=lim(k)?DAILY-s.n[k]:1,t=bestTier(k);if(t<0||left<=0)return;
@@ -163,18 +165,20 @@ function sweepPick(k){
 async function reward(k,res,opt){opt=opt||{};
  const s=sv(),r=res.r|0,got=res.got|0,kills=res.kills|0,tier=res.tier|0,mul=r===1?1.5:r===3?1:.5,D=DG[k],tm=mulT(tier),lv=avgLv(),pl=pool();
  s.best[k]=Math.max(s.best[k]||0,k==='boss'?(res.bdmg|0):kills);
- const n=got*mul,out=[];
+ const n=got*mul,out=[],bk=(k==='gold'||k==='soul')?(res.bk|0):0,bb=1+BOSS_BONUS*bk;
  // 자기 던전 보상은 100%, 나머지 둘은 30% (월드보스는 셋 다 70%)
  const w=x=>k==='play'?(x==='exp'?1:0):k==='boss'?.7:(x===k?1:.3);
- const gold=Math.round(GOLD_MAX*(tm/mulT(9))*w('gold')*Math.min(1,n/GOLD_FULL));
- let souls=Math.min(SOUL_BASE+tier*SOUL_TIER,Math.ceil(n*w('soul')/SOUL_DIV*(1+tier*.1)));
+ const gold=Math.round(GOLD_MAX*(tm/mulT(9))*w('gold')*Math.min(1,n/GOLD_FULL)*bb);
+ let souls=Math.ceil(Math.min(SOUL_BASE+tier*SOUL_TIER,Math.ceil(n*w('soul')/SOUL_DIV*(1+tier*.1)))*bb);
  // 경험치: f = 이번 판이 '꽉 찬 한 판'의 몇 %인지(0~1) · 많이 잡을수록 · 어려울수록 커짐 · 하루 합계 XP_DAY_RUNS 판까지
  const perf=Math.min(1,n/(k==='boss'?100:XP_FULL)),tierF=.6+.4*tier/9;
  let f=Math.max(0,perf*w('exp')*tierF);const fWant=f;
  f=Math.max(0,Math.min(f,XP_DAY_RUNS-s.xr/1000));s.xr+=Math.round(f*1000);const xcut=f<fWant-1e-6;
- // 영혼 등급 확률: 희귀·에픽만 난이도 보너스(SOUL_RAR 비율), 전설 이상은 기본 확률
+ // 영혼 등급 확률: 희귀·영웅은 난이도 보너스(DRARE)×SOUL_RAR, 전설 이상은 ×SOUL_HI 만큼 받아요 (둘 다 1이면 난이도 배율을 그대로 · 어려울수록 높은 등급)
  const dr=typeof DRARE!=='undefined'?1+(DRARE[tier]-1)*SOUL_RAR:1;
- const roll=()=>{const W=RW.slice(0,7).map((x,i)=>i===0?x:i<=2?x*dr:x*SOUL_HI),T=W.reduce((a,b)=>a+b,0);let u=Math.random()*T;for(let i=0;i<7;i++){u-=W[i];if(u<0)return i}return 0};
+ const dh=typeof DRARE!=='undefined'?1+(DRARE[tier]-1)*SOUL_HI:1;
+ const roll=()=>{const W=RW.slice(0,7).map((x,i)=>i===0?x:i<=2?x*dr:x*dh),T=W.reduce((a,b)=>a+b,0);let u=Math.random()*T;for(let i=0;i<7;i++){u-=W[i];if(u<0)return i}return 0};
+ if(bk>0)out.push('👑 보스 '+bk+'마리 처치 보너스 (골드·영혼 ×'+bb.toFixed(2)+')');
  if(gold>0){G.money+=gold;out.push('💰 '+gold+'원')}
  if(souls>0){G.dupes=G.dupes||[];for(let i=0;i<souls;i++){const m2=META[pl[Math.random()*pl.length|0]];G.dupes.push({kind:'P',id:m2.dex,rar:roll(),lv:lv,sh:0,soul:1})}out.push('👻 영혼 '+souls+'개')}
  // 🪙 서바이버 코인 (경험치 던전만): 기본 (4+2·난이도) × 보상배율 × 처치 비율 · 하루 한도 · 오늘 첫 클리어 · 난이도 첫 클리어
