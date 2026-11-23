@@ -1,5 +1,8 @@
-const V='zemita-v135',A=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','jd-dlx-fx.txt','rhythm-editor.html','manifest-editor.webmanifest','icon-editor-192.png','icon-editor-512.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(A)).then(()=>self.skipWaiting()))});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;
-e.respondWith(fetch(r).then(x=>{const c=x.clone();caches.open(V).then(h=>h.put(r,c));return x}).catch(()=>caches.match(r).then(m=>m||caches.match('index.html'))))});
+// 포켓몬 어드벤처 오프라인: 화면 파일은 새 버전을 먼저, 그림은 받아 둔 것을 먼저
+const V='pka-core-202611240320';const CORE=['./','index.html','manifest.json','poke_meta.json','icon-192.png','icon-512.png','assets.json','fxed.html','fxed.json'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(K=>Promise.all(K.filter(k=>k.startsWith('pka-core-')&&k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);if(u.origin!==location.origin)return;
+  const pg=/\/(pack|fxed)\.html$/.test(u.pathname);const K=u.pathname.split('/').pop();const nav=r.mode==='navigate'&&r.destination!=='iframe'&&!pg;   // 서바이버 던전(iframe)이 본편 index.html 캐시를 덮어쓰지 않게const core=r.mode==='navigate'||/\/(index\.html|rzmap\.json|rzforms\.json|rzmoves\.json|rzdex\.json|rzlearn\.json|rtbattle\.js|gymfx\.js|rtteam\.js|wbswarm\.js|beamfx\.js|rtbrawl\.js|tierfx\.js|poke_meta\.json|empress-fx\.js|assets\.json|fxed\.json|manifest\.json|fxcustom\.json|gmax-core\.js|gmax-battle\.js|pk-patch\.js|gmaxmap\.json|survivor\.js)$/.test(u.pathname)||u.pathname.endsWith('/');
+  if(core){e.respondWith(fetch(r,{cache:'no-cache'}).then(res=>{const cp=res.clone();caches.open(V).then(c=>c.put(nav?'index.html':pg?K:r,cp));return res}).catch(()=>caches.match(nav?'index.html':pg?K:r).then(x=>x||caches.match(r))))}
+  else e.respondWith(caches.match(r).then(x=>x||fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open('pka-assets').then(c=>c.put(r,cp))}return res})))});
