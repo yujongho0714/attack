@@ -10410,7 +10410,16 @@ window.gachaOpen=open;
   try{const t=document.querySelector('.panel .tabs');if(t&&!t.querySelector('[data-gt="draw"]')){const b=document.createElement('button');b.dataset.gt='draw';b.textContent='뽑기';b.onclick=()=>{sfx('tap');closePanel(1);open()};t.appendChild(b)}}catch(e){}
   return r}}
 // 출석 앱 QR로 캐릭터를 다시 받아도 뽑은 장비는 남기기
-{const _m=meApply;meApply=async function(){const keep=(G&&G.meGacha)||[];const r=await _m.apply(this,arguments);try{if(r&&G.me&&keep.length){const S=new Set(G.me.own),T=new Set((G.gtrash||[]).map(x=>x.k));for(const k of keep)if(!S.has(k)&&!T.has(k))G.me.own.push(k);save()}}catch(e){}return r}}
+// 장비 보호: 출결 캐릭터를 다시 받으면 출결 앱 목록으로 통째로 바뀌어서, 게임에서 얻은 장비(뽑기 · 드롭 · 월드보스)가 사라졌어요
+//  → 받기 전에 가지고 있던 장비 + 뽑기 기록 + 강화 기록(G.gear)이 있는 장비를 다시 합쳐요 (판 것 · 휴지통에 버린 것은 빼고)
+const gearKeep=()=>{const T=new Set([...(G.gtrash||[]).map(x=>x.k),...(G.gsold||[])]),A=new Set();
+  for(const k of [...((G.me&&G.me.own)||[]),...(G.meGacha||[]),...Object.keys(G.gear||{})]){if(!k||T.has(k))continue;if(typeof ME_CATS!=='undefined'&&!ME_CATS.includes(String(k).split(':')[0]))continue;A.add(k)}return[...A]};
+{const _m=meApply;meApply=async function(){const keep=(G&&G.me)?gearKeep():[...((G&&G.meGacha)||[])];const r=await _m.apply(this,arguments);try{if(r&&G.me&&keep.length){const S=new Set(G.me.own),T=new Set([...(G.gtrash||[]).map(x=>x.k),...(G.gsold||[])]);for(const k of keep)if(!S.has(k)&&!T.has(k))G.me.own.push(k);save()}}catch(e){}return r}}
+// 이미 사라진 장비 되살리기: 게임을 시작할 때 강화 기록이 남아 있는데 가방에 없는 장비를 가방에 돌려놔요
+function gearRestore(){try{if(!G||!G.me||!G.me.own||!G.gear)return;const S=new Set(G.me.own),T=new Set([...(G.gtrash||[]).map(x=>x.k),...(G.gsold||[])]);let n=0;
+  for(const k of Object.keys(G.gear)){if(S.has(k)||T.has(k))continue;if(typeof ME_CATS!=='undefined'&&!ME_CATS.includes(String(k).split(':')[0]))continue;G.me.own.push(k);n++}
+  if(n){save();try{toast('🎒 사라졌던 장비 '+n+'개를 되찾았어요!')}catch(e){}}}catch(e){}}
+{const _s=start;start=function(...a){const r=_s.apply(this,a);setTimeout(gearRestore,2500);return r}}
 }catch(e){console.warn('b9bk',e)}})();
 </script>
 <script id="b9bo">

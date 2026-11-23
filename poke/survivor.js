@@ -4,7 +4,7 @@
 // 값: G.svd = {k:날짜, n:{play,gold,soul,boss 오늘 들어간 횟수}, best:{...}, c:오늘 번 코인, xp:오늘 받은 경험치, fc:오늘 첫 클리어, buy:{오늘 산 것}} · G.svc = 서바이버 코인 · G.svClr = 난이도 첫 클리어 기록 · G.svLast = 마지막에 고른 난이도
 (function(){try{
 const DG={
- play:{key:'svx',m:'exp',n:'경험치 던전',e:'🧪',c:'#4cc9f0',dur:150,d:'경험치 구슬을 모아요. 하루 횟수 제한 없이 마음껏! 경험치와 🪙서바이버 코인을 줘요. (경험치는 하루 한도까지)'},
+ play:{key:'svx',m:'exp',n:'경험치 던전',e:'🧪',c:'#4cc9f0',dur:150,d:'경험치 구슬을 모아요. 경험치와 🪙서바이버 코인을 줘요. (경험치는 하루 한도까지)'},
  gold:{key:'svg',m:'gold',n:'골드 던전',e:'💰',c:'#ffd60a',dur:150,d:'적을 쓰러뜨리면 금화가 떨어져요. 골드를 제일 많이 줘요 (경험치 · 영혼도 조금).'},
  soul:{key:'svs',m:'soul',n:'영혼 던전',e:'👻',c:'#b388ff',dur:150,d:'적을 쓰러뜨리면 영혼 불꽃이 떨어져요. 영혼을 제일 많이 줘요 (경험치 · 골드도 조금).'},
  boss:{key:'svb',m:'boss',n:'서바이버 월드보스',e:'👑',c:'#ff6a5a',dur:75,d:'거대한 보스가 나와요! 졸개들을 피하면서 보스에게 최대한 많은 피해를 줘요. 쓰러뜨리면 ×1.5, 피해를 준 만큼 골드 · 영혼 · 경험치를 줘요.'}};
@@ -30,7 +30,7 @@ const lead=()=>G.party.find(m=>m.hp>0)||G.party[0];
 const avgLv=()=>Math.max(1,Math.round(G.party.reduce((a,m)=>a+m.lv,0)/Math.max(1,G.party.length)));
 const TN=()=>typeof DNAME!=='undefined'?DNAME:['쉬움','보통','어려움','지옥','나이트메어','종말','천계','천상계','하계','명계'];
 const mulT=t=>typeof DMONEY!=='undefined'?DMONEY[t]:1;
-const lim=k=>k!=='play';
+const lim=k=>true;   // 모든 던전 하루 DAILY번 (경험치 던전도 포함)
 
 // ---------- 코인 상점 ----------
 function shop(){
