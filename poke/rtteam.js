@@ -1040,7 +1040,7 @@ function useItemNow(k){
   let r=null;try{r=C.useItem(k)}catch(e){}
   if(!r){floatTxt(me.x,me.y-90,'쓸 수 없어요','#f88');return false}
   if(r.deny){floatTxt(me.x,me.y-90,r.deny,'#f88');return false}   // 9D 물약 제한
-  let got=0;if(r.heal>0){const b0=me.hp;me.hp=Math.min(me.max,me.hp+r.heal*(me.hm||1));got=Math.round(me.hp-b0)}
+  let got=0;if(r.pct>0||r.heal>0){const b0=me.hp;me.hp=Math.min(me.max,me.hp+(r.pct>0?me.max*r.pct/100:r.heal*(me.hm||1)));got=Math.round(me.hp-b0)}
   if(r.cure)me.ail={};
   W.itCd=IT_CD;
   floatTxt(me.x,me.y-90,got>0?'+'+fmtN(got*kOf(me)):'회복!','#6f6',true);
@@ -1065,7 +1065,7 @@ function openItems(){
     const row=document.createElement('div');
     row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 10px;margin:4px 0;border-radius:8px;background:'+(can?'#34476b':'#2b3347')+';opacity:'+(can?1:.55)+';'+(can?'cursor:pointer;border:1px solid #7fa6e8':'border:1px solid transparent');
     const l=document.createElement('div');l.innerHTML='<span style="display:inline-block;width:22px;vertical-align:middle">'+(it.e||'')+'</span> <b>'+it.n+'</b>';
-    const r=document.createElement('div');r.style.cssText='font-size:12px;text-align:right';r.textContent=(it.heal?'+'+it.heal+' · ':'')+'×'+it.count;
+    const r=document.createElement('div');r.style.cssText='font-size:12px;text-align:right';r.textContent=(it.pct?'+'+it.pct+'% · ':it.heal?'+'+it.heal+' · ':'')+'×'+it.count;
     row.appendChild(l);row.appendChild(r);box.appendChild(row);
     if(can)row.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(useItemNow(it.k))closeItems()});
   }

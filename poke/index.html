@@ -1269,8 +1269,10 @@ const CHL=()=>[76,80,86,92,97,100,100,100,100,100][Math.min(9,Math.max(0,(G&&G.o
 const DIFF=()=>G&&G.opt&&G.opt.diff!=null?G.opt.diff:1;const DLV=[0,.18,.38,.62,.9,1.25,1.6,2.0,2.6,3.4],DEXP=[1,.55,.5,.5,.5,.5,.5,.5,.5,.5],DDMG=[1,1.15,1.35,1.6,2.0,2.5,8,32,110,380];const DBST=[0,25,55,90,130,180,230,290,340,400];const DNAME=['쉬움','보통','어려움','지옥','나이트메어','종말','천계','천상계','하계','명계'],DCOL=['#9be89b','#ffd060','#ff8a8a','#c05aff','#3a0a2a','#120018','#2a9ee8','#d9a400','#6a2a9a','#0b0b18'];   // 8E: 천계·천상계(종말 위, 다 깬 친구들용)
 // 어려울수록 보상: 상금 · 희귀 포켓몬 · 이로치 · 승리 카드팩
 const DHX=[1,1.6,2.1,2.8,3.6,4.6,25,90,220,520];const DDEF=[1,1.03,1.06,1.1,1.15,1.25,1.5,2,3,4.5];   // 9E: AI를 낮춘 뒤 다시 시뮬 — 천상계 115→70 (장비 풀세트 40% · 만제 팀 100%)
+// 회복약은 「최대 체력의 %」만큼 회복 (ITEMS 의 pct) · pct 가 없으면 예전처럼 heal 숫자만큼
+function HEALV(it,mx){return it&&it.pct?Math.max(1,Math.round(mx*it.pct/100)):((it&&it.heal)||0)}
 // 9D 물약 제한: 종말·천계·천상계는 전투 1번에 회복약 10개까지 (0 = 제한 없음)
-const POTLIM=()=>DIFF()>=9?3:DIFF()>=8?5:DIFF()>=5?10:0;   // 상대 체력 배율(난이도별). 천계·천상계는 시뮬로 맞춤: 천계=풀강 장비없이 약 50%·장비 풀세트 100% / 천상계=장비 풀세트로 약 50%
+const POTLIM=()=>20;   // 상대 체력 배율(난이도별). 천계·천상계는 시뮬로 맞춤: 천계=풀강 장비없이 약 50%·장비 풀세트 100% / 천상계=장비 풀세트로 약 50%
 const DMONEY=[1,1.6,2.4,3.5,5,7,10,14,20,30],DRARE=[1,1.6,2.5,3.5,5,7,10,14,20,30],DSHINY=[150,90,50,35,20,12,8,5,4,3],DPACK=[0,.08,.2,.3,.45,.6,.75,.9,.95,1];
 const gymAce=k=>Math.round((12+6*k)*(1+DLV[DIFF()]));// k=0..7
 const NA=27;const isTown=a=>a%2===0&&a!==18&&a<NA;const townOf=a=>a/2;const areaName=a=>a===18?'포켓몬 리그':isTown(a)?TOWNS[a/2]:RTN[(a-1)/2];
@@ -1639,7 +1641,7 @@ async function battle(o){if(o&&!o.wb&&!o.pvp&&typeof window.rtWild==='function')
     else if(act.t==='item'){const it=ITEMS[act.k];G.bag[act.k]--;
       if(it.heal&&POTLIM()&&(BS.potN||0)>=POTLIM()){G.bag[act.k]++;await msg('물약은 전투 1번에 '+POTLIM()+'개까지만 쓸 수 있어요!')}
       else if(it.ball){const ok=await throwBall(f,it);if(ok){res='caught';await caught(f);break}}
-      else if(it.heal){BS.potN=(BS.potN||0)+1;const S=stOf(me);me.hp=Math.min(S[0],me.hp+it.heal);bbox();sfx('heal');await msg(it.n+'(으)로 '+nm(me)+'의 체력이 회복됐다!')}
+      else if(it.heal){BS.potN=(BS.potN||0)+1;const S=stOf(me);me.hp=Math.min(S[0],me.hp+HEALV(it,S[0]));bbox();sfx('heal');await msg(it.n+'(으)로 '+nm(me)+'의 체력이 회복됐다!')}
       else if(it.lv){await gainLv(me);bbox()}}
     // 내 기술 + 상대 기술 순서
     const fm=BS.trainer?bestMove(f,me):(R()<.35?bestMove(f,me):mv(pick(f.moves)));
@@ -1968,7 +1970,7 @@ function wxDraw(dt){const w=BS.wx;if(!w||!BS.on)return;BS.wxT=(BS.wxT||0)+dt;con
 const RIV=()=>G&&G.rivName?G.rivName:G&&G.name==='그린'?'레드':'그린';
 // ===== 게임 진행: 건물 · 트레이너 · 체육관 · 리그 · 자동 진행 · 메뉴 · 도감 · 저장 =====
 const ITEMS={ball:{n:'몬스터볼',e:'<img class="ic" src="items/POKEBALL.png">',ball:1,col:'#e83838',p:200},great:{n:'슈퍼볼',e:'<img class="ic" src="items/GREATBALL.png">',ball:1.5,col:'#3a6ae8',p:600,b:2},hyper:{n:'하이퍼볼',e:'<img class="ic" src="items/ULTRABALL.png">',ball:2.2,col:'#f0c020',p:1200,b:5},
- potion:{n:'상처약',e:'<img class="ic" src="items/POTION.png">',heal:20,p:300},spotion:{n:'좋은상처약',e:'<img class="ic" src="items/SUPERPOTION.png">',heal:60,p:700,b:3},hpotion:{n:'고급상처약',e:'<img class="ic" src="items/HYPERPOTION.png">',heal:150,p:1200,b:6},candy:{n:'이상한사탕',e:'<img class="ic" src="items/RARECANDY.png">',lv:1}};
+ potion:{n:'상처약',e:'<img class="ic" src="items/POTION.png">',heal:20,pct:20,p:300},spotion:{n:'좋은상처약',e:'<img class="ic" src="items/SUPERPOTION.png">',heal:60,pct:45,p:700,b:3},hpotion:{n:'고급상처약',e:'<img class="ic" src="items/HYPERPOTION.png">',heal:150,pct:75,p:1200,b:6},candy:{n:'이상한사탕',e:'<img class="ic" src="items/RARECANDY.png">',lv:1}};
 function addItem(k,n){G.bag[k]=(G.bag[k]||0)+n}
 let META={},SPECIES=[],BYDEX={},FXA={},THUMB={},LOC={};let G=null;
 const AUTO={on:0,hunt:null,goal:null,stuck:0};
@@ -2102,7 +2104,7 @@ function menuOpen(tab){if(SCENE!=='over')return;if(typeof tab==='number')MENUTAB
     Q('#oGift').onclick=()=>{closePanel(1);giftOpen()};Q('#oName').onclick=()=>{closePanel(1);nameOpen()};Q('#oFont').onclick=()=>{closePanel(1);fontOpen()};Q('#oDiff').onclick=()=>{closePanel(1);diffOpen()};Q('#oFuse').onclick=()=>{closePanel(1);fuseOpen()};Q('#oMe').onclick=()=>{closePanel(1);wardrobe()};Q('#oDsk').onclick=()=>{closePanel(1);dskinOpen()};Q('#oBgm').onclick=()=>{BGM.toggle();closePanel(1);menuOpen()};Q('#oMode').onclick=()=>{modeToggle();closePanel(1);menuOpen()};Q('#oS').onclick=()=>{save();toast('💾 저장했어요')};Q('#oT').onclick=()=>{save();closePanel(1);location.reload()}})}
 // ===== 가방 전용 화면: 아이템 · 기술 카드 · 접두사 주문서만 보여요 (포켓몬 · 메뉴는 안 나와요) =====
 function bagItBind(p){
-  p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.lv&&candyLock()){candyLockInfo();return}if(it.heal||it.lv){const m=(typeof ITPICK!=='undefined'&&ITPICK)||G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+it.heal);toast(nm(m)+' 회복!')}else{if(m.lv>=lvCap()){G.bag[k]++;lvCapInfo();return}const S0c=stOf(m);m.lv++;m.exp=expAt(m.lv);const S1c=stOf(m);m.hp=Math.min(S1c[0],m.hp+S1c[0]-S0c[0]);m.evoReady=1;let lrn='';for(const [l,id] of learnset(META[m.n]))if(l===m.lv&&!m.moves.includes(id)){const nmv=mv(id);if(m.moves.length<4){m.moves.push(id);lrn+=' · '+nmv.name+' 습득!'}else{const w=m.moves.filter(x=>(mv(x).pw||0)>0).sort((a,b)=>mv(a).pw-mv(b).pw)[0];if(w&&mv(w).pw<nmv.pw){m.moves[m.moves.indexOf(w)]=id;lrn+=' · '+mv(w).name+' → '+nmv.name+'!'}}}toast(nm(m)+' 레벨 '+dLv(m)+'!'+lrn);evolveAfterMenu()}save();bagOpen()}});
+  p.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const k=x.dataset.it,it=ITEMS[k];if(it.charm){toast(it.n+': 가방에 있기만 해도 '+TN[it.charm]+' 타입 기술 위력 +10%');return}if(it.form){closePanel(1);formUse(k);return}if(it.shinyItem){closePanel(1);shinyUse();return}if(it.lv&&candyLock()){candyLockInfo();return}if(it.heal||it.lv){const m=(typeof ITPICK!=='undefined'&&ITPICK)||G.party.find(m=>it.lv||m.hp<stOf(m)[0]&&m.hp>0);if(!m){toast('쓸 포켓몬이 없어요');return}G.bag[k]--;if(it.heal){m.hp=Math.min(stOf(m)[0],m.hp+HEALV(it,stOf(m)[0]));toast(nm(m)+' 회복!')}else{if(m.lv>=lvCap()){G.bag[k]++;lvCapInfo();return}const S0c=stOf(m);m.lv++;m.exp=expAt(m.lv);const S1c=stOf(m);m.hp=Math.min(S1c[0],m.hp+S1c[0]-S0c[0]);m.evoReady=1;let lrn='';for(const [l,id] of learnset(META[m.n]))if(l===m.lv&&!m.moves.includes(id)){const nmv=mv(id);if(m.moves.length<4){m.moves.push(id);lrn+=' · '+nmv.name+' 습득!'}else{const w=m.moves.filter(x=>(mv(x).pw||0)>0).sort((a,b)=>mv(a).pw-mv(b).pw)[0];if(w&&mv(w).pw<nmv.pw){m.moves[m.moves.indexOf(w)]=id;lrn+=' · '+mv(w).name+' → '+nmv.name+'!'}}}toast(nm(m)+' 레벨 '+dLv(m)+'!'+lrn);evolveAfterMenu()}save();bagOpen()}});
 }
 const BCN=['🔴 볼','🍎 열매','💊 회복 · 성장','🏷 접두사 주문서','⭐ 타입 부적','📊 스탯 부적','✨ 변신 · 특수','🧊 큐브 · 알 · 기타'];
 function bagCat(k){const it=ITEMS[k];if(!it)return 7;if(k==='oran'||k==='sitrus'||k==='razz')return 1;if(it.ball)return 0;if(it.heal||it.lv)return 2;if(k==='pxsc'||k==='spxsc')return 3;if(it.charm)return 4;if(it.stat)return 5;if(it.form||it.shinyItem||k==='dmax'||k==='porb')return 6;return 7}
@@ -2885,7 +2887,7 @@ function itDiff(b,a){const N=['체력','공격','방어','특공','특방','스�
 function itWaitOver(){return new Promise(r=>{let t=0;const f=()=>{if(SCENE==='over'||++t>100)r();else setTimeout(f,150)};setTimeout(f,80)})}
 async function itRun(k,it,m,go){
   let D='';try{D=itD(k).s}catch(e){}
-  const S=stOf(m);let exp='';if(it.heal)exp=`체력 ${Math.ceil(m.hp)} → ${Math.min(S[0],Math.ceil(m.hp+it.heal))} 예상`;else if(it.lv)exp=`레벨 Lv.${dLv(m)} → Lv.${dLv(m)+1} 예상`;
+  const S=stOf(m);let exp='';if(it.heal)exp=`체력 ${Math.ceil(m.hp)} → ${Math.min(S[0],Math.ceil(m.hp+HEALV(it,S[0])))} 예상`;else if(it.lv)exp=`레벨 Lv.${dLv(m)} → Lv.${dLv(m)+1} 예상`;
   const ok=(k==='candy'&&window.candyBulk)?true:await askConfirm('아이템 사용',`정말 <b>${nm(m)}</b>에게 <b>${it.n}</b>을(를) 사용하시겠습니까?${exp?`<br><small>${exp}</small>`:''}${D?`<br><small>${D}</small>`:''}`,'사용하기');
   if(!ok)return;
   const b=itSnap(m),n0=G.bag[k]||0;
@@ -3391,9 +3393,9 @@ const ITD={
  great:{s:'몬스터볼보다 1.5배 잘 잡히는 볼',use:'야생 포켓몬에게 던져요',good:'잡히는 정도 ×1.5 · 배지 2개부터 상점에서 팔아요',who:'희귀 · 영웅 등급 포켓몬',tip:'설정에서 "영웅 이상일 때만 슈퍼볼" 처럼 아껴 쓰게 정할 수 있어요.'},
  hyper:{s:'아주 잘 잡히는 고급 볼',use:'야생 포켓몬에게 던져요',good:'잡히는 정도 ×2.2 · 배지 5개부터 팔아요',who:'영웅 · 전설 등급 포켓몬',tip:'전설은 원래 잘 안 잡혀요. 하이퍼볼 + 타이밍 맞추기가 제일 좋아요.'},
  master:{s:'무조건 잡히는 최고의 볼',use:'야생 포켓몬에게 던져요',good:'던지면 100% 잡혀요',who:'정말 갖고 싶은 전설 포켓몬',tip:'아주 귀해요. 아껴 두세요!'},
- potion:{s:'체력 20 회복',use:'다친 포켓몬 1마리에게 써요 (배틀 중에도 가능)',good:'싸고 언제든 쓸 수 있어요',who:'조금 다친 포켓몬 · 레벨 낮은 포켓몬',tip:'쓰러진(체력 0) 포켓몬은 상처약으로 못 살려요 → 포켓몬센터나 "치료" 버튼!'},
- spotion:{s:'체력 60 회복',use:'다친 포켓몬 1마리에게 써요',good:'상처약 3개보다 효과가 커요 · 배지 3개부터',who:'레벨 20~40 포켓몬',tip:'자동 배틀에서도 체력이 적으면 알아서 써요.'},
- hpotion:{s:'체력 150 회복',use:'많이 다친 포켓몬 1마리에게 써요',good:'거의 다 회복돼요 · 배지 6개부터',who:'레벨 높은 포켓몬 · 관장 · 사천왕전',tip:'관장과 싸우기 전에 꼭 몇 개 챙겨요.'},
+ potion:{s:'최대 체력의 20% 회복',use:'다친 포켓몬 1마리에게 써요 (배틀 중에도 가능)',good:'싸고 언제든 쓸 수 있어요',who:'조금 다친 포켓몬 · 레벨 낮은 포켓몬',tip:'쓰러진(체력 0) 포켓몬은 상처약으로 못 살려요 → 포켓몬센터나 "치료" 버튼!'},
+ spotion:{s:'최대 체력의 45% 회복',use:'다친 포켓몬 1마리에게 써요',good:'상처약 3개보다 효과가 커요 · 배지 3개부터',who:'레벨 20~40 포켓몬',tip:'자동 배틀에서도 체력이 적으면 알아서 써요.'},
+ hpotion:{s:'최대 체력의 75% 회복',use:'많이 다친 포켓몬 1마리에게 써요',good:'거의 다 회복돼요 · 배지 6개부터',who:'레벨 높은 포켓몬 · 관장 · 사천왕전',tip:'관장과 싸우기 전에 꼭 몇 개 챙겨요.'},
  candy:{s:'먹으면 레벨이 1 올라요',use:'포켓몬 1마리에게 먹여요',good:'싸우지 않아도 바로 레벨업 · 능력치도 같이 올라요',who:'진화 직전인 포켓몬 · 새로 잡은 약한 포켓몬',tip:'진화 레벨이 되면 바로 진화할 수 있어요. 노랑시티에서만 팔아요.'},
  mstone:{s:'메가진화 시키는 돌',use:'메가진화 할 수 있는 포켓몬에게 써요',good:'계속 메가 모습으로 바뀌어요 (돌로는 최대 5마리까지, 그 이상은 합성 · 카드팩으로만) · 공격·방어·특공·특방·스피드 +20 · 등급이 신화가 돼요 (능력치 +16%)',who:'리자몽 · 후딘 · 갸라도스 같은 메가진화 포켓몬',form:'mega'},
  porb:{s:'배틀 중 한 번, 원시의 힘을 깨우는 구슬',use:'배틀 화면 왼쪽 「원시회귀」 단추로 써요 (쓸 때마다 구슬 1개가 사라져요)',good:'내 포켓몬이 3번 공격하는 동안(실시간 배틀은 6번) 공격 ×1.25 · 받는 피해 ×0.7이에요. 등급은 안 바뀌고 저장되지 않아요',who:'그란돈 · 가이오가',tip:'파는 곳은 없고 보상으로만 얻어요.'},
@@ -3447,7 +3449,7 @@ function itPick(L,it,go){const k=Object.keys(ITEMS).find(q=>ITEMS[q]===it);try{i
 const IT_RC={};
 function itRec(k){const it=ITEMS[k];if(!it||!G)return null;const all=[...G.party,...G.box],pi=m=>G.party.indexOf(m),E=[];
   const add=(m,sc,why,f)=>E.push({m,f,sc,why});const mvf=id=>{try{return mv(id)}catch(e){return MOVES[id]}};
-  if(it.heal){for(const m of G.party){const S=stOf(m)[0];if(m.hp<=0||m.hp>=S)continue;const r=m.hp/S,miss=S-m.hp,small=miss<it.heal*.4;
+  if(it.heal){for(const m of G.party){const S=stOf(m)[0];if(m.hp<=0||m.hp>=S)continue;const r=m.hp/S,miss=S-m.hp,small=miss<HEALV(it,S)*.4;
       add(m,(1-r)*100+(pi(m)===0?8:0)+rarM(m)*2-(small?30:0),'체력 '+Math.round(r*100)+'%'+(r<.3?' · 제일 위험해요':r<.6?' · 많이 다쳤어요':' · 조금 다쳤어요')+(small?' · 이 약은 아까워요':''))}}
   else if(it.lv){const cap=lvCap();for(const m of G.party){if(m.lv>=cap)continue;const M=META[m.n];let sc=rarM(m)*12+(pi(m)===0?6:0)+Math.min(10,(cap-m.lv)/5),w=RAR[rarM(m)]+' 등급 · Lv.'+dLv(m);
       const ev=M&&!M.form?(EVC[M.dex]||[]).filter(([d,l])=>BYDEX[d]&&l>m.lv).sort((a,b)=>a[1]-b[1])[0]:null;
@@ -4619,11 +4621,11 @@ try{HUB.push({k:'diff',n:'난이도',d:'쉬움 · 보통 · 어려움 · 지옥 
 // ===== 포케스탑: 길가에 가끔 생겨요 · 가까이 가서 원판을 손가락으로 돌리면 볼 · 상처약 · 열매가 나와요 =====
 // 열매: 오랭열매(체력 +30) · 시트러스열매(체력 +80) · 라즈열매(가지고 있으면 볼 던질 때 자동으로 먼저 줘서 잡기 쉬워짐)
 const berrySvg=c=>`<svg class="ic" viewBox="0 0 16 16"><path d="M8 3c2-2 4-1 4-1-1 1-2 2-4 2" fill="#3c9a3c"/><circle cx="8" cy="9.5" r="5.5" fill="${c}" stroke="#0006"/><circle cx="6" cy="8" r="1.4" fill="#fff8"/></svg>`;
-ITEMS.oran={n:'오랭열매',e:berrySvg('#3a7bea'),heal:30};
-ITEMS.sitrus={n:'시트러스열매',e:berrySvg('#f0c83a'),heal:80};
+ITEMS.oran={n:'오랭열매',e:berrySvg('#3a7bea'),heal:30,pct:25};
+ITEMS.sitrus={n:'시트러스열매',e:berrySvg('#f0c83a'),heal:80,pct:50};
 ITEMS.razz={n:'라즈열매',e:berrySvg('#e0407a'),razz:1};
-try{ITD.oran={s:'포켓몬 체력을 30 회복',use:'배틀 중 가방이나 메뉴 가방에서 써요',good:'상처약처럼 쓸 수 있어요',who:'조금 다친 포켓몬',tip:'포케스탑에서 나와요'};
-  ITD.sitrus={s:'포켓몬 체력을 80 회복',use:'배틀 중 가방이나 메뉴 가방에서 써요',good:'좋은상처약보다 조금 더 회복',who:'많이 다친 포켓몬',tip:'포케스탑에서 가끔 나와요'};
+try{ITD.oran={s:'포켓몬 최대 체력의 25%를 회복',use:'배틀 중 가방이나 메뉴 가방에서 써요',good:'상처약처럼 쓸 수 있어요',who:'조금 다친 포켓몬',tip:'포케스탑에서 나와요'};
+  ITD.sitrus={s:'포켓몬 최대 체력의 50%를 회복',use:'배틀 중 가방이나 메뉴 가방에서 써요',good:'좋은상처약보다 조금 더 회복',who:'많이 다친 포켓몬',tip:'포케스탑에서 가끔 나와요'};
   ITD.razz={s:'볼을 던질 때 먼저 줘서 잡힐 확률 1.5배',use:'가방에 있기만 하면 볼 던질 때 1개씩 자동으로 써요',good:'희귀한 포켓몬을 잡을 때 좋아요',who:'잡고 싶은 포켓몬이 있을 때',tip:'포케스탑에서 나와요'}}catch(e){}
 {const _tb=throwBall;throwBall=async function(f,it){if(it&&it.ball&&it.ball<255&&G.bag.razz>0&&G.opt.razz!==false){G.bag.razz--;it=Object.assign({},it,{ball:it.ball*1.5});try{await msg('<b>라즈열매</b>를 먼저 줬다! 잡기 쉬워졌다',FAST()?300:600)}catch(e){}}return _tb.call(this,f,it)}}
 
@@ -5497,11 +5499,11 @@ function resFix(A,x,y){if(!A||!A.res||!A.wAt)return null;const ref=resRef(A,{x,y
   for(let d=1;d<=8;d++)for(let dy=-d;dy<=d;dy++)for(let dx=-d;dx<=d;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==d)continue;const X=x+dx,Y=y+dy;if(!canGo(A,X,Y,'walk')||A.wAt[X+','+Y])continue;if(ok(X,Y))return[X,Y]}return null}
 {const _g=goRes;goRes=async function(to){const r=await _g.apply(this,arguments);try{const A=curA();const f=resFix(A,P.x,P.y);if(f){P.x=f[0];P.y=f[1];P.mv=null;P.trail=[];P.queue=null;save()}}catch(e){}return r}}
 // ===== 배틀 중 「회복약」: 누르면 지금 싸우는 포켓몬에게 바로 써요 (자동 배틀 중에도) =====
-const HEALK=()=>Object.keys(ITEMS).filter(k=>ITEMS[k].heal&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal);
+const HEALK=()=>Object.keys(ITEMS).filter(k=>ITEMS[k].heal&&(G.bag[k]||0)>0).sort((a,b)=>(ITEMS[a].pct||0)-(ITEMS[b].pct||0)||ITEMS[a].heal-ITEMS[b].heal);
 let AHT=0;
 function actHeal(){try{const m=BS.me&&BS.me.m;if(!m||m.hp<=0)return;if(Date.now()-AHT<1200)return;const mx=stOf(m)[0],miss=mx-m.hp;if(miss<=0){toast('체력이 가득해요');return}
-  const L=HEALK();if(!L.length){toast('회복약이 없어요 · 상점이나 포케스탑에서 구해요');return}const k=L.find(k=>ITEMS[k].heal>=miss)||L[L.length-1];AHT=Date.now();
-  G.bag[k]--;const h=Math.min(miss,ITEMS[k].heal);m.hp+=h;save();sfx('heal');toast(ITEMS[k].n+' · '+nm(m)+' 체력 +'+h);try{hpPop&&hpPop(true,'+'+h)}catch(e){}aHealN()}catch(e){}}
+  const L=HEALK();if(!L.length){toast('회복약이 없어요 · 상점이나 포케스탑에서 구해요');return}const PL=POTLIM();if(PL&&(BS.potN||0)>=PL){toast('물약은 전투 1번에 '+PL+'개까지만 쓸 수 있어요!');return}const k=L.find(k=>HEALV(ITEMS[k],mx)>=miss)||L[L.length-1];AHT=Date.now();
+  G.bag[k]--;BS.potN=(BS.potN||0)+1;const h=Math.min(miss,HEALV(ITEMS[k],mx));m.hp+=h;save();sfx('heal');toast(ITEMS[k].n+' · '+nm(m)+' 체력 +'+h);try{hpPop&&hpPop(true,'+'+h)}catch(e){}aHealN()}catch(e){}}
 function aHealN(){const e=document.getElementById('aHealN');if(e&&G){const n=HEALK().reduce((a,k)=>a+(G.bag[k]||0),0);e.textContent=n?'×'+n:'없음'}}
 setInterval(()=>{try{aHealN()}catch(e){}},700);
 // 배틀 덧붙임 효과(갈라짐 · 파편 · 화면 깨짐 · 도트 효과) 켜고 끄기 · 기본은 꺼짐 (기술 이펙트가 잘 보이게)
@@ -9021,8 +9023,8 @@ async function rtGo(){
     const balls=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞'}));
     const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP,...rtCommon(),bg:()=>{try{return bgImg('grass')}catch(e){return null}},
       // 6F-4c 시험: 회복약 무한(저장 안 됨)
-      items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞',heal:ITEMS[k].heal})),
-      useItem:k=>{const it=ITEMS[k];return it&&it.heal?{heal:it.heal}:null},sfx});
+      items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball).sort((a,b)=>(ITEMS[a].pct||0)-(ITEMS[b].pct||0)||ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞',heal:ITEMS[k].heal,pct:ITEMS[k].pct})),
+      useItem:k=>{const it=ITEMS[k];return it&&it.heal?{heal:it.heal,pct:it.pct}:null},sfx});
     toast(r==='catch'?'⚔ 시험 전투: 잡았다! (시험이라 저장 안 됨)':r==='win'?'⚔ 시험 전투 승리!':r==='lose'?'⚔ 시험 전투 패배':r==='draw'?'⚔ 무승부':'⚔ 시험 전투 종료');
   }catch(e){console.warn('rtb',e);try{toast('시험 전투 오류: '+(e.message||e))}catch(_){}}
   finally{window.__rtRun=0}
@@ -9120,8 +9122,8 @@ async function rtWild(o){
         gmS,meHp:m.hp,foeHp:f.hp,aiTier:tier,bg:rtBgOf,gx:gxKeyOf(o),...rtCommon(),party:()=>G.party.map(rtPartyRow),
         pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
         // 6F-4c: 전투 중 회복 아이템(가방에서 1개 차감). 상처약·좋은상처약·고급상처약·오랭/시트러스열매
-        items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal})),
-        useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;const L=POTLIM();if(L&&(BS.potN||0)>=L)return{deny:'물약은 전투 1번에 '+L+'개까지!'};G.bag[k]--;BS.potN=(BS.potN||0)+1;return{heal:it.heal}},sfx,
+        items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>(ITEMS[a].pct||0)-(ITEMS[b].pct||0)||ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal,pct:ITEMS[k].pct})),
+        useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;const L=POTLIM();if(L&&(BS.potN||0)>=L)return{deny:'물약은 전투 1번에 '+L+'개까지!'};G.bag[k]--;BS.potN=(BS.potN||0)+1;return{heal:it.heal,pct:it.pct}},sfx,
         loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:autoActive()?'자동으로 계속해요':'화면을 누르면 계속해요',
         // 7A: 자동전투 — 내 포켓몬도 AI(T4). 야생은 잡고 싶은 포켓몬이면 자동 볼(예전 자동 규칙 wantCatch·autoBallFor 그대로)
         autoMe:autoActive()?1:0,autoTier:'T4',rollTut:!G.rollTut,onRollTut:()=>{G.rollTut=1;save()},catchAt:()=>{try{const r=rarM(f);return r<=0?.35:r===1?.28:r===2?.22:.15}catch(e){return .25}},autoBall:()=>{try{return(!tr&&autoActive()&&wantCatch(f)&&!capFull(f))?autoBallFor(f):null}catch(e){return null}}},
@@ -9173,8 +9175,8 @@ async function rtWB(o){
       gmS,meHp:m.hp,foeHp:f.hp,aiTier:(window.WBAI&&WBAI())||'T2',bg:rtBgOf,...rtCommon(),numK:()=>SC,
       party:()=>G.party.map(rtPartyRow),
       pickMon:uid=>{const q=G.party.find(x=>x.uid===uid);return q&&q.hp>0?{mon:Object.assign({},q,{moves:q.moves.slice()}),hp:q.hp}:null},
-      items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal})),
-      useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;const L=POTLIM();if(L&&(BS.potN||0)>=L)return{deny:'물약은 전투 1번에 '+L+'개까지!'};G.bag[k]--;BS.potN=(BS.potN||0)+1;return{heal:it.heal}},sfx,
+      items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>(ITEMS[a].pct||0)-(ITEMS[b].pct||0)||ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal,pct:ITEMS[k].pct})),
+      useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;const L=POTLIM();if(L&&(BS.potN||0)>=L)return{deny:'물약은 전투 1번에 '+L+'개까지!'};G.bag[k]--;BS.potN=(BS.potN||0)+1;return{heal:it.heal,pct:it.pct}},sfx,
       loseTxt:alive().length>1?'쓰러졌다! 다음 포켓몬!':'모두 쓰러졌다…',drawTxt:'시간 끝!',endHint:autoActive()?'자동으로 계속해요':'화면을 누르면 계속해요',
       bossNoFrac:1,giant:(G&&G.wbK&&G.wbK!=='n')?1:0,bossWarn:1,bossLook:(G&&G.wbK==='c')?7:(G&&G.wbK==='e')?8:0,nm:x=>(x===f||x&&f&&x.uid===f.uid?wbPre():'')+nm(x),bossBase:H0/(f.hpx||1),bossHit:(window.WBHIT&&WBHIT())||.08,autoMe:autoActive()?1:0,autoTier:'T4',noTimeLimit:1,maxTime:left,quitText:'그만 싸울까요? (이번 판 데미지는 없어지고 도전 횟수는 돌려받아요)'}));
     const L=window.RTB.last||{};
@@ -10180,7 +10182,7 @@ try{const C=[{k:'dq',n:'📜 오늘의 천계 의뢰 (매일)',d:'매일 새 의
 const HZC=[['day','ic_gift','매일 할 것','#e09a00','출석 · 의뢰 · 포케스탑 · 시즌 패스'],['bt','ic_fast','배틀 · 도전','#d8323f','스토리 · 월드보스 · 천계 탑 · 서바이버 던전'],['fr','ic_rank','친구랑','#2f7be8','난투전 · 레이드 · 교환 · 랭킹'],
   ['up','ic_star','키우기','#8048e8','편성 · 장비 · 승급 · 각성'],['col','ic_dex','모으기 · 탐험','#1e9e5e','도감 · 카드팩 · 알 · 마을'],['set','ic_menu','설정 · 소식','#5b6383','화면 · 전투 방식 · 업데이트']];
 const SEC={day:[['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매일 다시 도전',['rm','portal']]],
-  bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 매주 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🗡 던전 (경험치 · 골드 · 영혼)',['sv']]],
+  bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 매주 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🗡 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스)',['svx','svg','svs','svb','svk']]],
   fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
   up:[['🐾 포켓몬 키우기',['team','trans','awake','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
   col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','wild']],['🏘 마을 · 날씨',['mg','shop','wx']]],
@@ -10192,7 +10194,7 @@ const HZP={season:IM('ui/ic_season.webp'),dq:IM('ui/tr/gem.png'),stop:IM('ui/ic_
   brawl:SH('ui/news/n14_brawl.webp'),raid:DX(383),pvp:SH('ui/news/n10_pvp3.webp'),rmroom:DX(448),trade:DX(132),rank:IM('ui/podium.webp'),wc:DX(201),dojo:DX(107),
   team:DX(6),gear:IM('ui/cube2.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/tr/core.png'),rebirth:DX(250),lb:IM('items/RARECANDY.png'),prefix:IM('ui/ic_scroll.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
   dex:IM('ui/ic_dex.webp'),dxr:DX(151),card:IM('cardpack/pk3.webp'),egg:IM('ui/ic_egg.webp'),wild:DX(25),mg:DX(129),shop:IM('ui/ic_shop.webp'),wx:IM('ui/ic_wx.webp'),
-  news:SH('ui/news/n01_hub.webp'),vscale:SH('ui/news/n08_scale.webp'),btmode:SH('ui/news/n02_mode.webp'),dskin:SH('ui/news/n03_skin.webp'),hitfx:SH('ui/news/n20_sprfx.webp'),a2fx:SH('ui/news/n15_proj.webp'),dmeter:SH('ui/news/n04_battle.webp'),odds:IM('ui/ic_coin.webp')};
+  news:SH('ui/news/n01_hub.webp'),vscale:SH('ui/news/n08_scale.webp'),btmode:SH('ui/news/n02_mode.webp'),dskin:SH('ui/news/n03_skin.webp'),hitfx:SH('ui/news/n20_sprfx.webp'),a2fx:SH('ui/news/n15_proj.webp'),dmeter:SH('ui/news/n04_battle.webp'),odds:IM('ui/ic_coin.webp'),svx:IM('items/RARECANDY.png'),svg:IM('ui/ic_coin.webp'),svs:IM('ui/tr/core.png'),svb:DX(144),svk:IM('ui/cube2.webp')};
 const pic=k=>{const p=HZP[k]||IM('ui/'+((typeof HUBIC!=='undefined'&&HUBIC[k])||'ic_star')+'.webp');
   if(p[0]==='p'){const n=BYDEX[p[1]];return `<img class="hzpk" src="${(n&&THUMB[n])||''}" alt="">`}
   if(p[0]==='s')return `<img class="hzsh" src="${p[1]}" alt="">`;return `<img class="hzim" src="${p[1]}" alt="">`};
