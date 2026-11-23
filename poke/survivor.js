@@ -56,12 +56,52 @@ function pickTier(k){
 }
 function quick(k){const mx=Math.min(9,DIFF());G.svLast=G.svLast||{};const t=Math.min(mx,G.svLast[k]!=null?G.svLast[k]:mx);start(k,t)}
 
+// ---------- 내 파티를 던전으로 (최대 6마리: 능력치 · 기술 · 그림을 sb/ 게임에 넘겨줘요) ----------
+// sb/ 안에서는 1번 포켓몬을 내가 움직이고, 나머지는 알아서 돌아다니며 자기 기술로 적을 베요. 데미지 공식은 실시간 전투(wbswarm)와 같아요 (방어 100짜리 허수아비 기준).
+const SB_MAX=6;
+async function packParty(){
+ try{
+  if(!window.rtCtxBase)return null;
+  try{await rzMovesLoad()}catch(e){}
+  const C=window.rtCtxBase(),TC=C.TCOL||{};
+  let mons=(G.party||[]).filter(m=>m&&m.hp>0&&C.META[m.n]);if(!mons.length)mons=(G.party||[]).filter(m=>m&&C.META[m.n]);
+  mons=mons.slice(0,SB_MAX);
+  const rgbOf=h=>{const n=parseInt(String(h||'#ffffff').replace('#','').slice(0,6),16)||16777215;return((n>>16)&255)+','+((n>>8)&255)+','+(n&255)};
+  const mvOf=id=>{
+   let d=(C.RZM&&C.RZM[id])||(C.SGD&&C.SGD[id])||null,name,type,p,c,k;
+   if(d){name=d.n;type=d.t;p=d.p|0;c=d.c;k=d.k||'projectile'}
+   else{const g=(C.mv&&C.mv(id))||{};name=g.name||id;type=g.type||'NORMAL';p=g.pw|0;c=g.ph?0:1;k=g.ph?'melee':'projectile'}
+   const st=c===2||!(p>0),col=TC[type]||'#ffffff';
+   return{id,name,type,p:st?0:p,phys:c===0,melee:k==='melee'||k==='leap',k,col,rgb:rgbOf(col)}};
+  const out=[];
+  for(const m of mons){try{
+   const st=C.stOf(m),M=C.META[m.n],types=(M&&M.types)||['NORMAL'];
+   let g=null,cx={c:0,d:0};try{g=C.gearOf(m)}catch(e){}try{cx=C.critOf(m)||cx}catch(e){}
+   const aA=(g&&g.aA)||{},ign=Math.min(.9,(aA.ign||0)/100),lv=Math.min(100,m.lv||50);
+   if(g&&(g.crt||g.cdm))cx={c:Math.min(.75,(cx.c||0)+(g.crt||0)/100),d:(cx.d||0)+(g.cdm||0)/100};
+   const calc=mv=>{const A=mv.phys?st[1]:st[3],stab=types.includes(mv.type)?1.5:1;
+    let d=((2*lv/5+2)*mv.p*A/Math.max(1,100*(1-ign))/50+2)*.52*stab*(mv.melee&&mv.phys?1.15:1);
+    if(g&&g.atk)d*=1+g.atk/100;
+    d*=(1+(aA.tatk||0)/100)*(1+(aA.tdmg||0)/100)*(1+(aA.elem||0)/100)*(1+(aA.aB||0)/100);
+    try{d*=+C.dmgMul(m,m,mv.id)||1}catch(e){}
+    return Math.max(1,Math.round(d))};
+   let moves=(m.moves||[]).slice(0,4).map(mvOf);moves.forEach(x=>{x.d=x.p>0?calc(x):0});
+   if(!moves.some(x=>x.p>0)){const x=mvOf('struggle');x.p=x.p||40;x.melee=true;x.k='melee';x.d=calc(x);moves.push(x)}
+   let S0=null;try{S0=await Promise.race([C.getSpr(C.sprKey(m)),new Promise(r=>setTimeout(()=>r(null),4000))])}catch(e){}
+   out.push({uid:m.uid,n:m.n,name:C.nm(m),lv,types,hp:Math.max(1,Math.round(st[0]*(1+(((g&&g.hp)||0)+(aA.hp||0))/100))),spd:Math.max(120,Math.min(230,110+.55*(st[5]||60))),
+    crit:cx,best:Math.max(1,...moves.map(x=>x.d||0)),moves,S:S0})
+  }catch(e){console.warn('sb party',e)}}
+  return out
+ }catch(e){console.warn('packParty',e);return null}
+}
+
 function start(k,tier){tier=tier|0;
  const s=sv();if(!G.party.length)return;
- if(document.getElementById('svOv'))return;
+ if(document.getElementById('svOv')||window.__svBusy)return;
  if(lim(k)&&s.n[k]>=DAILY){toast('오늘은 다 했어요 (하루 '+DAILY+'번)');return}
  if(lim(k))s.n[k]++;G.svLast=G.svLast||{};G.svLast[k]=tier;save();
- const D=DG[k];let done=0;
+ const D=DG[k];let done=0;window.__svBusy=1;
+ const run=()=>{window.__svBusy=0;
  try{BGM.play(null)}catch(e){}
  const ov=document.createElement('div');ov.id='svOv';ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#000';
  const ifr=document.createElement('iframe');ifr.setAttribute('allow','autoplay');
@@ -70,10 +110,12 @@ function start(k,tier){tier=tier|0;
  const ex=document.createElement('button');ex.textContent='✕ 나가기';
  ex.style.cssText='position:absolute;left:8px;top:calc(env(safe-area-inset-top,0px) + 28px);z-index:2;padding:6px 10px;font-size:13px';
  ov.appendChild(ifr);ov.appendChild(ex);document.body.appendChild(ov);
- const finish=res=>{if(done)return;done=1;removeEventListener('message',onMsg);ov.remove();try{BGM.area()}catch(e){}try{saveRec(k,res)}catch(e){}reward(k,res);pop()};
+ const finish=res=>{if(done)return;done=1;window.__SBP=null;removeEventListener('message',onMsg);ov.remove();try{BGM.area()}catch(e){}try{saveRec(k,res)}catch(e){}reward(k,res);pop()};
  const onMsg=e=>{if(e.source!==ifr.contentWindow)return;const d=e.data;if(d&&d.sb)finish(d)};
  addEventListener('message',onMsg);
  ex.onclick=()=>{try{ifr.contentWindow.postMessage({cmd:'quit'},'*')}catch(e){}setTimeout(()=>finish({sb:1,mode:D.m,tier,r:2,kills:0,got:0,bdmg:0}),1200)};
+ };
+ packParty().then(P=>{window.__SBP=(P&&P.length)?P:null},()=>{window.__SBP=null}).then(run,run);
 }
 
 
@@ -159,7 +201,7 @@ const stOf=k=>()=>{const s=sv(),b=s.best[k]||0;return (lim(k)?'오늘 남은 횟
 const cards=KEYS.map(k=>{const D=DG[k];return{k:D.key,n:D.e+' '+D.n+' (매일)',d:D.d+' '+(lim(k)?'하루 '+DAILY+'번까지, ':'')+(D.dur)+'초 동안 손가락(또는 방향키·WASD)으로 움직이면 공격은 자동이에요. 🤖 자동 조종을 켜면 움직임과 기술 고르기까지 알아서 해요. 한 번 해 보면 최고 기록으로 ⚡소탕할 수 있어요.',st:stOf(k),go:[['들어가기',()=>quick(k)],['난이도 고르기',()=>pickTier(k)],['⚡ 소탕',()=>sweepPick(k)]]}});
 cards.push({k:'svk',n:'🪙 서바이버 코인 상점',d:'경험치 던전을 끝까지 해서 받은 🪙코인으로 수상한 · 명장의 큐브, 이상한사탕, 앱솔루트 · 어메이징 큐브를 사요.',st:()=>'가진 코인 '+(G.svc|0)+' · 오늘 번 코인 '+sv().c+'/'+COIN_DAY,go:[['코인 상점 열기',()=>shop()]]});
 {const i=HUB.findIndex(h=>h.k==='tg'),j=HUB.findIndex(h=>h.k==='wb'),at=i>=0?i:j;if(at>=0)HUB.splice(at+1,0,...cards);else HUB.push(...cards)}
-window.svOpen=()=>pickTier('play');
+window.svOpen=()=>pickTier('play');window.svStart=start;
 
 // ---------- 일일 숙제 팝업 (게임 화면 위 · 끌어서 옮기기 · 접고 펴기 · 다 하면 사라짐) ----------
 function tasks(){
