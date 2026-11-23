@@ -2012,7 +2012,42 @@ function buildUI(){
   W.rs=()=>{const dpr=Math.min(1.5,devicePixelRatio||1)*(W.q||1);cv.width=Math.max(320,Math.round(innerWidth*dpr));cv.height=Math.max(180,Math.round(innerHeight*dpr))};   // 렉 줄이기: 기본 1.5배까지, 느리면 자동으로 더 낮춤
   W.rs();addEventListener('resize',W.rs);
 }
-function updSide(){try{   // 9R: 교대·약 버튼에 남은 시간·개수 표시
+// ---------- 10A: 왼쪽 교대 목록 (초상화 · 이름 · 한계돌파 별 · 각성 별 · 눌러서 바로 교체) ----------
+function updPartyCol(){
+  const w=W;if(!w||!w.root||w.over||!C.party||!C.pickMon)return;
+  let col=w.pcol;
+  if(!col){
+    let L0=[];try{L0=C.party()||[]}catch(e){}
+    if(L0.length<2)return;
+    const ui=w.root.children[1];if(!ui)return;
+    col=document.createElement('div');
+    col.style.cssText='position:absolute;left:calc(6px + env(safe-area-inset-left));top:calc(64px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:3px;pointer-events:none;z-index:3';
+    ui.appendChild(col);w.pcol=col;col._sig='';
+  }
+  let L=[];try{L=C.party()||[]}catch(e){}
+  const cur=w.me&&w.me.mon?w.me.mon.uid:null,cd=(w.swCd||0)>0;
+  const rows=L.filter(q=>q.uid!==cur);
+  let sig=(cd?'c':'n');
+  for(const q of rows){let hp=0;try{hp=partyHp(q)}catch(e){}sig+='|'+q.uid+':'+(hp>0?Math.ceil(10*hp/Math.max(1,q.max)):0)}
+  if(sig===col._sig)return;col._sig=sig;
+  col.textContent='';
+  for(const q of rows){
+    let hp=0;try{hp=partyHp(q)}catch(e){}
+    const dead=!(hp>0),can=!dead&&!cd;
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:5px;width:122px;padding:3px 5px;background:rgba(10,13,24,.8);border:2px solid '+(can?'#7fa6e8':'#3a4260')+';opacity:'+(dead?.45:cd?.65:1)+';pointer-events:auto;cursor:'+(can?'pointer':'default')+';font-family:"Galmuri11",sans-serif;box-sizing:border-box';
+    const im=document.createElement('img');im.src=q.face||'';im.style.cssText='width:32px;height:32px;object-fit:contain;image-rendering:pixelated;flex:none';row.appendChild(im);
+    const inf=document.createElement('div');inf.style.cssText='min-width:0;flex:1;display:flex;flex-direction:column;gap:1px';
+    const nm=document.createElement('div');nm.textContent=q.name;nm.style.cssText='font:700 10px "Galmuri11",sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';inf.appendChild(nm);
+    const bar=document.createElement('div');bar.style.cssText='height:3px;background:#222';const bi=document.createElement('i');bi.style.cssText='display:block;height:100%;background:#3be06a;width:'+Math.max(0,Math.min(100,hp/Math.max(1,q.max)*100))+'%';bar.appendChild(bi);inf.appendChild(bar);
+    const s1=document.createElement('div');s1.style.cssText='--sz:7px;line-height:0;height:9px;display:flex;align-items:center';s1.innerHTML=q.lbS||'';inf.appendChild(s1);
+    const s2=document.createElement('div');s2.style.cssText='--sz:7px;line-height:0;height:9px;display:flex;align-items:center';s2.innerHTML=q.awS||'';inf.appendChild(s2);
+    row.appendChild(inf);
+    row.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(can)doSwitch(q.uid)});
+    col.appendChild(row);
+  }
+}
+function updSide(){try{updPartyCol()}catch(er){}try{   // 9R: 교대·약 버튼에 남은 시간·개수 표시
   const sw=W.swBtn,ib=W.itBtn;
   if(sw){const c=W.swCd>0;sw.style.filter=c?'grayscale(.8) brightness(.75)':'';sw._t.textContent=c?Math.ceil(W.swCd)+'초':'교대'}
   if(ib){const c=W.itCd>0;let left=null;try{left=C.potLeft?C.potLeft():null}catch(e){}
