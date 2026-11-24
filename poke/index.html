@@ -11136,11 +11136,14 @@ window.TKLIST=TK.map(T=>T.k);
 // 신캐는 야생·체육관·상점·카드팩 같은 기존 목록(SPECIES)에는 넣지 않아요. 뽑기·한정판 도감이 생기기 전까지는 아래 「신캐 시험」 버튼으로만 받아요.
 (function(){try{
 let NCD=null;
-async function ncLoad(){if(NCD)return NCD;try{const r=await fetch('newchars.json',{cache:'no-cache'});NCD=r.ok?await r.json():[]}catch(e){NCD=[]}if(!Array.isArray(NCD))NCD=[];return NCD}
+async function ncLoad(){if(NCD&&NCD.length)return NCD;let L=[];for(let t=0;t<2&&!L.length;t++){try{const r=await fetch('newchars.json',{cache:t?'reload':'no-cache'});if(r.ok){const j=await r.json();if(Array.isArray(j))L=j}}catch(e){}}NCD=L;return NCD}
+function ncFlag(L){for(const c of L){try{RARP[c.dex]=c.rar|0}catch(e){}const k='sc:'+c.dex;if(META[k]){META[k].nc=1;META[k].adm=1}}}
+// 한정판 도감이 비어 있으면(처음 불러오기에 실패했을 때) 다시 받아 와요
+window.ncLoadAll=async()=>{const L=await ncLoad();ncFlag(L);return L};
 window.NCLIST=()=>NCD||[];
 const _lp=loadPool;
 loadPool=async function(...a){const r=await _lp.apply(this,a);
-  try{const L=await ncLoad();for(const c of L){try{RARP[c.dex]=c.rar|0}catch(e){}const k='sc:'+c.dex;if(META[k]){META[k].nc=1;META[k].adm=1}}
+  try{const L=await ncLoad();ncFlag(L);
     if(L.length){SPECIES=SPECIES.filter(n=>!(META[n]&&META[n].nc));try{RPOOL.ok=0;RPOOL.P=RPOOL.P.map(()=>[]);RPOOL.M=RPOOL.M.map(()=>[])}catch(e){}}}catch(e){console.warn('신캐',e)}
   return r};
 window.ncGiveTest=function(min){try{if(!G)return;const L=(NCD||[]).filter(c=>c.rar>=(min|0)&&META['sc:'+c.dex]&&![...G.party,...G.box].some(m=>m.n==='sc:'+c.dex));
@@ -11157,6 +11160,7 @@ try{HUB.push({k:'nctest',n:'🧪 신캐 시험 ('+((NCD&&NCD.length)||0)+'마리
 // 확률업이 아닌 칸은 「기존 포켓몬」만 나와요 (신캐는 확률업으로만 나오고, 나중에 등급 뽑기에 섞임).
 (function(){try{
 const WEEK=7*864e5,PITY=300,ST=[3,4,5,6];
+window.ncGiveWeek=function(){let n=0;for(const gg of ST){const U=pickup(gg);if(!U)continue;const key='sc:'+U.dex;if(!META[key]||[...G.party,...G.box].some(m=>m.n===key))continue;const m=mkMon(key,Math.max(30,(G.party.length?topLv():30)-2));m.gift=1;G.dex.s[U.dex]=1;G.dex.c[U.dex]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}save();try{refreshSpr()}catch(e){}return toast(n?'🛠 이번 주 확률업 '+n+'마리를 받았어요 (편성/보관함)':'이번 주 확률업은 이미 다 갖고 있어요')};
 const COST={3:30000,4:50000,5:80000,6:100000};   // 1회 비용 (10회 = 1회×10 + 보너스 1회 = 11번)
 // 확률(%): up 확률업 · same 같은 등급 다른 캐릭터 · hi 더 높은 등급 [등급,%]. 나머지는 낮은 등급(기존 포켓몬) 기본 확률 비율대로
 const RATE={
@@ -11248,7 +11252,7 @@ if(side&&!document.getElementById('bNcg')){const b=document.createElement('butto
 {const _o=operOpen;operOpen=function(){const r=_o.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel .pb');if(!p||p.querySelector('#oNcx')||!p.querySelector('#oOff'))return;
   const d=document.createElement('div');d.id='oNcx';d.innerHTML='<h4>✨ 한정뽑기 · 신캐 (운영자)</h4><div><button class="it" data-a="give">신캐 6마리 받기</button><button class="it" data-a="giveL">전설↑ 6마리</button><button class="it" data-a="pick">이번 주 확률업 받기</button><button class="it" data-a="up">주차 +1 미리보기</button><button class="it" data-a="dn">주차 −1</button><button class="it" data-a="0">주차 원래대로</button><button class="it" data-a="open">한정뽑기 열기</button></div><p class="hhint">주차 미리보기는 운영자 모드에서만 적용돼요 (지금 '+(ncWeek()+1)+'주차)</p>';
   p.querySelector('#oOff').parentNode.insertAdjacentElement('beforebegin',d);
-  d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='give')return window.ncGiveTest&&ncGiveTest(0);if(a==='giveL')return window.ncGiveTest&&ncGiveTest(3);if(a==='pick'){let n=0;for(const gg of ST){const U=pickup(gg);if(!U)continue;const key='sc:'+U.dex;if(!META[key]||[...G.party,...G.box].some(m=>m.n===key))continue;const m=mkMon(key,Math.max(30,(G.party.length?topLv():30)-2));m.gift=1;G.dex.s[U.dex]=1;G.dex.c[U.dex]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}save();try{refreshSpr()}catch(e){}return toast(n?'🛠 이번 주 확률업 '+n+'마리를 받았어요 (편성/보관함)':'이번 주 확률업은 이미 다 갖고 있어요')}
+  d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='give')return window.ncGiveTest&&ncGiveTest(0);if(a==='giveL')return window.ncGiveTest&&ncGiveTest(3);if(a==='pick')return window.ncGiveWeek();
     if(a==='open'){closePanel(1);return ncgOpen()}
     const o=+LS.get('nc-wk-off',0)||0;LS.set('nc-wk-off',a==='up'?o+1:a==='dn'?o-1:0);RPOOL.ok=0;toast('🛠 한정뽑기 주차 '+(ncWeek()+1)+'주차')})}catch(e){}},120);return r}}
 }catch(e){console.warn('ncg',e)}})();
@@ -11310,7 +11314,10 @@ const MS_AT=[5,10,20],MS_W=[.001,.001,.002,.003,.005,.007,.010];   // 등급 0~6
 window.NCDXCFG={PER,STEP,CAP,MS_AT,MS_W};
 const WEEK=7*864e5,key=d=>'sc:'+d;
 function reg(){if(!G)return 0;if(!G.ncdex||typeof G.ncdex!=='object')G.ncdex={};let n=0;
-  for(const m of [...G.party,...G.box]){const k=m&&m.n;if(typeof k==='string'&&k.startsWith('sc:')&&META[k]&&META[k].nc){const d=META[k].dex;if(!G.ncdex[d]){G.ncdex[d]=1;n++}}}return n}
+  for(const m of [...G.party,...G.box]){const k=m&&m.n;if(typeof k==='string'&&k.startsWith('sc:')&&META[k]&&META[k].nc){const d=META[k].dex;if(!G.ncdex[d]){G.ncdex[d]=1;n++}}}
+  // 도감에 「잡음」으로 찍힌 신캐(G.dex.c)도 얻은 걸로 쳐요 — 가졌다가 없어진 것도 도감에 남아요 (만나기만 한 건 G.dex.s라서 안 들어와요)
+  try{for(const d in (G.dex&&G.dex.c)||{}){const k=key(+d);if(META[k]&&META[k].nc&&!G.ncdex[d]){G.ncdex[d]=1;n++}}}catch(e){}
+  return n}
 window.ncReg=reg;
 let LS_=0;{const _sv=save;save=function(){try{const t=Date.now();if(t-LS_>3000){LS_=t;reg()}}catch(e){}return _sv.apply(this,arguments)}}
 const LIST=()=>window.NCLIST?window.NCLIST():[];
@@ -11338,30 +11345,31 @@ function banner(){const NI=window.NCINFO;if(!NI)return '';const S=NI.sch(),st=NI
   return `<div style="margin:6px 0"><small><b>🔥 이번 주 확률업</b> · ${left}일 뒤 교체</small><div style="display:flex;gap:4px;margin:3px 0">${cur.map(o=>card(o,0)).join('')||'<small>없어요</small>'}</div>${nxt.length?`<small><b>⏭ 다음 주 확률업</b> · 공개 전</small><div style="display:flex;gap:4px;margin:3px 0">${nxt.map(o=>card(o,1)).join('')}</div>`:''}</div>`}
 
 // 도감 복구: 도감에 「모음」으로 찍혀 있는데 편성·보관함·선물에 없는 신캐를 돌려줘요 (만나기만 한 신캐는 도감에 안 찍히므로 안 와요)
-async function ncRestore(){if(!G)return;reg();
+async function ncRestore(){if(!G)return;try{await window.ncLoadAll()}catch(e){}reg();
   const own=new Set([...G.party,...G.box].map(m=>m&&m.n));
   const gift=new Set((G.gifts||[]).filter(g=>g&&g.kind==='P').map(g=>String(g.id)));
   G.ncrs=G.ncrs||{};
-  const L=Object.keys(G.ncdex||{}).map(Number).filter(d=>META[key(d)]&&!G.ncrs[d]&&!own.has(key(d))&&!gift.has(String(d)));
-  if(!L.length){toast('복구할 신캐가 없어요 (이미 복구했거나 다 갖고 있어요)');return}
-  const ok=await askConfirm('♻️ 도감 복구',`도감에는 있는데 지금 없는 신캐 <b>${L.length}마리</b>를 돌려받아요.<br><small>${L.slice(0,12).map(d=>META[key(d)].name).join(' · ')}${L.length>12?' …':''}</small><br><small>한 마리당 딱 한 번만 복구돼요 · 일부러 분해한 포켓몬도 같이 돌아와요 (쓴 영혼은 안 돌아와요)</small>`,'복구하기');
+  let L=Object.keys(G.ncdex||{}).map(Number).filter(d=>META[key(d)]&&!G.ncrs[d]&&!own.has(key(d))&&!gift.has(String(d)));
+  if(!L.length){toast('도감에 기록된 신캐는 다 갖고 있거나 이미 복구했어요 (도감에 안 찍힌 건 복구 못 해요)');return}
+  const ok=await askConfirm('♻️ 도감 복구',`도감에는 있는데 지금 없는 신캐 <b>${L.length}마리</b>를 돌려받아요.<br><small>${L.slice(0,12).map(d=>META[key(d)].name).join(' · ')}${L.length>12?' …':''}</small><br><small>도감 기록에 있는 것만 · 한 마리당 딱 한 번만 복구돼요 · 일부러 분해한 포켓몬도 같이 돌아와요 (쓴 영혼은 안 돌아와요)</small>`,'복구하기');
   if(!ok)return;
   let n=0;for(const d of L){const k=key(d);const m=mkMon(k,Math.max(30,(G.party.length?topLv():30)-2));m.gift=1;G.dex.s[d]=1;G.dex.c[d]=1;G.ncrs[d]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}
   try{save()}catch(e){}try{refreshSpr()}catch(e){}try{sfx('badge')}catch(e){}toast('♻️ 신캐 '+n+'마리를 돌려받았어요 (편성/보관함)');window.ncDex('all')}
-window.ncDex=function(f){if(!G)return;reg();f=f||'all';
+window.ncDex=function(f,_r){if(!G)return;if(!LIST().length&&!_r&&window.ncLoadAll){toast('도감을 불러오는 중…');window.ncLoadAll().then(()=>window.ncDex(f,1)).catch(()=>window.ncDex(f,1));return}reg();f=f||'all';
   const rel=LIST().filter(c=>window.NCREL&&window.NCREL(c.dex)&&META[key(c.dex)]);
   const tot=LIST().length,have=cnt(),b=bonus(),per=PER-(have%PER),I=msInfo();
   const L=rel.filter(c=>f==='all'||(f==='no'?!G.ncdex[c.dex]:!!G.ncdex[c.dex])).sort((a,c)=>(c.rar-a.rar)||(a.dex-c.dex));
   const eff=Math.floor(have/PER)*STEP>=CAP?`<b style="color:#d4142e">기본 최대 +${pc(CAP)} 달성!</b>`:`다음 +${pc(STEP)}까지 ${per}마리`;
   openPanel(`✨ 한정판 도감 · 모음 ${have} · 출시 ${rel.length} · 전체 ${tot}`,
    `<p class="hhint" style="text-align:center">신캐 ${PER}마리마다 능력치 +${pc(STEP)} (최대 +${pc(CAP)}) · 등급 마일스톤 +${pc(I.tot)}<br>지금 내 포켓몬 능력치 <b>+${pc(b)}</b> · ${eff}</p>
-    <button class="it" data-ms="1" style="width:100%;background:#ffe9a8">🏅 등급 마일스톤 보기</button><button class="it" data-rs="1" style="width:100%;background:#d8f3dc;margin-top:4px">♻️ 도감 복구 · 모았는데 없는 신캐 돌려받기</button>${banner()}
+    <button class="it" data-ms="1" style="width:100%;background:#ffe9a8">🏅 등급 마일스톤 보기</button><button class="it" data-rs="1" style="width:100%;background:#d8f3dc;margin-top:4px">♻️ 도감 복구 · 모았는데 없는 신캐 돌려받기</button>${(typeof opAny==='function'&&opAny())?'<button class="it" data-wk="1" style="width:100%;background:#ffd0d0;margin-top:4px">🛠 운영자: 이번 주 확률업 받기 (없는 것만)</button>':''}${banner()}
     <div class="tabs"><button data-f="all">전체</button><button data-f="no">못 모음</button><button data-f="yes">모음</button></div>
     <div class="dexg">${L.length?L.map(c=>{const k=key(c.dex),M=META[k],h=G.ncdex[c.dex];return`<button class="dx ${h?'c':''}" data-d="${c.dex}" style="border-bottom:3px solid ${RARC[c.rar]||'#999'}"><img src="${THUMB[k]||''}" style="${h?'':'filter:brightness(0) opacity(.35)'}"><small style="color:${RARC[c.rar]||'#999'}">${RAR[c.rar]||''}</small><b>${h?M.name:'???'}</b></button>`}).join(''):'<p class="hhint">아직 출시된 신캐가 없어요</p>'}</div>`,
    ()=>dexOpen(),p=>{
     p.querySelectorAll('[data-f]').forEach(x=>x.onclick=()=>window.ncDex(x.dataset.f));
     p.querySelectorAll('[data-ms]').forEach(x=>x.onclick=()=>msOpen());
     p.querySelectorAll('[data-rs]').forEach(x=>x.onclick=()=>ncRestore());
+    p.querySelectorAll('[data-wk]').forEach(x=>x.onclick=()=>{if(window.ncGiveWeek)window.ncGiveWeek();setTimeout(()=>window.ncDex('all'),300)});
     p.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>detail(+x.dataset.d))})};
 
 // ---- PvP 방어덱: 바뀐 모습·이름 같이 올리기 (옛 버전은 뒤에 붙은 칸을 그냥 무시해요) ----
