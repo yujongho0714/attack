@@ -2659,9 +2659,12 @@ function rollItem(kind,rar){rpoolInit();if(rar==null)rar=rollRar(kind);let r=Mat
 function isDup(g){if(g.kind==='P'&&g.f)return !!((G.forms||{})[g.f]||[...G.party,...G.box].some(m=>m.n===g.f)||(G.gifts||[]).some(x=>x.f===g.f));if(g.kind==='P')return !!(G.dex.c[g.id]||(G.gifts||[]).some(x=>x.kind==='P'&&x.id===g.id));G.mvown=G.mvown||{};return !!(G.mvown[g.id]||(G.gifts||[]).some(x=>x.kind==='M'&&x.id===g.id))}
 const PKN={P:'🎴 포켓몬 카드팩',M:'📀 기술 카드팩'};
 // 받기: 연출 → 가방 (중복이면 몬스터볼 5개 + 합성 재료)
-function grantQuiet(g){const dup=isDup(g);if(dup){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh,f:g.f})}else{if(g.kind==='M'){G.mvown=G.mvown||{};G.mvown[g.id]=1}G.gifts=G.gifts||[];G.gifts.push(Object.assign(g,{t:Date.now()}))}return dup}
+// 중복: 포켓몬은 영혼 10개(분해와 같은 양) · 기술 카드는 예전처럼 몬스터볼 5개 + 합성 재료
+function dupSoulN(){let n=10;try{n=BXSOUL}catch(e){}return n}
+function dupGive(g){G.dupes=G.dupes||[];if(g.kind==='P'){const n=dupSoulN();for(let k=0;k<n;k++)G.dupes.push({kind:'P',id:g.id,rar:g.rar,lv:g.lv,sh:0,soul:1})}else{addItem('ball',5);G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh,f:g.f})}}
+function grantQuiet(g){const dup=isDup(g);if(dup){dupGive(g)}else{if(g.kind==='M'){G.mvown=G.mvown||{};G.mvown[g.id]=1}G.gifts=G.gifts||[];G.gifts.push(Object.assign(g,{t:Date.now()}))}return dup}
 async function grant(g,why){const dup=isDup(g);try{await packFor(g)}catch(e){}
-  if(dup){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh,f:g.f});save();toast('이미 가진 '+(g.kind==='P'?'포켓몬':'기술')+' · 몬스터볼 5개 + 합성 재료가 됐어요')}
+  if(dup){dupGive(g);save();toast(g.kind==='P'?'이미 가진 포켓몬 · 영혼 '+dupSoulN()+'개가 됐어요':'이미 가진 기술 · 몬스터볼 5개 + 합성 재료가 됐어요')}
   else{if(g.kind==='M'){G.mvown=G.mvown||{};G.mvown[g.id]=1}G.gifts=G.gifts||[];G.gifts.push(Object.assign(g,{t:Date.now()}));save();toast((g.kind==='P'?'보관함에 들어갔어요: ':'🎁 선물 가방에 들어갔어요: ')+giftLabel(g)+(why?' · '+why:''));try{giftAutoClaim()}catch(e){}}
   try{hud()}catch(e){}}
 // ---------- 보상 대기열 (마을을 걷고 있을 때 하나씩) ----------
@@ -2703,7 +2706,7 @@ async function fuseAll(){const D=G.dupes||[];const out=[];let fails=0;
 function multiOpen(list,title){return new Promise(done=>{const d=document.createElement('div');d.id='multiOv';
   d.innerHTML=`<div class="mb"><h3>${title}</h3><div class="grid">${list.map((g,i)=>`<div class="mc${g.fail?'':' r'+g.rar}" data-i="${i}"><div class="bk">${g.fail?'🧪':g.kind==='P'?'🎴':'📀'}</div><div class="fr" style="border-color:${g.fail?'#999':RARC[g.rar]}">${g.fail?'<div class="fl">💨<small>실패</small></div>':cardFace(g.kind,g.id,g.f)+`<small style="background:${RARC[g.rar]}">${RAR[g.rar]}</small>`}<i class="dp"></i><u class="frm"></u></div></div>`).join('')}</div><div class="msg"></div><button class="skip">⏭ 스킵 (전부 뒤집기)</button></div>`;document.body.appendChild(d);
   const cs=[...d.querySelectorAll('.mc')],sk=d.querySelector('.skip'),msg=d.querySelector('.msg');let i=0,fin=0,dups=0;
-  const flip=k=>{const c=cs[k];if(!c||c.classList.contains('on'))return;const g=list[k];c.classList.add('on');if(!g.fail){const dup=grantQuiet(g);if(dup){dups++;c.querySelector('.dp').textContent='중복 +볼5'}if(g.rar>=2)c.classList.add('hi')}try{sfx(g.fail?'tap':g.rar>=2?'badge':'get')}catch(e){}};
+  const flip=k=>{const c=cs[k];if(!c||c.classList.contains('on'))return;const g=list[k];c.classList.add('on');if(!g.fail){const dup=grantQuiet(g);if(dup){dups++;c.querySelector('.dp').textContent=g.kind==='P'?'중복 +영혼 '+dupSoulN():'중복 +볼5'}if(g.rar>=2)c.classList.add('hi')}try{sfx(g.fail?'tap':g.rar>=2?'badge':'get')}catch(e){}};
   const end=()=>{if(fin)return;fin=1;cs.forEach((_,k)=>flip(k));save();try{hud()}catch(e){}msg.innerHTML=`🎁 선물 가방에 ${list.filter(g=>!g.fail).length-dups}장${dups?` · 🔁 중복 ${dups}장 → 몬스터볼 +${dups*5} · 합성 재료`:''}`;sk.textContent='닫기';sk.onclick=()=>{d.remove();done()}};
   const tick=()=>{if(fin)return;flip(i++);if(i<cs.length)setTimeout(tick,list.length>8?180:320);else end()};sk.onclick=end;setTimeout(tick,500)})}
 async function fuseDo(kind,r){const D=G.dupes||[];const idx=[];D.forEach((x,i)=>{if(x.kind===kind&&x.rar===r&&idx.length<FUSEN)idx.push(i)});if(idx.length<FUSEN||r>=(kind==='M'?MMAX:PMAX))return;
@@ -5524,7 +5527,7 @@ const ODTABS={
    <h4>기술 카드팩</h4>${odRows(M.map((p,i)=>[RAR[i],p,RARC[i]]).filter((x,i)=>i<=3))}
    <h4>영웅~전설 카드팩</h4>${odRows([[RAR[2],.9,RARC[2]],[RAR[3],.1,RARC[3]]])}
    <h4>전설 카드팩</h4>${odRows([[RAR[3],1,RARC[3]]])}<h4>환생 퀘스트 추가 팩 (난이도별)</h4>${odRows([['보통 · 영웅~전설 팩',1,RARC[3]],['어려움 · 전설 팩',1,RARC[3]],['지옥 · 신화 팩',1,RARC[4]],['나이트메어 · 환상 팩',1,RARC[5]],['종말 · 유일 팩',1,RARC[6]]])}<p class="hhint">환생한 난이도 기준이에요. 퀘스트 하나마다 이 팩 1장이 더 나와요.</p><h4>신화 · 환상 · 유일 · 불멸 · 태초 카드팩</h4>${odRows([4,5,6,7,8].map(i=>[RAR[i]+' 카드팩 → '+RAR[i],1,RARC[i]]))}<p class="hhint">운영자 선물로만 받아요. 난이도와 상관없이 그 등급이 나와요.</p>
-   <p class="hhint">이미 가진 카드가 나오면 몬스터볼 5개 + 합성 재료가 돼요.</p>`}],
+   <p class="hhint">이미 가진 포켓몬이 나오면 영혼 10개, 이미 가진 기술 카드는 몬스터볼 5개 + 합성 재료가 돼요.</p>`}],
  fuse:['합성',()=>`<p class="odnow">같은 등급 영혼(또는 중복 카드) <b>${FUSEN}개</b>를 합치면</p>${odRows(RAR.slice(0,PMAX).map((n,i)=>[n+' → '+RAR[i+1],fuseP(i),RARC[i+1]]))}
    <p class="hhint">실패하면 재료 ${FUSEN}개는 사라지고 몬스터볼 2개를 받아요. 성공하면 위 등급 포켓몬 중 하나가 똑같은 확률로 나와요. 기술 카드는 전설까지 합성돼요. 일괄 합성도 한 번 한 번 똑같은 확률이에요.</p>`],
  stop:['포케스탑',()=>{const b=G.badges+(G.ub||0),T=[['ball',30],['potion',20],['oran',14],['razz',12]];if(b>=2)T.push(['great',14],['spotion',10],['sitrus',6]);if(b>=5)T.push(['hyper',6],['hpotion',4]);if(b>=3)T.push(['candy',1.5]);T.push(['cube',2.5]);if(b>=5)T.push(['cube2',.4]);const t=T.reduce((a,x)=>a+x[1],0);
@@ -8456,7 +8459,7 @@ const st=document.createElement('style');st.textContent=`
 .aw2 .sg.d b::after{inset:23%}
 @keyframes awsw{0%{background-position:-80% 0}55%,100%{background-position:170% 0}}
 @keyframes awsp{0%,100%{opacity:0;transform:scale(.2) rotate(0)}14%{opacity:1;transform:scale(1) rotate(45deg)}30%{opacity:0;transform:scale(.3) rotate(90deg)}}
-.tm .tmM{display:block;margin-top:3px;font-size:11.5px!important;padding:3px 9px!important;border:2px solid #2c3050;border-radius:8px;background:#ffe9a8;color:#2c3050;font-weight:900}
+.tm .tmM{display:inline-block;margin:3px 4px 0 0;font-size:11.5px!important;padding:3px 9px!important;border:2px solid #2c3050;border-radius:8px;background:#ffe9a8;color:#2c3050;font-weight:900}
 .awbt{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.awbt button{padding:4px 8px;font-size:12px;font-weight:900;border:2px solid #2c3050;border-radius:8px;background:#fffdf0;color:#2c3050}.awbt button.main{background:#b46bff;color:#fff}.awbt button.adm{background:#ffd9d9}
 .awx-c{padding:8px 10px;border:2px solid #2c3050;border-radius:10px;background:#fffdf0;margin:6px 0;font-size:13px;line-height:1.55}
 .awx-c b.t{display:block;font-size:14px;margin-bottom:2px}
@@ -8581,16 +8584,25 @@ async function awOne(m){const started=awOf(m);
 }
 
 // ---------- ③ 편성 창 포켓몬 메뉴 ----------
+// 별명 짓기 (최대 12글자 · 비우면 원래 이름) — 편성 카드 「✏️ 별명」 · 메뉴에서 열려요
+async function monNick(m){
+  const p=ovBox('✏️ 별명 짓기',`<div style="text-align:center"><b>${esc(nm(m))}</b><br><small>최대 12글자 · 같은 포켓몬이 여러 마리여도 구분하기 쉬워요</small><br><input id="nkIn" maxlength="12" value="${esc(m.nick||'')}" placeholder="별명을 써 주세요" style="width:90%;margin-top:6px;padding:8px;font-size:16px;border:2px solid #2c3050;border-radius:8px;text-align:center"></div>`,[{t:'저장',main:1,v:'ok'},{t:'원래 이름으로',v:'rs'},{t:'취소',v:false}]);
+  const inp=document.getElementById('nkIn');const v=await p;
+  if(v==='ok'){const t=(inp?inp.value:'').replace(/[<>&"']/g,'').trim().slice(0,12);if(t)m.nick=t;else delete m.nick}
+  else if(v==='rs'){delete m.nick}
+  else return false;
+  try{save()}catch(e){}try{refreshSpr()}catch(e){}try{toast(m.nick?'별명을 「'+m.nick+'」(으)로 바꿨어요':'원래 이름으로 돌렸어요')}catch(e){}
+  return true}
 async function monMenu(m){let changed=0;
   for(let guard=0;guard<60;guard++){const I=awInfo(m),adm=awAdmin();
     const body=`<div style="text-align:center"><img src="${faceUrl(lkOf(m),'Normal')}" style="width:64px;height:64px;image-rendering:pixelated"><br><b>${esc(nm(m))}</b> <small>Lv.${dLv(m)} · <span style="color:${RARC[I.r]}">${RAR[I.r]}</span></small><br>${awStars(m,1)}<br><small>각성 +${I.a*AWPCT}% · 한계돌파 ★${rbTier()} · 별 칸 ${I.sl}/${AWMAX}</small>${window.tsLine?window.tsLine(m):''}</div>`;
-    const B=[{t:'⭐ 각성하기',main:1,v:'aw'},{t:'✨ 스킬 바꾸기',v:'sk'}];if(typeof pxReroll==='function')B.push({t:'🎰 접두사 바꾸기',v:'px'});if(window.lkPanel)B.push({t:'🎭 모습 · 이름 바꾸기',v:'lk'});
+    const B=[{t:'⭐ 각성하기',main:1,v:'aw'},{t:'✨ 스킬 바꾸기',v:'sk'}];if(typeof pxReroll==='function')B.push({t:'🎰 접두사 바꾸기',v:'px'});B.push({t:'✏️ 별명 짓기',v:'nk'});if(window.lkPanel)B.push({t:'🎭 모습 · 이름 바꾸기',v:'lk'});
     B.push({t:'🎬 각성 효과 미리보기',v:'pv'},{t:'📖 한계돌파 · 각성 설명',v:'info'});
     if(adm)B.push({t:'🛠 운영자: 각성 ★ +1',v:'up'},{t:'🛠 운영자: 각성 ★ −1',v:'dn'});B.push({t:'닫기',v:false});B.col=1;
     const v=await ovBox(esc(nm(m))+' 메뉴',body,B);
     if(v==='aw'){const r=await awOne(m);if(r==='awakened')return;changed=1}
     else if(v==='sk'){monSkillOpen(m);return}
-    else if(v==='px'){pxReroll(m);return}else if(v==='lk'){await window.lkPanel(m);changed=1}
+    else if(v==='px'){pxReroll(m);return}else if(v==='lk'){await window.lkPanel(m);changed=1}else if(v==='nk'){if(await monNick(m))changed=1}
     else if(v==='pv')await awPreview(m);
     else if(v==='info'){const r=await ovBox('📖 한계돌파 · 각성 설명',rbSummary()+awSummary(),[{t:'🌀 한계돌파 창 열기',main:1,v:'rb'},{t:'닫기',v:false}]);if(r==='rb'){rbInfoOpen();return}}
     else if(v==='up'){awSet(m,awOf(m)+1);changed=1}else if(v==='dn'){awSet(m,awOf(m)-1);changed=1}
@@ -8613,7 +8625,7 @@ function monSkillOpen(m){const adm=awAdmin();
     const sk=p.querySelector('[data-sk]');if(sk)sk.onclick=()=>{sfx('tap');if(SCENE!=='over'){toast('밖에서만 열려요');return}skillOpen()};
     const bk=p.querySelector('[data-back]');if(bk)bk.onclick=()=>{sfx('tap');teamOpen()}})}
 function awxTeam(){const p=document.querySelector('.panel');if(!p)return;const tg=p.querySelectorAll('.tg');
-  const put=(cards,L)=>cards.forEach((c,i)=>{const m=cardMon(c,L,i);if(!m||c.querySelector('.tmM'))return;const b=document.createElement('button');b.className='tmM';b.textContent='⭐ 메뉴';b.onclick=e=>{e.stopPropagation();sfx('tap');monMenu(m)};const ti=c.querySelector('.ti');(ti||c).appendChild(b)});
+  const put=(cards,L)=>cards.forEach((c,i)=>{const m=cardMon(c,L,i);if(!m||c.querySelector('.tmM'))return;const b=document.createElement('button');b.className='tmM';b.textContent='⭐ 메뉴';b.onclick=e=>{e.stopPropagation();sfx('tap');monMenu(m)};const ti=c.querySelector('.ti');(ti||c).appendChild(b);const mk=(t,f)=>{const x=document.createElement('button');x.className='tmM';x.textContent=t;x.onclick=async e=>{e.stopPropagation();sfx('tap');if(await f())teamOpen()};(ti||c).appendChild(x)};mk('✏️ 별명',()=>monNick(m));mk('🎭 모습',async()=>{if(!window.lkPanel)return false;await window.lkPanel(m);return true})});
   if(tg[0])put([...tg[0].querySelectorAll('.tm.p')],G.party);if(tg[1])put([...tg[1].querySelectorAll('.tm.b')],G.box)}
 {const _t=teamOpen;teamOpen=function(){const r=_t.apply(this,arguments);setTimeout(awxTeam,160);return r}}
 
@@ -11166,7 +11178,7 @@ schLoad();
 // 확률업 신캐는 선물 가방 · 도감 표시를 거치지 않고 바로 편성/보관함으로 (진짜로 갖고 있을 때만 중복 처리)
 {const _gq=grantQuiet;grantQuiet=function(g){try{if(g&&g.ncup&&g.kind==='P'){const key='sc:'+g.id;
   if(META[key]){const own=[...G.party,...G.box].some(m=>m.n===key);
-    if(own){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh,f:g.f});return true}
+    if(own){dupGive(g);return true}
     const m=mkMon(key,Math.max(g.lv|0,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;
     if(!monCapOk(m)){soulFrom(m);return false}
     if(G.party.length<6)G.party.push(m);else G.box.push(m);try{refreshSpr()}catch(e){}return false}}}catch(e){console.warn('ncup',e)}
@@ -11325,6 +11337,17 @@ function banner(){const NI=window.NCINFO;if(!NI)return '';const S=NI.sch(),st=NI
   const card=(o,hide)=>`<button ${hide?'disabled':`data-d="${o.d}"`} style="flex:1;min-width:0;border:2px solid ${RARC[o.g]};border-radius:10px;background:#fff8;padding:3px 2px;text-align:center"><img src="${THUMB[key(o.d)]||''}" style="width:44px;height:44px;image-rendering:pixelated;${hide?'filter:brightness(0) opacity(.35)':''}"><br><small style="color:${RARC[o.g]};font-weight:700">${RAR[o.g]}</small><br><small>${hide?'???':esc(META[key(o.d)].name)}</small></button>`;
   return `<div style="margin:6px 0"><small><b>🔥 이번 주 확률업</b> · ${left}일 뒤 교체</small><div style="display:flex;gap:4px;margin:3px 0">${cur.map(o=>card(o,0)).join('')||'<small>없어요</small>'}</div>${nxt.length?`<small><b>⏭ 다음 주 확률업</b> · 공개 전</small><div style="display:flex;gap:4px;margin:3px 0">${nxt.map(o=>card(o,1)).join('')}</div>`:''}</div>`}
 
+// 도감 복구: 도감에 「모음」으로 찍혀 있는데 편성·보관함·선물에 없는 신캐를 돌려줘요 (만나기만 한 신캐는 도감에 안 찍히므로 안 와요)
+async function ncRestore(){if(!G)return;reg();
+  const own=new Set([...G.party,...G.box].map(m=>m&&m.n));
+  const gift=new Set((G.gifts||[]).filter(g=>g&&g.kind==='P').map(g=>String(g.id)));
+  G.ncrs=G.ncrs||{};
+  const L=Object.keys(G.ncdex||{}).map(Number).filter(d=>META[key(d)]&&!G.ncrs[d]&&!own.has(key(d))&&!gift.has(String(d)));
+  if(!L.length){toast('복구할 신캐가 없어요 (이미 복구했거나 다 갖고 있어요)');return}
+  const ok=await askConfirm('♻️ 도감 복구',`도감에는 있는데 지금 없는 신캐 <b>${L.length}마리</b>를 돌려받아요.<br><small>${L.slice(0,12).map(d=>META[key(d)].name).join(' · ')}${L.length>12?' …':''}</small><br><small>한 마리당 딱 한 번만 복구돼요 · 일부러 분해한 포켓몬도 같이 돌아와요 (쓴 영혼은 안 돌아와요)</small>`,'복구하기');
+  if(!ok)return;
+  let n=0;for(const d of L){const k=key(d);const m=mkMon(k,Math.max(30,(G.party.length?topLv():30)-2));m.gift=1;G.dex.s[d]=1;G.dex.c[d]=1;G.ncrs[d]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}
+  try{save()}catch(e){}try{refreshSpr()}catch(e){}try{sfx('badge')}catch(e){}toast('♻️ 신캐 '+n+'마리를 돌려받았어요 (편성/보관함)');window.ncDex('all')}
 window.ncDex=function(f){if(!G)return;reg();f=f||'all';
   const rel=LIST().filter(c=>window.NCREL&&window.NCREL(c.dex)&&META[key(c.dex)]);
   const tot=LIST().length,have=cnt(),b=bonus(),per=PER-(have%PER),I=msInfo();
@@ -11332,12 +11355,13 @@ window.ncDex=function(f){if(!G)return;reg();f=f||'all';
   const eff=Math.floor(have/PER)*STEP>=CAP?`<b style="color:#d4142e">기본 최대 +${pc(CAP)} 달성!</b>`:`다음 +${pc(STEP)}까지 ${per}마리`;
   openPanel(`✨ 한정판 도감 · 모음 ${have} · 출시 ${rel.length} · 전체 ${tot}`,
    `<p class="hhint" style="text-align:center">신캐 ${PER}마리마다 능력치 +${pc(STEP)} (최대 +${pc(CAP)}) · 등급 마일스톤 +${pc(I.tot)}<br>지금 내 포켓몬 능력치 <b>+${pc(b)}</b> · ${eff}</p>
-    <button class="it" data-ms="1" style="width:100%;background:#ffe9a8">🏅 등급 마일스톤 보기</button>${banner()}
+    <button class="it" data-ms="1" style="width:100%;background:#ffe9a8">🏅 등급 마일스톤 보기</button><button class="it" data-rs="1" style="width:100%;background:#d8f3dc;margin-top:4px">♻️ 도감 복구 · 모았는데 없는 신캐 돌려받기</button>${banner()}
     <div class="tabs"><button data-f="all">전체</button><button data-f="no">못 모음</button><button data-f="yes">모음</button></div>
     <div class="dexg">${L.length?L.map(c=>{const k=key(c.dex),M=META[k],h=G.ncdex[c.dex];return`<button class="dx ${h?'c':''}" data-d="${c.dex}" style="border-bottom:3px solid ${RARC[c.rar]||'#999'}"><img src="${THUMB[k]||''}" style="${h?'':'filter:brightness(0) opacity(.35)'}"><small style="color:${RARC[c.rar]||'#999'}">${RAR[c.rar]||''}</small><b>${h?M.name:'???'}</b></button>`}).join(''):'<p class="hhint">아직 출시된 신캐가 없어요</p>'}</div>`,
    ()=>dexOpen(),p=>{
     p.querySelectorAll('[data-f]').forEach(x=>x.onclick=()=>window.ncDex(x.dataset.f));
     p.querySelectorAll('[data-ms]').forEach(x=>x.onclick=()=>msOpen());
+    p.querySelectorAll('[data-rs]').forEach(x=>x.onclick=()=>ncRestore());
     p.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>detail(+x.dataset.d))})};
 
 // ---- PvP 방어덱: 바뀐 모습·이름 같이 올리기 (옛 버전은 뒤에 붙은 칸을 그냥 무시해요) ----
