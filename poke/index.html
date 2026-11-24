@@ -10076,10 +10076,12 @@ const EV={};const ev=(k,n)=>{try{(EV[k]||[]).forEach(f=>f(n||1))}catch(e){}};win
 {const _s=sfTry;sfTry=async function(){const r=await _s.apply(this,arguments);try{ev('sf')}catch(e){}return r}}
 {const _a=awGo;awGo=async function(){const n0=(arguments[0]&&arguments[0].aw)|0;const r=await _a.apply(this,arguments);try{if(((arguments[0]&&arguments[0].aw)|0)>n0)ev('aw')}catch(e){}return r}}
 // ========== ① 일일 천계 의뢰 ==========
-const DQP=[['catch','포켓몬 {n}마리 잡기',5],['wild','야생 포켓몬 {n}번 이기기',15],['trainer','트레이너 {n}명 이기기',5],['gym','관장 재대결 {n}번 이기기',2],['wb','월드보스 {n}번 도전하기',1],['sf','장비 강화 {n}번 하기',3],['ctw','천계 탑 {n}층 오르기',3],['catchR','{R} 포켓몬 {n}마리 잡기',3],['raid','전설 레이드 {n}번 도전하기',1]];
+const DQP=[['catch','포켓몬 {n}마리 잡기',5],['wild','야생 포켓몬 {n}번 이기기',15],['trainer','트레이너 {n}명 이기기',5],['catchR','{R} 포켓몬 {n}마리 잡기',3]];   // 자동으로 갈 수 있는 의뢰만 (전설 레이드·월드보스·강화·탑·관장은 길을 몰라 막혀서 뺐어요)
 const RN=()=>REGCUR==='s'?'신오':REGCUR==='h'?'호연':REGCUR==='u'?'성도':'관동';
 function dqS(){const day=dayKey();if(!G.dq||G.dq.day!==day){let h=7;for(const ch of day+(G.pid||''))h=(h*31+ch.charCodeAt(0))>>>0;const L=DQP.slice();const pick=[];while(pick.length<3&&L.length){h=(h*1103515245+12345)>>>0;pick.push(L.splice(h%L.length,1)[0])}
-  G.dq={day,L:pick.map(p=>({id:p[0],t:p[1],n:p[2],c:0,got:0})),all:0};save()}return G.dq}
+  G.dq={day,L:pick.map(p=>({id:p[0],t:p[1],n:p[2],c:0,got:0})),all:0};save()}
+  try{const ok=DQP.map(p=>p[0]);const D=G.dq;if(D.L.some(q=>!ok.includes(q.id))){const have=D.L.filter(q=>ok.includes(q.id));const rest=DQP.filter(p=>!have.some(q=>q.id===p[0]));D.L=D.L.map(q=>{if(ok.includes(q.id))return q;const p=rest.shift();return p?{id:p[0],t:p[1],n:p[2],c:0,got:0}:null}).filter(Boolean);save()}}catch(e){}
+  return G.dq}
 for(const p of DQP)(EV[p[0]]=EV[p[0]]||[]).push(n=>{if(!G||!reach(6))return;const D=dqS();for(const q of D.L)if(q.id===p[0]&&q.c<q.n){q.c=Math.min(q.n,q.c+n);if(q.c>=q.n)toast('📜 오늘의 의뢰 완료! '+q.t.replace('{n}',q.n).replace('{R}',RN())+' · 받으러 가요');save()}});
 const DQRW={gem:3,gold:100000},DQALL={cube:2,gem:5};
 function dqOpen(){if(!G)return;const D=dqS();const lock=!reach(6);
@@ -11178,7 +11180,12 @@ function roll(g,s){const U=pickup(g),C=RATE[g];s.pt[g]++;let r=Math.random()*100
 async function pull(g,n){const U=pickup(g);if(!U){toast('지금은 열려 있는 한정뽑기가 없어요');return}const s=st();
   const cost=COST[g]*n,cnt=n===10?11:1;if(G.money<cost){toast('돈이 모자라요 ('+cost.toLocaleString()+'원 필요)');return}
   G.money-=cost;const L=[];for(let i=0;i<cnt;i++)L.push(roll(g,s));save();try{hud()}catch(e){}
-  closePanel(1);await multiOpen(L,'✨ '+RAR[g]+' 확률업 '+cnt+'회');ncgOpen(g)}
+  closePanel(1);await multiOpen(L,'✨ '+RAR[g]+' 확률업 '+cnt+'회');
+  try{let n=0,so=0;for(const o of L){if(!o||o.fail||o.kind!=='P')continue;const i=(G.gifts||[]).indexOf(o);if(i<0)continue;let nm=BYDEX[o.id];if(!nm&&META['sc:'+o.id])nm='sc:'+o.id;if(!nm||!META[nm])continue;
+    const m=mkMon(nm,Math.max(o.lv|0,1));if(o.f&&META[o.f]){m.n=o.f;m.hp=stOf(m)[0];G.forms=G.forms||{};G.forms[o.f]=1}m.gift=1;if(o.sh)m.sh=1;G.dex.s[o.id]=1;G.dex.c[o.id]=1;
+    G.gifts.splice(i,1);if(!monCapOk(m)){soulFrom(m);so++;continue}if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}
+    save();try{refreshSpr()}catch(e){}try{hud()}catch(e){}if(n||so)toast('✨ '+n+'마리가 편성 · 보관함에 들어왔어요'+(so?' (영혼 '+so+'개)':''))}catch(e){console.warn('ncg claim',e)}
+  ncgOpen(g)}
 const pct=p=>(+p.toFixed(3))+'%';
 function leftTxt(){const s=startMs();if(isNaN(s))return'';const w=ncWeek(),t=s+(w+1)*WEEK-wkOff()*WEEK-Date.now();const d=Math.floor(t/864e5),h=Math.floor(t%864e5/36e5);return d+'일 '+h+'시간'}
 let TAB=6;
