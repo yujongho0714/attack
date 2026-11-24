@@ -1661,7 +1661,7 @@ function forcePick(){return new Promise(r=>{bt('bTx').innerHTML='다음 포켓�
 async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FAST()?300:600);const fp=side(0),mp=side(1);BS.ball={x:mp.x,y:mp.y,col:it.col};
   for(let i=0;i<=20;i++){const u=i/20;BS.ball.x=mp.x+(fp.x-mp.x)*u;BS.ball.y=mp.y-VW*.1+(fp.y-VW*.12-mp.y+VW*.1)*u-Math.sin(u*Math.PI)*VH*.18;BS.ball.rot=u*12;await sleep(18)}
   BS.foe.white=1;await sleep(160);BS.foe.hide=1;BS.foe.white=0;BS.flash=.15;for(let i=0;i<10;i++){BS.ball.y+=VH*.012;await sleep(16)}
-  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);BS.catchK=1;const sh=Math.pow(p,.25);
+  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);BS.catchK=1;const redHit=(f.hp/S[0]<=.35&&R()<.5);if(redHit)try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}const sh=Math.pow(redHit?1:p,.25);
   let n=0;for(;n<3;n++){await sleep(380);if(R()>sh)break;for(let k=0;k<8;k++){BS.ball.rot=Math.sin(k/8*6.28)*.5;await sleep(28)}BS.ball.rot=0;sfx('tap')}
   await sleep(300);if(n>=3&&R()<sh){sfx('get');await msg('신난다! <b>'+nm(f)+'</b>(을)를 잡았다!',1300,[f.n,'Happy']);BS.ball=null;return true}
   BS.ball=null;BS.foe.hide=0;BS.foe.in=.3;await msg(['안 돼! 포켓몬이 볼에서 나와 버렸다!','아쉽다! 조금만 더 하면 잡을 수 있었는데!','으앗! 잡은 줄 알았는데!'][Math.min(2,n)]);return false}
@@ -9019,7 +9019,7 @@ async function rtGo(){
     let foe=null;for(let i=0;i<20&&!foe;i++){const n=keys[Math.floor(Math.random()*keys.length)];try{foe=mkMon(n,Math.max(1,Math.min(100,(m0.lv||5)+ri(-2,2))))}catch(e){}}
     if(!foe){toast('상대를 만들지 못했어요');return}
     // 6F-1: 실시간 포획(시험 전투는 볼이 공짜·무한, 잡아도 저장 안 됨). 확률은 기존 던지기 공식 그대로
-    const catchP=(f,it,ratio)=>{const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()])};
+    const catchP=(f,it,ratio)=>{if(ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()])};
     const balls=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞'}));
     const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP,...rtCommon(),bg:()=>{try{return bgImg('grass')}catch(e){return null}},
       // 6F-4c 시험: 회복약 무한(저장 안 됨)
@@ -9101,7 +9101,7 @@ async function rtWild(o){
   const balls=()=>BALLS().map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0}));
   const takeBall=k=>{const it=ITEMS[k];if(!it||(G.bag[k]||0)<=0)return null;G.bag[k]--;let r=it;
     if(it.ball&&it.ball<255&&(G.bag.razz||0)>0&&G.opt.razz!==false){G.bag.razz--;r=Object.assign({},it,{ball:it.ball*1.5});try{toast('🍓 라즈열매를 먼저 줬다! 잡기 쉬워졌다')}catch(e){}}return r};
-  const catchP=(x,it,ratio)=>{const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()])};
+  const catchP=(x,it,ratio)=>{if(ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()])};
   let res='win',lastMon=null,timeUp=0;
   const setBS=async(f,faint)=>{const me2=(lastMon&&lastMon.hp>0)?lastMon:(alive()[0]||lastMon||G.party[0]);
     BS.foe={m:f,S:await getSpr(sprKey(f)),st:faint?'faint':'idle',t:0,in:0,hide:faint?1:0};
@@ -10184,6 +10184,28 @@ async function dqAuto(id){try{if(!G)return;if(!reach(6)){toast('천계에 가면
     const r=await battle({trainer:'수련 트레이너',foes:team,money:lv*30,lose:'다음엔 안 질 거예요!',bg:'meadow'});
     if(r==='lose')await blackout();return}
   }catch(e){console.warn('dqAuto',e);toast('잠시 뒤에 다시 해 봐요')}}
+// ===== 의뢰 자동: 「▶ 자동」(자동 퀘스트)이 켜져 있으면 오늘의 천계 의뢰도 알아서 길을 찾아 진행하고 보상까지 받아요 =====
+// 대상: 야생 이기기 · 포켓몬 잡기 · {지방} 포켓몬 잡기 · 트레이너 이기기 (나머지 의뢰는 「바로 하기」로 직접)
+const DQAUTO_K=['wild','catch','catchR','trainer'];
+const dqOn=()=>{try{return !!(G&&G.party&&G.party.length&&G.autoQuest&&AUTO.on&&!AUTO.guide&&!AUTO.huntOnly&&reach(6))}catch(e){return false}};
+function dqNext(){try{if(!dqOn())return null;return dqS().L.find(q=>!q.got&&q.c<q.n&&DQAUTO_K.includes(q.id))||null}catch(e){return null}}
+// 풀숲이 있고 갈 수 있는 길 중 지금 위치에서 가장 가까운 곳 (같으면 더 높은 길)
+const DQAC={k:'',a:-1};
+function dqArea(){try{const k=G.a+'|'+(G.badges|0)+'|'+(G.champ?1:0)+'|'+(G.ub|0);if(DQAC.k===k)return DQAC.a;let best=-1,bd=1e9;
+  for(let a=1;a<NA;a++){if(isTown(a)||a===18)continue;if(!areaOpen(a))continue;let ok=false;try{const e=encAt(a);ok=!!(e&&e.g&&e.g.length)}catch(er){}if(!ok)continue;const d=Math.abs(a-G.a);if(d<bd||(d===bd&&a>best)){bd=d;best=a}}
+  DQAC.k=k;DQAC.a=best;return best}catch(e){return -1}}
+{const _oq=objective;objective=function(){const o=_oq.apply(this,arguments);try{if(!o||o.nav)return o;const q=dqNext();if(!q)return o;
+  if(q.id==='trainer')return Object.assign({},o,{t:'📜 의뢰 · '+q.t.replace('{n}',q.n)+' ('+q.c+'/'+q.n+')',dq:1});
+  const a=dqArea();if(a<0)return o;
+  return Object.assign({},o,{t:'📜 의뢰 · '+q.t.replace('{n}',q.n).replace('{R}',RN())+' ('+q.c+'/'+q.n+') · '+areaName(a),hunt:{a},g:null,dq:1})}catch(e){return o}}}
+// 잡기 의뢰가 남아 있으면, 이미 있는 포켓몬도 자동으로 볼을 던져요 (보관 칸이 남아 있을 때만)
+{const _wc=wantCatch;wantCatch=function(f){if(_wc.apply(this,arguments))return true;try{const q=dqNext();if(q&&(q.id==='catch'||q.id==='catchR')&&(G.party.length+G.box.length)<900&&!(typeof capFull==='function'&&capFull(f)))return true}catch(e){}return false}}
+// 보상 자동 수령 + 트레이너 의뢰 자동 시작
+setInterval(()=>{try{if(!dqOn()||SCENE!=='over'||P.busy||EVB.n||DLG.on||PANEL)return;const D=dqS();let any=0;
+  for(const q of D.L)if(!q.got&&q.c>=q.n){q.got=1;give(DQRW);any=1;toast('📜 의뢰 보상: '+rwT(DQRW))}
+  if(D.L.every(q=>q.got)&&!D.all){D.all=1;give(DQALL);any=1;toast('📜 오늘의 보너스: '+rwT(DQALL))}
+  if(any){sfx('badge');save();hud();return}
+  const q=dqNext();if(q&&q.id==='trainer'&&!needHeal()&&G.party.some(m=>m.hp>0)&&!P.queue)dqAuto('trainer')}catch(e){}},1500);
 // ===== 의뢰에서 「바로 하기」: 전설 레이드를 방 만들기부터 도전까지 자동으로 (혼자서도 됨) =====
 async function dqRaidAuto(){try{if(!G)return;if(!reach(6)){toast('천계에 가면 열려요');return}
   if(SCENE!=='over'){toast('밖에서만 도전할 수 있어요');return}
