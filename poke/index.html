@@ -4920,9 +4920,12 @@ setInterval(()=>{try{if(!G||!G.party||!G.box)return;
   if(!G._lbMig){const r0=G.rebirth||0;for(const m of [...G.party,...G.box]){if(!m||!m.n||!m.lv)continue;let lv=(!G._lvReset&&r0>0)?1:m.lv;const rb=(m.rbx!=null)?Math.min(+m.rbx||0,r0):r0;lv+=100*rb;delete m.rbx;const need=Math.min(LBMAX,Math.max(0,Math.ceil((lv-100)/100)));if(need>(m.lb||0))m.lb=need;lv=Math.min(lv,lvCapOf(m));m.lv=lv;m.exp=expAt(lv);try{m.hp=stOf(m)[0]}catch(e){}}
     G._lvReset=1;G._expFix=1;G._lbMig=1;lbTopUpd();save();try{hud()}catch(e){}return}
   for(const m of [...G.party,...G.box]){if(m&&m.lv&&m.exp<expAt(m.lv))m.exp=expAt(m.lv)}
-  // 신캐 자동 환생: 새로 얻은 포켓몬(m.nbd 표시 없음)은 내 한계돌파 ★(환생 횟수)만큼 자동으로 ★가 올라가고, 레벨은 그 ★ 구간 시작(★n → Lv.100n+1)까지만 올라요 · 이미 있던 포켓몬은 처음 한 번 표시만 해 두고 그대로
-  if(!G._nbMig){for(const m of [...G.party,...G.box])if(m)m.nbd=1;G._nbMig=1;save()}
-  else{const t=Math.min(LBMAX,Math.max(0,lbN()|0));let ch=0;for(const m of [...G.party,...G.box]){if(!m||!m.n||m.nbd)continue;m.nbd=1;ch=1;if(t>0&&(m.lb|0)<t){m.lb=t;const w=100*t+1;if((m.lv|0)<w){m.lv=w;m.exp=expAt(w)}}try{m.hp=stOf(m)[0]}catch(e){}}if(ch){try{lbTopUpd()}catch(e){}save();try{refreshSpr()}catch(e){}}}
+  // 신캐 자동 환생: 포켓몬은 내 한계돌파 ★(환생 횟수 · 편성 최고 ★)만큼 자동으로 ★가 올라가고, 레벨은 그 ★ 구간 시작(★n → Lv.100n+1)까지만 올라요 (이미 더 높으면 그대로)
+  // 이미 가진 포켓몬도 처음 한 번(G._nbMig2) 전부 적용하고, 그 뒤에는 새로 얻은 포켓몬(m.nbd 표시 없음)만 적용해요
+  {const all=[...G.party,...G.box];const nbT=()=>Math.min(LBMAX,Math.max(0,lbN()|0,G.party.reduce((a,m)=>Math.max(a,(m&&m.lb)|0),0)));
+   const nbApply=(m,t)=>{if(t>0&&(m.lb|0)<t){m.lb=t}if(t>0){const w=100*Math.min(LBMAX,Math.max(m.lb|0,t))+1;if((m.lv|0)<w){m.lv=w;m.exp=expAt(w)}}try{m.hp=stOf(m)[0]}catch(e){}};
+   if(!G._nbMig2){const t=nbT();for(const m of all){if(!m||!m.n)continue;m.nbd=1;nbApply(m,t)}G._nbMig=1;G._nbMig2=1;try{lbTopUpd()}catch(e){}save();try{refreshSpr()}catch(e){}}
+   else{const t=nbT();let ch=0;for(const m of all){if(!m||!m.n||m.nbd)continue;m.nbd=1;ch=1;nbApply(m,t)}if(ch){try{lbTopUpd()}catch(e){}save();try{refreshSpr()}catch(e){}}}}
   if(lbTopUpd())save()}catch(e){}},1500);
 // ===== 난이도 클리어 연출: 챔피언이 되면 새 장이 열리듯 멋지게 + 전설 포켓몬 하나 고르기 =====
 const CLRN=['쉬움','보통','어려움','지옥','나이트메어','종말'];
