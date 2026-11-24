@@ -10080,10 +10080,11 @@ function dqS(){const day=dayKey();if(!G.dq||G.dq.day!==day){let h=7;for(const ch
 for(const p of DQP)(EV[p[0]]=EV[p[0]]||[]).push(n=>{if(!G||!reach(6))return;const D=dqS();for(const q of D.L)if(q.id===p[0]&&q.c<q.n){q.c=Math.min(q.n,q.c+n);if(q.c>=q.n)toast('📜 오늘의 의뢰 완료! '+q.t.replace('{n}',q.n).replace('{R}',RN())+' · 받으러 가요');save()}});
 const DQRW={gem:3,gold:100000},DQALL={cube:2,gem:5};
 function dqOpen(){if(!G)return;const D=dqS();const lock=!reach(6);
-  const rows=D.L.map((q,i)=>{const pc=Math.min(100,q.c/q.n*100);return `<div class="nxr ${q.got?'got':''}"><span><b>${q.t.replace('{n}',q.n).replace('{R}',RN())}</b><div class="nxbar"><u style="width:${pc}%"></u><em>${q.c} / ${q.n}</em></div><small>보상 ${rwT(DQRW)}</small></span>${q.got?'<button disabled>받음</button>':q.c>=q.n?`<button class="main" data-dq="${i}">받기!</button>`:'<button disabled>진행 중</button>'}</div>`}).join('');
+  const rows=D.L.map((q,i)=>{const pc=Math.min(100,q.c/q.n*100);return `<div class="nxr ${q.got?'got':''}"><span><b>${q.t.replace('{n}',q.n).replace('{R}',RN())}</b><div class="nxbar"><u style="width:${pc}%"></u><em>${q.c} / ${q.n}</em></div><small>보상 ${rwT(DQRW)}</small></span>${q.got?'<button disabled>받음</button>':q.c>=q.n?`<button class="main" data-dq="${i}">받기!</button>`:!lock?`<button class="main" data-dqr="${i}">${q.id==='sf'?'▶ 강화창 열기':'▶ 바로 하기'}</button>`:'<button disabled>진행 중</button>'}</div>`}).join('');
   const allOk=D.L.every(q=>q.got);
   openPanel('📜 오늘의 천계 의뢰',`${lock?'<p class="hhint">🔒 천계에 가면 열려요. 미리 볼 수는 있어요.</p>':''}<p class="hhint">매일 0시에 새 의뢰 3개가 와요. 다 하면 보너스 ${rwT(DQALL)}!</p>${card('오늘의 의뢰',rows)}
    <button class="nxbig" id="dqAll" ${allOk&&!D.all&&!lock?'':'disabled'}>${D.all?'오늘 보너스 받음 ✔':'3개 다 하면 보너스 받기 · '+rwT(DQALL)}</button>`,null,p=>{
+   p.querySelectorAll('[data-dqr]').forEach(b=>b.onclick=()=>dqAuto(D.L[+b.dataset.dqr].id));
    p.querySelectorAll('[data-dq]').forEach(b=>b.onclick=()=>{if(lock)return;const q=D.L[+b.dataset.dq];if(q.got||q.c<q.n)return;q.got=1;give(DQRW);sfx('badge');toast('의뢰 보상: '+rwT(DQRW));closePanel(1);dqOpen()});
    const a=p.querySelector('#dqAll');if(a)a.onclick=()=>{if(D.all||!D.L.every(q=>q.got)||lock)return;D.all=1;give(DQALL);sfx('badge');toast('오늘의 보너스: '+rwT(DQALL));closePanel(1);dqOpen()}})}
 window.dqOpen=dqOpen;
@@ -10164,6 +10165,41 @@ async function rdFight(code,d){if(SCENE!=='over'){toast('밖에서만 도전할 
   const dmg=Math.max(0,hp0-Math.max(0,boss.hp));R0.dmg=(R0.dmg|0)+dmg;R0.D=R0.D||{};R0.D[code]=R0.dmg;save();
   const ok=await fsPut(rdBoard(code),'p~'+G.pid,G.name||'친구',R0.dmg|0,Math.floor(Date.now()/1000));
   await say(['레이드 보스에게 <b>'+dmg.toLocaleString()+'</b> 데미지!',ok?'방에 기록했어요. 친구들과 힘을 합쳐요!':'인터넷이 안 돼서 기록을 못 했어요. 새로고침해 봐요.']);rdRoom(code)}
+// ===== 의뢰 「바로 하기」: 의뢰 종류마다 해당 컨텐츠를 바로 시작 =====
+async function dqAuto(id){try{if(!G)return;if(!reach(6)){toast('천계에 가면 열려요');return}
+  if(id==='raid')return dqRaidAuto();
+  if(id==='sf'){closePanel(1);gearOpen('sf');return}
+  if(SCENE!=='over'){toast('밖에서만 시작할 수 있어요');return}
+  if(!G.party.some(m=>m.hp>0)){toast('먼저 치료하고 와요');return}
+  if(id==='wb'){wbFight();return}
+  if(id==='ctw'){ctFight();return}
+  if(id==='gym'){let k=-1;for(let i=0;i<Math.min(8,G.badges|0);i++)if(rmLeft(i)>0){k=i;break}
+    if(k<0){toast('오늘 재대결은 다 했거나, 이긴 관장이 없어요');return}closePanel(1);await rematch(k);return}
+  if(id==='wild'||id==='catch'||id==='catchR'){const A=curA();
+    if(!A||!A.enc||!A.enc.g||!A.enc.g.length){toast('풀숲이 있는 길로 나가서 눌러 주세요');return}
+    closePanel(1);try{P.queue=null}catch(e){}await wild(A,'g');return}
+  if(id==='trainer'){closePanel(1);try{P.queue=null}catch(e){}
+    const lv=Math.max(2,topLv());const L=SPECIES.filter(n=>{const M=META[n];return M&&!M.form&&rarOf(n)<=1});
+    const team=[0,1,2].map(()=>mkMon(pick(L),Math.max(2,lv-ri(0,2))));
+    const r=await battle({trainer:'수련 트레이너',foes:team,money:lv*30,lose:'다음엔 안 질 거예요!',bg:'meadow'});
+    if(r==='lose')await blackout();return}
+  }catch(e){console.warn('dqAuto',e);toast('잠시 뒤에 다시 해 봐요')}}
+// ===== 의뢰에서 「바로 하기」: 전설 레이드를 방 만들기부터 도전까지 자동으로 (혼자서도 됨) =====
+async function dqRaidAuto(){try{if(!G)return;if(!reach(6)){toast('천계에 가면 열려요');return}
+  if(SCENE!=='over'){toast('밖에서만 도전할 수 있어요');return}
+  if(!G.party.some(m=>m.hp>0)){toast('먼저 치료하고 와요');return}
+  const R0=rdL();
+  if(R0.code){const d0=await rdFetch(R0.code);
+    if(d0&&!d0.none&&!d0.old&&!d0.dead&&(R0.tries|0)<RAID_TRY){rdFight(R0.code,d0);return}
+    if(!d0){toast('인터넷이 켜져 있어야 해요');return}
+    delete R0.code;save()}
+  if(!wbCfg()||!navigator.onLine){toast('인터넷이 켜져 있어야 해요');return}
+  const code=String(ri(1000,9999));const L=(typeof WB_DEX!=='undefined'?WB_DEX:[150]).filter(d=>BYDEX[d]);const dex=pick(L);
+  const ok=await fsPut(rdBoard(code),'boss',String(dex),RAID_HP,Math.floor(Date.now()/1000));
+  if(!ok){toast('방을 못 만들었어요. 다시 해 봐요');return}
+  {const R1=rdL();R1.code=code;R1.T=R1.T||{};R1.tries=0;R1.dmg=0;save()}
+  const d=await rdFetch(code);if(!d||d.none){toast('방을 못 불러왔어요. 다시 해 봐요');return}
+  sfx('badge');rdFight(code,d)}catch(e){console.warn('dqRaidAuto',e);toast('잠시 뒤에 다시 해 봐요')}}
 async function rdCatch(code,n){const R0=rdL();if(R0['c'+code])return;R0['c'+code]=1;save();let got=0;for(let i=0;i<3&&!got;i++){await say(['볼 '+(i+1)+'번째… 던졌다!']);if(R()<.35)got=1}
   if(got){const m=mkMon(n,Math.min(100,Math.max(50,topLv())));G.box.push(m);try{G.dex.c[META[n].dex]=1}catch(e){}save();sfx('badge');await say(['<b>'+META[n].name+'</b>(을)를 잡았다! 보관함으로 갔어요.'])}else await say(['아쉬워요… '+META[n].name+'(이)가 도망갔어요. 다음 레이드에 또!']);rdRoom(code)}
 window.rdOpen=rdOpen;
