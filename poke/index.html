@@ -11163,6 +11163,14 @@ window.NCPK=d=>{const x=IDX[d];return !!x&&x.i<ncWeek()};window.NCREL=d=>{const 
 {const _r=rpoolInit;rpoolInit=function(){const w=ncWeek();if(!RPOOL.ok||RPOOL._ncw!==w){RPOOL.ok=0;RPOOL.P=RPOOL.P.map(()=>[]);RPOOL.M=RPOOL.M.map(()=>[])}const r=_r.apply(this,arguments);RPOOL._ncw=w;return r}}
 {const _l=loadPool;loadPool=async function(...a){const r=await _l.apply(this,a);try{await schLoad();RPOOL.ok=0;RPOOL.P=RPOOL.P.map(()=>[]);RPOOL.M=RPOOL.M.map(()=>[])}catch(e){}return r}}
 schLoad();
+// 확률업 신캐는 선물 가방 · 도감 표시를 거치지 않고 바로 편성/보관함으로 (진짜로 갖고 있을 때만 중복 처리)
+{const _gq=grantQuiet;grantQuiet=function(g){try{if(g&&g.ncup&&g.kind==='P'){const key='sc:'+g.id;
+  if(META[key]){const own=[...G.party,...G.box].some(m=>m.n===key);
+    if(own){addItem('ball',5);G.dupes=G.dupes||[];G.dupes.push({kind:g.kind,id:g.id,rar:g.rar,lv:g.lv,sh:g.sh,f:g.f});return true}
+    const m=mkMon(key,Math.max(g.lv|0,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;
+    if(!monCapOk(m)){soulFrom(m);return false}
+    if(G.party.length<6)G.party.push(m);else G.box.push(m);try{refreshSpr()}catch(e){}return false}}}catch(e){console.warn('ncup',e)}
+  return _gq.apply(this,arguments)}}
 const pickup=g=>{const w=ncWeek();if(w<0||!SCH)return null;const d=(SCH.order[g]||[])[w];return d!=null&&META['sc:'+d]?{dex:d,rar:g,key:'sc:'+d}:null};
 function st(){if(!G.ncg||typeof G.ncg!=='object')G.ncg={};if(!G.ncg.pt)G.ncg.pt={};for(const g of ST)G.ncg.pt[g]=G.ncg.pt[g]|0;return G.ncg}
 // 기존 포켓몬(신캐 빼고)만 들어 있는 등급 풀
@@ -11176,7 +11184,7 @@ function roll(g,s){const U=pickup(g),C=RATE[g];s.pt[g]++;let r=Math.random()*100
   const lv=Math.max(3,Math.min(100,(G.party.length?topLv():5)-2+(R()*5|0)));let id,f=null,rr=rar;
   if(up){id=U.dex;rr=g;s.pt[g]=0}
   else{const P=oldPool(rar);rr=P.r;id=P.L[R()*P.L.length|0];if(typeof id==='string'){f=id;id=META[f].dex}}
-  const o={kind:'P',id,rar:rr,lv,sh:R()<1/100?1:0,serial:0,key:'pk'+Date.now().toString(36)+(R()*1e6|0)};if(f)o.f=f;return o}
+  const o={kind:'P',id,rar:rr,lv,sh:R()<1/100?1:0,serial:0,key:'pk'+Date.now().toString(36)+(R()*1e6|0)};if(f)o.f=f;if(up)o.ncup=1;return o}
 async function pull(g,n){const U=pickup(g);if(!U){toast('지금은 열려 있는 한정뽑기가 없어요');return}const s=st();
   const cost=COST[g]*n,cnt=n===10?11:1;if(G.money<cost){toast('돈이 모자라요 ('+cost.toLocaleString()+'원 필요)');return}
   G.money-=cost;const L=[];for(let i=0;i<cnt;i++)L.push(roll(g,s));save();try{hud()}catch(e){}
@@ -11226,9 +11234,10 @@ const side=document.getElementById('side');
 if(side&&!document.getElementById('bNcg')){const b=document.createElement('button');b.id='bNcg';b.innerHTML='<img class="sic" src="ui/ic_star.webp" alt="" style="filter:hue-rotate(190deg) saturate(1.8)"><span>한정뽑기</span>';b.onclick=()=>{if(!G)return;sfx('tap');ncgOpen()};side.insertBefore(b,document.getElementById('bPack')||side.firstChild)}
 // 운영자 화면: 신캐 시험 + 주차 미리보기
 {const _o=operOpen;operOpen=function(){const r=_o.apply(this,arguments);setTimeout(()=>{try{const p=document.querySelector('.panel .pb');if(!p||p.querySelector('#oNcx')||!p.querySelector('#oOff'))return;
-  const d=document.createElement('div');d.id='oNcx';d.innerHTML='<h4>✨ 한정뽑기 · 신캐 (운영자)</h4><div><button class="it" data-a="give">신캐 6마리 받기</button><button class="it" data-a="giveL">전설↑ 6마리</button><button class="it" data-a="up">주차 +1 미리보기</button><button class="it" data-a="dn">주차 −1</button><button class="it" data-a="0">주차 원래대로</button><button class="it" data-a="open">한정뽑기 열기</button></div><p class="hhint">주차 미리보기는 운영자 모드에서만 적용돼요 (지금 '+(ncWeek()+1)+'주차)</p>';
+  const d=document.createElement('div');d.id='oNcx';d.innerHTML='<h4>✨ 한정뽑기 · 신캐 (운영자)</h4><div><button class="it" data-a="give">신캐 6마리 받기</button><button class="it" data-a="giveL">전설↑ 6마리</button><button class="it" data-a="pick">이번 주 확률업 받기</button><button class="it" data-a="up">주차 +1 미리보기</button><button class="it" data-a="dn">주차 −1</button><button class="it" data-a="0">주차 원래대로</button><button class="it" data-a="open">한정뽑기 열기</button></div><p class="hhint">주차 미리보기는 운영자 모드에서만 적용돼요 (지금 '+(ncWeek()+1)+'주차)</p>';
   p.querySelector('#oOff').parentNode.insertAdjacentElement('beforebegin',d);
-  d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='give')return window.ncGiveTest&&ncGiveTest(0);if(a==='giveL')return window.ncGiveTest&&ncGiveTest(3);if(a==='open'){closePanel(1);return ncgOpen()}
+  d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='give')return window.ncGiveTest&&ncGiveTest(0);if(a==='giveL')return window.ncGiveTest&&ncGiveTest(3);if(a==='pick'){let n=0;for(const gg of ST){const U=pickup(gg);if(!U)continue;const key='sc:'+U.dex;if(!META[key]||[...G.party,...G.box].some(m=>m.n===key))continue;const m=mkMon(key,Math.max(30,(G.party.length?topLv():30)-2));m.gift=1;G.dex.s[U.dex]=1;G.dex.c[U.dex]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}save();try{refreshSpr()}catch(e){}return toast(n?'🛠 이번 주 확률업 '+n+'마리를 받았어요 (편성/보관함)':'이번 주 확률업은 이미 다 갖고 있어요')}
+    if(a==='open'){closePanel(1);return ncgOpen()}
     const o=+LS.get('nc-wk-off',0)||0;LS.set('nc-wk-off',a==='up'?o+1:a==='dn'?o-1:0);RPOOL.ok=0;toast('🛠 한정뽑기 주차 '+(ncWeek()+1)+'주차')})}catch(e){}},120);return r}}
 }catch(e){console.warn('ncg',e)}})();
 </script>
