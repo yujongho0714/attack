@@ -49,11 +49,12 @@ function pickTier(k){
  const mx=Math.min(9,DIFF()),D=DG[k];
  if(mx<=0){closePanel(1);start(k,0);return}
  const left=lim(k)?DAILY-sv().n[k]:99;
- const rows=TN().slice(0,mx+1).map((n,t)=>`<div class="row"><span><b>${n}</b><br><small>적 체력 ×${(1+t*.9).toFixed(1)} · 보상 ×${mulT(t)}</small></span><button data-t="${t}" ${left<=0?'disabled':''}>들어가기</button></div>`).join('');
+ const rows=TN().slice(0,mx+1).map((n,t)=>`<div class="row"><span><b>${n}</b><br><small>적 체력 ×${(1+t*.9).toFixed(1)} · 보상 ×${mulT(t)}</small></span><span style="display:flex;gap:4px">${recs(k)[t]?`<button data-sw="${t}" ${left<=0?'disabled':''}>⚡ 소탕</button>`:''}<button data-t="${t}" ${left<=0?'disabled':''}>들어가기</button></span></div>`).join('');
  let au=0;try{au=localStorage.getItem('sb-auto')==='1'?1:0}catch(e){}
  openPanel(D.e+' '+D.n+' · 난이도 고르기','<div class="row"><span><b>🤖 자동 조종</b><br><small>켜면 알아서 피해 다니고 구슬을 주워요 · 레벨업도 알아서 골라요 (직접 움직이면 내 조작이 먼저)</small></span><button id="svAu">'+(au?'켜짐 (끄기)':'꺼짐 (켜기)')+'</button></div><div style="padding:6px;font-size:14px">'+(lim(k)?'오늘 남은 횟수 '+left+'/'+Math.max(DAILY,left)+' · ':'횟수 제한 없음 · ')+'지금 게임 난이도('+TN()[DIFF()]+')까지 고를 수 있어요. 어려울수록 보상이 커져요.</div>'+rows);
  const p=document.querySelector('.panel');if(!p)return;
  p.querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>{closePanel(1);start(k,+b.dataset.t)});
+  p.querySelectorAll('button[data-sw]').forEach(b=>b.onclick=async()=>{closePanel(1);await sweepRun(k,+b.dataset.sw,false);pop()});
  const au2=p.querySelector('#svAu');if(au2)au2.onclick=()=>{let v=0;try{v=localStorage.getItem('sb-auto')==='1'?0:1;localStorage.setItem('sb-auto',v?'1':'0')}catch(e){}au2.textContent=v?'켜짐 (끄기)':'꺼짐 (켜기)';try{toast(v?'자동 조종을 켰어요':'자동 조종을 껐어요')}catch(e){}};
 }
 function quick(k){const mx=Math.min(9,DIFF());G.svLast=G.svLast||{};const t=Math.min(mx,G.svLast[k]!=null?G.svLast[k]:mx);start(k,t)}
@@ -112,10 +113,16 @@ function start(k,tier){tier=tier|0;
  const ex=document.createElement('button');ex.textContent='✕ 나가기';
  ex.style.cssText='position:absolute;left:8px;top:calc(env(safe-area-inset-top,0px) + 28px);z-index:2;padding:6px 10px;font-size:13px';
  ov.appendChild(ifr);ov.appendChild(ex);document.body.appendChild(ov);
- const finish=res=>{if(done)return;done=1;window.__SBP=null;removeEventListener('message',onMsg);ov.remove();try{BGM.area()}catch(e){}try{saveRec(k,res)}catch(e){}reward(k,res);pop()};
+ let skipping=0,skT=null;
+  const finish=res=>{if(done)return;done=1;clearInterval(skT);window.__SBP=null;removeEventListener('message',onMsg);ov.remove();
+   if(skipping){const b=recs(k)[res.tier|0];if(b&&scoreOf(b)>scoreOf(res))res=Object.assign({},res,{got:b.got,kills:b.kills,bdmg:b.bdmg,bk:b.bk|0,r:b.r|0})}
+   try{BGM.area()}catch(e){}try{saveRec(k,res)}catch(e){}reward(k,res);pop()};
  const onMsg=e=>{if(e.source!==ifr.contentWindow)return;const d=e.data;if(d&&d.sb)finish(d)};
  addEventListener('message',onMsg);
  ex.onclick=()=>{try{ifr.contentWindow.postMessage({cmd:'quit'},'*')}catch(e){}setTimeout(()=>finish({sb:1,mode:D.m,tier,r:2,kills:0,got:0,bdmg:0}),1200)};
+  const sk=document.createElement('button');sk.id='svSkip';sk.disabled=true;sk.style.cssText='position:absolute;left:104px;top:calc(env(safe-area-inset-top,0px) + 28px);z-index:2;padding:6px 10px;font-size:13px';ov.appendChild(sk);
+  let sec=30;const tk=()=>{sk.textContent=sec>0?'⏭ 스킵 ('+sec+')':'⏭ 스킵';sk.disabled=sec>0};tk();skT=setInterval(()=>{if(sec>0){sec--;tk()}},1000);
+  sk.onclick=()=>{if(sk.disabled)return;sk.disabled=true;skipping=1;ex.onclick()};
  };
  packParty().then(P=>{window.__SBP=(P&&P.length)?P:null},()=>{window.__SBP=null}).then(run,run);
 }

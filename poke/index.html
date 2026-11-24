@@ -2656,7 +2656,7 @@ function rpoolInit(){if(RPOOL.ok)return;for(const d in RARP){const n=BYDEX[+d];i
   try{for(const d in FORMS)for(const [p,k] of FORMS[d]){const fk='sc:'+p;if(META[fk]&&FTIER[k])RPOOL.P[META[fk].rzr!=null?META[fk].rzr:FTIER[k]].push(fk)}}catch(e){}RPOOL.ok=RPOOL.P[4].length>0||!Object.keys(META).some(k=>k.startsWith('sc:'))?1:0}
 function rollItem(kind,rar){rpoolInit();if(rar==null)rar=rollRar(kind);let r=Math.min(rar,kind==='M'?MMAX:PRMAX);while(r>0&&!RPOOL[kind][r].length)r--;const L=RPOOL[kind][r];let id=L[R()*L.length|0],f=null;if(typeof id==='string'){f=id;id=META[f].dex}
   const lv=Math.max(3,Math.min(100,(G.party.length?topLv():5)-2+(R()*5|0)));const o={kind,id,rar:r,lv,sh:kind==='P'&&R()<1/100?1:0,serial:0,key:'pk'+Date.now().toString(36)+(R()*1e6|0)};if(f)o.f=f;return o}
-function isDup(g){if(g.kind==='P'&&g.f)return !!((G.forms||{})[g.f]||[...G.party,...G.box].some(m=>m.n===g.f)||(G.gifts||[]).some(x=>x.f===g.f));if(g.kind==='P')return !!(G.dex.c[g.id]||(G.gifts||[]).some(x=>x.kind==='P'&&x.id===g.id));G.mvown=G.mvown||{};return !!(G.mvown[g.id]||(G.gifts||[]).some(x=>x.kind==='M'&&x.id===g.id))}
+function isDup(g){if(g.kind==='P'&&g.f)return !!((G.forms||{})[g.f]||[...G.party,...G.box].some(m=>m.n===g.f)||(G.gifts||[]).some(x=>x.f===g.f));if(g.kind==='P'){const _nk='sc:'+g.id;if(META[_nk]&&META[_nk].nc)return false;return !!(G.dex.c[g.id]||(G.gifts||[]).some(x=>x.kind==='P'&&x.id===g.id))}G.mvown=G.mvown||{};return !!(G.mvown[g.id]||(G.gifts||[]).some(x=>x.kind==='M'&&x.id===g.id))}
 const PKN={P:'🎴 포켓몬 카드팩',M:'📀 기술 카드팩'};
 // 받기: 연출 → 가방 (중복이면 몬스터볼 5개 + 합성 재료)
 // 중복: 포켓몬은 영혼 10개(분해와 같은 양) · 기술 카드는 예전처럼 몬스터볼 5개 + 합성 재료
@@ -5757,7 +5757,7 @@ async function fsList(board){const B=fsBase();if(!B)return null;try{const r=awai
 async function fsPut(board,id,name,v,t){const B=fsBase();if(!B)return false;try{const r=await fetch(B.u+board+'/players/'+encodeURIComponent(id)+'?key='+B.k+'&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:String(name).slice(0,12)},v:{integerValue:String(v)},t:{integerValue:String(t)}}})});return r.ok}catch(e){return false}}
 // ---------- 내 계정 등록 (닉네임 + 암호화한 번호 · 하루 한 번 마지막 접속 갱신) ----------
 let ACREG=0;
-async function acRegister(){if(ACREG||!G||!G.num||!navigator.onLine||!fsBase()||!crypto.subtle)return;ACREG=1;try{wbS();const num=normNum(G.num),day=dayKey(),sig=G.pid+'|'+num+'|'+(G.name||'');
+async function acRegister(){if(ACREG||!G||!navigator.onLine||!fsBase()||!crypto.subtle)return;ACREG=1;try{wbS();const num=normNum(G.num||''),day=dayKey(),sig=G.pid+'|'+num+'|'+(G.name||'');
   if(G.acReg&&G.acReg.s===sig&&G.acReg.d===day)return;let id=G.acReg&&G.acReg.s===sig?G.acReg.id:null;if(!id)id='u~'+G.pid+'~'+await acEnc(JSON.stringify({n:num,p:G.pid}));
   if(await fsPut('users',id,G.name||'',G.badges||0,Math.floor(Date.now()/1000))){G.acReg={s:sig,d:day,id};save()}}catch(e){}finally{ACREG=0}}
 setTimeout(()=>{try{acRegister()}catch(e){}},12000);setInterval(()=>{try{if(G&&SCENE==='over')acRegister()}catch(e){}},300000);
@@ -5784,9 +5784,10 @@ async function acOpen(){if(!isGM()){toast('관장님(GM)만 쓸 수 있어요');
     o.querySelector('#gmYes').onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});o.querySelector('#gmNo').onclick=()=>{o.remove();done(false)}});if(!ok)return}
   ACF.list=null;acDraw();const L=await fsList('users');await banLoad(1);if(!L){ACF.list=[];acDraw();toast('서버에 연결하지 못했어요');return}const by=new Map();
   for(const x of L){const m=/^u~([^~]+)~(.+)$/.exec(x.id);if(!m)continue;let num='';try{num=JSON.parse(await acDec(m[2])).n||''}catch(e){continue}const o=by.get(m[1]);if(!o||x.t>o.t)by.set(m[1],{pid:m[1],name:x.name,num,t:x.t,b:x.v})}
+  try{const RL=await acRankList();for(const x of RL){if(!by.has(x.pid))by.set(x.pid,{pid:x.pid,name:x.name,num:'',t:0,b:0,un:1})}}catch(e){}
   ACF.list=[...by.values()].sort((a,b)=>b.t-a.t);acDraw()}
 function acDraw(){const fmt=n=>String(n).replace(/^(\d{3})(\d{3,4})(\d{4})$/,'$1-$2-$3');const q=ACF.q.trim().replace(/-/g,'');const L=(ACF.list||[]).filter(x=>!q||x.name.includes(q)||x.num.includes(q));
-  const row=x=>{const ban=BANS.has(x.pid);return `<div class="acr${ban?' ban':''}"><span><b>${esc(x.name||'(이름 없음)')}</b><small>${fmt(x.num)}</small></span><small>배지 ${x.b} · 마지막 ${new Date(x.t*1000).toLocaleDateString('ko-KR')}</small><button data-ac="${x.pid}" class="${ban?'':'del'}">${ban?'복구':'삭제'}</button></div>`};
+  const row=x=>{const ban=BANS.has(x.pid);return `<div class="acr${ban?' ban':''}"><span><b>${esc(x.name||'(이름 없음)')}</b><small>${x.num?fmt(x.num):'번호 모름'}</small></span><small>${x.un?'랭킹에만 있음 (아직 등록 전)':'배지 '+x.b+' · 마지막 '+new Date(x.t*1000).toLocaleDateString('ko-KR')}</small><button data-ac="${x.pid}" class="${ban?'':'del'}">${ban?'복구':'삭제'}</button></div>`};
   openPanel('계정 관리 (GM)',`<p class="hhint">게임을 켠 적 있는 계정이에요 (인터넷이 될 때 등록돼요). 도장 명단과 번호를 대조해서, 우리 도장이 아니거나 악용하는 계정은 <b>삭제</b>해요. 삭제하면 모든 랭킹 · 주간 보상에서 빠지고, 그 폰이 인터넷에 연결되면 게임 기록이 지워져요. 같은 번호로 새로 만들어도 막혀요.</p>
    <input id="acQ" class="gmq" value="${esc(ACF.q)}" placeholder="닉네임이나 번호로 찾기"><div class="acl">${ACF.list===null?'<p class="hhint">불러오는 중…</p>':L.length?L.map(row).join(''):'<p class="hhint">계정이 없어요</p>'}</div><p class="hhint">총 ${(ACF.list||[]).length}명 · 삭제 ${BANS.size}명</p>`,null,p=>{
    const qi=p.querySelector('#acQ');qi.oninput=()=>{ACF.q=qi.value;clearTimeout(qi._t);qi._t=setTimeout(()=>{acDraw();setTimeout(()=>{const x=document.querySelector('#acQ');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length)}},30)},350)};
@@ -11182,7 +11183,6 @@ schLoad();
 // 확률업 신캐는 선물 가방 · 도감 표시를 거치지 않고 바로 편성/보관함으로 (진짜로 갖고 있을 때만 중복 처리)
 {const _gq=grantQuiet;grantQuiet=function(g){try{if(g&&g.ncup&&g.kind==='P'){const key='sc:'+g.id;
   if(META[key]){const own=[...G.party,...G.box].some(m=>m.n===key);
-    if(own){dupGive(g);return true}
     const m=mkMon(key,Math.max(g.lv|0,1));m.gift=1;if(g.sh)m.sh=1;G.dex.s[g.id]=1;G.dex.c[g.id]=1;
     if(!monCapOk(m)){soulFrom(m);return false}
     if(G.party.length<6)G.party.push(m);else G.box.push(m);try{refreshSpr()}catch(e){}return false}}}catch(e){console.warn('ncup',e)}
@@ -11316,7 +11316,6 @@ const WEEK=7*864e5,key=d=>'sc:'+d;
 function reg(){if(!G)return 0;if(!G.ncdex||typeof G.ncdex!=='object')G.ncdex={};let n=0;
   for(const m of [...G.party,...G.box]){const k=m&&m.n;if(typeof k==='string'&&k.startsWith('sc:')&&META[k]&&META[k].nc){const d=META[k].dex;if(!G.ncdex[d]){G.ncdex[d]=1;n++}}}
   // 도감에 「잡음」으로 찍힌 신캐(G.dex.c)도 얻은 걸로 쳐요 — 가졌다가 없어진 것도 도감에 남아요 (만나기만 한 건 G.dex.s라서 안 들어와요)
-  try{for(const d in (G.dex&&G.dex.c)||{}){const k=key(+d);if(META[k]&&META[k].nc&&!G.ncdex[d]){G.ncdex[d]=1;n++}}}catch(e){}
   return n}
 window.ncReg=reg;
 let LS_=0;{const _sv=save;save=function(){try{const t=Date.now();if(t-LS_>3000){LS_=t;reg()}}catch(e){}return _sv.apply(this,arguments)}}
@@ -11355,6 +11354,15 @@ async function ncRestore(){if(!G)return;try{await window.ncLoadAll()}catch(e){}r
   if(!ok)return;
   let n=0;for(const d of L){const k=key(d);const m=mkMon(k,Math.max(30,(G.party.length?topLv():30)-2));m.gift=1;G.dex.s[d]=1;G.dex.c[d]=1;G.ncrs[d]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}
   try{save()}catch(e){}try{refreshSpr()}catch(e){}try{sfx('badge')}catch(e){}toast('♻️ 신캐 '+n+'마리를 돌려받았어요 (편성/보관함)');window.ncDex('all')}
+// 한 번만 자동 복구: 도감에는 찍혔는데 실제로는 없는 신캐를 진짜로 지급해요 (첫 신캐 패치 때 못 받은 것)
+async function ncAutoFix(){if(!G||G.ncfix3)return;try{await window.ncLoadAll()}catch(e){}if(!G||!META)return;
+  const own=new Set([...G.party,...G.box].map(m=>m&&m.n));const gift=new Set((G.gifts||[]).filter(g=>g&&g.kind==='P').map(g=>String(g.id)));G.ncrs=G.ncrs||{};
+  const S=new Set([...Object.keys(G.ncdex||{}),...Object.keys((G.dex&&G.dex.c)||{})].map(Number));
+  const L=[...S].filter(d=>d>=20000&&META[key(d)]&&META[key(d)].nc&&!own.has(key(d))&&!gift.has(String(d))&&!G.ncrs[d]);
+  G.ncfix3=1;if(!L.length){try{save()}catch(e){}return}
+  let n=0;for(const d of L){const m=mkMon(key(d),Math.max(30,(G.party.length?topLv():30)-2));m.gift=1;G.dex.s[d]=1;G.dex.c[d]=1;G.ncrs[d]=1;if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}
+  try{save()}catch(e){}try{refreshSpr()}catch(e){}try{sfx('badge')}catch(e){}toast('♻️ 도감에만 있던 신캐 '+n+'마리를 실제로 지급했어요 (편성/보관함)')}
+setInterval(()=>{try{if(G&&SCENE==='over'&&!G.ncfix3)ncAutoFix()}catch(e){}},4000);
 window.ncDex=function(f,_r){if(!G)return;if(!LIST().length&&!_r&&window.ncLoadAll){toast('도감을 불러오는 중…');window.ncLoadAll().then(()=>window.ncDex(f,1)).catch(()=>window.ncDex(f,1));return}reg();f=f||'all';
   const rel=LIST().filter(c=>window.NCREL&&window.NCREL(c.dex)&&META[key(c.dex)]);
   const tot=LIST().length,have=cnt(),b=bonus(),per=PER-(have%PER),I=msInfo();
