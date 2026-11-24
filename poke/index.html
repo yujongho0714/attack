@@ -461,6 +461,8 @@ canvas.gth{image-rendering:pixelated;background:radial-gradient(#eef4ff,#c8d4ee)
 .cub{display:flex!important;flex-direction:column;align-items:center}.cub img{width:44px;height:44px}.cub small{font-weight:700}.gcube img.ic,.iih img[src*="cube"]{image-rendering:auto}
 #bPack{position:relative}#bPack .nb{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#ff3b3b;color:#fff;font:900 11px/18px sans-serif;text-align:center;font-style:normal;padding:0 3px}
 .pkg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pkt{display:flex;flex-direction:column;align-items:center;padding:6px!important;border:3px solid #c8a24a!important;border-radius:12px!important;background:#fff!important}.pkt img{width:56px;height:76px;object-fit:contain}.pkt small{font-weight:900;color:#a03030}.pkt.on{border-color:#1c2550!important;box-shadow:0 0 0 3px #ffd23f!important;background:#fff8d8!important}
+#pkCut .pkSkipB{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translateX(-50%);border:3px solid #ffd23f;border-radius:20px;background:#1c2550;color:#fff;font:900 14px var(--ff,sans-serif);padding:10px 16px}
+#pkSkipAll{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100001;border:3px solid #ffd23f;border-radius:20px;background:#1c2550;color:#fff;font:900 14px var(--ff,sans-serif);padding:10px 16px}
 #pkStop{position:fixed;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:100001;border:3px solid #1c2550;border-radius:12px;background:#fff;font:900 14px var(--ff,sans-serif);padding:8px 14px;color:#1c2550}
 #bPortal{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:7;border:0;background:none;display:flex;flex-direction:column;align-items:center;color:#fff;text-shadow:0 2px 4px #000}#bPortal i{width:90px;height:90px;border-radius:50%;background:conic-gradient(#7a3aff,#3ad0ff,#ff5aa0,#7a3aff);box-shadow:0 0 30px #a070ff,inset 0 0 20px #000;animation:hpsp 1.6s linear infinite}#bPortal b{font-size:16px;color:#ffe066}@keyframes hpsp{to{transform:rotate(360deg)}}body.inb #bPortal{display:none}
 .wbtt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.wbtr{display:flex;flex-direction:column;align-items:center;text-align:center;background:#fff;border:2px solid #e6dcc0;border-radius:12px;padding:6px}.wbtr img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated}.wbtr b{display:block;font-size:14px}.wbtr small{font-size:10px;font-weight:700;color:#5a4a20}.wbtr.now{border-color:#ff5a3a;box-shadow:0 0 10px #ff5a3a66;background:#fff4ee}
@@ -2258,7 +2260,7 @@ function operOpen(){if(!OPER.on&&!(typeof isGM==='function'&&isGM())){operLogin(
 // CardPack.open({rar:0..3, sh:0/1, kind:'P'|'M', name, sub, img(초상화 url), col(타입색), base:'cardpack/'}) → Promise
 const CardPack=(()=>{
   const COL=['#c9d3dc','#4aa8ff','#c070ff','#ffb020','#ff3b6b','#22e6d0','#ffffff','#8a96ff','#ffd75a','#ff4060'],COL2=['#8a98a6','#1d5fd0','#6a1fc0','#ff6a00','#a0002a','#0a7a8a','#ff2aa0','#2a2f8a','#a05a00','#5a0010'],RN=['일반','희귀','영웅','전설','신화','환상','유일','불멸','태초','만제'];
-  const TAPS=[1,1,3,3,4,5,6,7,8,9];
+  const TAPS=[1,1,3,3,4,5,6,7,8,9];let curClose=null;
   let AC=null;function tone(f,d,ty,v,at){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+(at||0);o.type=ty||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
   function noise(d,v){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const n=AC.sampleRate*d,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=v||.2;s.buffer=b;s.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
   const S={tap:r=>tone(300+r*120,.08,'square',.06),tear:()=>noise(.35,.25),
@@ -2287,7 +2289,17 @@ const CardPack=(()=>{
         if(ph==='show'&&R>=RF&&performance.now()-pt>900){close()}};
       cv.onpointermove=ev=>{if(ph!=='swipe'||!SW)return;SW.x=ev.clientX;cutK=Math.min(1,Math.abs(SW.x-SW.x0)/(PWs*.75));if(Math.random()<.5)burst(1,2,'#fff',20);if(cutK>=1)doTear()};
       cv.onpointerup=cv.onpointercancel=()=>{if(ph==='swipe'&&SW){SW=null;if(cutK<1)cutK=0}};
-      function close(){if(closed)return;closed=true;removeEventListener('resize',rs);cv.style.transition='opacity .35s';cv.style.opacity='0';setTimeout(()=>{cv.remove();done()},360)}
+      let cpUiOff=()=>{};function close(){if(closed)return;closed=true;removeEventListener('resize',rs);cpUiOff();curClose=null;cv.style.transition='opacity .35s';cv.style.opacity='0';setTimeout(()=>{cv.remove();done()},360)}
+      // 자동 뜯기 + 스킵 (설정은 기억해요)
+      const AUTO_K='pk-cp-auto';const autoOn=()=>{try{return localStorage.getItem(AUTO_K)!=='0'}catch(e){return true}};let autoT=0;
+      function skipNow(){if(closed)return;if(ph==='show'&&R>=RF){if(performance.now()-pt>500)close();return}
+        setR(RF);rev=1;taps=NEED;SW=null;cutK=0;flash=.6;shake=10;S.rev(R);if(R>=2)bolts=1;burst(30+Math.min(R,3)*20,5,C,60);setPh('card')}
+      {const ui=document.createElement('div');ui.id='cpUi';ui.style.cssText='position:fixed;z-index:100000;left:10px;top:calc(10px + env(safe-area-inset-top));display:flex;gap:6px;font:700 13px sans-serif';
+        const bst='padding:8px 12px;border:0;border-radius:18px;background:#1c2550e6;color:#fff;box-shadow:0 0 0 2px #ffd23f;font:inherit';
+        const bA=document.createElement('button'),bS=document.createElement('button');bA.style.cssText=bS.style.cssText=bst;
+        const paint=()=>{bA.textContent=autoOn()?'⚡ 자동 뜯기 ON':'✋ 자동 뜯기 OFF'};paint();bS.textContent='⏭ 스킵';
+        bA.onclick=()=>{try{localStorage.setItem(AUTO_K,autoOn()?'0':'1')}catch(e){}paint();autoT=performance.now()};bS.onclick=skipNow;
+        ui.append(bA,bS);document.body.appendChild(ui);cpUiOff=()=>ui.remove();curClose=close}
       // 카드 그리기
       function card(x,y,w,h,now,sx){
         c.save();c.translate(x,y);c.scale(sx,1);c.translate(-w/2,-h/2);
@@ -2315,6 +2327,10 @@ const CardPack=(()=>{
         c.restore()}
       function frame(now){
         if(closed)return;const e=now-pt;c.save();
+        if(autoOn()){const t=performance.now();
+          if(ph==='idle'&&t-autoT>380){autoT=t;taps++;S.tap(taps);shake=6+taps*4+R*3;flash=.15*taps;burst(6+taps*4,3+taps,C,40);if(taps>=NEED)setPh('swipe')}
+          else if(ph==='swipe'&&t-pt>500&&t-autoT>200){autoT=t;taps=NEED;cutK=1;doTear()}
+          else if(ph==='show'&&R>=RF&&RF<=2&&t-pt>1600)close()}
         const sk=shake*(Math.random()-.5);const sk2=shake*(Math.random()-.5);shake*=.88;c.translate(sk,sk2);
         // 배경
         const dark=ph==='pillar'||(R>=3&&ph==='tear');const bg=c.createRadialGradient(W/2,H*.48,10,W/2,H*.48,Math.max(W,H)*.8);bg.addColorStop(0,dark?'#2a1a00':C2+'cc');bg.addColorStop(1,'#05050c');c.fillStyle=bg;c.fillRect(-30,-30,W+60,H+60);
@@ -2358,7 +2374,7 @@ const CardPack=(()=>{
         if(flash>0){c.fillStyle=R>=3?'rgba(255,240,200,'+flash+')':'rgba(255,255,255,'+flash+')';c.fillRect(0,0,W,H);flash=Math.max(0,flash-.04)}
         requestAnimationFrame(frame)}
       requestAnimationFrame(frame)})}
-  return{open}})();
+  return{open,closeNow:()=>{try{curClose&&curClose()}catch(e){}}}})();
 if(typeof window!=='undefined')window.CardPack=CardPack;
 
 // 내 출결 캐릭터(드레스업)를 게임 주인공으로: 출석앱에서 문자로 받은 링크(?me=…)로 가진 옷·입은 옷이 와요.
@@ -4436,11 +4452,14 @@ function packOpenUI(sel){if(!G)return;G.packs=G.packs||{};const ks=Object.keys(P
     const go=p.querySelector('#pkGo');if(go)go.onclick=()=>{closePanel(1);packRun(sel,q)}};
   openPanel('카드팩 가방',`<div id="pkB"></div>`,null,draw)}
 let PKSTOP=0;
+function pkAutoOn(){try{return localStorage.getItem('pk-cp-auto')!=='0'}catch(e){return true}}
 // 9AE 여러 장 한꺼번에: 한 번 자르면 전부 나옴 · 전설(3) 이상만 한 장씩 연출 · 나머지는 모아 보기
 function pkCut(k,n){return new Promise(done=>{const d=document.createElement('div');d.id='pkCut';
   d.innerHTML=`<div class="pc"><b>${PKT[k].n} × ${n}</b><div class="pi"><img src="${PKT[k].img}"><i class="ln"></i></div><p>👉 팩을 옆으로 쓱 밀어서 잘라요! (톡 눌러도 돼요)</p></div>`;document.body.appendChild(d);
   let x0=null,ok=0;const go=()=>{if(ok)return;ok=1;d.classList.add('cut');try{sfx('badge')}catch(e){}setTimeout(()=>{d.remove();done()},650)};
-  d.addEventListener('pointerdown',e=>{x0=e.clientX});d.addEventListener('pointermove',e=>{if(x0!=null&&Math.abs(e.clientX-x0)>40)go()});d.addEventListener('pointerup',()=>{x0=null;setTimeout(go,60)})})}
+  d.addEventListener('pointerdown',e=>{x0=e.clientX});d.addEventListener('pointermove',e=>{if(x0!=null&&Math.abs(e.clientX-x0)>40)go()});d.addEventListener('pointerup',()=>{x0=null;setTimeout(go,60)});
+  const sk=document.createElement('button');sk.className='pkSkipB';sk.textContent='⏭ 스킵 (한 번에 보기)';sk.onpointerdown=e=>{e.stopPropagation();window.PKSKIP=1;go()};d.appendChild(sk);
+  if(pkAutoOn())setTimeout(go,1300)})}
 function bulkShow(list,title){return new Promise(done=>{const d=document.createElement('div');d.id='multiOv';d.className='bulk';let dups=0;
   for(const g of list){if(g.pre){if(g.dup)dups++;continue}if(g.fail)continue;const dup=grantQuiet(g);g.dup=dup;if(dup)dups++}save();try{hud()}catch(e){}
   const L=list.slice().sort((a,b)=>(b.rar|0)-(a.rar|0));const cnt={};L.forEach(g=>{if(!g.fail)cnt[g.rar]=(cnt[g.rar]||0)+1});
@@ -4450,9 +4469,10 @@ function bulkShow(list,title){return new Promise(done=>{const d=document.createE
   document.body.appendChild(d);try{sfx('get')}catch(e){}d.querySelector('.skip').onclick=()=>{d.remove();done()}})}
 async function packRunBulk(k,n){const kind=k[0],rar=k==='PH'?2:PRNG[k]?PRNG[k][1]:k.length>1?+k.slice(1):null;n=Math.min(n,100,G.packs[k]||0);if(n<1)return;
   G.packs[k]-=n;const list=[];for(let i=0;i<n;i++)list.push(rollItem(kind,PRNG[k]?(R()<PRNGP?PRNG[k][1]:PRNG[k][0]):rar));save();
-  await pkCut(k,n);
+  window.PKSKIP=0;await pkCut(k,n);
   const big=list.filter(g=>!g.fail&&g.rar>=3).sort((a,b)=>a.rar-b.rar);
-  for(const g of big){window.PKNOCAP=rar!=null&&rar>=4;try{g.dup=isDup(g);await grant(g,PKT[k].n+' · 전설 이상!')}finally{window.PKNOCAP=0}g.pre=1}
+  let sa=null;if(big.length&&!window.PKSKIP){sa=document.createElement('button');sa.id='pkSkipAll';sa.textContent='⏭ 남은 연출 전부 스킵';sa.onclick=()=>{window.PKSKIP=1;sa.remove();try{CardPack.closeNow()}catch(e){}};document.body.appendChild(sa)}
+  try{for(const g of big){if(window.PKSKIP)break;window.PKNOCAP=rar!=null&&rar>=4;try{g.dup=isDup(g);await grant(g,PKT[k].n+' · 전설 이상!')}finally{window.PKNOCAP=0}g.pre=1}}finally{if(sa)sa.remove()}
   await bulkShow(list,PKT[k].n+' '+n+'장'+(big.length?' · 전설 이상 '+big.length+'장!':''));
   packBadge();toast(PKT[k].n+' '+n+'장 열었어요'+(G.packs[k]?' · 남은 '+G.packs[k]+'장':''))}
 async function packRun(k,n){if(n>1)return packRunBulk(k,n);PKSTOP=0;const kind=k[0],rar=k==='PH'?2:PRNG[k]?PRNG[k][1]:k.length>1?+k.slice(1):null;const bk=document.createElement('div');bk.id='pkBack';document.body.appendChild(bk);const st=document.createElement('button');st.id='pkStop';document.body.appendChild(st);st.onclick=()=>{PKSTOP=1;st.textContent='이번 장까지만 열고 멈춰요'};
@@ -4974,13 +4994,19 @@ function legendPick(){return new Promise(done=>{const L=SPECIES.filter(s=>META[s
 .lgc img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated}.lgc b{font-size:14px}.lgc small{font-size:11px;color:#6b7280}`;document.head.appendChild(c)})();
 
 // ===== 알 부화: 포켓몬 알을 얻으면 부화기(3칸)에 들어가고, 걸을수록 부화해요 =====
-// 알은 포케스탑(6%) · 히든 포탈(25%)에서 · 부화기에 넣을 때 등급이 정해져요 (일반 50 · 희귀 32 · 영웅 14 · 전설 4 · 어려움부터 신화 1)
+// 알은 포케스탑(7%~) · 히든 포탈(28%~)에서 (난이도가 높을수록 조금 더) · 부화기에 넣을 때 등급이 정해져요 (난이도별 EGGWD)
 // 필요한 걸음: 일반 150 · 희귀 300 · 영웅 600 · 전설 1200 · 신화 2000
-const EGGW=[50,32,14,4,1],EGGN=[150,300,600,1200,2000],EGGC=['#e8e4d8','#bfe0ff','#e6c8ff','#ffe08a','#ffb0c0'],EGG_SLOT=3;
+// 난이도별 알 등급 가중치 [일반,희귀,영웅,전설,신화] · 난이도가 높을수록 좋은 알이 조금씩 더 잘 나와요 (예전: 50·32·14·4·1)
+const EGGWD=[[46,33,16,5,0],[44,33,17,6,0],[40,32,19,7,2],[37,32,20,8,3],[34,31,22,10,3],[32,30,23,11,4],[30,30,24,12,4],[28,30,25,13,4],[26,29,26,14,5],[24,29,27,15,5]];
+const eggW=()=>{let d=1;try{d=Math.max(0,Math.min(9,DIFF()))}catch(e){}return EGGWD[d].slice(0,Math.min(5,rarCap()+1))};
+// 알 얻을 확률: 포케스탑 · 히든 포탈 (난이도가 높을수록 조금 더)
+const eggPs=()=>{let d=1;try{d=Math.max(0,Math.min(9,DIFF()))}catch(e){}return .07+d*.005};
+const eggHp=()=>{let d=1;try{d=Math.max(0,Math.min(9,DIFF()))}catch(e){}return .28+d*.012};
+const EGGN=[150,300,600,1200,2000],EGGC=['#e8e4d8','#bfe0ff','#e6c8ff','#ffe08a','#ffb0c0'],EGG_SLOT=3;
 ITEMS.egg={n:'포켓몬 알',e:'<i class="ic eggic" style="--ec:#f3eee0"></i>'};
 try{ITD.egg={s:'걸으면 부화하는 포켓몬 알',use:'가지고 있으면 부화기(3칸)에 저절로 들어가요. 걸을수록 부화해요 (자동 사냥으로 걸어도 돼요)',good:'안 잡아 본 포켓몬이 잘 나와요',who:'도감을 채우고 싶은 친구',tip:'부화기에 들어갈 때 등급이 정해져요. 좋은 알일수록 오래 걸어야 해요'}}catch(e){}
 function eggS(){G.inc=G.inc||[];return G.inc}
-function eggFill(){if(!G)return;const I=eggS();while(I.length<EGG_SLOT&&(G.bag.egg||0)>0){G.bag.egg--;const W=EGGW.slice(0,Math.min(5,rarCap()+1));let u=R()*W.reduce((a,b)=>a+b,0),r=0;for(;r<W.length;r++){u-=W[r];if(u<0)break}r=Math.min(r,W.length-1);I.push({r,st:0,need:EGGN[r]});save();toast('알을 부화기에 넣었어요 · '+RAR[r]+' 알 (걸음 '+EGGN[r]+')')}}
+function eggFill(){if(!G)return;const I=eggS();while(I.length<EGG_SLOT&&(G.bag.egg||0)>0){G.bag.egg--;const W=eggW();let u=R()*W.reduce((a,b)=>a+b,0),r=0;for(;r<W.length;r++){u-=W[r];if(u<0)break}r=Math.min(r,W.length-1);I.push({r,st:0,need:EGGN[r]});save();toast('알을 부화기에 넣었어요 · '+RAR[r]+' 알 (걸음 '+EGGN[r]+')')}}
 let EGPOS=null;
 setInterval(()=>{try{if(!G||SCENE!=='over')return;eggFill();const k=G.a+':'+P.x+','+P.y;if(EGPOS&&EGPOS!==k){const I=eggS();for(const e of I)e.st=Math.min(e.need,e.st+1);if(I.length&&(I[0].st%25===0))save()}EGPOS=k;
   const done=eggS().findIndex(e=>e.st>=e.need);if(done>=0&&!P.busy&&!DLG.on&&!PANEL&&!document.getElementById('egOv')&&!EVB.n&&!(AUTO.on&&BS.on))eggHatch(done);eggHud()}catch(e){}},150);
@@ -4999,8 +5025,8 @@ function eggHud(){let b=document.getElementById('egHud');const I=G?eggS():[];if(
 function eggOpen(){const I=eggS();openPanel('알 부화기 · '+I.length+'/'+EGG_SLOT,`<p class="hhint">걸을수록 부화해요 (자동 사냥으로 걸어도 돼요). 부화기는 3칸이고, 가방에 알이 더 있으면 자리가 나는 대로 들어가요. 가방의 알 ${G.bag.egg||0}개.</p>
   <div class="egl">${I.map(e=>`<div class="egr"><i class="egg" style="--ec:${EGGC[e.r]}"><i></i></i><span><b style="color:${RARC[e.r]}">${RAR[e.r]} 알</b><small>${e.st} / ${e.need} 걸음 · 남은 걸음 ${e.need-e.st}</small><u><em style="width:${e.st/e.need*100}%"></em></u></span></div>`).join('')||'<p class="hhint">부화기가 비어 있어요. 포케스탑 · 히든 포탈에서 알을 얻어요!</p>'}</div>`)}
 // 알 얻는 곳
-{const _pl=psLoot;psLoot=function(){const L=_pl.apply(this,arguments);if(R()<.06)L.egg=(L.egg||0)+1;return L}}
-{const _h=hpEnter;hpEnter=async function(){const n0=G&&G.hp?G.hp.n:0;const r=await _h.apply(this,arguments);try{if(G&&G.hp&&G.hp.n>n0&&R()<.25&&BS.lastRes==='win'){addItem('egg',1);toast('포켓몬 알도 얻었어요!')}}catch(e){}return r}}
+{const _pl=psLoot;psLoot=function(){const L=_pl.apply(this,arguments);if(R()<eggPs())L.egg=(L.egg||0)+1;return L}}
+{const _h=hpEnter;hpEnter=async function(){const n0=G&&G.hp?G.hp.n:0;const r=await _h.apply(this,arguments);try{if(G&&G.hp&&G.hp.n>n0&&R()<eggHp()&&BS.lastRes==='win'){addItem('egg',1);toast('포켓몬 알도 얻었어요!')}}catch(e){}return r}}
 {const _b=battle;battle=async function(o){const r=await _b.apply(this,arguments);try{BS.lastRes=r}catch(e){}return r}}
 try{HUB.push({k:'egg',n:'알 부화',d:'포케스탑 · 히든 포탈에서 포켓몬 알을 얻어요. 부화기(3칸)에 들어가면 등급이 정해지고, 걸을수록 부화해요. 안 잡아 본 포켓몬이 잘 나와요! 일반 150 · 희귀 300 · 영웅 600 · 전설 1200 · 신화 2000 걸음 (신화 알은 어려움부터).',st:()=>'부화기 '+eggS().length+'/'+EGG_SLOT+' · 가방 '+(G.bag.egg||0)+'개',go:[['알 부화기',()=>eggOpen()]]})}catch(e){}
 (function(){const c=document.createElement('style');c.textContent=`
@@ -5542,8 +5568,8 @@ const ODTABS={
  stop:['포케스탑',()=>{const b=G.badges+(G.ub||0),T=[['ball',30],['potion',20],['oran',14],['razz',12]];if(b>=2)T.push(['great',14],['spotion',10],['sitrus',6]);if(b>=5)T.push(['hyper',6],['hpotion',4]);if(b>=3)T.push(['candy',1.5]);T.push(['cube',2.5]);if(b>=5)T.push(['cube2',.4]);const t=T.reduce((a,x)=>a+x[1],0);
    return `<p class="odnow">지금 배지 ${b}개 기준 · 한 번 돌리면 <b>${3+(b>=4?1:0)}개</b> (20% 확률로 1개 더)</p><h4>한 개마다 나올 확률</h4>${odRows(T.map(([k,w])=>[ITEMS[k]?ITEMS[k].n:k,w/t]))}
    <h4>한 번 돌릴 때 덤으로</h4>${odRows([['포켓몬 알',.06],['접두사 주문서',.04]])}<p class="hhint">배지 2개 · 3개 · 5개를 모으면 더 좋은 물건이 목록에 들어와요. 하루 ${typeof PS_MAX!=='undefined'?PS_MAX:20}번.</p>`}],
- egg:['알',()=>{const W=EGGW.slice(0,Math.min(5,rarCap()+1)),t=W.reduce((a,b)=>a+b,0);
-   return odDiff()+`<h4>부화기에 넣을 때 정해지는 알 등급</h4>${odRows(W.map((w,i)=>[RAR[i]+' 알',w/t,RARC[i],EGGN[i]+'걸음']))}<p class="hhint">알 얻기: 포케스탑 한 번 돌릴 때 6% · 히든 포탈 이기면 25%. 태어날 때 3% 확률로 반짝이는 포켓몬! 안 잡아 본 포켓몬이 잘 나와요.${W.length<5?' 신화 알은 어려움부터.':''}</p>`}],
+ egg:['알',()=>{const W=eggW(),t=W.reduce((a,b)=>a+b,0);
+   return odDiff()+`<h4>부화기에 넣을 때 정해지는 알 등급</h4>${odRows(W.map((w,i)=>[RAR[i]+' 알',w/t,RARC[i],EGGN[i]+'걸음']))}<p class="hhint">알 얻기: 포케스탑 한 번 돌릴 때 ${(eggPs()*100).toFixed(1)}% · 히든 포탈 이기면 ${(eggHp()*100).toFixed(0)}% (난이도가 높을수록 조금 더 잘 나와요). 난이도가 높을수록 좋은 알도 조금 더 잘 나와요. 태어날 때 3% 확률로 반짝이는 포켓몬! 안 잡아 본 포켓몬이 잘 나와요.${W.length<5?' 신화 알은 어려움부터.':''}</p>`}],
  px:['접두사',()=>{const cap=pxCap(),W=PXW.slice(0,cap+1),t=W.reduce((a,b)=>a+b,0);
    return odDiff()+`<h4>접두사 주문서 · 야생 접두사 등급</h4>${odRows(W.map((w,i)=>[PXG[i],w/t,PXC[i],'효과 ×'+PXM[i]]))}<p class="hhint">지금 난이도에서는 <b>${PXG[cap]}</b>까지 나와요 (환생할 때마다 한 등급 더). 같은 등급 안에서는 접두사가 똑같은 확률이에요.</p>
    <h4>야생 포켓몬이 접두사를 달고 나올 확률</h4>${odRows(ODN.map((n,i)=>[n,PXWILD[i],i===Math.min(9,DIFF())?'#ff8a1a':'']))}`}],
@@ -5990,10 +6016,26 @@ async function dexDev(n,isNew){const M=META[n];if(!M)return;const D=await dexInf
 // 도감 목록에서 포켓몬을 누르면 도감 기계로 · 「나오는 곳」은 예전 화면
 const dexWhere=dexOne;dexOne=function(n){dexDev(n)};
 // 새로 잡으면 도감에 등록 화면 (자동 진행 중이면 알림만)
-setInterval(()=>{try{if(!G||!G.dex)return;if(!G.dexShown){G.dexShown=Object.assign({},G.dex.c);save();return}const nd=Object.keys(G.dex.c).find(d=>!G.dexShown[d]);if(!nd)return;
-  if(document.getElementById('pdx')||document.getElementById('cpk'))return;const n=BYDEX[+nd];if(!n||!META[n]){G.dexShown[nd]=1;return}
+setInterval(()=>{try{if(!G||!G.dex)return;if(!G.dexShown){G.dexShown=Object.assign({},G.dex.c);save();return}const NDs=Object.keys(G.dex.c).filter(d=>!G.dexShown[d]);const nd=NDs[0];if(!nd)return;
+  if(document.getElementById('pdx')||document.getElementById('pdxm')||document.getElementById('cpk'))return;const n=BYDEX[+nd];if(!n||!META[n]){G.dexShown[nd]=1;return}
   if(AUTO.on){G.dexShown[nd]=1;save();toast('도감 새로 등록: '+META[n].name+' · 도감에서 볼 수 있어요');return}
-  if(SCENE!=='over'||DLG.on||PANEL)return;G.dexShown[nd]=1;save();dexDev(n,true)}catch(e){}},1200);
+  if(SCENE!=='over'||DLG.on||PANEL)return;
+  const MM=NDs.filter(d=>{const nn=BYDEX[+d];return nn&&META[nn]}).slice(0,5);if(MM.length>1){MM.forEach(d=>G.dexShown[d]=1);save();dexMulti(MM);return}
+  G.dexShown[nd]=1;save();dexDev(n,true)}catch(e){}},1200);
+// 새로 등록된 도감이 2~5마리면 작은 도감을 한 번에 · 누르면 자세히 · 닫기
+function dexMulti(ds){let o=document.getElementById('pdxm');if(o)o.remove();o=document.createElement('div');o.id='pdxm';
+  o.innerHTML=`<div class="pdxmb"><b class="pdxmt">포켓몬 도감 새로 등록 · ${ds.length}마리</b><div class="pdxmg">${ds.map(d=>{const n=BYDEX[+d],M=META[n];return `<button class="pdxmc" data-n="${esc(n)}"><i class="pdxmn">No.${d}</i><img src="${THUMB[n]||''}" alt=""><b>${esc(M.name)}</b><span>${M.types.map(t=>`<i class="pdxty" style="background:${TCOL[t]}">${TN[t]}</i>`).join(' ')}</span><em style="color:${RARC[rarOf(n)]}">${RAR[rarOf(n)]}</em></button>`}).join('')}</div><p class="pdxmh">포켓몬을 누르면 자세히 볼 수 있어요</p><button class="pdxmx">닫기</button></div>`;
+  document.body.appendChild(o);try{sfx('badge')}catch(e){}try{dexCry(+ds[0])}catch(e){}
+  o.onclick=e=>{if(e.target===o){o.remove();return}if(e.target.closest('.pdxmx')){sfx('tap');o.remove();return}const b=e.target.closest('.pdxmc');if(b){sfx('tap');dexDev(b.dataset.n,false)}}}
+(function(){const c=document.createElement('style');c.textContent=`
+#pdxm{position:fixed;inset:0;z-index:139;background:#0a1024c8;display:flex;align-items:center;justify-content:center;padding:8px;font-family:'Galmuri11',sans-serif}
+.pdxmb{width:min(980px,98vw);max-height:94vh;overflow:auto;background:linear-gradient(#e5404a,#c9282f);border-radius:20px;box-shadow:inset 0 3px 0 #ff8a8f,0 0 0 4px #5a0c10,0 18px 40px #000a;padding:12px 12px 14px;color:#fff;text-align:center}
+.pdxmt{display:block;font-size:15px;margin-bottom:10px;letter-spacing:.06em}
+.pdxmg{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.pdxmc{flex:0 1 150px;min-width:104px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px;border:0;border-radius:10px;background:#f2f2f2;color:#1c2550;box-shadow:inset 0 -4px 0 #bbb,0 0 0 3px #5a0c10;font:inherit}
+.pdxmc img{width:84px;height:84px;object-fit:contain;image-rendering:pixelated;background:#1f2a26;border-radius:4px}.pdxmc b{font-size:14px}.pdxmc em{font-style:normal;font-size:12px;font-weight:700}.pdxmn{font-style:normal;font-size:11px;color:#c9282f}
+.pdxmc .pdxty{font-style:normal;font-size:10px;color:#fff;padding:1px 5px;border-radius:6px}
+.pdxmh{font-size:12px;color:#ffe9e9;margin:10px 0 6px}.pdxmx{border:3px solid #5a0c10;border-radius:12px;background:#fff;color:#1c2550;font:900 15px var(--ff,sans-serif);padding:8px 28px}`;document.head.appendChild(c)})();
 setTimeout(()=>{try{dexInfo()}catch(e){}},8000);
 (function(){const c=document.createElement('style');c.textContent=`
 #pdx{position:fixed;inset:0;z-index:140;background:#0a1024b8;display:flex;align-items:center;justify-content:center;padding:8px;font-family:'Galmuri11',sans-serif}
@@ -11398,5 +11440,83 @@ if(typeof window.pvApplySnap==='function'){const _pa=window.pvApplySnap;window.p
   foes.forEach((m,k)=>{const q=(p[2+(ixs?ixs[k]:k)]||'').split(',').map(U36);if(q.length>=11){const a=Math.round(q[9]),n=Math.round(q[10]);
     if(a>0&&BYDEX[a]&&META[BYDEX[a]]&&BYDEX[a]!==m.n)m.lk=BYDEX[a];if(n>0&&BYDEX[n]&&META[BYDEX[n]]&&BYDEX[n]!==m.n)m.ln=BYDEX[n]}})}catch(e){}return r}}
 }catch(e){console.warn('b11dx',e)}})();
+</script>
+<script id="pk-stage2-xpc-group">
+/* 2단계: ① 경험치 2배 쿠폰(10~100회) ② 야생 무리 출현(최대 5마리)
+ * 숫자는 아래 XPC·GRPW 에서만 바꿔요 */
+(function(){try{
+const XPC={tiers:[10,20,30,40,50,60,70,80,90,100],dropBase:.0001};   // 드롭: 100회 0.01% · 90회 0.02% … 10회 0.10% (낮은 회수일수록 높게)
+const GRPW=[[5,.10],[4,.15],[3,.20],[2,.30]];                         // 5마리 10% · 4마리 15% · 3마리 20% · 2마리 30% · 나머지 1마리
+const dropP=n=>(110-n)/10*XPC.dropBase;
+
+// ---- 아이템 등록 ----
+XPC.tiers.forEach(n=>{ITEMS['xpc'+n]={n:'경험치 2배 쿠폰 '+n+'회',e:'🎟️',xpc:n};
+  ITD['xpc'+n]={s:'쓰면 전투 '+n+'번 동안 얻는 경험치가 2배',use:'가방에서 「사용하기」 또는 화면 왼쪽 🎟️ 버튼에서 켜고 꺼요',good:'일반 필드 · 트레이너전 · 챔피언전에서만 적용 (월드보스 · 일일던전은 안 돼요)',who:'레벨을 빨리 올리고 싶을 때',tip:'야생 사냥에서 아주 낮은 확률로 떨어져요 (회수가 적을수록 조금 더 잘 나와요). 여러 장 쓰면 횟수가 합쳐져요'}});
+const X=()=>{G.xpc=G.xpc||{on:1,left:0};return G.xpc};
+const owned=()=>XPC.tiers.filter(n=>G&&G.bag&&G.bag['xpc'+n]>0);
+
+function useCoupon(k){const n=ITEMS[k]&&ITEMS[k].xpc;if(!n||!(G.bag[k]>0))return;G.bag[k]--;const x=X();x.left+=n;x.on=1;save();try{sfx('get')}catch(e){}toast('🎟️ 경험치 2배 '+n+'회 충전! 남은 '+x.left+'회');btnUpd()}
+
+// ---- 가방: 쿠폰을 누르면 사용 ----
+{const _bb=bagItBind;bagItBind=function(p){_bb.apply(this,arguments);p.querySelectorAll('[data-it^="xpc"]').forEach(x=>{x.onclick=()=>{const k=x.dataset.it;useCoupon(k);try{bagOpen()}catch(e){}}})}}
+
+// ---- 왼쪽 버튼 + 온/오프 팝업 ----
+const st=document.createElement('style');st.textContent='#xpcBtn{position:fixed;left:6px;bottom:calc(150px + env(safe-area-inset-bottom));z-index:8;border:3px solid #1c2550;border-radius:12px;background:#fff;color:#1c2550;font:900 12px var(--ff,sans-serif);padding:6px 8px;display:none;line-height:1.2;text-align:center}#xpcBtn.on{background:#ffe066}#xpcBtn small{display:block;font-size:10px}body.inb #xpcBtn{display:none!important}';document.head.appendChild(st);
+let b=document.getElementById('xpcBtn');if(!b){b=document.createElement('button');b.id='xpcBtn';document.body.appendChild(b)}
+function btnUpd(){try{if(!G||SCENE!=='over'){b.style.display='none';return}const x=X();if(!(x.left>0)&&!owned().length){b.style.display='none';return}b.className=x.on&&x.left>0?'on':'';b.innerHTML='🎟️ ×2'+'<small>'+(x.left>0?(x.on?'ON':'OFF')+' · '+x.left+'회':'쿠폰 있음')+'</small>';b.style.display=''}catch(e){}}
+function popup(){if(!G||SCENE!=='over')return;const x=X(),L=owned();
+  openPanel('🎟️ 경험치 2배 쿠폰',`<div class="row"><span>남은 횟수 <b>${x.left}</b>회</span><button class="it" id="xcT">${x.on?'🟡 ON':'⚪ OFF'}</button></div>
+  <small>일반 필드 · 트레이너전 · 챔피언전에서만 적용돼요 (월드보스 · 일일던전은 안 돼요). 전투 1번에 1회씩 줄어요.</small>
+  <div style="margin-top:8px">${L.length?L.map(n=>`<button class="it" data-xu="xpc${n}">🎟️ ${n}회 ×${G.bag['xpc'+n]}</button>`).join(''):'<small>가진 쿠폰이 없어요 · 야생 사냥에서 아주 낮은 확률로 나와요</small>'}</div>`,null,p=>{
+    p.querySelector('#xcT').onclick=()=>{x.on=!x.on;save();try{sfx('tap')}catch(e){}popup();btnUpd()};
+    p.querySelectorAll('[data-xu]').forEach(y=>y.onclick=()=>{useCoupon(y.dataset.xu);popup()})})}
+b.onclick=()=>{try{sfx('tap')}catch(e){}popup()};
+setInterval(btnUpd,1500);
+
+// ---- 경험치 2배: giveExp 안에서만 난이도 경험치 배율을 잠깐 2배로 ----
+{const _ge=giveExp;giveExp=async function(f,part){let ap=0,d=0;try{const x=G&&G.xpc;if(x&&x.on&&x.left>0&&window.__xpOk){ap=1;d=DIFF();DEXP[d]*=2}}catch(e){ap=0}
+  try{return await _ge.apply(this,arguments)}finally{if(ap){DEXP[d]/=2;const x=G.xpc;x.left=Math.max(0,x.left-1);if(x.left<=0)toast('🎟️ 경험치 2배 쿠폰을 다 썼어요');save();btnUpd()}}}}
+
+// ---- 어떤 전투에 적용할지: 야생(wild) · 필드 트레이너(trainerSpot) · 챔피언 ----
+window.__xpSrc=0;window.__inLeague=0;
+{const _w=wild;
+ wild=async function(A,kind){window.__xpSrc++;try{
+   const u=Math.random();let acc=0,n=1;for(const [c,p] of GRPW){acc+=p;if(u<acc){n=c;break}}
+   for(let i=0;i<n;i++){
+     if(n>1){try{toast(i===0?'🐾 야생 포켓몬 '+n+'마리가 무리 지어 나타났다!':'🐾 다음 포켓몬! ('+(i+1)+'/'+n+')')}catch(e){}}
+     window.__lastBR=undefined;await _w.call(this,A,kind);const r=window.__lastBR;
+     if(r!=='win'&&r!=='caught')break}
+ }finally{window.__xpSrc--}}}
+if(typeof trainerSpot==='function'){const _t=trainerSpot;trainerSpot=async function(){window.__xpSrc++;try{return await _t.apply(this,arguments)}finally{window.__xpSrc--}}}
+if(typeof league==='function'){const _l=league;league=async function(){window.__inLeague=1;try{return await _l.apply(this,arguments)}finally{window.__inLeague=0}}}
+
+// ---- battle 감싸기: 쿠폰 적용 표시 · 결과 기록 · 야생 승리 시 쿠폰 드롭 ----
+{const _b=battle;battle=async function(o){let ok=false;try{ok=!!(o&&!o.wb&&!o.pvp&&(window.__xpSrc>0||(window.__inLeague&&o.scaled)||/챔피언/.test(o.trainer||'')))}catch(e){}
+  const prev=window.__xpOk;window.__xpOk=ok;let r;try{r=await _b.apply(this,arguments)}finally{window.__xpOk=prev}
+  window.__lastBR=r;
+  try{if(r==='win'&&o&&!o.trainer&&!o.wb&&!o.pvp&&window.__xpSrc>0){const u=Math.random();let acc=0;for(const n of XPC.tiers){acc+=dropP(n);if(u<acc){addItem('xpc'+n,1);save();toast('🎟️ 경험치 2배 쿠폰 '+n+'회를 주웠다!');btnUpd();break}}}}catch(e){}
+  return r}}
+window.XPC2={XPC,GRPW,dropP,popup};
+}catch(e){console.warn('pk-stage2',e)}})();
+</script>
+<script id="pk-egg-popup">
+// 알 부화: 화면을 가리는 연출/카드팩 없이, 위쪽에 작은 팝업만 잠깐 띄우고 저절로 꺼져요
+(function(){try{
+const c=document.createElement('style');c.textContent=`#egPop{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+.egp{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;background:#1c2550f0;color:#fff;font:700 13px 'Galmuri11',sans-serif;box-shadow:0 0 0 2px var(--rc,#ffd23f);animation:egpIn .25s ease-out;transition:opacity .4s,transform .4s}
+.egp img{width:44px;height:44px;object-fit:contain;image-rendering:pixelated;background:#ffffff18}.egp small{display:block;font-size:11px;opacity:.85}.egp.out{opacity:0;transform:translateY(-8px)}
+@keyframes egpIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}`;document.head.appendChild(c);
+function pop(m,M,nw){let h=document.getElementById('egPop');if(!h){h=document.createElement('div');h.id='egPop';document.body.appendChild(h)}
+const r=rarM(m),d=document.createElement('div');d.className='egp';d.style.setProperty('--rc',RARC[r]||'#ffd23f');
+let im='';try{im=faceUrl(lkOf(m),'Joyous')}catch(e){}
+d.innerHTML=(im?`<img src="${im}">`:'')+`<span>알에서 ${M.name}${m.sh?' ✨':''}(이)가 태어났어요!<small style="color:${RARC[r]||'#fff'}">${RAR[r]||''}${nw?' · 도감 새로 등록':''}</small></span>`;
+h.appendChild(d);setTimeout(()=>d.classList.add('out'),2400);setTimeout(()=>{d.remove()},2900)}
+eggHatch=async function(i){const I=eggS(),e=I[i];if(!e)return;I.splice(i,1);save();
+let g=null;for(let t=0;t<6;t++){g=rollItem('P',e.r);if(!G.dex.c[g.id])break}const n=g.f&&META[g.f]?g.f:BYDEX[g.id];if(!n)return;
+const lv=Math.max(5,Math.min(100,(typeof topLv==='function'?topLv():10)-8));const m=mkMon(BYDEX[g.id],lv);if(g.f&&META[g.f]){m.n=g.f;m.hp=stOf(m)[0]}if(R()<.03)m.sh=1;m.egg=1;
+const M=META[m.n],nw=!G.dex.c[M.dex];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;sfx('tap');
+if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m)}else{if(G.party.length<6)G.party.push(m);else G.box.push(m);pop(m,M,nw)}
+save();try{refreshSpr()}catch(e){}try{spAdd(15)}catch(e){}}
+}catch(e){console.warn('pk-egg-popup',e)}})();
 </script>
 </body></html>
