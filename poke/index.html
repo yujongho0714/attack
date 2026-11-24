@@ -11113,4 +11113,23 @@ window.TKLIST=TK.map(T=>T.k);
 }catch(e){console.warn('입장권 로드 실패',e)}})();
 </script>
 <script src="survivor.js"></script>
+<script id="nc1">
+// ===== 신캐 (디지몬·듀엘리스트) 시험 이식: 6마리 =====
+// 자료: newchars.json(번호·등급) + poke_meta.json·rzdex.json·rzmap.json·rzlearn.json(능력치·기술) + rz/NC_*/ (그림)
+// 신캐는 야생·체육관·상점·카드팩 같은 기존 목록(SPECIES)에는 넣지 않아요. 뽑기·한정판 도감이 생기기 전까지는 아래 「신캐 시험」 버튼으로만 받아요.
+(function(){try{
+let NCD=null;
+async function ncLoad(){if(NCD)return NCD;try{const r=await fetch('newchars.json',{cache:'no-cache'});NCD=r.ok?await r.json():[]}catch(e){NCD=[]}if(!Array.isArray(NCD))NCD=[];return NCD}
+window.NCLIST=()=>NCD||[];
+const _lp=loadPool;
+loadPool=async function(...a){const r=await _lp.apply(this,a);
+  try{const L=await ncLoad();for(const c of L){try{RARP[c.dex]=c.rar|0}catch(e){}const k='sc:'+c.dex;if(META[k]){META[k].nc=1;META[k].adm=1}}
+    if(L.length){SPECIES=SPECIES.filter(n=>!(META[n]&&META[n].nc));try{RPOOL.ok=0;RPOOL.P=RPOOL.P.map(()=>[]);RPOOL.M=RPOOL.M.map(()=>[])}catch(e){}}}catch(e){console.warn('신캐',e)}
+  return r};
+window.ncGiveTest=function(){try{if(!G)return;const L=NCD||[];let n=0;
+  for(const c of L){const k='sc:'+c.dex;if(!META[k])continue;if([...G.party,...G.box].some(m=>m.n===k))continue;const m=mkMon(k,30);if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}
+  save();try{refreshSpr()}catch(e){}toast(n?'🧪 신캐 '+n+'마리를 받았어요 (Lv.30)':'이미 다 받았어요')}catch(e){console.warn(e);toast('신캐를 못 받았어요')}};
+try{HUB.push({k:'nctest',n:'🧪 신캐 시험 (6마리)',d:'디지몬 3 · 듀엘리스트 3마리가 게임에서 잘 나오는지 보는 시험이에요. 누르면 Lv.30으로 받아요 (도감 숫자·야생에는 안 들어가요). 걷기 · 전투 · 크기를 봐 주세요.',st:()=>(NCD?NCD.length:0)+'마리 준비됨',go:[['신캐 6마리 받기',()=>ncGiveTest()]]})}catch(e){}
+}catch(e){console.warn('nc1',e)}})();
+</script>
 </body></html>
