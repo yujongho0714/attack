@@ -1669,7 +1669,7 @@ function forcePick(){return new Promise(r=>{bt('bTx').innerHTML='다음 포켓�
 async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FAST()?300:600);const fp=side(0),mp=side(1);BS.ball={x:mp.x,y:mp.y,col:it.col};
   for(let i=0;i<=20;i++){const u=i/20;BS.ball.x=mp.x+(fp.x-mp.x)*u;BS.ball.y=mp.y-VW*.1+(fp.y-VW*.12-mp.y+VW*.1)*u-Math.sin(u*Math.PI)*VH*.18;BS.ball.rot=u*12;await sleep(18)}
   BS.foe.white=1;await sleep(160);BS.foe.hide=1;BS.foe.white=0;BS.flash=.15;for(let i=0;i<10;i++){BS.ball.y+=VH*.012;await sleep(16)}
-  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);BS.catchK=1;const redHit=(f.hp/S[0]<=.35&&R()<.5);if(redHit)try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}const sh=Math.pow(redHit?1:p,.25);
+  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);BS.catchK=1;const _rd=f.hp/S[0]<=.2;const redHit=(!_rd&&f.hp/S[0]<=.35&&R()<.5);if(redHit)try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}const sh=Math.pow(redHit?1:(_rd?Math.max(p,.5):p),.25);
   let n=0;for(;n<3;n++){await sleep(380);if(R()>sh)break;for(let k=0;k<8;k++){BS.ball.rot=Math.sin(k/8*6.28)*.5;await sleep(28)}BS.ball.rot=0;sfx('tap')}
   await sleep(300);if(n>=3&&R()<sh){sfx('get');await msg('신난다! <b>'+nm(f)+'</b>(을)를 잡았다!',1300,[f.n,'Happy']);BS.ball=null;return true}
   BS.ball=null;BS.foe.hide=0;BS.foe.in=.3;await msg(['안 돼! 포켓몬이 볼에서 나와 버렸다!','아쉽다! 조금만 더 하면 잡을 수 있었는데!','으앗! 잡은 줄 알았는데!'][Math.min(2,n)]);return false}
@@ -3820,7 +3820,7 @@ async function wbCatch(){const w=wbS();if(!navigator.onLine){await say(['포획 
   let busy=0;const thr=async k=>{if(busy||w.throws>=WB_THROW)return;busy=1;if(k!=='free'){if(!(G.bag[k]>0)){busy=0;return}G.bag[k]--}w.throws++;save();
     B.querySelector('.mgt').textContent='타이밍 맞춰서!';const t=await mgBar(B.querySelector('.saf'),.2,4.6);const mul=k==='free'?1:ITEMS[k].ball;
     B.querySelector('.smon').classList.add('shake');B.querySelector('.mgt').textContent='흔들… 흔들…';await sleep(1200);
-    const p=mul>=100?1:Math.min(.9,.1*mul*(t?2:1));if(R()<p){const m=mkMon(n,Math.min(100,Math.max(50,topLv())));m.wb=w.wk;try{const kk=(G&&G.wbK)||'n',want=kk==='c'?4:kk==='e'?5:0;if(want>rarB(m))m.ax=want}catch(e){}const rr=addMon(m);sfx('badge');w.caught=1;toast(META[n].name+' 포획! '+rr);busy=0;return fin(1)}
+    const p=mul>=100?1:Math.max(.5,Math.min(.9,.1*mul*(t?2:1)));if(R()<p){const m=mkMon(n,Math.min(100,Math.max(50,topLv())));m.wb=w.wk;try{const kk=(G&&G.wbK)||'n',want=kk==='c'?4:kk==='e'?5:0;if(want>rarB(m))m.ax=want}catch(e){}const rr=addMon(m);sfx('badge');w.caught=1;toast(META[n].name+' 포획! '+rr);busy=0;return fin(1)}
     busy=0;if(w.throws>=WB_THROW)return fin(0);draw((t?'타이밍은 좋았는데… ':'')+'볼에서 나와 버렸다! 다시 던져요')};
   draw('쓰러진 '+META[n].name+'(이)가 지쳐 있어요. 지금이 기회!')}
 // ---------- 주간 보상 (월요일에 지난주 순위대로) ----------
@@ -5042,6 +5042,16 @@ try{(function(){const ETM=5,td=()=>{G.flags=G.flags||{};const d=new Date().toISO
    G.eggq=G.eggq||[];G.eggq.push(r);let bonus='';if(!m.fought){addItem('egg',1);bonus=' + 보너스 알'}
    save();eggFill();try{sfx('get')}catch(_){}toast('계란훔치기 성공! '+RAR[r]+' 알'+bonus+' · 오늘 '+f.n+'/'+ETM);qt()}});
  HUB.push({k:'eggthief',n:'계란훔치기',d:'로블록스 「Steal an Egg」처럼! 9개 바이옴(숲~우주)에서 알을 훔쳐 기지 펜으로 가져가요. 러닝머신(8단계)으로 속도를 올려야 먼 바이옴 가디언에게 안 잡혀요. 부화한 포켓몬은 도감에 등록되고, 5종마다 펫 수입이 +5%예요. 알은 펜에서 부화해 펫이 되고 펫이 돈을 벌어요. 방망이로 라이벌을 치고 곰덫을 놓을 수 있어요. 대시 · 점프를 하고 착지하는 순간 대시를 누르면 「착지 대시」로 게이지 없이 계속 빨라지고 가디언도 뛰어넘어요. 5분마다 알이 새로 나와요. 알을 펜에 넣으면 진짜 포켓몬 알도 하루 5번까지 받아요 (싸우지 않고 안 맞고 성공하면 보너스 알).',st:()=>'오늘 '+td().n+'/'+ETM,go:[['도전하기',()=>eggThiefOpen()]]})})()}catch(e){}
+
+// ===== 동물에게 먹이던지기 (foodthrow/index.html 을 화면 위에 띄움 · 기술 이펙트 연결) =====
+try{(function(){
+ window.foodThrowOpen=function(){if(!G)return;
+  closePanel(1);const o=document.createElement('div');o.id='ftOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#0f172a';
+  o.innerHTML='<iframe src="foodthrow/index.html" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)};
+ addEventListener('message',e=>{const o=document.getElementById('ftOv'),m=e.data;if(!o||e.origin!==location.origin||e.source!==o.querySelector('iframe').contentWindow||!m||m.src!=='foodthrow')return;
+  if(m.type==='close')o.remove()});
+ HUB.push({k:'foodthrow',n:'동물에게 먹이 던지기',d:'로블록스 「동물에게 먹이 던지기」처럼! 철봉으로 힘을 키우고 먹이를 멀리 던져서 야생 동물을 만나요. 게이지를 높은 곳에 맞추면 더 멀리 · 더 운 좋게 날아가요. 동물을 울타리에 모으면 돈을 벌어요. 먹이가 떨어질 때 포켓몬 기술 이펙트가 터져요. (인터넷 연결 필요 · 이 게임의 기록은 따로 저장돼요)',st:()=>'3D 미니게임',go:[['도전하기',()=>foodThrowOpen()]]})})()}catch(e){}
+
 
 (function(){const c=document.createElement('style');c.textContent=`
 .egg{display:inline-block;position:relative;width:18px;height:22px;border-radius:50% 50% 46% 46%/60% 60% 40% 40%;background:radial-gradient(circle at 35% 30%,#fff 0 18%,var(--ec) 19%);box-shadow:inset -3px -3px 0 #0002,0 0 0 2px #1c2550}
@@ -9124,7 +9134,7 @@ async function rtGo(){
     let foe=null;for(let i=0;i<20&&!foe;i++){const n=keys[Math.floor(Math.random()*keys.length)];try{foe=mkMon(n,Math.max(1,Math.min(100,(m0.lv||5)+ri(-2,2))))}catch(e){}}
     if(!foe){toast('상대를 만들지 못했어요');return}
     // 6F-1: 실시간 포획(시험 전투는 볼이 공짜·무한, 잡아도 저장 안 됨). 확률은 기존 던지기 공식 그대로
-    const catchP=(f,it,ratio)=>{if(ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()])};
+    const catchP=(f,it,ratio)=>{if(ratio>.2&&ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);const _pp=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);return ratio<=.2?Math.max(_pp,.5):_pp};
     const balls=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞'}));
     const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP,...rtCommon(),bg:()=>{try{return bgImg('grass')}catch(e){return null}},
       // 6F-4c 시험: 회복약 무한(저장 안 됨)
@@ -9206,7 +9216,7 @@ async function rtWild(o){
   const balls=()=>BALLS().map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0}));
   const takeBall=k=>{const it=ITEMS[k];if(!it||(G.bag[k]||0)<=0)return null;G.bag[k]--;let r=it;
     if(it.ball&&it.ball<255&&(G.bag.razz||0)>0&&G.opt.razz!==false){G.bag.razz--;r=Object.assign({},it,{ball:it.ball*1.5});try{toast('🍓 라즈열매를 먼저 줬다! 잡기 쉬워졌다')}catch(e){}}return r};
-  const catchP=(x,it,ratio)=>{if(ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);return Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()])};
+  const catchP=(x,it,ratio)=>{if(ratio>.2&&ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);const _pp=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);return ratio<=.2?Math.max(_pp,.5):_pp};
   let res='win',lastMon=null,timeUp=0;
   const setBS=async(f,faint)=>{const me2=(lastMon&&lastMon.hp>0)?lastMon:(alive()[0]||lastMon||G.party[0]);
     BS.foe={m:f,S:await getSpr(sprKey(f)),st:faint?'faint':'idle',t:0,in:0,hide:faint?1:0};
@@ -10356,7 +10366,7 @@ const SEC={day:[['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매�
   bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 매주 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🗡 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스)',['svx','svg','svs','svb','svk']]],
   fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
   up:[['🐾 포켓몬 키우기',['team','trans','awake','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
-  col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','eggthief','wild']],['🏘 마을 · 날씨',['mg','shop','wx']]],
+  col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','eggthief','wild']],['🏘 마을 · 날씨',['mg','shop','wx','foodthrow']]],
   set:[['📢 소식 · 정보',['news','odds']],['🖥 화면 · 전투',['vscale','btmode','dskin','hitfx','a2fx','dmeter']]]};
 const catOf=k=>{for(const c in SEC)for(const x of SEC[c])if(x[1].includes(k))return c;return 'col'};
 const DX=d=>['p',d],IM=s=>['i',s],SH=s=>['s',s];
@@ -10364,7 +10374,7 @@ const HZP={season:IM('ui/ic_season.webp'),dq:IM('ui/tr/gem.png'),stop:IM('ui/ic_
   tg:DX(493),story:IM('badges/b7.webp'),wb:DX(150),wbc:DX(384),wbe:DX(487),ctw:DX(249),tower:DX(68),first:IM('ui/rk_crown1.webp'),diff:DX(491),
   brawl:SH('ui/news/n14_brawl.webp'),raid:DX(383),pvp:SH('ui/news/n10_pvp3.webp'),rmroom:DX(448),trade:DX(132),rank:IM('ui/podium.webp'),wc:DX(201),dojo:DX(107),
   team:DX(6),gear:IM('ui/cube2.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/tr/core.png'),rebirth:DX(250),lb:IM('items/RARECANDY.png'),prefix:IM('ui/ic_scroll.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
-  dex:IM('ui/ic_dex.webp'),dxr:DX(151),card:IM('cardpack/pk3.webp'),egg:IM('ui/ic_egg.webp'),eggthief:IM('ui/ic_egg.webp'),wild:DX(25),mg:DX(129),shop:IM('ui/ic_shop.webp'),wx:IM('ui/ic_wx.webp'),
+  dex:IM('ui/ic_dex.webp'),dxr:DX(151),card:IM('cardpack/pk3.webp'),egg:IM('ui/ic_egg.webp'),eggthief:IM('ui/ic_egg.webp'),foodthrow:IM('ui/ic_gift.webp'),wild:DX(25),mg:DX(129),shop:IM('ui/ic_shop.webp'),wx:IM('ui/ic_wx.webp'),
   news:SH('ui/news/n01_hub.webp'),vscale:SH('ui/news/n08_scale.webp'),btmode:SH('ui/news/n02_mode.webp'),dskin:SH('ui/news/n03_skin.webp'),hitfx:SH('ui/news/n20_sprfx.webp'),a2fx:SH('ui/news/n15_proj.webp'),dmeter:SH('ui/news/n04_battle.webp'),odds:IM('ui/ic_coin.webp'),svx:IM('items/RARECANDY.png'),svg:IM('ui/ic_coin.webp'),svs:IM('ui/tr/core.png'),svb:DX(144),svk:IM('ui/cube2.webp')};
 const pic=k=>{const p=HZP[k]||IM('ui/'+((typeof HUBIC!=='undefined'&&HUBIC[k])||'ic_star')+'.webp');
   if(p[0]==='p'){const n=BYDEX[p[1]];return `<img class="hzpk" src="${(n&&THUMB[n])||''}" alt="">`}

@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>동물에게 먹이 던지기 3D - 로블록스 스타일 완전판</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0f172a;
+            font-family: 'Noto Sans KR', sans-serif;
+            color: #ffffff;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .rbx-card {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.55);
+            border-radius: 14px;
+        }
+        .rbx-btn {
+            transition: transform 0.07s ease, filter 0.1s ease;
+            border: 3px solid #0f172a;
+            box-shadow: 0 5px 0 #0f172a;
+        }
+        .rbx-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #0f172a;
+        }
+        .text-stroke {
+            text-shadow:
+                -1.5px -1.5px 0 #0f172a,
+                 1.5px -1.5px 0 #0f172a,
+                -1.5px  1.5px 0 #0f172a,
+                 1.5px  1.5px 0 #0f172a,
+                 0px    3px   0 #0f172a;
+        }
+        @keyframes popFloat {
+            0% { transform: translateY(10px) scale(0.9); opacity: 1; }
+            100% { transform: translateY(-55px) scale(1.1); opacity: 0; }
+        }
+        .float-toast {
+            animation: popFloat 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            pointer-events: none;
+        }
+        @keyframes rainbowPulse {
+            0%, 100% { border-color: #facc15; box-shadow: 0 0 18px rgba(250, 204, 21, 0.7); }
+            50% { border-color: #ec4899; box-shadow: 0 0 24px rgba(236, 72, 153, 0.9); }
+        }
+        .abuse-glow {
+            animation: rainbowPulse 0.75s infinite;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #64748b; border-radius: 99px; }
+    </style>
+</head>
+<body>
+
+    <!-- 3D 렌더링 컨테이너 -->
+    <div id="canvas-container" class="fixed inset-0"></div>
+
+    <!-- 시작 타이틀 오버레이 -->
+    <div id="start-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4">
+        <div class="rbx-card max-w-xl w-full p-6 sm:p-8 text-center border-amber-400">
+            <div class="inline-block px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-black tracking-wide mb-2">
+                ROBLOX 3D EDITION • THROW FOOD AT ANIMALS
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-black text-white text-stroke mb-2">
+                동물에게 먹이 던지기 3D
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-200 font-bold mb-5 leading-relaxed">
+                턱걸이 철봉 아치에서 <b>파워와 레벨</b>을 키우고,<br>
+                <b>칼라마리 링 · 팬텀 랍스터 · 크라운 마카롱</b>을 세로 게이지 초록색 타이밍에 던져<br>
+                <b>왕실 성</b>의 거대 보스 <b>크라운브레이커 아우로크스</b>를 포획하세요!
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-left text-[11px] sm:text-xs bg-slate-900/90 p-3.5 rounded-xl border border-slate-700 mb-5 font-bold">
+                <div>🏋️ <span class="text-amber-300">턱걸이 철봉:</span> 자동/연타 훈련 & 정지 버튼</div>
+                <div>🎯 <span class="text-emerald-300">세로 타이밍 바:</span> 완벽해요! +20 파워</div>
+                <div>🚀 <span class="text-sky-300">6대 3D 바이옴:</span> 초원~왕실 성 비행 카메라</div>
+                <div>⚡ <span class="text-fuchsia-300">어뷰즈 & 환생:</span> 메테오 낙하 & 변이 합성</div>
+            </div>
+            <button id="btn-start" class="rbx-btn w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:brightness-110 text-slate-950 font-black text-lg cursor-pointer">
+                ▶ 지금 플레이하기 (PLAY)
+            </button>
+        </div>
+    </div>
+
+    <!-- 메인 게임 HUD -->
+    <div id="hud" class="hidden fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-2.5 sm:p-4">
+
+        <!-- 상단 HUD 바 -->
+        <div class="flex flex-col gap-2">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <!-- 좌측: 보유 골드 / 목장 수익 / 파워 / 환생 -->
+                <div class="rbx-card px-3 py-2 sm:px-4 sm:py-2.5 flex flex-wrap items-center gap-2.5 sm:gap-4 pointer-events-auto">
+                    <div>
+                        <div class="text-[10px] text-emerald-300 font-bold">💰 보유 골드</div>
+                        <div id="hud-cash" class="text-sm sm:text-xl font-black text-emerald-400 text-stroke">$100</div>
+                    </div>
+                    <div class="h-6 w-0.5 bg-slate-700"></div>
+                    <div>
+                        <div class="text-[10px] text-amber-300 font-bold">📈 목장 수익</div>
+                        <div id="hud-gps" class="text-xs sm:text-base font-black text-amber-300">+$0/초</div>
+                    </div>
+                    <div class="h-6 w-0.5 bg-slate-700"></div>
+                    <div>
+                        <div class="text-[10px] text-rose-300 font-bold">💪 파워</div>
+                        <div id="hud-power" class="text-sm sm:text-lg font-black text-rose-400">10</div>
+                    </div>
+                    <div class="h-6 w-0.5 bg-slate-700 hidden sm:block"></div>
+                    <div class="hidden sm:block">
+                        <div class="text-[10px] text-purple-300 font-bold">♻️ 환생 배수</div>
+                        <div id="hud-rebirth" class="text-xs sm:text-sm font-black text-purple-300">0단계 (1.0x)</div>
+                    </div>
+                </div>
+
+                <!-- 중앙: 비행 중 실시간 행운 배수 & 바이옴 배너 (영상 0:09 재현) -->
+                <div id="flight-hud" class="hidden flex-col items-center">
+                    <div id="flight-luck-text" class="text-2xl sm:text-4xl font-black text-yellow-300 text-stroke">14.78X</div>
+                    <div class="text-xs sm:text-sm font-black text-white text-stroke">행운 (LUCK)</div>
+                    <div id="flight-biome-badge" class="mt-1 px-4 py-1 rounded-full bg-slate-950/90 border-2 border-amber-400 text-xs sm:text-sm font-black text-amber-300">
+                        🌱 초원 (0m)
+                    </div>
+                </div>
+
+                <!-- 우측: 6대 핵심 메뉴 버튼 -->
+                <div class="flex flex-wrap items-center gap-1.5 pointer-events-auto">
+                    <button data-modal="food" class="modal-btn rbx-btn px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-amber-400 text-slate-950 font-black text-[11px] sm:text-xs cursor-pointer">
+                        🍖 음식상점
+                    </button>
+                    <button data-modal="bar" class="modal-btn rbx-btn px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-sky-400 text-slate-950 font-black text-[11px] sm:text-xs cursor-pointer">
+                        🏋️ 철봉강화
+                    </button>
+                    <button data-modal="ranch" class="modal-btn rbx-btn px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-emerald-400 text-slate-950 font-black text-[11px] sm:text-xs cursor-pointer">
+                        🐾 목장/펫
+                    </button>
+                    <button data-modal="merge" class="modal-btn rbx-btn px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-indigo-400 text-slate-950 font-black text-[11px] sm:text-xs cursor-pointer">
+                        ⚗️ 합성소
+                    </button>
+                    <button data-modal="dex" class="modal-btn rbx-btn px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-teal-300 text-slate-950 font-black text-[11px] sm:text-xs cursor-pointer">
+                        📖 도감
+                    </button>
+                    <button data-modal="rebirth" class="modal-btn rbx-btn px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-purple-400 text-slate-950 font-black text-[11px] sm:text-xs cursor-pointer">
+                        ♻️ 환생
+                    </button>
+                    <button id="btn-mute" class="rbx-btn px-2.5 py-1.5 rounded-xl bg-slate-200 text-slate-950 font-black text-xs cursor-pointer" title="사운드 켜기/끄기">
+                        🔊
+                    </button>
+                </div>
+            </div>
+
+            <!-- 상단 보조 바: 장착 먹이 / 동행펫 버프 / 어뷰즈 이벤트 알림 -->
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="rbx-card px-3 py-1 text-[10px] sm:text-xs font-black text-slate-200 flex items-center gap-2">
+                    <span id="hud-food-info" class="text-amber-300">🍖 장착: [티어 1] 싱싱한 사과 (행운 1.0x)</span>
+                    <span class="text-slate-500">|</span>
+                    <span id="hud-pet-info" class="text-emerald-300">🐾 동행펫: 0/3</span>
+                </div>
+                <div id="abuse-pill" class="hidden rbx-card abuse-glow px-3 py-1 bg-fuchsia-950 text-[10px] sm:text-xs font-black text-yellow-300">
+                    ⚡ 어뷰즈 이벤트 발동중! 행운 3.0X & 메테오 낙하!
+                </div>
+            </div>
+        </div>
+
+        <!-- 중앙 오버레이 영역: 1) 세로 컬러 타이밍 게이지 (0:00 재현) / 2) 야생 동물 포식 게이지 (0:11 재현) -->
+        <div class="relative flex-1 flex items-center justify-center my-2">
+
+            <!-- 세로 세그먼트 컬러 타이밍 게이지 -->
+            <div id="vertical-gauge-wrap" class="hidden flex items-center gap-3 translate-x-12 sm:translate-x-24">
+                <div class="relative w-9 sm:w-11 h-56 sm:h-64 bg-slate-950 border-4 border-slate-900 rounded-xl p-1 flex flex-col-reverse justify-between shadow-2xl">
+                    <!-- 10칸 세그먼트 (빨강 -> 주황 -> 노랑 -> 연두 -> 다크그린 스윗스팟) -->
+                    <div class="h-[8.5%] rounded-sm bg-red-600"></div>
+                    <div class="h-[8.5%] rounded-sm bg-red-500"></div>
+                    <div class="h-[8.5%] rounded-sm bg-orange-500"></div>
+                    <div class="h-[8.5%] rounded-sm bg-amber-400"></div>
+                    <div class="h-[8.5%] rounded-sm bg-yellow-300"></div>
+                    <div class="h-[8.5%] rounded-sm bg-lime-300"></div>
+                    <div class="h-[8.5%] rounded-sm bg-lime-400"></div>
+                    <div class="h-[8.5%] rounded-sm bg-green-400"></div>
+                    <div id="sweet-spot-seg1" class="h-[8.5%] rounded-sm bg-emerald-500 ring-2 ring-white"></div>
+                    <div id="sweet-spot-seg2" class="h-[8.5%] rounded-sm bg-emerald-600 ring-2 ring-white"></div>
+
+                    <!-- 움직이는 게이지 포인터 -->
+                    <div id="gauge-cursor" class="absolute left-[-8px] right-[-8px] h-2.5 bg-white border-2 border-slate-950 rounded-full shadow-lg" style="bottom: 10%;"></div>
+                </div>
+                <div class="flex flex-col justify-between h-56 sm:h-64 py-1 text-left">
+                    <div class="text-sm sm:text-lg font-black text-emerald-300 text-stroke">+20% 파워!</div>
+                    <div class="text-xs sm:text-sm font-black text-amber-300 text-stroke">완벽해요!</div>
+                    <div class="text-[11px] font-black text-slate-300 text-stroke">[Space / 클릭]</div>
+                </div>
+            </div>
+
+            <!-- 야생 동물 먹이 포식 진행 바 (0:11 재현) -->
+            <div id="eating-hud" class="hidden flex flex-col items-center mt-40 sm:mt-48">
+                <div id="eating-animal-name" class="text-lg sm:text-2xl font-black text-yellow-300 text-stroke mb-0.5">
+                    크라운브레이커 아우로크스
+                </div>
+                <div id="eating-animal-income" class="text-xs sm:text-sm font-black text-emerald-300 text-stroke mb-2">
+                    +$5,200/초 (x2)
+                </div>
+                <div class="w-56 sm:w-72 h-5 bg-slate-950 border-3 border-white rounded-full overflow-hidden p-0.5 shadow-xl">
+                    <div id="eating-progress-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full w-0"></div>
+                </div>
+                <div class="text-[11px] font-black text-white text-stroke mt-1">먹이를 먹는 중...</div>
+            </div>
+
+            <!-- 턱걸이 훈련 중 하단 정지 & 레벨/EXP 바 (0:07 재현) -->
+            <div id="pullup-hud" class="hidden absolute bottom-2 flex flex-col items-center gap-2 pointer-events-auto">
+                <button id="btn-stop-pullup" class="rbx-btn px-7 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-black text-sm sm:text-base cursor-pointer">
+                    정지
+                </button>
+                <div class="rbx-card px-4 py-2 flex items-center gap-3 border-slate-400">
+                    <span id="pullup-lvl-text" class="text-xs sm:text-sm font-black text-amber-300">레벨 1</span>
+                    <div class="w-40 sm:w-56 h-4 bg-slate-800 border-2 border-slate-500 rounded-full overflow-hidden">
+                        <div id="pullup-exp-bar" class="h-full bg-gradient-to-r from-amber-400 to-yellow-300 w-0"></div>
+                    </div>
+                    <span id="pullup-exp-text" class="text-xs sm:text-sm font-black text-white">0 / 10</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 컨트롤 바: 좌측 가상 조이스틱 / 우측 메인 액션 버튼 -->
+        <div class="flex items-end justify-between gap-2">
+            <!-- 모바일 조이스틱 -->
+            <div class="flex flex-col gap-1.5">
+                <div class="rbx-card px-2.5 py-1 text-[10px] sm:text-xs font-bold text-slate-300">
+                    울타리 목장: <b id="hud-pen-count" class="text-emerald-300">1/6</b>
+                </div>
+                <div id="joy-zone" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-slate-900/55 border-3 border-white/30 relative pointer-events-auto touch-none">
+                    <div id="joy-knob" class="w-12 h-12 rounded-full bg-amber-400 border-3 border-slate-950 shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                </div>
+            </div>
+
+            <!-- 우측 퀵 버튼 & 메인 던지기/턱걸이 버튼 -->
+            <div class="flex flex-col items-end gap-2 pointer-events-auto">
+                <div class="flex flex-wrap justify-end gap-1.5">
+                    <button id="btn-abuse-trigger" class="rbx-btn px-3 py-2 rounded-xl bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white font-black text-xs cursor-pointer">
+                        ⚡ 어뷰즈 이벤트
+                    </button>
+                    <button id="btn-collect-pen" class="rbx-btn px-3 py-2 rounded-xl bg-amber-400 text-slate-950 font-black text-xs cursor-pointer">
+                        💰 수금 (+$0)
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btn-pullup" class="rbx-btn px-4 py-3.5 sm:px-5 sm:py-4 rounded-2xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-xs sm:text-sm flex flex-col items-center cursor-pointer">
+                        <span class="text-lg">🏋️</span>
+                        <span>턱걸이 [Q]</span>
+                    </button>
+                    <button id="btn-throw" class="rbx-btn px-5 py-3.5 sm:px-7 sm:py-4 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-sm sm:text-base flex flex-col items-center cursor-pointer">
+                        <span class="text-lg">🍖</span>
+                        <span id="btn-throw-text">먹이 던지기 [Space]</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 통합 모달 창 (음식 상점 0:08 스타일 / 철봉 / 목장 / 합성 / 도감 / 환생) -->
+    <div id="modal-backdrop" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-5">
+        <div class="rbx-card max-w-3xl w-full max-h-[85vh] flex flex-col p-4 sm:p-6 border-sky-400 pointer-events-auto">
+            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-700">
+                <div>
+                    <h2 id="modal-title" class="text-xl sm:text-2xl font-black text-amber-300">음식 상점</h2>
+                    <p id="modal-desc" class="text-xs text-slate-300 font-bold">설명</p>
+                </div>
+                <button id="btn-close-modal" class="rbx-btn w-9 h-9 rounded-xl bg-rose-500 text-white font-black cursor-pointer">✕</button>
+            </div>
+            <div id="modal-content" class="overflow-y-auto mt-3 pr-1 flex-1"></div>
+        </div>
+    </div>
+
+    <!-- 플로팅 3D 텍스트 팝업 레이어 -->
+    <div id="floating-layer" class="fixed inset-0 pointer-events-none z-30 flex items-center justify-center"></div>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. Web Audio API 레트로 칩튠 & 로블록스 효과음 엔진
+         * ============================================================================
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+            init() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            play(freq, type = 'sine', dur = 0.1, vol = 0.12, endFreq = null) {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, this.ctx.currentTime + dur);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + dur);
+            }
+            pullup() { this.play(340 + Math.random() * 120, 'triangle', 0.09, 0.11, 580); }
+            levelUp() {
+                [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => this.play(f, 'triangle', 0.16, 0.14), i * 65));
+            }
+            perfect() {
+                [783.99, 1046.5, 1318.5, 1567.98].forEach((f, i) => setTimeout(() => this.play(f, 'sine', 0.15, 0.15), i * 50));
+            }
+            whoosh() { this.play(640, 'sawtooth', 0.3, 0.1, 160); }
+            munch() { this.play(210 + Math.random() * 70, 'square', 0.06, 0.07, 110); }
+            capture() {
+                [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => this.play(f, 'sine', 0.2, 0.15), i * 75));
+            }
+            coin() {
+                this.play(987.77, 'sine', 0.08, 0.12);
+                setTimeout(() => this.play(1318.5, 'sine', 0.16, 0.12), 70);
+            }
+        }
+        const sfx = new SoundEngine();
+
+        /**
+         * ============================================================================
+         * 2. 원작 영상 고증 데이터 테이블 (음식 상점, 철봉, 6개 3D 바이옴, 보스 동물)
+         * ============================================================================
+         */
+        const RARITY_COLORS = {
+            '일반': { bg: 'bg-slate-600', text: 'text-slate-200', border: 'border-slate-400', hex: 0x94a3b8 },
+            '고급': { bg: 'bg-emerald-600', text: 'text-emerald-200', border: 'border-emerald-400', hex: 0x4ade80 },
+            '희귀': { bg: 'bg-sky-600', text: 'text-sky-200', border: 'border-sky-400', hex: 0x38bdf8 },
+            '영웅': { bg: 'bg-purple-600', text: 'text-purple-200', border: 'border-purple-400', hex: 0xc084fc },
+            '전설': { bg: 'bg-amber-500', text: 'text-slate-950', border: 'border-amber-300', hex: 0xfacc15 },
+            '신화': { bg: 'bg-rose-600', text: 'text-rose-100', border: 'border-rose-400', hex: 0xfb7185 },
+            '코스믹': { bg: 'bg-indigo-600', text: 'text-indigo-100', border: 'border-indigo-400', hex: 0x818cf8 },
+            '디바인': { bg: 'bg-yellow-300', text: 'text-slate-950', border: 'border-white', hex: 0xfef08a }
+        };
+
+        // 영상 0:08 '음식 상점' 카드 아이템 완벽 반영 (티어 1 ~ 티어 20 크라운 마카롱)
+        const FOODS = [
+            { id: 0, tier: 1, name: '싱싱한 사과', rarity: '일반', luck: 1.0, powerMult: 1.0, cost: 0, emoji: '🍎', col1: 0xef4444, col2: 0x4ade80 },
+            { id: 1, tier: 2, name: '달콤한 당근', rarity: '일반', luck: 1.3, powerMult: 1.25, cost: 80, emoji: '🥕', col1: 0xf97316, col2: 0x22c55e },
+            { id: 2, tier: 4, name: '황금 옥수수', rarity: '고급', luck: 1.8, powerMult: 1.6, cost: 320, emoji: '🌽', col1: 0xfacc15, col2: 0x4ade80 },
+            { id: 3, tier: 6, name: '더블 치즈버거', rarity: '고급', luck: 2.4, powerMult: 2.1, cost: 1200, emoji: '🍔', col1: 0xd97706, col2: 0xef4444 },
+            { id: 4, tier: 8, name: '티본 스테이크', rarity: '희귀', luck: 3.3, powerMult: 2.8, cost: 4500, emoji: '🥩', col1: 0xb91c1c, col2: 0xfef3c7 },
+            { id: 5, tier: 10, name: '특선 연어 초밥', rarity: '영웅', luck: 4.6, powerMult: 3.8, cost: 18000, emoji: '🍣', col1: 0xfb7185, col2: 0xffffff },
+            { id: 6, tier: 12, name: '용암 칠리 타코', rarity: '전설', luck: 6.5, powerMult: 5.2, cost: 75000, emoji: '🌮', col1: 0xf97316, col2: 0xfacc15 },
+            { id: 7, tier: 14, name: '빙하 크리스탈 케이크', rarity: '전설', luck: 9.0, powerMult: 7.2, cost: 320000, emoji: '🍰', col1: 0x38bdf8, col2: 0xe0f2fe },
+            { id: 8, tier: 16, name: '칼라마리 링', rarity: '코스믹', luck: 13.0, powerMult: 10.5, cost: 1500000, emoji: '🍤', col1: 0xfacc15, col2: 0x818cf8 },
+            { id: 9, tier: 16, name: '팬텀 랍스터', rarity: '코스믹', luck: 17.5, powerMult: 14.5, cost: 6500000, emoji: '🦞', col1: 0x38bdf8, col2: 0xc084fc },
+            { id: 10, tier: 17, name: '독성 도넛', rarity: '신화', luck: 24.0, powerMult: 21.0, cost: 28000000, emoji: '🍩', col1: 0x4ade80, col2: 0x9333ea },
+            { id: 11, tier: 18, name: '돌연변이 버거', rarity: '신화', luck: 32.0, powerMult: 30.0, cost: 120000000, emoji: '🍔', col1: 0xa855f7, col2: 0x22c55e },
+            { id: 12, tier: 20, name: '왕실 크라운 마카롱', rarity: '디바인', luck: 48.0, powerMult: 46.0, cost: 600000000, emoji: '👑', col1: 0xfef08a, col2: 0xf43f5e }
+        ];
+
+        const BARS = [
+            { id: 0, name: '1. 스톤 턱걸이 아치', powerGain: 2, expGain: 3, expMult: 1.0, cost: 0, color: 0x64748b, glow: 0x94a3b8 },
+            { id: 1, name: '2. 에메랄드 체육관 아치', powerGain: 7, expGain: 9, expMult: 1.5, cost: 180, color: 0x059669, glow: 0x34d399 },
+            { id: 2, name: '3. 블레이즈 용암 아치', powerGain: 24, expGain: 28, expMult: 2.0, cost: 1400, color: 0xdc2626, glow: 0xfb923c },
+            { id: 3, name: '4. 로열 골드 챔피언 아치', powerGain: 85, expGain: 90, expMult: 2.5, cost: 11000, color: 0xca8a04, glow: 0xfef08a },
+            { id: 4, name: '5. 아쿠아 트라이던트 아치', powerGain: 320, expGain: 300, expMult: 3.2, cost: 85000, color: 0x0284c7, glow: 0x38bdf8 },
+            { id: 5, name: '6. 코스믹 성운 퍼플 아치', powerGain: 1250, expGain: 1050, expMult: 4.0, cost: 650000, color: 0x6d28d9, glow: 0xc084fc },
+            { id: 6, name: '7. 천상의 디바인 아치', powerGain: 5500, expGain: 4200, expMult: 5.5, cost: 5000000, color: 0xf59e0b, glow: 0xffffff }
+        ];
+
+        // 6개 3D 협곡 바이옴 (초원 -> 사막 -> 사바나 -> 겨울 -> 지옥 -> 왕실 성)
+        const BIOMES = [
+            {
+                id: 'meadow', name: '🌱 초원', zStart: -20, zEnd: -110,
+                floorHex: 0x4ade80, wallHex: 0x78350f, wallTopHex: 0x22c55e,
+                animals: [
+                    { id: 'bunny', name: '복면 스트라이커 토끼', rarity: '일반', income: 10, scale: 1.0, bodyHex: 0xf8fafc, hornHex: 0xef4444, buffType: 'EXP', buffVal: 0.15 },
+                    { id: 'boar', name: '초원 황금 멧돼지', rarity: '고급', income: 28, scale: 1.2, bodyHex: 0x92400e, hornHex: 0xfacc15, buffType: 'POWER', buffVal: 0.15 }
+                ]
+            },
+            {
+                id: 'desert', name: '🏜️ 사막', zStart: -110, zEnd: -210,
+                floorHex: 0xfbbf24, wallHex: 0xb45309, wallTopHex: 0xf59e0b,
+                animals: [
+                    { id: 'scorpion', name: '사막 전갈 집게왕', rarity: '고급', income: 75, scale: 1.25, bodyHex: 0xd97706, hornHex: 0xef4444, buffType: 'LUCK', buffVal: 0.20 },
+                    { id: 'anubis', name: '황금 아누비스 자칼', rarity: '희귀', income: 210, scale: 1.4, bodyHex: 0xfacc15, hornHex: 0x1e293b, buffType: 'POWER', buffVal: 0.25 }
+                ]
+            },
+            {
+                id: 'savanna', name: '🦁 사바나', zStart: -210, zEnd: -320,
+                floorHex: 0xd97706, wallHex: 0x78350f, wallTopHex: 0xca8a04,
+                animals: [
+                    { id: 'rhino', name: '강철 코뿔소 돌격대', rarity: '희귀', income: 560, scale: 1.55, bodyHex: 0x64748b, hornHex: 0xf8fafc, buffType: 'EXP', buffVal: 0.30 },
+                    { id: 'lion', name: '태양갈기 사바나 사자왕', rarity: '영웅', income: 1500, scale: 1.65, bodyHex: 0xf59e0b, hornHex: 0xb91c1c, buffType: 'POWER', buffVal: 0.40 }
+                ]
+            },
+            {
+                id: 'winter', name: '❄️ 겨울', zStart: -320, zEnd: -440,
+                floorHex: 0xe0f2fe, wallHex: 0x0284c7, wallTopHex: 0xffffff,
+                animals: [
+                    { id: 'penguin', name: '왕관 펭귄 기사', rarity: '영웅', income: 4200, scale: 1.35, bodyHex: 0x1e293b, hornHex: 0xfacc15, buffType: 'LUCK', buffVal: 0.45 },
+                    { id: 'yeti', name: '빙하 설인 콜로서스', rarity: '전설', income: 12500, scale: 2.0, bodyHex: 0xf1f5f9, hornHex: 0x38bdf8, buffType: 'POWER', buffVal: 0.65 }
+                ]
+            },
+            {
+                id: 'hell', name: '🌋 지옥', zStart: -440, zEnd: -570,
+                floorHex: 0x450a0a, wallHex: 0x18181b, wallTopHex: 0xef4444,
+                animals: [
+                    { id: 'cerberus', name: '지옥불 케르베로스', rarity: '신화', income: 38000, scale: 1.9, bodyHex: 0xdc2626, hornHex: 0xfacc15, buffType: 'EXP', buffVal: 0.85 },
+                    { id: 'ignis', name: '마그마 드래곤 이그니스', rarity: '신화', income: 115000, scale: 2.3, bodyHex: 0xf97316, hornHex: 0xfef08a, buffType: 'POWER', buffVal: 1.15 }
+                ]
+            },
+            {
+                id: 'palace', name: '🏰 왕실 성', zStart: -570, zEnd: -730,
+                floorHex: 0x312e81, wallHex: 0x1e1b4b, wallTopHex: 0xfacc15,
+                animals: [
+                    { id: 'aurochs', name: '크라운브레이커 아우로크스', rarity: '코스믹', income: 360000, scale: 2.6, bodyHex: 0x4c1d95, hornHex: 0xfacc15, buffType: 'LUCK', buffVal: 1.50 },
+                    { id: 'seraphim', name: '천공 왕실 성수 아르세우스', rarity: '디바인', income: 1200000, scale: 2.9, bodyHex: 0xfef08a, hornHex: 0x38bdf8, buffType: 'POWER', buffVal: 2.20 }
+                ]
+            }
+        ];
+
+        const ALL_SPECIES = BIOMES.flatMap(b => b.animals);
+
+        const MUTATIONS = [
+            { id: 'normal', rank: 0, name: '일반', mult: 1.0, weight: 58, badge: '', colorHex: null },
+            { id: 'gold', rank: 1, name: '골드', mult: 2.2, weight: 22, badge: '👑 골드', colorHex: 0xfacc15 },
+            { id: 'diamond', rank: 2, name: '다이아', mult: 4.5, weight: 12, badge: '💎 다이아', colorHex: 0x38bdf8 },
+            { id: 'rainbow', rank: 3, name: '레인보우', mult: 9.0, weight: 6, badge: '🌈 레인보우', colorHex: 0xf472b6 },
+            { id: 'cosmic', rank: 4, name: '코스믹', mult: 20.0, weight: 2, badge: '🌌 코스믹', colorHex: 0xc084fc }
+        ];
+
+        /**
+         * ============================================================================
+         * 3. 게임 저장 및 상태 관리
+         * ============================================================================
+         */
+        const DEFAULT_SAVE = {
+            cash: 100,
+            storedPenCash: 0,
+            power: 10,
+            level: 1,
+            exp: 0,
+            maxExp: 10,
+            rebirths: 0,
+            barTier: 0,
+            unlockedBars: [0],
+            foodIdx: 0,
+            unlockedFoods: [0],
+            penCapacity: 6, // 최대 18칸
+            penMultiplierLv: 1,
+            animals: [], // { uid, species, mutation, equipped }
+            dexUnlocked: ['bunny'],
+            abuseTimer: 0
+        };
+
+        let save = JSON.parse(localStorage.getItem('throwFood3D_v1') || 'null') || JSON.parse(JSON.stringify(DEFAULT_SAVE));
+        if (save.animals.length === 0) {
+            save.animals.push({
+                uid: 'starter_1',
+                species: BIOMES[0].animals[0],
+                mutation: MUTATIONS[0],
+                equipped: true
+            });
+        }
+        function persist() {
+            localStorage.setItem('throwFood3D_v1', JSON.stringify(save));
+        }
+
+        const state = {
+            started: false,
+            mode: 'ROAM', // 'ROAM' | 'PULLING' | 'GAUGE' | 'FLYING' | 'EATING'
+            pullupTimer: 0,
+            pullupPhase: 0,
+            gaugeVal: 0.1,
+            gaugeDir: 1,
+            flight: {
+                progress: 0,
+                duration: 2.2,
+                startZ: -16,
+                targetZ: -80,
+                distMeters: 0,
+                finalLuck: 1.0,
+                food: null
+            },
+            encounter: {
+                x: 0,
+                z: -80,
+                animal: null,
+                mutation: null,
+                biome: null,
+                aniZ: -110,
+                eatProgress: 0
+            },
+            camYaw: 0,
+            camPitch: 0.32,
+            dragging: false,
+            lastMouse: { x: 0, y: 0 },
+            keys: {},
+            joy: { x: 0, y: 0 },
+            activeModal: 'food'
+        };
+
+        /**
+         * ============================================================================
+         * 4. Three.js 3D 로블록스 스터드 월드 구축
+         * ============================================================================
+         */
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x60a5fa);
+        scene.fog = new THREE.FogExp2(0x60a5fa, 0.0022);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 900);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x334155, 0.88);
+        scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.05);
+        dirLight.position.set(45, 95, 40);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.camera.left = -60;
+        dirLight.shadow.camera.right = 60;
+        dirLight.shadow.camera.top = 60;
+        dirLight.shadow.camera.bottom = -760;
+        scene.add(dirLight);
+
+        // 절차적 로블록스 스터드 텍스처 생성기
+        function createStudTexture(hexColor, checker = false) {
+            const c = document.createElement('canvas');
+            c.width = 128; c.height = 128;
+            const ctx = c.getContext('2d');
+            const base = '#' + hexColor.toString(16).padStart(6, '0');
+            ctx.fillStyle = base;
+            ctx.fillRect(0, 0, 128, 128);
+
+            if (checker) {
+                ctx.fillStyle = 'rgba(0,0,0,0.14)';
+                ctx.fillRect(0, 0, 64, 64);
+                ctx.fillRect(64, 64, 64, 64);
+            }
+
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+            ctx.lineWidth = 3;
+            [32, 96].forEach(x => [32, 96].forEach(y => {
+                ctx.beginPath();
+                ctx.arc(x, y, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }));
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+
+        const CANYON_W = 42;
+
+        // 1) 베이스캠프 잔디 허브 (Z = +26 ~ -20)
+        const hubTex = createStudTexture(0x4ade80, false);
+        hubTex.repeat.set(16, 12);
+        const hubFloor = new THREE.Mesh(
+            new THREE.PlaneGeometry(68, 46),
+            new THREE.MeshStandardMaterial({ map: hubTex, roughness: 0.7 })
+        );
+        hubFloor.rotation.x = -Math.PI / 2;
+        hubFloor.position.set(0, 0, 3);
+        hubFloor.receiveShadow = true;
+        scene.add(hubFloor);
+
+        // 2) 거대 턱걸이 철봉 아치 ('턱걸이 철봉' - X = -9, Z = 4)
+        const BAR_POS = { x: -9, z: 4 };
+        const barGroup = new THREE.Group();
+        barGroup.position.set(BAR_POS.x, 0, BAR_POS.z);
+        scene.add(barGroup);
+
+        const pillarMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5 });
+        const pLeft = new THREE.Mesh(new THREE.BoxGeometry(1.4, 6.2, 1.4), pillarMat);
+        pLeft.position.set(-2.6, 3.1, 0);
+        pLeft.castShadow = true;
+        const pRight = pLeft.clone();
+        pRight.position.x = 2.6;
+
+        const barTopMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, emissive: 0x38bdf8, emissiveIntensity: 0.35, metalness: 0.6, roughness: 0.25 });
+        const crossBar = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 6.6, 16), barTopMat);
+        crossBar.rotation.z = Math.PI / 2;
+        crossBar.position.set(0, 5.6, 0);
+        barGroup.add(pLeft, pRight, crossBar);
+
+        function refreshBarVisual() {
+            const b = BARS[save.barTier];
+            pillarMat.color.setHex(b.color);
+            barTopMat.color.setHex(b.glow);
+            barTopMat.emissive.setHex(b.glow);
+        }
+        refreshBarVisual();
+
+        // 3) 투척 발사대 (Launch Pad - X = 0, Z = -15)
+        const launchPad = new THREE.Mesh(
+            new THREE.BoxGeometry(8, 0.35, 5),
+            new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 })
+        );
+        launchPad.position.set(0, 0.175, -15);
+        launchPad.receiveShadow = true;
+        scene.add(launchPad);
+
+        // 4) 동물 울타리 목장 ('동물 울타리' - 우측 X = +18, Z = 4)
+        const PEN_CENTER = { x: 18, z: 4 };
+        const penFloorTex = createStudTexture(0x86efac, true);
+        penFloorTex.repeat.set(6, 7);
+        const penFloor = new THREE.Mesh(
+            new THREE.BoxGeometry(20, 0.25, 24),
+            new THREE.MeshStandardMaterial({ map: penFloorTex, roughness: 0.65 })
+        );
+        penFloor.position.set(PEN_CENTER.x, 0.125, PEN_CENTER.z);
+        penFloor.receiveShadow = true;
+        scene.add(penFloor);
+
+        // 목장 나무 울타리 테두리
+        const fenceMat = new THREE.MeshStandardMaterial({ color: 0x92400e });
+        const fN = new THREE.Mesh(new THREE.BoxGeometry(20.4, 1.5, 0.4), fenceMat);
+        fN.position.set(PEN_CENTER.x, 0.85, PEN_CENTER.z - 12);
+        const fS = fN.clone(); fS.position.z = PEN_CENTER.z + 12;
+        const fE = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.5, 24.4), fenceMat);
+        fE.position.set(PEN_CENTER.x + 10, 0.85, PEN_CENTER.z);
+        const fW = fE.clone(); fW.position.x = PEN_CENTER.x - 10;
+        scene.add(fN, fS, fE, fW);
+
+        // 목장 골드 수금 패드
+        const collectPad = new THREE.Mesh(
+            new THREE.CylinderGeometry(1.8, 2.0, 0.25, 20),
+            new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xd97706, emissiveIntensity: 0.4 })
+        );
+        collectPad.position.set(7.5, 0.25, 10);
+        scene.add(collectPad);
+
+        // 5) 어뷰즈 & 환생 제단 (좌측 뒤편 X = -22, Z = -6)
+        const shrineGroup = new THREE.Group();
+        shrineGroup.position.set(-22, 0, -6);
+        const shrineBase = new THREE.Mesh(
+            new THREE.CylinderGeometry(3.2, 3.6, 0.5, 24),
+            new THREE.MeshStandardMaterial({ color: 0x581c87, emissive: 0x9333ea, emissiveIntensity: 0.5 })
+        );
+        shrineBase.position.y = 0.25;
+        const shrinePortal = new THREE.Mesh(
+            new THREE.TorusGeometry(2.4, 0.28, 10, 28),
+            new THREE.MeshBasicMaterial({ color: 0xe879f9 })
+        );
+        shrinePortal.position.y = 3.2;
+        shrineGroup.add(shrineBase, shrinePortal);
+        scene.add(shrineGroup);
+
+        // 6) 6개 3D 협곡 바이옴 (초원 -> 사막 -> 사바나 -> 겨울 -> 지옥 -> 왕실 성)
+        BIOMES.forEach((b, idx) => {
+            const len = Math.abs(b.zEnd - b.zStart);
+            const zMid = (b.zStart + b.zEnd) / 2;
+            const isChecker = b.id === 'desert' || b.id === 'palace';
+            const tex = createStudTexture(b.floorHex, isChecker);
+            tex.repeat.set(10, Math.round(len / 4));
+
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(CANYON_W, len),
+                new THREE.MeshStandardMaterial({ map: tex, roughness: 0.72 })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.set(0, 0, zMid);
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // 좌우 계단식 절벽 벽면 (영상 0:00 및 0:09 협곡 절벽 고증!)
+            const wallMat = new THREE.MeshStandardMaterial({ color: b.wallHex, roughness: 0.8 });
+            const topMat = new THREE.MeshStandardMaterial({ color: b.wallTopHex, roughness: 0.7 });
+
+            [-1, 1].forEach(side => {
+                const lowerCliff = new THREE.Mesh(new THREE.BoxGeometry(10, 14, len), wallMat);
+                lowerCliff.position.set(side * (CANYON_W / 2 + 5), 7, zMid);
+                lowerCliff.receiveShadow = true;
+
+                const upperCliff = new THREE.Mesh(new THREE.BoxGeometry(14, 12, len), topMat);
+                upperCliff.position.set(side * (CANYON_W / 2 + 12), 18, zMid);
+                scene.add(lowerCliff, upperCliff);
+            });
+
+            // 왕실 성(Palace) 궁전 외벽 및 황금 아치 장식 (영상 0:10 재현!)
+            if (b.id === 'palace') {
+                const castleMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
+                const goldTrim = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.6, roughness: 0.25 });
+                const blueRoof = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.4 });
+
+                const mainWall = new THREE.Mesh(new THREE.BoxGeometry(36, 22, 6), castleMat);
+                mainWall.position.set(0, 11, b.zEnd + 8);
+                const roof = new THREE.Mesh(new THREE.ConeGeometry(8, 10, 4), blueRoof);
+                roof.position.set(0, 26, b.zEnd + 8);
+                roof.rotation.y = Math.PI / 4;
+                const archFrame = new THREE.Mesh(new THREE.BoxGeometry(12, 11, 7), goldTrim);
+                archFrame.position.set(0, 5.5, b.zEnd + 8);
+                scene.add(mainWall, roof, archFrame);
+            }
+        });
+
+        /**
+         * ============================================================================
+         * 5. 3D 캐릭터(노란 모자 백곰 아바타), 투척 음식, 보스 동물 & 목장 모델링
+         * ============================================================================
+         */
+        function createBearAvatar() {
+            const root = new THREE.Group();
+            const fur = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+            const shirt = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.5 });
+            const capMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
+            const dark = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+
+            const legL = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.95, 0.46), fur);
+            legL.position.set(-0.26, 0.475, 0);
+            const legR = legL.clone(); legR.position.x = 0.26;
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.05, 1.1, 0.58), shirt);
+            torso.position.y = 1.5;
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.85, 0.85), fur);
+            head.position.y = 2.48;
+
+            const earL = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.26, 0.2), fur);
+            earL.position.set(-0.36, 2.95, 0);
+            const earR = earL.clone(); earR.position.x = 0.36;
+
+            const cap = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.24, 0.75), capMat);
+            cap.position.set(0, 2.98, 0.05);
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.35), capMat);
+            visor.position.set(0, 2.92, 0.48);
+
+            const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.08), dark);
+            eyeL.position.set(-0.22, 2.52, 0.43);
+            const eyeR = eyeL.clone(); eyeR.position.x = 0.22;
+
+            const armL = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.98, 0.42), fur);
+            armL.position.set(-0.76, 1.5, 0);
+            const armR = armL.clone(); armR.position.x = 0.76;
+
+            root.add(legL, legR, torso, head, earL, earR, cap, visor, eyeL, eyeR, armL, armR);
+            scene.add(root);
+            return { root, legL, legR, armL, armR };
+        }
+
+        const player = {
+            pos: new THREE.Vector3(-4, 0, 8),
+            av: createBearAvatar()
+        };
+
+        function buildAnimal3D(species, mutObj, customScale = null) {
+            const g = new THREE.Group();
+            const col = mutObj && mutObj.colorHex ? mutObj.colorHex : species.bodyHex;
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: col,
+                roughness: 0.35,
+                metalness: mutObj && mutObj.rank >= 1 ? 0.55 : 0.15
+            });
+            const hornMat = new THREE.MeshStandardMaterial({ color: species.hornHex, metalness: 0.6, roughness: 0.25 });
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.2, 2.1), bodyMat);
+            body.position.y = 0.9;
+            body.castShadow = true;
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.05, 1.15), bodyMat);
+            head.position.set(0, 1.45, 1.25);
+
+            // 황금 뿔 & 코뚜레 장식 (크라운브레이커 아우로크스 고증!)
+            const hornL = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.85, 8), hornMat);
+            hornL.position.set(-0.55, 2.05, 1.35);
+            hornL.rotation.z = 0.45;
+            const hornR = hornL.clone();
+            hornR.position.x = 0.55;
+            hornR.rotation.z = -0.45;
+
+            const noseRing = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.05, 8, 16), hornMat);
+            noseRing.position.set(0, 1.15, 1.85);
+
+            const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.08), eyeMat);
+            eyeL.position.set(-0.32, 1.58, 1.83);
+            const eyeR = eyeL.clone(); eyeR.position.x = 0.32;
+
+            g.add(body, head, hornL, hornR, noseRing, eyeL, eyeR);
+            g.scale.setScalar(customScale || species.scale);
+            return g;
+        }
+
+        // 날아가는 먹이 투사체 & 착지 빛나는 받침대 & 야생 보스 동물 오브젝트
+        const foodProjGroup = new THREE.Group();
+        const foodMesh = new THREE.Mesh(
+            new THREE.OctahedronGeometry(0.85, 1),
+            new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xf97316, emissiveIntensity: 0.4 })
+        );
+        foodProjGroup.add(foodMesh);
+        foodProjGroup.visible = false;
+        scene.add(foodProjGroup);
+
+        const landingPedestal = new THREE.Mesh(
+            new THREE.CylinderGeometry(2.2, 2.6, 0.45, 24),
+            new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xf59e0b, emissiveIntensity: 0.6 })
+        );
+        landingPedestal.visible = false;
+        scene.add(landingPedestal);
+
+        let wildEncounterMesh = null;
+        const ranchAnimalMeshes = [];
+        const companionMeshes = [];
+        const flightParticles = [];
+        const meteors3D = [];
+
+        function syncRanchAndCompanions3D() {
+            ranchAnimalMeshes.forEach(m => scene.remove(m.mesh));
+            ranchAnimalMeshes.length = 0;
+
+            companionMeshes.forEach(m => scene.remove(m));
+            companionMeshes.length = 0;
+
+            save.animals.forEach((item, idx) => {
+                // 목장 울타리 내부 스폰
+                const rx = PEN_CENTER.x - 6.5 + (idx % 3) * 6.5;
+                const rz = PEN_CENTER.z - 8.5 + Math.floor(idx / 3) * 4.2;
+                const mesh = buildAnimal3D(item.species, item.mutation, Math.min(1.3, item.species.scale * 0.65));
+                mesh.position.set(rx, 0.25, rz);
+                scene.add(mesh);
+                ranchAnimalMeshes.push({ mesh, baseX: rx, baseZ: rz, phase: idx * 1.3 });
+
+                // 동행 장착 펫 스폰
+                if (item.equipped) {
+                    const cMesh = buildAnimal3D(item.species, item.mutation, 0.55);
+                    scene.add(cMesh);
+                    companionMeshes.push(cMesh);
+                }
+            });
+        }
+        syncRanchAndCompanions3D();
+
+        /**
+         * ============================================================================
+         * 6. 배수, 수익, 토스트 알림 및 HUD 업데이트
+         * ============================================================================
+         */
+        function fmt(n) {
+            if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+            if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+            return Math.floor(n).toLocaleString();
+        }
+
+        function floatPopup(text, colorClass = 'text-amber-300') {
+            const el = document.createElement('div');
+            el.className = `float-toast text-base sm:text-xl font-black text-stroke ${colorClass}`;
+            el.textContent = text;
+            document.getElementById('floating-layer').appendChild(el);
+            setTimeout(() => el.remove(), 1350);
+        }
+
+        function getRebirthMult() {
+            return 1 + save.rebirths * 1.0;
+        }
+
+        function getDexMult() {
+            return 1 + save.dexUnlocked.length * 0.10;
+        }
+
+        function getCompanionBuffs() {
+            let expMult = 1.0, powerMult = 1.0, luckMult = 1.0, count = 0;
+            save.animals.forEach(a => {
+                if (a.equipped) {
+                    count++;
+                    const val = a.species.buffVal * (1 + a.mutation.rank * 0.25);
+                    if (a.species.buffType === 'EXP') expMult += val;
+                    else if (a.species.buffType === 'POWER') powerMult += val;
+                    else if (a.species.buffType === 'LUCK') luckMult += val;
+                }
+            });
+            return { count, expMult, powerMult, luckMult };
+        }
+
+        function getTotalLuck() {
+            const food = FOODS[save.foodIdx];
+            const comp = getCompanionBuffs();
+            const abuseMult = save.abuseTimer > 0 ? 3.0 : 1.0;
+            return food.luck * comp.luckMult * abuseMult * (1 + save.rebirths * 0.25);
+        }
+
+        function getPenIncomePerSec() {
+            let sum = 0;
+            save.animals.forEach(a => {
+                sum += a.species.income * a.mutation.mult;
+            });
+            const penUpMult = 1 + (save.penMultiplierLv - 1) * 0.30;
+            const abuseMult = save.abuseTimer > 0 ? 2.0 : 1.0;
+            return Math.round(sum * penUpMult * getRebirthMult() * getDexMult() * abuseMult);
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-cash').textContent = '$' + fmt(save.cash);
+            document.getElementById('hud-gps').textContent = '+$' + fmt(getPenIncomePerSec()) + '/초';
+            document.getElementById('hud-power').textContent = fmt(save.power);
+            document.getElementById('hud-rebirth').textContent = `${save.rebirths}단계 (${getRebirthMult().toFixed(1)}x)`;
+
+            const eqFood = FOODS[save.foodIdx];
+            const comp = getCompanionBuffs();
+            document.getElementById('hud-food-info').textContent =
+                `${eqFood.emoji} 장착: [티어 ${eqFood.tier}] ${eqFood.name} (행운 ${getTotalLuck().toFixed(1)}x)`;
+            document.getElementById('hud-pet-info').textContent =
+                `🐾 동행펫: ${comp.count}/3 (파워 x${comp.powerMult.toFixed(2)} | EXP x${comp.expMult.toFixed(2)})`;
+            document.getElementById('hud-pen-count').textContent = `${save.animals.length}/${save.penCapacity}`;
+            document.getElementById('btn-collect-pen').textContent = `💰 수금 (+$${fmt(save.storedPenCash)})`;
+
+            const abusePill = document.getElementById('abuse-pill');
+            if (save.abuseTimer > 0) {
+                abusePill.textContent = `⚡ 어뷰즈 이벤트 발동중! (${Math.ceil(save.abuseTimer)}s) 행운 3.0X & 메테오!`;
+                abusePill.classList.remove('hidden');
+            } else {
+                abusePill.classList.add('hidden');
+            }
+
+            // 턱걸이 레벨/EXP 바 업데이트
+            document.getElementById('pullup-lvl-text').textContent = `레벨 ${save.level}`;
+            document.getElementById('pullup-exp-text').textContent = `${fmt(save.exp)} / ${fmt(save.maxExp)}`;
+            const expPct = Math.min(100, (save.exp / save.maxExp) * 100);
+            document.getElementById('pullup-exp-bar').style.width = expPct + '%';
+
+            const throwBtnTxt = document.getElementById('btn-throw-text');
+            if (state.mode === 'GAUGE') throwBtnTxt.textContent = '정지 & 던지기! [Space]';
+            else if (state.mode === 'FLYING' || state.mode === 'EATING') throwBtnTxt.textContent = '비행/포식 중...';
+            else throwBtnTxt.textContent = '먹이 던지기 [Space]';
+        }
+
+        /**
+         * ============================================================================
+         * 7. 핵심 게임 루프 액션: 턱걸이 훈련(자동/수동) & 3D 세로 게이지 투척
+         * ============================================================================
+         */
+        function startPullUpMode() {
+            if (!state.started || state.mode === 'FLYING' || state.mode === 'EATING') return;
+            state.mode = 'PULLING';
+            player.pos.set(BAR_POS.x, 0, BAR_POS.z);
+            player.av.root.rotation.y = 0;
+            player.av.armL.rotation.x = Math.PI;
+            player.av.armR.rotation.x = Math.PI;
+            document.getElementById('pullup-hud').classList.remove('hidden');
+            performSinglePullUp();
+        }
+
+        function stopPullUpMode() {
+            if (state.mode === 'PULLING') {
+                state.mode = 'ROAM';
+                player.pos.set(BAR_POS.x, 0, BAR_POS.z + 3.2);
+                player.av.root.position.y = 0;
+                player.av.armL.rotation.x = 0;
+                player.av.armR.rotation.x = 0;
+                document.getElementById('pullup-hud').classList.add('hidden');
+            }
+        }
+
+        function performSinglePullUp() {
+            const bar = BARS[save.barTier];
+            const comp = getCompanionBuffs();
+            const pGain = Math.max(1, Math.round(bar.powerGain * (1 + save.level * 0.05) * getRebirthMult() * comp.powerMult));
+            const eGain = Math.max(1, Math.round(bar.expGain * bar.expMult * comp.expMult));
+
+            save.power += pGain;
+            save.exp += eGain;
+            sfx.pullup();
+
+            if (save.exp >= save.maxExp) {
+                save.exp -= save.maxExp;
+                save.level++;
+                save.maxExp = Math.round(save.maxExp * 1.45);
+                save.power += pGain * 3;
+                sfx.levelUp();
+                floatPopup(`🎉 레벨 업! Lv.${save.level} (+${fmt(pGain * 3)} 파워)`, 'text-yellow-300');
+            } else {
+                floatPopup(`+${fmt(pGain)} 파워  |  +${fmt(eGain)} EXP (x${bar.expMult})`, 'text-sky-300');
+            }
+            persist();
+            updateHUD();
+        }
+
+        function handleThrowButton() {
+            if (!state.started) return;
+
+            if (state.mode === 'ROAM' || state.mode === 'PULLING') {
+                stopPullUpMode();
+                state.mode = 'GAUGE';
+                state.gaugeVal = 0.1;
+                state.gaugeDir = 1;
+                player.pos.set(0, 0, -15);
+                player.av.root.rotation.y = Math.PI;
+                document.getElementById('vertical-gauge-wrap').classList.remove('hidden');
+                updateHUD();
+                return;
+            }
+
+            if (state.mode === 'GAUGE') {
+                document.getElementById('vertical-gauge-wrap').classList.add('hidden');
+
+                // 상단 다크그린 스윗스팟 판정 (0.80 ~ 1.00)
+                const v = state.gaugeVal;
+                let mult = 1.0;
+                let luckBoost = 1.0;
+                if (v >= 0.80) {
+                    mult = 1.35;
+                    luckBoost = 2.0;
+                    sfx.perfect();
+                    floatPopup('🌟 완벽해요! (+20% 파워 & 행운 2배!)', 'text-emerald-300');
+                } else if (v >= 0.55) {
+                    mult = 1.15;
+                    luckBoost = 1.35;
+                    sfx.pullup();
+                    floatPopup('👍 좋아요! (Great Throw)', 'text-amber-300');
+                } else {
+                    mult = 0.85;
+                    luckBoost = 1.0;
+                    sfx.whoosh();
+                    floatPopup('💨 아쉬워요! (Normal Throw)', 'text-rose-300');
+                }
+
+                const eqFood = FOODS[save.foodIdx];
+                const distMeters = Math.min(700, Math.round(35 + Math.pow(save.power, 0.68) * eqFood.powerMult * mult * 3.2));
+                const finalLuck = +(getTotalLuck() * luckBoost).toFixed(2);
+
+                // 투사체 3D 비주얼 세팅
+                foodMesh.material.color.setHex(eqFood.col1);
+                foodMesh.material.emissive.setHex(eqFood.col2);
+                foodProjGroup.position.set(0, 2.5, -16);
+                foodProjGroup.visible = true;
+
+                state.mode = 'FLYING';
+                state.flight = {
+                    progress: 0,
+                    duration: Math.min(3.2, 1.5 + distMeters / 320),
+                    startZ: -16,
+                    targetZ: -20 - distMeters,
+                    distMeters,
+                    finalLuck,
+                    food: eqFood
+                };
+
+                document.getElementById('flight-hud').classList.remove('hidden');
+                document.getElementById('flight-hud').classList.add('flex');
+                sfx.whoosh();
+                updateHUD();
+            }
+        }
+
+        function rollMutation(luck) {
+            const list = MUTATIONS.map((m, i) => ({
+                m,
+                w: i === 0 ? m.weight : m.weight * (1 + Math.log10(Math.max(1, luck)))
+            }));
+            const tot = list.reduce((s, v) => s + v.w, 0);
+            let r = Math.random() * tot;
+            for (const it of list) {
+                if (r < it.w) return it.m;
+                r -= it.w;
+            }
+            return MUTATIONS[0];
+        }
+
+        function triggerLandingEncounter(landZ, distMeters, finalLuck) {
+            document.getElementById('flight-hud').classList.add('hidden');
+            document.getElementById('flight-hud').classList.remove('flex');
+
+            const biome = BIOMES.find(b => landZ <= b.zStart && landZ > b.zEnd) || BIOMES[BIOMES.length - 1];
+            const rareChance = Math.min(0.88, 0.25 + finalLuck * 0.015);
+            const species = Math.random() < rareChance ? biome.animals[1] : biome.animals[0];
+            const mutation = rollMutation(finalLuck);
+
+            // 착지 빛나는 황금 받침대 배치
+            landingPedestal.position.set(0, 0.22, landZ);
+            landingPedestal.visible = true;
+            foodProjGroup.position.set(0, 1.3, landZ);
+
+            // 3D 거대 야생 동물 스폰 후 걸어오게 연출 (영상 0:11 재현!)
+            if (wildEncounterMesh) scene.remove(wildEncounterMesh);
+            wildEncounterMesh = buildAnimal3D(species, mutation);
+            wildEncounterMesh.position.set(0, 0, landZ - 14);
+            scene.add(wildEncounterMesh);
+
+            state.mode = 'EATING';
+            state.encounter = {
+                x: 0,
+                z: landZ,
+                animal: species,
+                mutation,
+                biome,
+                aniZ: landZ - 14,
+                eatProgress: 0
+            };
+
+            const mutPrefix = mutation.badge ? `[${mutation.badge}] ` : '';
+            document.getElementById('eating-animal-name').textContent = `${mutPrefix}${species.name}`;
+            document.getElementById('eating-animal-income').textContent = `+$${fmt(species.income * mutation.mult)}/초 (x${mutation.mult})`;
+            document.getElementById('eating-progress-bar').style.width = '0%';
+            document.getElementById('eating-hud').classList.remove('hidden');
+            try { pkLandFx(species, mutation, landZ); } catch (e) {}
+        }
+
+        function completeAnimalCapture() {
+            const { animal, mutation } = state.encounter;
+            try { pkCapFx(); } catch (e) {}
+            document.getElementById('eating-hud').classList.add('hidden');
+            foodProjGroup.visible = false;
+            landingPedestal.visible = false;
+            if (wildEncounterMesh) { scene.remove(wildEncounterMesh); wildEncounterMesh = null; }
+
+            if (!save.dexUnlocked.includes(animal.id)) {
+                save.dexUnlocked.push(animal.id);
+                floatPopup(`📖 도감 등록! (${save.dexUnlocked.length}/${ALL_SPECIES.length}) 영구 수익 +10%!`, 'text-sky-300');
+            }
+
+            if (save.animals.length < save.penCapacity) {
+                const eqCount = save.animals.filter(a => a.equipped).length;
+                save.animals.push({
+                    uid: Math.random().toString(36).slice(2),
+                    species: animal,
+                    mutation,
+                    equipped: eqCount < 3
+                });
+                syncRanchAndCompanions3D();
+                sfx.capture();
+                floatPopup(`🎉 [${animal.name}] 포획 성공! 울타리 목장에 추가됨!`, 'text-emerald-300');
+            } else {
+                const sellReward = Math.round(animal.income * mutation.mult * 15 * getRebirthMult());
+                save.cash += sellReward;
+                sfx.coin();
+                floatPopup(`💰 울타리가 가득 차서 자동 판매! (+$${fmt(sellReward)})`, 'text-amber-300');
+            }
+
+            state.mode = 'ROAM';
+            player.pos.set(-4, 0, 8);
+            persist();
+            updateHUD();
+        }
+
+        function triggerAdminAbuse() {
+            if (save.abuseTimer > 0) return floatPopup('이미 어뷰즈 이벤트가 진행 중입니다!', 'text-fuchsia-300');
+            save.abuseTimer = 45;
+            const bonusCash = Math.max(250, Math.round(getPenIncomePerSec() * 12 + save.power * 5));
+            save.cash += bonusCash;
+
+            // 하늘에서 3D 보너스 메테오 낙하!
+            for (let i = 0; i < 6; i++) {
+                const mMesh = new THREE.Mesh(
+                    new THREE.DodecahedronGeometry(1.1, 0),
+                    new THREE.MeshStandardMaterial({ color: 0xf97316, emissive: 0xfacc15, emissiveIntensity: 0.8 })
+                );
+                const mx = -14 + Math.random() * 28;
+                const mz = -12 + Math.random() * 26;
+                mMesh.position.set(mx, 28 + i * 5, mz);
+                scene.add(mMesh);
+                meteors3D.push({ mesh: mMesh, x: mx, z: mz, reward: Math.max(150, Math.round(bonusCash / 4)) });
+            }
+
+            sfx.levelUp();
+            persist();
+            updateHUD();
+            floatPopup(`⚡ ADMIN ABUSE 발동! 행운 3.0X + 보너스 $${fmt(bonusCash)}!`, 'text-yellow-300');
+        }
+
+        /**
+         * ============================================================================
+         * 8. 통합 모달 창 (영상 0:08 카드형 음식 상점 / 철봉 / 목장 / 합성 / 도감 / 환생)
+         * ============================================================================
+         */
+        function openModal(type) {
+            state.activeModal = type;
+            const backdrop = document.getElementById('modal-backdrop');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            backdrop.classList.remove('hidden');
+
+            if (type === 'food') {
+                title.textContent = '🍖 음식 상점 (Food Shop)';
+                desc.textContent = '더 높은 티어의 음식을 장비하면 투척 비거리와 행운 배수가 폭발합니다!';
+            } else if (type === 'bar') {
+                title.textContent = '🏋️ 턱걸이 철봉 상점';
+                desc.textContent = '철봉 아치를 업그레이드해 턱걸이당 파워와 경험치 배율을 높이세요!';
+            } else if (type === 'ranch') {
+                const eqCnt = save.animals.filter(a => a.equipped).length;
+                title.textContent = `🐾 동물 울타리 (${save.animals.length}/${save.penCapacity}) & 동행펫 (${eqCnt}/3)`;
+                desc.textContent = '동행펫 최대 3마리를 장착해 파워·경험치·행운 버프를 받으세요!';
+            } else if (type === 'merge') {
+                title.textContent = '⚗️ 변이 합성소 (3마리 → 상위 변이 진화)';
+                desc.textContent = '같은 동물 3마리를 합성해 일반 → 골드(2.2x) → 다이아(4.5x) → 레인보우(9x) → 코스믹(20x)으로 진화!';
+            } else if (type === 'dex') {
+                title.textContent = `📖 동물 도감 (${save.dexUnlocked.length}/${ALL_SPECIES.length})`;
+                desc.textContent = `새로운 동물을 포획할 때마다 모든 목장 수익 +10% 영구 누적! (현재 +${save.dexUnlocked.length * 10}%)`;
+            } else if (type === 'rebirth') {
+                title.textContent = '♻️ 초월 환생 제단 (Rebirth)';
+                desc.textContent = '골드/파워/음식/철봉을 초기화하는 대신 영구 +100% 배수를 누적합니다! (동물과 도감은 유지)';
+            }
+            renderModalContent();
+        }
+
+        function renderModalContent() {
+            const box = document.getElementById('modal-content');
+            box.innerHTML = '';
+
+            // 영상 0:08과 동일한 3열 카드 그리드 '음식 상점' UI!
+            if (state.activeModal === 'food') {
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 sm:grid-cols-3 gap-2.5';
+                FOODS.forEach((f, idx) => {
+                    const owned = save.unlockedFoods.includes(idx);
+                    const eq = save.foodIdx === idx;
+                    const rar = RARITY_COLORS[f.rarity] || RARITY_COLORS['일반'];
+                    const card = document.createElement('div');
+                    card.className = `rounded-2xl p-3 bg-slate-900/95 border-3 ${rar.border} flex flex-col items-center text-center justify-between gap-2 shadow-lg`;
+                    card.innerHTML = `
+                        <div>
+                            <div class="font-black text-sm sm:text-base text-white">${f.name}</div>
+                            <div class="text-xs font-black ${rar.text}">${f.rarity}</div>
+                        </div>
+                        <div class="text-4xl sm:text-5xl my-1 drop-shadow">${f.emoji}</div>
+                        <div class="w-full space-y-1.5">
+                            <div class="text-[11px] font-black text-amber-300">티어 ${f.tier} • 행운 ${f.luck}x</div>
+                            <button class="rbx-btn w-full py-2 rounded-xl font-black text-xs sm:text-sm cursor-pointer ${eq ? 'bg-slate-600 text-slate-300' : owned ? 'bg-emerald-400 text-slate-950' : 'bg-amber-400 text-slate-950'}">
+                                ${eq ? '장비됨' : owned ? '장비' : '$' + fmt(f.cost)}
+                            </button>
+                        </div>
+                    `;
+                    card.querySelector('button').onclick = () => {
+                        if (eq) return;
+                        if (!owned) {
+                            if (save.cash < f.cost) return floatPopup('골드가 부족합니다!', 'text-rose-400');
+                            save.cash -= f.cost;
+                            save.unlockedFoods.push(idx);
+                            sfx.levelUp();
+                        }
+                        save.foodIdx = idx;
+                        persist(); updateHUD(); renderModalContent();
+                    };
+                    grid.appendChild(card);
+                });
+                box.appendChild(grid);
+            } else if (state.activeModal === 'bar') {
+                const list = document.createElement('div');
+                list.className = 'space-y-2';
+                BARS.forEach(b => {
+                    const owned = save.unlockedBars.includes(b.id);
+                    const eq = save.barTier === b.id;
+                    const row = document.createElement('div');
+                    row.className = 'bg-slate-900/95 border-2 border-slate-700 rounded-2xl p-3.5 flex items-center justify-between gap-2';
+                    row.innerHTML = `
+                        <div>
+                            <div class="font-black text-sm sm:text-base text-white">${b.name}</div>
+                            <div class="text-xs font-bold text-sky-300">턱걸이 파워 +${fmt(b.powerGain)} | 경험치 배수 x${b.expMult}</div>
+                        </div>
+                        <button class="rbx-btn px-4 py-2 rounded-xl font-black text-xs cursor-pointer ${eq ? 'bg-slate-600 text-slate-300' : owned ? 'bg-emerald-400 text-slate-950' : 'bg-sky-400 text-slate-950'}">
+                            ${eq ? '장비됨' : owned ? '장비' : '$' + fmt(b.cost)}
+                        </button>
+                    `;
+                    row.querySelector('button').onclick = () => {
+                        if (eq) return;
+                        if (!owned) {
+                            if (save.cash < b.cost) return floatPopup('골드가 부족합니다!', 'text-rose-400');
+                            save.cash -= b.cost;
+                            save.unlockedBars.push(b.id);
+                            sfx.levelUp();
+                        }
+                        save.barTier = b.id;
+                        refreshBarVisual();
+                        persist(); updateHUD(); renderModalContent();
+                    };
+                    list.appendChild(row);
+                });
+                box.appendChild(list);
+            } else if (state.activeModal === 'ranch') {
+                const capCost = Math.round(350 * Math.pow(2.2, save.penCapacity - 6));
+                const multCost = Math.round(600 * Math.pow(2.5, save.penMultiplierLv - 1));
+
+                const topUpg = document.createElement('div');
+                topUpg.className = 'grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3';
+                topUpg.innerHTML = `
+                    <div class="bg-slate-900 border-2 border-emerald-500/60 rounded-2xl p-3 flex items-center justify-between">
+                        <div>
+                            <div class="font-black text-xs sm:text-sm text-emerald-300">🏡 울타리 칸 확장 (${save.animals.length}/${save.penCapacity})</div>
+                            <div class="text-[11px] text-slate-400">최대 18마리까지 수용 확장</div>
+                        </div>
+                        <button id="btn-cap-up" class="rbx-btn px-3 py-1.5 rounded-xl bg-emerald-400 text-slate-950 font-black text-xs cursor-pointer">
+                            ${save.penCapacity >= 18 ? 'MAX' : '$' + fmt(capCost)}
+                        </button>
+                    </div>
+                    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-3 flex items-center justify-between">
+                        <div>
+                            <div class="font-black text-xs sm:text-sm text-amber-300">✨ 황금 울타리 강화 Lv.${save.penMultiplierLv}</div>
+                            <div class="text-[11px] text-slate-400">목장 전체 수익 +30%</div>
+                        </div>
+                        <button id="btn-mult-up" class="rbx-btn px-3 py-1.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs cursor-pointer">
+                            $${fmt(multCost)}
+                        </button>
+                    </div>
+                `;
+                topUpg.querySelector('#btn-cap-up').onclick = () => {
+                    if (save.penCapacity >= 18) return;
+                    if (save.cash < capCost) return floatPopup('골드가 부족합니다!', 'text-rose-400');
+                    save.cash -= capCost; save.penCapacity += 2;
+                    sfx.coin(); persist(); updateHUD(); renderModalContent();
+                };
+                topUpg.querySelector('#btn-mult-up').onclick = () => {
+                    if (save.cash < multCost) return floatPopup('골드가 부족합니다!', 'text-rose-400');
+                    save.cash -= multCost; save.penMultiplierLv++;
+                    sfx.coin(); persist(); updateHUD(); renderModalContent();
+                };
+                box.appendChild(topUpg);
+
+                const list = document.createElement('div');
+                list.className = 'space-y-2';
+                save.animals.forEach((item, idx) => {
+                    const inc = Math.round(item.species.income * item.mutation.mult * getRebirthMult());
+                    const sellVal = inc * 12;
+                    const buffPct = Math.round(item.species.buffVal * (1 + item.mutation.rank * 0.25) * 100);
+                    const row = document.createElement('div');
+                    row.className = 'bg-slate-900/95 border-2 border-slate-700 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2';
+                    row.innerHTML = `
+                        <div>
+                            <div class="font-black text-xs sm:text-sm text-white">
+                                ${item.mutation.badge ? `[${item.mutation.badge}] ` : ''}[${item.species.rarity}] ${item.species.name}
+                            </div>
+                            <div class="text-[11px] text-emerald-300 font-bold">
+                                수익: +$${fmt(inc)}/초 | 동행버프: ${item.species.buffType} +${buffPct}%
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button class="btn-eq rbx-btn px-3 py-1.5 rounded-xl font-black text-xs cursor-pointer ${item.equipped ? 'bg-sky-400 text-slate-950' : 'bg-slate-700 text-white'}">
+                                ${item.equipped ? '동행중 ✓' : '동행장착'}
+                            </button>
+                            <button class="btn-sell rbx-btn px-3 py-1.5 rounded-xl bg-rose-500 text-white font-black text-xs cursor-pointer">
+                                판매 (+$${fmt(sellVal)})
+                            </button>
+                        </div>
+                    `;
+                    row.querySelector('.btn-eq').onclick = () => {
+                        if (item.equipped) item.equipped = false;
+                        else {
+                            if (save.animals.filter(a => a.equipped).length >= 3) return floatPopup('동행펫은 최대 3마리까지 장착 가능합니다!', 'text-rose-400');
+                            item.equipped = true;
+                        }
+                        syncRanchAndCompanions3D(); persist(); updateHUD(); renderModalContent();
+                    };
+                    row.querySelector('.btn-sell').onclick = () => {
+                        save.cash += sellVal;
+                        save.animals.splice(idx, 1);
+                        syncRanchAndCompanions3D(); sfx.coin(); persist(); updateHUD(); renderModalContent();
+                    };
+                    list.appendChild(row);
+                });
+                box.appendChild(list);
+            } else if (state.activeModal === 'merge') {
+                const groups = {};
+                save.animals.forEach(a => {
+                    if (a.mutation.rank < MUTATIONS.length - 1) {
+                        const k = `${a.species.id}_${a.mutation.rank}`;
+                        if (!groups[k]) groups[k] = [];
+                        groups[k].push(a);
+                    }
+                });
+                const keys = Object.keys(groups);
+                if (keys.length === 0) {
+                    box.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">합성 가능한 동물이 없습니다. 같은 동물 & 같은 변이 3마리를 모아보세요!</div>`;
+                } else {
+                    const list = document.createElement('div');
+                    list.className = 'space-y-2';
+                    keys.forEach(k => {
+                        const arr = groups[k];
+                        const sample = arr[0];
+                        const nextMut = MUTATIONS[sample.mutation.rank + 1];
+                        const ready = arr.length >= 3;
+                        const row = document.createElement('div');
+                        row.className = 'bg-slate-900 border-2 border-indigo-500/50 rounded-2xl p-3.5 flex items-center justify-between gap-2';
+                        row.innerHTML = `
+                            <div>
+                                <div class="font-black text-sm text-white">[${sample.mutation.name}] ${sample.species.name} (${arr.length} / 3마리)</div>
+                                <div class="text-xs font-bold text-indigo-300">진화 결과: [${nextMut.badge}] ${sample.species.name} (수익 ${nextMut.mult}배!)</div>
+                            </div>
+                            <button class="rbx-btn px-4 py-2 rounded-xl font-black text-xs cursor-pointer ${ready ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400'}">
+                                ${ready ? '⚗️ 합성하기' : '재료 부족'}
+                            </button>
+                        `;
+                        row.querySelector('button').onclick = () => {
+                            if (!ready) return floatPopup('동일 동물 3마리가 필요합니다!', 'text-rose-400');
+                            const removeIds = new Set(arr.slice(0, 3).map(x => x.uid));
+                            save.animals = save.animals.filter(x => !removeIds.has(x.uid));
+                            const eqCnt = save.animals.filter(x => x.equipped).length;
+                            save.animals.push({
+                                uid: Math.random().toString(36).slice(2),
+                                species: sample.species,
+                                mutation: nextMut,
+                                equipped: eqCnt < 3
+                            });
+                            syncRanchAndCompanions3D(); sfx.capture(); persist(); updateHUD(); renderModalContent();
+                            floatPopup(`⚗️ 합성 성공! [${nextMut.badge}] ${sample.species.name} 탄생!`, 'text-fuchsia-300');
+                        };
+                        list.appendChild(row);
+                    });
+                    box.appendChild(list);
+                }
+            } else if (state.activeModal === 'dex') {
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 sm:grid-cols-3 gap-2';
+                ALL_SPECIES.forEach(sp => {
+                    const unlocked = save.dexUnlocked.includes(sp.id);
+                    const rar = RARITY_COLORS[sp.rarity] || RARITY_COLORS['일반'];
+                    const card = document.createElement('div');
+                    card.className = `rounded-2xl p-3 border-2 ${unlocked ? 'bg-slate-900 border-slate-600' : 'bg-slate-950/70 border-slate-800 opacity-55'}`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-black ${rar.bg} ${rar.text}">${sp.rarity}</span>
+                            <span class="text-[10px] font-bold text-slate-400">${unlocked ? '등록됨 ✓' : '미발견'}</span>
+                        </div>
+                        <div class="font-black text-xs sm:text-sm text-white truncate">${unlocked ? sp.name : '???'}</div>
+                        <div class="text-[11px] font-bold text-emerald-300 mt-0.5">${unlocked ? `기본 +$${fmt(sp.income)}/초` : '포획 시 도감 등록'}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+                box.appendChild(grid);
+            } else if (state.activeModal === 'rebirth') {
+                const reqPower = Math.round(500 * Math.pow(3.0, save.rebirths));
+                const reqCash = Math.round(2500 * Math.pow(3.5, save.rebirths));
+                const canReb = save.power >= reqPower && save.cash >= reqCash;
+                const card = document.createElement('div');
+                card.className = 'bg-slate-900 border-2 border-purple-500 rounded-2xl p-5 space-y-3';
+                card.innerHTML = `
+                    <div class="font-black text-lg text-purple-300">♻️ 현재 환생 단계: ${save.rebirths}단계 (영구 배수 ${getRebirthMult().toFixed(1)}x)</div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        환생 시 <b>보유 골드·파워·음식·철봉</b>이 초기화되는 대신,<br>
+                        • 모든 목장 골드 수익 및 턱걸이 훈련량 <b>영구 +100%</b> 누적<br>
+                        • 행운 배수 <b>영구 +25%</b> 누적<br>
+                        • 포획한 <b>목장 동물과 도감 기록은 그대로 유지</b>됩니다!
+                    </p>
+                    <div class="text-xs font-black text-amber-300 bg-slate-950 p-3 rounded-xl border border-purple-500/50">
+                        필요 조건: 파워 ${fmt(reqPower)} (현재 ${fmt(save.power)}) / 골드 $${fmt(reqCash)} (현재 $${fmt(save.cash)})
+                    </div>
+                    <button id="btn-do-reb" class="rbx-btn w-full py-3.5 rounded-xl font-black text-sm cursor-pointer ${canReb ? 'bg-purple-500 text-white' : 'bg-slate-700 text-slate-400'}">
+                        ♻️ 지금 환생하기 (+100% 영구 배수 획득)
+                    </button>
+                `;
+                card.querySelector('#btn-do-reb').onclick = () => {
+                    if (!canReb) return floatPopup('환생에 필요한 파워와 골드가 부족합니다!', 'text-rose-400');
+                    save.rebirths++;
+                    save.cash = 100; save.power = 10; save.level = 1; save.exp = 0; save.maxExp = 10;
+                    save.foodIdx = 0; save.unlockedFoods = [0]; save.barTier = 0; save.unlockedBars = [0];
+                    refreshBarVisual(); sfx.levelUp(); persist(); updateHUD();
+                    document.getElementById('modal-backdrop').classList.add('hidden');
+                    floatPopup(`♻️ 환생 ${save.rebirths}단계 달성! 영구 배수 ${getRebirthMult().toFixed(1)}x!`, 'text-purple-300');
+                };
+                box.appendChild(card);
+            }
+        }
+
+        document.querySelectorAll('.modal-btn').forEach(btn => {
+            btn.onclick = () => openModal(btn.dataset.modal);
+        });
+        document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-backdrop').classList.add('hidden');
+
+        /**
+         * ============================================================================
+         * 9. 입력 바인딩 (키보드, 마우스 드래그 카메라, 가상 조이스틱)
+         * ============================================================================
+         */
+        window.addEventListener('keydown', e => {
+            state.keys[e.code] = true;
+            if (!state.started) return;
+            if (e.code === 'KeyQ') {
+                if (state.mode === 'PULLING') performSinglePullUp();
+                else startPullUpMode();
+            }
+            if (e.code === 'Space') {
+                e.preventDefault();
+                handleThrowButton();
+            }
+        });
+        window.addEventListener('keyup', e => state.keys[e.code] = false);
+
+        document.getElementById('btn-pullup').onclick = () => {
+            if (state.mode === 'PULLING') performSinglePullUp();
+            else startPullUpMode();
+        };
+        document.getElementById('btn-stop-pullup').onclick = stopPullUpMode;
+        document.getElementById('btn-throw').onclick = handleThrowButton;
+        document.getElementById('btn-abuse-trigger').onclick = triggerAdminAbuse;
+        document.getElementById('btn-collect-pen').onclick = () => {
+            if (save.storedPenCash < 1) return floatPopup('수금할 수익이 아직 쌓이지 않았습니다!', 'text-slate-300');
+            const amt = Math.floor(save.storedPenCash);
+            save.cash += amt;
+            save.storedPenCash = 0;
+            sfx.coin(); persist(); updateHUD();
+            floatPopup(`💰 목장 수익 +$${fmt(amt)} 수금 완료!`, 'text-emerald-300');
+        };
+        document.getElementById('btn-mute').onclick = e => {
+            sfx.muted = !sfx.muted;
+            e.target.textContent = sfx.muted ? '🔇' : '🔊';
+        };
+
+        // 카메라 회전 (베이스캠프에서 드래그 시)
+        renderer.domElement.addEventListener('mousedown', e => {
+            state.dragging = true;
+            state.lastMouse = { x: e.clientX, y: e.clientY };
+        });
+        window.addEventListener('mousemove', e => {
+            if (!state.dragging) return;
+            state.camYaw -= (e.clientX - state.lastMouse.x) * 0.006;
+            state.camPitch = Math.max(0.15, Math.min(0.85, state.camPitch + (e.clientY - state.lastMouse.y) * 0.005));
+            state.lastMouse = { x: e.clientX, y: e.clientY };
+        });
+        window.addEventListener('mouseup', () => state.dragging = false);
+
+        // 가상 조이스틱
+        const joyZone = document.getElementById('joy-zone');
+        const joyKnob = document.getElementById('joy-knob');
+        let joyId = null;
+
+        function moveJoy(cx, cy) {
+            const rect = joyZone.getBoundingClientRect();
+            const mx = rect.left + rect.width / 2;
+            const my = rect.top + rect.height / 2;
+            let dx = cx - mx, dy = cy - my;
+            const maxR = rect.width * 0.36;
+            const d = Math.hypot(dx, dy);
+            if (d > maxR) { dx = (dx / d) * maxR; dy = (dy / d) * maxR; }
+            joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+            state.joy.x = dx / maxR;
+            state.joy.y = dy / maxR;
+        }
+        joyZone.addEventListener('touchstart', e => { e.preventDefault(); joyId = e.changedTouches[0].identifier; moveJoy(e.changedTouches[0].clientX, e.changedTouches[0].clientY); }, { passive: false });
+        joyZone.addEventListener('touchmove', e => { e.preventDefault(); for (const t of e.changedTouches) if (t.identifier === joyId) moveJoy(t.clientX, t.clientY); }, { passive: false });
+        joyZone.addEventListener('touchend', e => {
+            for (const t of e.changedTouches) if (t.identifier === joyId) {
+                joyId = null; joyKnob.style.transform = 'translate(-50%, -50%)'; state.joy = { x: 0, y: 0 };
+            }
+        });
+
+        /**
+         * ============================================================================
+         * 10. 메인 3D 애니메이션 및 시뮬레이션 루프
+         * ============================================================================
+         */
+        let lastTime = performance.now();
+        let secAccum = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const now = performance.now();
+            const dt = Math.min((now - lastTime) / 1000, 0.05);
+            lastTime = now;
+
+            // 제단 포탈 회전 & 목장 동물 유영
+            shrinePortal.rotation.z += dt * 1.4;
+            ranchAnimalMeshes.forEach((rm, i) => {
+                rm.mesh.position.x = rm.baseX + Math.sin(now * 0.0018 + rm.phase) * 1.6;
+                rm.mesh.position.y = 0.25 + Math.abs(Math.sin(now * 0.006 + i)) * 0.35;
+                rm.mesh.rotation.y = Math.cos(now * 0.0018 + rm.phase) > 0 ? Math.PI / 2 : -Math.PI / 2;
+            });
+
+            if (state.started) {
+                // 어뷰즈 이벤트 타이머 & 메테오 낙하
+                if (save.abuseTimer > 0) {
+                    save.abuseTimer = Math.max(0, save.abuseTimer - dt);
+                    scene.background.setHex(0x3b0764);
+                    scene.fog.color.setHex(0x3b0764);
+                    if (save.abuseTimer === 0) {
+                        scene.background.setHex(0x60a5fa);
+                        scene.fog.color.setHex(0x60a5fa);
+                        updateHUD();
+                    }
+                }
+
+                for (let i = meteors3D.length - 1; i >= 0; i--) {
+                    const m = meteors3D[i];
+                    if (m.mesh.position.y > 0.9) {
+                        m.mesh.position.y -= 18 * dt;
+                        m.mesh.rotation.x += dt * 3;
+                    } else if (Math.hypot(player.pos.x - m.x, player.pos.z - m.z) < 2.8) {
+                        save.cash += m.reward;
+                        scene.remove(m.mesh);
+                        meteors3D.splice(i, 1);
+                        sfx.coin(); updateHUD();
+                        floatPopup(`☄️ 메테오 획득! +$${fmt(m.reward)}`, 'text-amber-300');
+                    }
+                }
+
+                // 초당 목장 수익 적립
+                secAccum += dt;
+                if (secAccum >= 1.0) {
+                    secAccum -= 1.0;
+                    const inc = getPenIncomePerSec();
+                    if (inc > 0) save.storedPenCash += inc;
+                    updateHUD();
+                }
+
+                // 상태별 업데이트
+                if (state.mode === 'ROAM') {
+                    let fwd = 0, right = 0;
+                    if (state.keys['KeyW'] || state.keys['ArrowUp']) fwd += 1;
+                    if (state.keys['KeyS'] || state.keys['ArrowDown']) fwd -= 1;
+                    if (state.keys['KeyD'] || state.keys['ArrowRight']) right += 1;
+                    if (state.keys['KeyA'] || state.keys['ArrowLeft']) right -= 1;
+                    if (Math.abs(state.joy.x) > 0.08 || Math.abs(state.joy.y) > 0.08) {
+                        right = state.joy.x;
+                        fwd = -state.joy.y;
+                    }
+
+                    const fVec = new THREE.Vector3(-Math.sin(state.camYaw), 0, -Math.cos(state.camYaw));
+                    const rVec = new THREE.Vector3(Math.cos(state.camYaw), 0, -Math.sin(state.camYaw));
+                    const dir = new THREE.Vector3().addScaledVector(fVec, fwd).addScaledVector(rVec, right);
+
+                    if (dir.lengthSq() > 0.001) {
+                        dir.normalize();
+                        player.pos.addScaledVector(dir, 14 * dt);
+                        player.av.root.rotation.y = Math.atan2(dir.x, dir.z);
+                        const w = Math.sin(now * 0.018) * 0.65;
+                        player.av.legL.rotation.x = w; player.av.legR.rotation.x = -w;
+                        player.av.armL.rotation.x = -w; player.av.armR.rotation.x = w;
+                    } else {
+                        player.av.legL.rotation.x = 0; player.av.legR.rotation.x = 0;
+                        player.av.armL.rotation.x = 0; player.av.armR.rotation.x = 0;
+                    }
+
+                    player.pos.x = Math.max(-28, Math.min(28, player.pos.x));
+                    player.pos.z = Math.max(-18, Math.min(22, player.pos.z));
+                    player.av.root.position.copy(player.pos);
+
+                    // 수금 패드 자동 수금 판정
+                    if (save.storedPenCash >= 1 && Math.hypot(player.pos.x - 7.5, player.pos.z - 10) < 2.6) {
+                        const amt = Math.floor(save.storedPenCash);
+                        save.cash += amt;
+                        save.storedPenCash = 0;
+                        sfx.coin(); updateHUD();
+                        floatPopup(`💰 자동 수금! +$${fmt(amt)}`, 'text-emerald-300');
+                    }
+
+                    // 철봉 근처 다가가면 자동 턱걸이 시작
+                    if (Math.hypot(player.pos.x - BAR_POS.x, player.pos.z - BAR_POS.z) < 2.2) {
+                        startPullUpMode();
+                    }
+                } else if (state.mode === 'PULLING') {
+                    state.pullupPhase += dt * 6.5;
+                    const lift = (Math.sin(state.pullupPhase) + 1) * 0.55;
+                    player.av.root.position.set(BAR_POS.x, 2.3 + lift, BAR_POS.z);
+
+                    state.pullupTimer += dt;
+                    if (state.pullupTimer >= 0.65) {
+                        state.pullupTimer = 0;
+                        performSinglePullUp();
+                    }
+                } else if (state.mode === 'GAUGE') {
+                    state.gaugeVal += state.gaugeDir * 1.45 * dt;
+                    if (state.gaugeVal >= 1.0) { state.gaugeVal = 1.0; state.gaugeDir = -1; }
+                    if (state.gaugeVal <= 0.0) { state.gaugeVal = 0.0; state.gaugeDir = 1; }
+                    document.getElementById('gauge-cursor').style.bottom = (state.gaugeVal * 92) + '%';
+                } else if (state.mode === 'FLYING') {
+                    const fl = state.flight;
+                    fl.progress += dt / fl.duration;
+                    if (fl.progress >= 1.0) {
+                        fl.progress = 1.0;
+                        triggerLandingEncounter(fl.targetZ, fl.distMeters, fl.finalLuck);
+                    } else {
+                        const curZ = fl.startZ + (fl.targetZ - fl.startZ) * fl.progress;
+                        const curY = 2.0 + Math.sin(fl.progress * Math.PI) * Math.min(28, 12 + fl.distMeters * 0.035);
+                        foodProjGroup.position.set(0, curY, curZ);
+                        foodMesh.rotation.x += dt * 6;
+                        foodMesh.rotation.y += dt * 8;
+
+                        // 무지개/코스믹 비행 파티클 트레일 (영상 0:09 재현!)
+                        const pMesh = new THREE.Mesh(
+                            new THREE.BoxGeometry(0.65, 0.65, 0.65),
+                            new THREE.MeshBasicMaterial({ color: Math.random() < 0.5 ? fl.food.col1 : fl.food.col2, transparent: true, opacity: 0.85 })
+                        );
+                        pMesh.position.set((Math.random() - 0.5) * 0.6, curY, curZ);
+                        scene.add(pMesh);
+                        flightParticles.push({ mesh: pMesh, life: 0.55 });
+
+                        // 실시간 행운 카운터 & 현재 통과 중인 바이옴 배지 갱신
+                        const curDist = Math.round(fl.distMeters * fl.progress);
+                        const curLuck = (1 + (fl.finalLuck - 1) * fl.progress).toFixed(2);
+                        const curBiome = BIOMES.find(b => curZ <= b.zStart && curZ > b.zEnd) || BIOMES[0];
+                        document.getElementById('flight-luck-text').textContent = `${curLuck}X`;
+                        document.getElementById('flight-biome-badge').textContent = `${curBiome.name} (${curDist}m)`;
+                    }
+                } else if (state.mode === 'EATING') {
+                    const enc = state.encounter;
+                    if (wildEncounterMesh) {
+                        if (enc.aniZ < enc.z - 2.6) {
+                            enc.aniZ += 12 * dt;
+                            wildEncounterMesh.position.z = enc.aniZ;
+                            wildEncounterMesh.position.y = Math.abs(Math.sin(now * 0.015)) * 0.4;
+                        } else {
+                            enc.eatProgress += dt / 2.2;
+                            wildEncounterMesh.position.y = Math.abs(Math.sin(now * 0.025)) * 0.35;
+                            document.getElementById('eating-progress-bar').style.width = Math.min(100, enc.eatProgress * 100) + '%';
+                            if (Math.random() < 0.25) sfx.munch();
+                            if (enc.eatProgress >= 1.0) {
+                                completeAnimalCapture();
+                            }
+                        }
+                    }
+                }
+
+                // 동행펫 3D 추적 이동
+                companionMeshes.forEach((cm, i) => {
+                    const angle = (i - 1) * 0.9;
+                    const tx = player.pos.x + Math.sin(player.av.root.rotation.y + Math.PI + angle) * 2.5;
+                    const tz = player.pos.z + Math.cos(player.av.root.rotation.y + Math.PI + angle) * 2.5;
+                    cm.position.lerp(new THREE.Vector3(tx, 0.2 + Math.abs(Math.sin(now * 0.008 + i)) * 0.3, tz), 0.12);
+                    cm.rotation.y = player.av.root.rotation.y;
+                });
+
+                // 비행 파티클 소멸
+                for (let i = flightParticles.length - 1; i >= 0; i--) {
+                    const fp = flightParticles[i];
+                    fp.life -= dt;
+                    fp.mesh.scale.multiplyScalar(0.94);
+                    fp.mesh.material.opacity = Math.max(0, fp.life * 1.5);
+                    if (fp.life <= 0) { scene.remove(fp.mesh); flightParticles.splice(i, 1); }
+                }
+            }
+
+            // 상태별 3D 다이내믹 카메라 워크
+            if (state.mode === 'FLYING') {
+                const fPos = foodProjGroup.position;
+                camera.position.lerp(new THREE.Vector3(0, fPos.y + 5.5, fPos.z + 12.5), 0.22);
+                camera.lookAt(0, fPos.y - 1.0, fPos.z - 14);
+            } else if (state.mode === 'EATING') {
+                const ez = state.encounter.z;
+                camera.position.lerp(new THREE.Vector3(6.5, 5.2, ez + 7.5), 0.16);
+                camera.lookAt(0, 1.8, ez - 2);
+            } else {
+                const camR = 11.5;
+                const cx = player.pos.x + Math.sin(state.camYaw) * Math.cos(state.camPitch) * camR;
+                const cy = player.pos.y + 2.8 + Math.sin(state.camPitch) * camR;
+                const cz = player.pos.z + Math.cos(state.camYaw) * Math.cos(state.camPitch) * camR;
+                camera.position.lerp(new THREE.Vector3(cx, cy, cz), 0.18);
+                camera.lookAt(player.pos.x, player.pos.y + 2.0, player.pos.z);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        document.getElementById('btn-start').onclick = () => {
+            sfx.init();
+            sfx.coin();
+            state.started = true;
+            document.getElementById('start-overlay').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            updateHUD();
+        };
+
+        window.onload = function () {
+            animate();
+        };
+    </script>
+
+<button id="pkExit" style="position:fixed;top:8px;left:8px;z-index:70;padding:6px 12px;border-radius:10px;border:2px solid #0f172a;background:rgba(15,23,42,.85);color:#fff;font:900 13px 'Noto Sans KR',sans-serif;display:none">✕ 나가기</button>
+<script>
+/* ===== 포켓몬 어드벤처 기술 이펙트 연결 (empress-fx.js) =====
+   위치: poke/foodthrow/index.html → ../empress-fx.js
+   2D 캔버스를 3D 화면 위에 겹쳐서, 먹이가 떨어진 자리 → 동물 쪽으로 기술 이펙트를 쏴요 */
+(function () {
+    var inFrame = window.parent !== window;
+    var ex = document.getElementById('pkExit');
+    if (inFrame) {
+        ex.style.display = 'block';
+        ex.onclick = function () {
+            try { persist(); } catch (e) {}
+            parent.postMessage({ src: 'foodthrow', type: 'close' }, location.origin);
+        };
+    }
+    var cv = document.createElement('canvas');
+    cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:45';
+    document.body.appendChild(cv);
+    var g = cv.getContext('2d'), dpr = 1, W = 0, H = 0;
+    function fit() { dpr = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; }
+    fit(); addEventListener('resize', fit);
+
+    var ready = !!window.EMPFX, LIST = [];
+    if (!ready) {
+        var sc = document.createElement('script');
+        sc.src = '../empress-fx.js';
+        sc.onload = function () { ready = true; };
+        document.head.appendChild(sc);
+    }
+
+    // 먹이 등급(0~12) → 기술 (속성 느낌: 사과=불꽃 … 왕관 마카롱=반짝임)
+    var FOODFX = ['ember', 'energyball', 'thunderbolt', 'flamethrower', 'aurasphere', 'hydropump', 'flamethrower',
+                  'icebeam', 'bubblebeam', 'moonblast', 'sludgebomb', 'dragonbreath', 'dazzlinggleam'];
+
+    function fire(id, from, to, size) {
+        if (!window.EMPFX) return;
+        var dx = to.x - from.x, dy = to.y - from.y, d = Math.max(60, Math.hypot(dx, dy)), sz = Math.max(.6, Math.min(2.2, size || 1));
+        try {
+            var inst = EMPFX.make({ id: id, beast: null, po: '', n: 1, sp: 1, dur: 0, sz: sz, dist: d / sz, cmap: null, onhit: function () {} });
+            LIST.push({ inst: inst, x: from.x, y: from.y, ang: Math.atan2(dy, dx), sc: sz, t: 0 });
+        } catch (e) { console.warn('fx', e); }
+    }
+    function scr(v) {
+        var p = v.clone().project(camera);
+        return { x: (p.x + 1) / 2 * W, y: (1 - p.y) / 2 * H };
+    }
+    window.pkLandFx = function (species, mutation, landZ) {
+        if (!ready) return;
+        var id = FOODFX[Math.min(FOODFX.length - 1, Math.max(0, save.foodIdx | 0))] || 'energyball';
+        var from = { x: W * 0.5, y: H * 0.78 };
+        var to = scr(new THREE.Vector3(0, 2, landZ - 14));
+        if (!isFinite(to.x) || !isFinite(to.y)) to = { x: W * 0.5, y: H * 0.42 };
+        // 희귀 동물이면 이펙트를 크게
+        var rare = species && species.rarity && species.rarity !== '일반';
+        fire(id, from, to, rare ? 1.5 : 1.1);
+    };
+    window.pkCapFx = function () {
+        if (!ready) return;
+        fire('dazzlinggleam', { x: W * 0.5, y: H * 0.72 }, { x: W * 0.5, y: H * 0.42 }, 1.3);
+    };
+
+    var last = performance.now();
+    (function loop(n) {
+        var dt = Math.min(.05, (n - last) / 1000); last = n;
+        g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+        for (var i = LIST.length - 1; i >= 0; i--) {
+            var f = LIST[i]; f.t += dt;
+            try { f.inst.step(dt); } catch (e) { f.inst.done = true; }
+            g.save(); g.translate(f.x, f.y); g.rotate(f.ang); g.scale(f.sc, f.sc);
+            try { f.inst.draw(g); } catch (e) { f.inst.done = true; }
+            g.restore();
+            if (f.inst.done || f.t > 5) LIST.splice(i, 1);
+        }
+        requestAnimationFrame(loop);
+    })(last);
+})();
+</script>
+</body>
+</html>
