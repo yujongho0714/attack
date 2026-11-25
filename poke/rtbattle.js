@@ -1714,7 +1714,7 @@ function render(){try{teraUi()}catch(er){}try{gmUi()}catch(er){}
   hud(cx,Wd,Hd);
 }
 function hud(cx,Wd,Hd){
-  const me=W.me,foe=W.foe,u=Math.max(1,Math.min(Wd,Hd*1.6)/700);
+  const me=W.me,foe=W.foe,u=Math.max(.62,Math.min(Wd,Hd*1.6)/700*(window.PKHS||.66));
   const PKN=C.net?6:((W.ents&&W.ents.length)?Math.max(W.ents.filter(q=>q.side===0).length,W.ents.filter(q=>q.side===1).length):1);
   const bar=(x,y,w,e,right)=>{
     cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(x,y,w,(window.PKHX?PKHX.h(PKN):46)*u);

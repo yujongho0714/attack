@@ -2745,7 +2745,7 @@ function fuseShow(kind,r,mats,ok,res){return new Promise(done=>{rpoolInit();cons
   sk.onclick=fin;requestAnimationFrame(step)})}
 
 // ===== 포획: 등급별 출현·포획 확률 · 볼 고르기(스와이프·진동) · 타이밍(팡야처럼) · 자동일 때 볼 규칙 =====
-const rarOf=n=>{const M=META[n];if(!M)return 0;if(M.form)return M.rzr!=null?M.rzr:(FTIER[M.form]||4);return RARP[M.dex]||0};
+const rarOf=n=>{const M=META[n];if(!M)return 0;if(M.form)return M.rzr!=null?M.rzr:(FTIER[M.form]||4);{const _nk=/^sc:(2\d{4})$/.exec(String(n));if(_nk&&window.NCRAR&&NCRAR[_nk[1]]!=null)return NCRAR[_nk[1]]|0}return RARP[M.dex]||0};
 // 포켓몬 한 마리의 등급: 돌(메가스톤 · 다이맥스 밴드 · 원시의 구슬)로 바꾼 폼은 원래 등급에서 한 단계만 올라가요 (m.fr)
 const rarB=m=>{try{if(!m)return 0;if(m.fr!=null&&META[m.n]&&META[m.n].form)return m.fr;return rarOf(m.n)}catch(e){return 0}};
 // 9B 초월 승급(m.ax 7 불멸 · 8 태초 · 9 만제): 원래 등급(rarB)보다 높으면 그 등급 — 각성 영혼은 원래 등급 그대로
@@ -6533,7 +6533,7 @@ try{HUB.push({k:'a2fx',n:'아레나 연출',d:'기술이 날아가는 길의 불
 // 기록에 저장하지 않아요(배틀 안에서만 있어요) → 예전 코드로 되돌려도 안전해요 · 메뉴 「테라스탈」에서 켜고 끌 수 있어요
 const TERA=new Map(),A2T={used:0};
 const teraOn=()=>!(G&&G.opt&&G.opt.tera===0);
-function teraType(m){let b=null,bp=-1;for(const id of (m.moves||[])){const q=mv(id);if(q&&q.type&&(q.pw||0)>bp){bp=q.pw||0;b=q.type}}return b||(META[m.n]&&META[m.n].types[0])||'NORMAL'}
+function teraType(m){let b=null,bp=0;const own=(META[m.n]&&META[m.n].types)||[];for(const id of (m.moves||[])){const q=mv(id);if(q&&q.type&&(q.pw||0)>bp){if(q.type==='NORMAL'&&!own.includes('NORMAL'))continue;bp=q.pw||0;b=q.type}}return b||own[0]||'NORMAL'}
 function teraGo(){if(!teraOn()||A2T.used||!BS.on||!BS.me||!BS.me.m||BS.me.m.hp<=0)return;
   const m=BS.me.m,T=teraType(m);A2T.used=1;TERA.set(m,{T,t:0});
   try{const p=side(1),S=bsz(),x=p.x+(BS.me.ox||0),y=p.y+(BS.me.oy||0)-(BS.me.lift||0)-S*.5,st=stopsOf(T);
@@ -9458,6 +9458,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112501,date:'11월 25일',t:'사이드 메뉴 접기 · 전투 체력바 작게 · 맵 끼임 탈출',items:[{h:"📂 오른쪽 메뉴를 접을 수 있어요",p:["<b>어떻게 해요?</b> 오른쪽 메뉴 아래에 있는 <b>「▶ 접기」</b> 단추를 누르면 메뉴가 숨어요. 다시 <b>「◀ 메뉴」</b>를 누르면 펴져요. 접어 둔 상태는 기억해요."]},{h:"🆘 맵에서 끼었을 때 「탈출하기」",p:["<b>무엇이에요?</b> 자동 사냥 중에 한참 동안 한 칸도 안 움직이면 화면 가운데에 <b>「🆘 탈출하기」</b>가 떠요. 누르면 <b>움직일 수 있는 풀숲·길</b>로 옮겨 줘요."]},{h:"🔧 고쳤어요",p:["신캐(예: 루체몬 사탄 모드)가 <b>유일</b>인데 일반(노말)로 나오던 것을 고쳤어요.","테라스탈 타입이 노말 기술 때문에 「노말」로 나오던 것을 포켓몬 본래 타입 쪽으로 고쳤어요.","전투 화면 체력바 · 이름 글씨를 작게 줄였어요."]}]},
  {v:2026112097,date:'11월 23일',t:'일일보스 (더 세졌어요) · 경험치 던전 입장권',items:[{h:"👑 일일보스 (예전 이름: 서바이버 월드보스)",p:["<b>무엇이에요?</b> 컨텐츠의 「👑 일일보스」는 매일 3번 도전하는 서바이버 보스예요. 일주일에 한 번 하는 🐉 월드보스와는 달라요.","<b>얼마나 세졌어요?</b> 이제 보스 체력이 <b>내 파티 화력</b>에 맞춰져요. 난이도가 높을수록 더 오래 버텨요 (쉬움은 약 36초 · 명계는 약 63초 분량). 공격도 파티 체력에 맞춰 아파지고, 체력이 절반 아래가 되면 <b>더 빨리 쫓아오고 내려찍기도 자주</b> 해요.","<b>어떻게 해요?</b> 컨텐츠 → 「👑 일일보스 (매일)」 → 난이도 고르기."]},{h:"🎫 경험치 던전 입장권",p:["<b>무엇이에요?</b> 경험치 던전도 하루 3번을 다 쓴 뒤 입장권으로 <b>오늘 도전 +1</b> 할 수 있어요. 골드 · 영혼 · 일일보스 입장권과 똑같이 가방 「🎫 입장권」에서 「사용하기」를 눌러요."]}]},
  {v:2026112096,date:'11월 23일',t:'서바이버 던전: 자동 조종 · 소탕',items:[{h:"🤖 던전을 알아서 해 줘요 (자동 조종)",p:["<b>무엇이에요?</b> 던전 화면 오른쪽 위 「🤖 자동」 버튼을 누르면 캐릭터가 <b>알아서 적을 피해 다니고</b> 금화 · 영혼 · 경험치 구슬을 주워요. 레벨이 오를 때 <b>기술도 알아서 골라요</b>.","<b>어디서 켜요?</b> 던전 「난이도 고르기」 맨 위 스위치 또는 던전 안의 🤖 버튼이에요. 내가 직접 움직이거나 화면을 만지면 그동안은 내 조작이 먼저예요."]},{h:"⚡ 소탕 (최고 기록 그대로 보상)",p:["<b>무엇이에요?</b> 한 번 직접 해서 세운 <b>난이도별 최고 기록</b> 그대로 바로 보상을 받아요. 컨텐츠의 던전 카드나 결과 창에서 「⚡ 소탕」을 눌러요. 기록은 더 잘하면 자동으로 올라가요.","<b>횟수는요?</b> 소탕도 하루 3번에 들어가요 (골드 · 영혼 · 월드보스 던전). 「남은 횟수 모두 소탕」으로 한 번에 끝낼 수도 있어요. 처음 클리어 보너스(코인)는 직접 해야 받아요.","<b>주의!</b> 이번 업데이트 전의 기록은 남아 있지 않아서, 던전마다 한 번은 직접(또는 🤖 자동으로) 해야 소탕이 열려요."]}]},
  {v:2026112095,date:'11월 23일',t:'앱솔루트 · 어메이징 큐브: 능력치 줄이 늘어나요',items:[{h:"➕ 능력치 줄이 하나 더 생겨요 (최대 5줄)",p:["<b>무엇이에요?</b> 앱솔루트 큐브(장비)와 어메이징 큐브(아티팩트)를 쓸 때마다 <b>0.5% 확률</b>로 능력치 줄이 <b>하나 더</b> 생겨요. 처음엔 3줄이고, 늘어나면 4줄 → 5줄까지 가요. 5줄이 끝이에요.","<b>어떻게 알아요?</b> 줄이 늘면 고르는 창에 <b>✨ 능력치 줄이 하나 늘었어요!</b>가 떠요. 새로 생긴 줄은 <b style='color:#2bd96b'>[행운]</b> (초록색)이 앞에 붙고, 또 한 줄 늘면 <b style='color:#ff2a2a'>[특]</b> (빨강)이 붙어요. 「이후 옵션 선택」을 누르면 늘어난 줄이 그대로 남아요. 「이전 옵션 유지」를 누르면 줄 수도 이전으로 돌아가요.","<b>한 번 늘어나면요?</b> 그 뒤로 다른 큐브(수상한 · 명장의 · 카오스 · 성유물 · 천공 · 자동 돌리기)를 써도 줄 수는 <b>그대로 유지</b>돼요. 줄이 많을수록 장비와 아티팩트가 더 세져요."]},{h:"🃏 장비 · 아티팩트에 등급 카드 프레임",p:["<b>무엇이 달라졌어요?</b> 장비와 아티팩트가 <b>카드처럼 등급 색 테두리</b>와 오른쪽 위 <b>등급 이름표</b>를 달고 나와요. 에픽은 보랏빛, 유니크는 금빛 · 레전드리는 초록빛으로 빛나요. 그림 둘레에도 같은 색 테두리가 둘러져요.","<b>[행운] · [특] 줄은 더 눈에 띄어요.</b> 3줄 뒤에 붙는 4번째 줄은 반짝이는 <b>초록 [행운]</b> 띠로, 5번째 줄은 번쩍이는 <b>빨강 [특]</b> 띠로 보여요. 한눈에 구분돼요."]}]},
@@ -10942,7 +10943,7 @@ try{HUBIC.artifact='ic_bag';HUB.push({k:'artifact',n:'아티팩트',d:'각성 �
   setInterval(scan,800);scan();
   addEventListener('resize',()=>{for(const id in P){const el=document.getElementById(id);if(el&&P[id]){el.style.translate='0px 0px';P[id]=[0,0];el.style.translate=''}}sv()})})();
 </script>
-<script src="pk-patch.js"></script><script src="pk-hudx.js"></script>
+<script src="pk-patch.js"></script><script src="pk-hudx.js"></script><script src="pk-fix2.js"></script>
 <script id="b10c">
 // ===== 10C 하계 · 명계: 인트로 장면 · 마을마다 첫 방문 이야기 · 조각/기억 얻을 때 장면 · 목표 문구 · 관장 전용 팀 =====
 (function(){try{
