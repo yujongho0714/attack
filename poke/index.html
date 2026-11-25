@@ -8038,14 +8038,26 @@ const AWMAX=10,AWNEED=10,AWPCT=6;const awNeed=n=>(n|0)>=6?AWNEED*(2+((n|0)-6)):A
 const awSlots=m=>opTest()?awMx(m):(m&&typeof m==='object')?((m.sp&&(m.lb|0)>=10)?AWMAXSP:Math.min(AWMAX,m.lb|0)):Math.min(AWMAX,rbTier());// 각성 별 칸 = 그 포켓몬이 직접 한계돌파한 ★ 수 (한계돌파 안 하면 각성 불가)
 const awCost=n=>50000*n*(n>=6?2+(n-6):1);// n번째 각성에 드는 골드(원) · 6번째부터 점점 비싸져요 (6번째 ×2 · 7번째 ×3 · … · 10번째 ×6)
 // ===== 스피릿: 각성 태생을 유일로 올린 포켓몬(m.sp=1) · 15각(초록별) · 별 1개 4.4% · 하한선 m.spf =====
-const AWMAXSP=15,SPPCT=4.4,SPGOLD=37000,SPNEED=[5,5,5,5,5,10,10,15,15,20,20,25,30,35,45],SPRATIO=[12,10,8,6,4,2,1];// SPRATIO[등급] = 그 등급 영혼 몇 개가 유일 영혼 1개인지
+const AWMAXSP=15,SPPCT=4.4,SPGOLD=37000,SPNEED=[5,5,5,5,5,10,10,15,15,20,10,20,25,30,40],SPRATIO=[7,6,5,4,3,2,1];// SPRATIO[등급] = 그 등급 영혼 몇 개가 유일 영혼 1개인지
 const awMx=m=>m&&m.sp?AWMAXSP:AWMAX;
-const awNeedOf=(m,n)=>m&&m.sp?(SPNEED[n-1]||0):awNeed(n);
-const awCostOf=(m,n)=>m&&m.sp?(SPNEED[n-1]||0)*SPGOLD:awCost(n);
+// 스피릿 11~15번째 재료: 태생이 높을수록 스피릿으로 얻는 양이 적으니 그만큼 싸게 (일반 ×1 · 희귀 ×.85 · 영웅 ×.7 · 전설 ×.55 · 신화 ×.4 · 환상 ×.25)
+const SPMUL=[1,.85,.7,.55,.4,.25];
+const spUnitOf=(m,n)=>Math.max(1,Math.round((SPNEED[n-1]||0)*(SPMUL[Math.max(0,Math.min(5,rarB(m)|0))]||1)));
+const awNeedOf=(m,n)=>m&&m.sp&&n>10?spUnitOf(m,n):awNeed(n);
+const awCostOf=(m,n)=>m&&m.sp&&n>10?spUnitOf(m,n)*SPGOLD:awCost(n);
 const awPc=(m,k)=>m&&m.sp?window.awBirth.pct(m,k):k*AWPCT;
 function spCnt(){const c=[0,0,0,0,0,0,0];for(const x of G.dupes||[])if(x.kind==='P'&&x.rar>=0&&x.rar<7)c[x.rar]++;return c}
 function spUnits(){const c=spCnt();let u=0;for(let r=0;r<7;r++)u+=Math.floor(c[r]/SPRATIO[r]);return u}
 function spPay(units){const c=spCnt();let need=units;const take=[0,0,0,0,0,0,0];for(let r=6;r>=0&&need>0;r--){const t=Math.min(Math.floor(c[r]/SPRATIO[r]),need);take[r]=t*SPRATIO[r];need-=t}if(need>0)return null;const idx=[];(G.dupes||[]).forEach((x,i)=>{if(x.kind==='P'&&x.rar>=0&&x.rar<7&&take[x.rar]>0){take[x.rar]--;idx.push(i)}});return idx}
+// ===== 일반 각성 영혼 환산: 태생 등급(r)과 그보다 낮은 등급 영혼만 재료로 써요 (높은 등급 영혼은 못 써요) =====
+// 유일 영혼 1개 = 환상 2 · 신화 3 · 전설 4 · 영웅 5 · 희귀 6 · 일반 7개 (SPRATIO) · 점수 = 420 / SPRATIO (정수 계산)
+const SPPT=SPRATIO.map(x=>420/x);
+function soulEq(r){r=Math.max(0,Math.min(6,r|0));const c=spCnt();let t=0;for(let g=0;g<=r;g++)t+=c[g]*SPPT[g];return Math.floor(t/SPPT[r])}
+function soulPay(r,need){r=Math.max(0,Math.min(6,r|0));const c=spCnt();let rem=need*SPPT[r];const take=[0,0,0,0,0,0,0];
+  const order=[r];for(let g=0;g<r;g++)order.push(g);// 태생 등급 먼저 · 모자라면 가장 낮은 등급부터
+  for(const g of order){if(rem<=0)break;const t=Math.min(c[g],Math.ceil(rem/SPPT[g]));take[g]=t;rem-=t*SPPT[g]}
+  if(rem>0)return null;const idx=[];(G.dupes||[]).forEach((x,i)=>{if(x.kind==='P'&&x.rar>=0&&x.rar<7&&take[x.rar]>0){take[x.rar]--;idx.push(i)}});return idx}
+function soulEqTxt(r){const a=[];for(let g=Math.max(0,Math.min(6,r|0));g>=0;g--)a.push(RAR[g]+' '+SPRATIO[g]+'개');return a.join(' = ')}
 const awOf=m=>Math.max(0,Math.min(awMx(m),(m&&m.aw)|0));
 {const _s=stOf;stOf=function(m){const S=_s(m);const a=awEff(m);if(!a)return S;const o=S.slice?S.slice():S,k=1+a*AWPCT/100;for(let i=0;i<6;i++)o[i]=Math.round(o[i]*k);return o}}
 // 보라 불꽃 오라: 몸 둘레에서 위로 일렁이는 불꽃 4겹(진한 보라 → 연보라 → 흰 심지) · 별이 많을수록 크고 많아요
@@ -8101,8 +8113,8 @@ function awOpen(){if(!G)return;const sl=awSlots();
 async function awGo(m){const a=awOf(m),n=a+1;if(n>awSlots(m)||a>=awMx(m)){toast('한계돌파 ★가 모자라요 · 이 포켓몬을 먼저 한계돌파해요');return}const r=rarB(m),cost=awCostOf(m,n);
   if(G.money<cost){toast('골드가 모자라요');return}
   let idx=[];
-  if(m.sp){idx=spPay(awNeedOf(m,n));if(!idx){toast('유일 영혼이 모자라요');return}}
-  else{(G.dupes||[]).forEach((x,i)=>{if(x.kind==='P'&&x.rar===r&&idx.length<awNeed(n))idx.push(i)});if(idx.length<awNeed(n)){toast('같은 등급 영혼이 모자라요');return}}
+  if(m.sp&&n>10){idx=spPay(awNeedOf(m,n));if(!idx){toast('유일 영혼이 모자라요');return}}
+  else{idx=soulPay(r,awNeedOf(m,n));if(!idx){toast('쓸 수 있는 영혼이 모자라요 (태생 등급과 그보다 낮은 등급만 돼요)');return}}
   const set=new Set(idx);G.dupes=G.dupes.filter((x,i)=>!set.has(i));G.money-=cost;m.aw=n;m.hp=stOf(m)[0];save();closePanel(1);
   try{sfx('badge')}catch(e){}try{A2.tone(500,1800,.6,'sine',.12);A2.tone(800,2600,.5,'triangle',.07,.1)}catch(e){}
   await awShow(m,n);awOpen()}
@@ -8572,21 +8584,21 @@ awShow=function(m,n){return new Promise(done=>{const o=document.createElement('d
   o.querySelector('button').onclick=()=>{alive=0;o.remove();done()}})};
 
 // ---------- 각성 정보 · 설명 ----------
-function awInfo(m){const a=awOf(m),n=a+1,sp=!!(m&&m.sp),r=sp?6:rarB(m),sl=awSlots(m),full=a>=awMx(m),slotOk=n<=sl,have=sp?spUnits():(G.dupes||[]).filter(x=>x.kind==='P'&&x.rar===r).length,need=awNeedOf(m,n),cost=awCostOf(m,n);
-  return{a,n,r,sl,full,slotOk,have,cost,need,lackS:Math.max(0,need-have),lackG:Math.max(0,cost-G.money),can:!full&&slotOk&&have>=need&&G.money>=cost}}
-function awCan(){try{if(!G)return false;const cnt={};for(const x of G.dupes||[])if(x.kind==='P')cnt[x.rar]=(cnt[x.rar]||0)+1;const spU=spUnits();return [...G.party,...G.box].some(m=>{const a=awOf(m);if(a>=awMx(m)||a>=awSlots(m))return false;if(m.sp)return spU>=awNeedOf(m,a+1)&&G.money>=awCostOf(m,a+1);return (cnt[rarB(m)]||0)>=awNeed(a+1)&&G.money>=awCost(a+1)})}catch(e){return false}}
+function awInfo(m){const a=awOf(m),n=a+1,sp=!!(m&&m.sp),us=sp&&n>10,r=us?6:rarB(m),sl=awSlots(m),full=a>=awMx(m),slotOk=n<=sl,have=us?spUnits():soulEq(r),need=awNeedOf(m,n),cost=awCostOf(m,n);
+  return{a,n,r,sl,full,slotOk,have,cost,need,us,lackS:Math.max(0,need-have),lackG:Math.max(0,cost-G.money),can:!full&&slotOk&&have>=need&&G.money>=cost}}
+function awCan(){try{if(!G)return false;const spU=spUnits();return [...G.party,...G.box].some(m=>{const a=awOf(m);if(a>=awMx(m)||a>=awSlots(m))return false;const n=a+1;if(m.sp&&n>10)return spU>=awNeedOf(m,n)&&G.money>=awCostOf(m,n);return soulEq(rarB(m))>=awNeed(n)&&G.money>=awCost(n)})}catch(e){return false}}
 const soulHow=()=>'<b>영혼은 어떻게 모아요?</b><br>① 이미 잡은 포켓몬을 쓰러뜨리면 그 포켓몬의 영혼 1개<br>② 보관함에서 중복 포켓몬을 「분해」하면 영혼 '+(typeof BXSOUL!=='undefined'?BXSOUL:10)+'개<br>③ 중복으로 받은 포켓몬 카드 · 선물도 영혼이 돼요';
 function soulLine(){const c=Array(7).fill(0);for(const x of G.dupes||[])if(x.kind==='P'&&x.rar>=0&&x.rar<7)c[x.rar]++;return c.map((n,i)=>n?'<span style="color:'+RARC[i]+'">'+RAR[i]+' '+n+'</span>':'').filter(Boolean).join(' · ')||'없음'}
 function awSummary(){return `<div class="awx-c"><b class="t">⭐ 각성이 뭐예요?</b>
 ① 포켓몬마다 <b>그 포켓몬이 직접 한계돌파한 ★ 수</b>만큼 아래 <span style="color:#d9930a;font-weight:900">금색 ★ 칸</span>이 열려요 (최대 ${AWMAX}칸). <b>한계돌파를 안 한 포켓몬은 각성할 수 없어요.</b><br>
-② 금색 칸에 <b>같은 등급 영혼 ${AWNEED}개</b>(<b>6번째 각성부터는 점점 늘어서 ${awNeed(6)}개 → 10번째는 ${awNeed(10)}개</b>) + <b>골드</b>(1번째 ${awCost(1).toLocaleString()}원 · 2번째 ${awCost(2).toLocaleString()}원 … 별 번호 × ${awCost(1).toLocaleString()}원 · 6번째부터는 두 배)를 내면 ★이 <b style="color:#8a3dff">보라색</b>이 돼요.<br>
+② 금색 칸에 <b>태생 등급 영혼 ${AWNEED}개</b>(<b>6번째 각성부터는 점점 늘어서 ${awNeed(6)}개 → 10번째는 ${awNeed(10)}개</b>) + <b>골드</b>(1번째 ${awCost(1).toLocaleString()}원 · 2번째 ${awCost(2).toLocaleString()}원 … 별 번호 × ${awCost(1).toLocaleString()}원 · 6번째부터는 두 배)를 내면 ★이 <b style="color:#8a3dff">보라색</b>이 돼요.<br>
 ③ 보라 ★ 하나마다 <b>모든 능력치 +${AWPCT}%</b>, 몸 둘레에 <b>픽셀 불꽃</b>이 타올라요 (별 수에 따라 색이 달라요).</div>
-<div class="awx-c"><b class="t">👻 「같은 등급 영혼」이 뭐예요?</b>각성할 포켓몬과 <b>같은 등급</b>(예: 전설 포켓몬이면 전설 영혼)의 영혼이면 <b>어떤 포켓몬 영혼이든</b> 돼요. 중복 카드도 같은 등급이면 같이 쳐요.<br><br>${soulHow()}<br><br><small>내 영혼: ${soulLine()}</small></div><div class="awx-c"><b class="t">🔥 스피릿이 뭐예요?</b>초월로 <b>유일 이상</b>까지 올린 포켓몬에게 <b>유일 포켓몬</b>을 바치면 각성 태생이 <b style="color:#1fbf6a">스피릿 유일</b>이 돼요. 별은 <b>15개</b>까지 (11~15번째는 <b style="color:#1fbf6a">초록별</b>), 별 1개 +4.4% → 15각이면 유일 10각과 같은 +66%예요. 재료는 <b>유일 영혼</b>이고, 환상 2 · 신화 4 · 전설 6 · 영웅 8 · 희귀 10 · 일반 12개가 유일 영혼 1개로 쳐져요.</div>`}
+<div class="awx-c"><b class="t">👻 각성 재료 영혼이 뭐예요?</b>각성할 포켓몬의 <b>태생 등급과 그보다 낮은 등급</b> 영혼을 쓸 수 있어요 (<b>높은 등급 영혼은 못 써요</b>). 어떤 포켓몬 영혼이든 돼요. 낮은 등급은 환산해서 쳐요: <b>환상 2 · 신화 3 · 전설 4 · 영웅 5 · 희귀 6 · 일반 7개 = 유일 영혼 1개</b> (예: 영웅 포켓몬은 영웅 5개 = 희귀 6개 = 일반 7개). 섞어 내면 태생 등급 영혼부터, 그다음 낮은 등급 순으로 써요. 중복 카드도 영혼처럼 쳐요.<br><br>${soulHow()}<br><br><small>내 영혼: ${soulLine()}</small></div><div class="awx-c"><b class="t">🔥 스피릿이 뭐예요?</b>초월로 <b>유일 이상</b>까지 올린 포켓몬에게 <b>유일 포켓몬</b>을 바치면 <b style="color:#1fbf6a">스피릿 유일</b>이 돼요. <b>1~10번째 각성은 일반 각성 그대로</b>(태생 등급 영혼)이고, 10각을 채우면 <b style="color:#1fbf6a">11~15번째 초록별</b>이 열려요. 11~15번째 재료는 <b>유일 영혼</b>이고, 환상 2 · 신화 3 · 전설 4 · 영웅 5 · 희귀 6 · 일반 7개가 유일 영혼 1개로 쳐져요. 태생이 높을수록 스피릿으로 얻는 양이 적어서 <b>재료도 적게</b> 들어요 (일반 100% · 희귀 85% · 영웅 70% · 전설 55% · 신화 40% · 환상 25%). 15각이면 태생과 관계없이 유일 10각과 같은 +66%예요.</div>`}
 function awHelp(){return ovBox('⭐ 각성 설명',awSummary(),[{t:'확인',main:1,v:true}])}
 async function awLackBox(m){const I=awInfo(m);let b;
   if(I.full)b='이미 ★ '+awMx(m)+'개예요. 더 올릴 수 없어요!';
   else if(!I.slotOk)b='<b class="awx-no">아직 각성할 별 칸이 없어요.</b><br>별 칸은 <b>이 포켓몬이 한계돌파 ★를 올릴 때마다 하나씩</b> 열려요. (한계돌파를 안 한 포켓몬은 각성할 수 없어요) (지금 열린 칸 '+I.sl+' / '+awMx(m)+' · 이 포켓몬 보라 ★ '+I.a+'개)<br>포켓몬을 <b>한계돌파</b>하면 다음 칸이 열려요!';
-  else b='<b>★'+I.n+' 각성에 필요한 것</b><br>👻 <b style="color:'+RARC[I.r]+'">'+RAR[I.r]+'</b> 영혼 '+mkN(I.have,I.need)+(I.lackS?' <b class="awx-no">'+I.lackS+'개 부족</b>':'')+'<br>💰 골드 '+mkN(G.money,I.cost)+(I.lackG?' <b class="awx-no">'+I.lackG.toLocaleString()+'원 부족</b>':'')+'<br><br>'+(I.lackS?(m.sp?'<b>유일 영혼</b> 기준이에요. 환상 2 · 신화 4 · 전설 6 · 영웅 8 · 희귀 10 · 일반 12개가 유일 영혼 1개로 쳐져요 (같은 등급끼리 묶어서 세요).<br><br>':'<b>'+RAR[I.r]+' 등급</b> 영혼만 세요. 어떤 '+RAR[I.r]+' 포켓몬 영혼이든 돼요.<br><br>')+soulHow()+'<br><br>':'')+'<small>내 영혼: '+soulLine()+'</small>';
+  else b='<b>★'+I.n+' 각성에 필요한 것</b><br>👻 <b style="color:'+RARC[I.r]+'">'+RAR[I.r]+'</b> 영혼 '+mkN(I.have,I.need)+(I.lackS?' <b class="awx-no">'+I.lackS+'개 부족</b>':'')+'<br>💰 골드 '+mkN(G.money,I.cost)+(I.lackG?' <b class="awx-no">'+I.lackG.toLocaleString()+'원 부족</b>':'')+'<br><br>'+(I.lackS?(I.us?'<b>유일 영혼</b> 기준이에요 (스피릿 11~15번째). 환상 2 · 신화 3 · 전설 4 · 영웅 5 · 희귀 6 · 일반 7개가 유일 영혼 1개로 쳐져요.<br><br>':'<b>'+RAR[I.r]+' 등급 이하</b> 영혼을 쓸 수 있어요 (높은 등급 영혼은 못 써요). 어떤 포켓몬 영혼이든 돼요.'+(I.r>0?'<br>낮은 등급은 환산해요: <b>'+soulEqTxt(I.r)+'</b>':'')+'<br><br>')+soulHow()+'<br><br>':'')+'<small>내 영혼: '+soulLine()+'</small>';
   const v=await ovBox('각성 재료가 부족해요',b,I.slotOk||I.full?[{t:'확인',main:1,v:0}]:[{t:'한계돌파 보기',main:1,v:'rb'},{t:'닫기',v:0}]);if(v==='rb')rbInfoOpen()}
 const _awGo=awGo;
 awGo=async function(m){const I=awInfo(m);if(I.full||!I.slotOk||I.lackS||I.lackG){await awLackBox(m);return}return _awGo(m)};
@@ -9458,6 +9470,8 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112503,date:'11월 25일',t:'스피릿 11~15번째 재료 줄었어요',items:[{h:"🔥 스피릿 11~15번째 재료가 줄고 고르게 늘어요",p:["<b>무엇이 바뀌었어요?</b> 스피릿 11~15번째 별에 드는 재료가 <b>모든 별에서 전보다 같거나 적게</b> 들어요. 11번째부터 차근차근 늘어나요.","<b>그대로인 것:</b> 등급별 재료 비율(일반 100% … 환상 25%) · 15각 +66%예요. 이미 한 각성은 그대로 이어져요."]}]},
+ {v:2026112502,date:'11월 25일',t:'각성 재료 영혼 · 스피릿 11~15번째',items:[{h:"👻 각성에 낮은 등급 영혼도 쓸 수 있어요",p:["<b>무엇이 바뀌었어요?</b> 각성할 때 포켓몬의 <b>태생 등급과 그보다 낮은 등급</b> 영혼을 모두 쓸 수 있어요. 높은 등급 영혼은 못 써요.","<b>환산:</b> 환상 2 · 신화 3 · 전설 4 · 영웅 5 · 희귀 6 · 일반 7개가 유일 영혼 1개예요. 예를 들어 영웅 포켓몬은 영웅 영혼 5개 = 희귀 영혼 6개 = 일반 영혼 7개로 쳐요.","섞어 내면 태생 등급 영혼부터, 그다음 낮은 등급 영혼 순으로 써요."]},{h:"🔥 스피릿은 11번째 각성부터예요",p:["스피릿 유일이 되어도 <b>1~10번째 각성은 일반 각성 그대로</b>예요. 10각을 채우면 <b>11~15번째 초록별</b>이 열리고, 이때만 유일 영혼 (다른 등급은 위 환산)을 써요.","이미 한 각성 효과는 그대로 이어지고, 15각은 태생과 관계없이 +66%예요.","<b>재료:</b> 11~15번째는 태생이 높을수록 적게 들어요 (일반 100% · 희귀 85% · 영웅 70% · 전설 55% · 신화 40% · 환상 25%)."]}]},
  {v:2026112501,date:'11월 25일',t:'사이드 메뉴 접기 · 전투 체력바 작게 · 맵 끼임 탈출',items:[{h:"📂 오른쪽 메뉴를 접을 수 있어요",p:["<b>어떻게 해요?</b> 오른쪽 메뉴 아래에 있는 <b>「▶ 접기」</b> 단추를 누르면 메뉴가 숨어요. 다시 <b>「◀ 메뉴」</b>를 누르면 펴져요. 접어 둔 상태는 기억해요."]},{h:"🆘 맵에서 끼었을 때 「탈출하기」",p:["<b>무엇이에요?</b> 자동 사냥 중에 한참 동안 한 칸도 안 움직이면 화면 가운데에 <b>「🆘 탈출하기」</b>가 떠요. 누르면 <b>움직일 수 있는 풀숲·길</b>로 옮겨 줘요."]},{h:"🔧 고쳤어요",p:["신캐(예: 루체몬 사탄 모드)가 <b>유일</b>인데 일반(노말)로 나오던 것을 고쳤어요.","테라스탈 타입이 노말 기술 때문에 「노말」로 나오던 것을 포켓몬 본래 타입 쪽으로 고쳤어요.","전투 화면 체력바 · 이름 글씨를 작게 줄였어요."]}]},
  {v:2026112097,date:'11월 23일',t:'일일보스 (더 세졌어요) · 경험치 던전 입장권',items:[{h:"👑 일일보스 (예전 이름: 서바이버 월드보스)",p:["<b>무엇이에요?</b> 컨텐츠의 「👑 일일보스」는 매일 3번 도전하는 서바이버 보스예요. 일주일에 한 번 하는 🐉 월드보스와는 달라요.","<b>얼마나 세졌어요?</b> 이제 보스 체력이 <b>내 파티 화력</b>에 맞춰져요. 난이도가 높을수록 더 오래 버텨요 (쉬움은 약 36초 · 명계는 약 63초 분량). 공격도 파티 체력에 맞춰 아파지고, 체력이 절반 아래가 되면 <b>더 빨리 쫓아오고 내려찍기도 자주</b> 해요.","<b>어떻게 해요?</b> 컨텐츠 → 「👑 일일보스 (매일)」 → 난이도 고르기."]},{h:"🎫 경험치 던전 입장권",p:["<b>무엇이에요?</b> 경험치 던전도 하루 3번을 다 쓴 뒤 입장권으로 <b>오늘 도전 +1</b> 할 수 있어요. 골드 · 영혼 · 일일보스 입장권과 똑같이 가방 「🎫 입장권」에서 「사용하기」를 눌러요."]}]},
  {v:2026112096,date:'11월 23일',t:'서바이버 던전: 자동 조종 · 소탕',items:[{h:"🤖 던전을 알아서 해 줘요 (자동 조종)",p:["<b>무엇이에요?</b> 던전 화면 오른쪽 위 「🤖 자동」 버튼을 누르면 캐릭터가 <b>알아서 적을 피해 다니고</b> 금화 · 영혼 · 경험치 구슬을 주워요. 레벨이 오를 때 <b>기술도 알아서 골라요</b>.","<b>어디서 켜요?</b> 던전 「난이도 고르기」 맨 위 스위치 또는 던전 안의 🤖 버튼이에요. 내가 직접 움직이거나 화면을 만지면 그동안은 내 조작이 먼저예요."]},{h:"⚡ 소탕 (최고 기록 그대로 보상)",p:["<b>무엇이에요?</b> 한 번 직접 해서 세운 <b>난이도별 최고 기록</b> 그대로 바로 보상을 받아요. 컨텐츠의 던전 카드나 결과 창에서 「⚡ 소탕」을 눌러요. 기록은 더 잘하면 자동으로 올라가요.","<b>횟수는요?</b> 소탕도 하루 3번에 들어가요 (골드 · 영혼 · 월드보스 던전). 「남은 횟수 모두 소탕」으로 한 번에 끝낼 수도 있어요. 처음 클리어 보너스(코인)는 직접 해야 받아요.","<b>주의!</b> 이번 업데이트 전의 기록은 남아 있지 않아서, 던전마다 한 번은 직접(또는 🤖 자동으로) 해야 소탕이 열려요."]}]},
@@ -11571,18 +11585,20 @@ save();try{refreshSpr()}catch(e){}try{spAdd(15)}catch(e){}}
 const OWN=[.5,.6,.7,.8,.9,1,1.1],SHR=[.4,.5,.6,.7,.8,.9,1],PCT=6,SPP=4.4;
 const ao=m=>Math.max(0,Math.min(m&&m.sp?15:10,(m&&m.aw)|0));
 const bo=m=>{if(m&&m.sp)return 6;try{return Math.max(0,Math.min(6,rarB(m)|0))}catch(e){return 0}};
-const aeq=m=>m&&m.sp?Math.min(10,Math.round(ao(m)/1.5)):ao(m);// 스피릿 15각 = 유일 10각으로 환산해서 팀 효과를 계산해요
-const spPct=m=>Math.max(ao(m)*SPP,(m&&m.spf)||0);// 스피릿 효과 % = 별 × 4.4 · 스피릿 전에 가진 효과(하한선)보다는 안 내려가요
+const aeq=m=>m&&m.sp?Math.min(10,Math.round(spPct(m)/6.6)):ao(m);// 스피릿 15각(+66%) = 유일 10각으로 환산해서 팀 효과를 계산해요
+// 스피릿 효과 %: 1~10번째는 태생 등급 일반 각성과 같고, 11~15번째는 15각이 +66%가 되도록 똑같이 나눠 더해요 · 옛 스피릿(m.sp=1)은 예전 별 × 4.4%보다 안 내려가요 · 하한선(m.spf)보다도 안 내려가요
+const spEff=(m,k)=>{k=Math.max(0,Math.min(15,k|0));let b=0;try{b=Math.max(0,Math.min(5,rarB(m)|0))}catch(e){}const o=PCT*OWN[b];let v=Math.min(k,10)*o;if(k>10)v+=(k-10)*(66-10*o)/5;if(m&&m.sp===1)v=Math.max(v,k*SPP);return Math.max(v,(m&&m.spf)||0)};
+const spPct=m=>spEff(m,ao(m));
 function info(m){const o=aeq(m),own=m&&m.sp?spPct(m)/PCT:ao(m)*OWN[bo(m)];let v=own,from=null,st=0;
  try{if(inTeam(m)){for(const d of G.party){if(!d||d===m)continue;const a=aeq(d);if(a<1)continue;const q=o>=5?a-2:Math.min(5,a-2);if(q<1)continue;const x=q*SHR[bo(d)];if(x>v){v=x;from=d;st=q}}}}catch(e){}
  return{v,own,from,st}}
-window.awBirth={OWN,SHR,info,bo,pct:(m,k)=>m&&m.sp?+Math.max((k||0)*SPP,m.spf||0).toFixed(1):+((k||0)*PCT*OWN[bo(m)]).toFixed(1)};
+window.awBirth={OWN,SHR,info,bo,pct:(m,k)=>m&&m.sp?+spEff(m,k||0).toFixed(1):+((k||0)*PCT*OWN[bo(m)]).toFixed(1)};
 awEff=function(m){return info(m).v};
 window.awEffMon=m=>info(m).v;
 window.awDisp=m=>{const i=info(m);return i.from?Math.max(ao(m),Math.min(10,Math.round(i.v))):ao(m)};
 window.awStarsEff=(m,big)=>{const a=window.awDisp(m);return window.unStars(Math.max((m&&m.lb)|0,a),a,big)};
 window.awTag=m=>{const i=info(m);if(!i.from)return '';const d=i.from;return `<small class="tlb" style="color:#8a3ad8;display:block">🤝 효과 부여중 · ${nm(d)}의 각성 ${i.st}★ × ${Math.round(SHR[bo(d)]*100)}% → 능력치 +${(i.v*PCT).toFixed(1)}% (보라·빨강 별로 보여요)</small>`};
-window.awBirthLine=m=>{if(m&&m.sp)return `<small style="display:block;font-size:11px;color:#6a6a7a">태생 <b style="color:#1fbf6a">스피릿 유일</b> · 각성 15각 +${+(15*SPP).toFixed(1)}% (별 1개 ${SPP}%)${m.spf?' · 하한선 +'+m.spf+'%':''}</small>`;const b=bo(m);return `<small style="display:block;font-size:11px;color:#6a6a7a">태생 <b style="color:${RARC[b]}">${RAR[b]}</b> · 각성 효과 ${Math.round(OWN[b]*100)}% (10각 기준) · 효과 부여 ${Math.round(SHR[b]*100)}%</small>`};
+window.awBirthLine=m=>{if(m&&m.sp)return `<small style="display:block;font-size:11px;color:#6a6a7a">태생 <b style="color:#1fbf6a">스피릿 유일</b> · 각성 15각 +66% · 1~10번째 일반 각성 · 11~15번째 스피릿${m.sp===1&&m.spf?' · 하한선 +'+m.spf+'%':''}</small>`;const b=bo(m);return `<small style="display:block;font-size:11px;color:#6a6a7a">태생 <b style="color:${RARC[b]}">${RAR[b]}</b> · 각성 효과 ${Math.round(OWN[b]*100)}% (10각 기준) · 효과 부여 ${Math.round(SHR[b]*100)}%</small>`};
 }catch(e){console.warn('pk-awbirth',e)}})();
 </script>
 <script id="pk-spirit">
@@ -11600,24 +11616,24 @@ function spDo(m,tm,ts){
   let idx=[];if(ts>0){(G.dupes||[]).forEach((x,i)=>{if(x.kind==='P'&&x.rar===6&&idx.length<ts*10)idx.push(i)});if(idx.length<ts*10)return false}
   const si=new Set(idx);G.dupes=(G.dupes||[]).filter((x,i)=>!si.has(i));
   for(const x of fl){const k=G.box.indexOf(x);if(k>=0)G.box.splice(k,1)}
-  m.sp=1;m.spf=f;try{m.hp=stOf(m)[0]}catch(e){}save();try{refreshSpr()}catch(e){}return true}
+  m.sp=2;m.spf=f;try{m.hp=stOf(m)[0]}catch(e){}save();try{refreshSpr()}catch(e){}return true}
 async function spAsk(m){const N=needOf(m),F=fod(m).length,S=Math.floor(soulN()/10),opts=[];
   if(F>=N)opts.push({t:'유일 포켓몬 '+N+'마리로',v:[N,0]});
   if(S>=N)opts.push({t:'유일 영혼 '+N*10+'개로',v:[0,N]});
   if(!opts.length&&F>0&&S>0&&F+S>=N)opts.push({t:'유일 포켓몬 '+F+'마리 + 유일 영혼 '+(N-F)*10+'개로',v:[F,N-F]});
   if(!opts.length){await ovBox('스피릿 재료가 모자라요','<b>'+esc(nm(m))+'</b>의 스피릿에는 <b>유일 포켓몬 '+N+'마리</b>(또는 유일 영혼 '+N*10+'개)가 필요해요.<br>지금 보관함의 유일 포켓몬 '+F+'마리 · 유일 영혼 '+soulN()+'개예요.<br><small>잠근 🔒 포켓몬 · 출전 중인 포켓몬 · 이미 스피릿한 포켓몬은 쓸 수 없어요.</small>',[{t:'확인',main:1,v:0}]);return}
   opts[0].main=1;const f=window.awBirth.pct(m,awOf(m));
-  const body='<b>'+esc(nm(m))+'</b> → <b style="color:#1fbf6a">스피릿 유일</b><br>각성 태생이 유일이 되고 별 칸이 <b>15개</b>(11~15번째 초록별)가 돼요. 15각이면 +66%예요.'+(f?'<br>지금 각성 효과 <b>+'+f+'%</b>는 하한선으로 지켜져요.':'')+'<br><br>바치는 유일 포켓몬 · 영혼은 <b style="color:#c0304a">사라지고 되돌릴 수 없어요.</b>';
+  const body='<b>'+esc(nm(m))+'</b> → <b style="color:#1fbf6a">스피릿 유일</b><br>1~10번째 각성은 일반 각성 그대로이고, 10각을 채우면 <b>11~15번째 초록별</b>이 열려요. 15각이면 +66%예요.'+(f?'<br>지금 각성 효과 <b>+'+f+'%</b>는 그대로 이어져요.':'')+'<br><br>바치는 유일 포켓몬 · 영혼은 <b style="color:#c0304a">사라지고 되돌릴 수 없어요.</b>';
   const v=await ovBox('🔥 스피릿',body,[...opts,{t:'취소',v:0}]);
   if(!v)return;
   if(spDo(m,v[0],v[1])){try{sfx('badge')}catch(e){}toast('🔥 '+nm(m)+' 스피릿 유일이 됐어요!')}else toast('재료가 모자라요');
   spOpen()}
 window.spOpen=function(){if(!G)return;const L=cands().slice(0,60),S=soulN();
   const rows=L.map((m,i)=>{const N=needOf(m),F=fod(m).length,r=rarB(m),ok=F+Math.floor(S/10)>=N,a=awOf(m);
-    return `<div class="hrow"><img src="${THUMB[lkOf(m)]||''}" style="width:48px;height:48px;object-fit:contain"><span style="flex:1;min-width:0"><b>${nm(m)} <small style="color:${RARC[r]}">[${RAR[r]} → 스피릿 유일]</small></b><div>${awStars(m)}</div><small>지금 각성 +${window.awBirth.pct(m,a)}%${a?' (하한선으로 지켜져요)':''} · 스피릿 15각 +66%</small><small>필요: 유일 ${N}마리 (유일 영혼 ${N*10}개) · 내 유일 포켓몬 ${F}마리 · 유일 영혼 ${S}개</small><div class="awbt"><button class="${ok?'main':''}" data-s="${i}">스피릿</button></div></span></div>`}).join('')||'<p class="hhint">스피릿할 수 있는 포켓몬이 없어요.<br>초월로 <b>유일 이상</b>까지 올린, 원래 태생이 유일보다 낮은 포켓몬만 할 수 있어요.</p>';
-  openPanel('🔥 스피릿',`<div class="awx-c"><b class="t">🔥 스피릿</b>유일 포켓몬을 바치면 각성 태생이 <b style="color:#1fbf6a">스피릿 유일</b>이 돼요. 필요한 수는 <b>환상 1 · 신화 2 · 전설 3 · 영웅 4 · 희귀 5 · 일반 6마리</b>예요 (유일 영혼 10개 = 1마리). 별은 15개까지, 15각이면 유일 10각과 같은 +66%예요.</div>${rows}`,null,p=>{
+    return `<div class="hrow"><img src="${THUMB[lkOf(m)]||''}" style="width:48px;height:48px;object-fit:contain"><span style="flex:1;min-width:0"><b>${nm(m)} <small style="color:${RARC[r]}">[${RAR[r]} → 스피릿 유일]</small></b><div>${awStars(m)}</div><small>지금 각성 +${window.awBirth.pct(m,a)}%${a?' (그대로 이어져요)':''} · 스피릿 15각 +66%</small><small>필요: 유일 ${N}마리 (유일 영혼 ${N*10}개) · 내 유일 포켓몬 ${F}마리 · 유일 영혼 ${S}개</small><div class="awbt"><button class="${ok?'main':''}" data-s="${i}">스피릿</button></div></span></div>`}).join('')||'<p class="hhint">스피릿할 수 있는 포켓몬이 없어요.<br>초월로 <b>유일 이상</b>까지 올린, 원래 태생이 유일보다 낮은 포켓몬만 할 수 있어요.</p>';
+  openPanel('🔥 스피릿',`<div class="awx-c"><b class="t">🔥 스피릿</b>유일 포켓몬을 바치면 각성 태생이 <b style="color:#1fbf6a">스피릿 유일</b>이 돼요. 필요한 수는 <b>환상 1 · 신화 2 · 전설 3 · 영웅 4 · 희귀 5 · 일반 6마리</b>예요 (유일 영혼 10개 = 1마리). 1~10번째 각성은 일반 그대로, 11~15번째가 스피릿 (초록별)이고 15각이면 유일 10각과 같은 +66%예요.</div>${rows}`,null,p=>{
     p.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{sfx('tap');spAsk(L[+b.dataset.s])})})};
-try{HUB.push({k:'spirit',n:'스피릿',d:'초월로 유일 이상까지 올린 포켓몬에게 유일 포켓몬(유일 영혼 10개 = 1마리)을 바치면 각성 태생이 「스피릿 유일」이 돼요. 필요한 수는 환상 1 · 신화 2 · 전설 3 · 영웅 4 · 희귀 5 · 일반 6마리. 별은 15개까지(11~15번째 초록별)이고 15각이면 유일 10각과 같은 +66%예요. 이미 한 각성 효과는 하한선으로 지켜져요.',st:()=>'가능 '+cands().length+'마리',go:[['스피릿 하기',()=>spOpen()]]})}catch(e){}
+try{HUB.push({k:'spirit',n:'스피릿',d:'초월로 유일 이상까지 올린 포켓몬에게 유일 포켓몬(유일 영혼 10개 = 1마리)을 바치면 각성 태생이 「스피릿 유일」이 돼요. 필요한 수는 환상 1 · 신화 2 · 전설 3 · 영웅 4 · 희귀 5 · 일반 6마리. 1~10번째 각성은 일반 각성 그대로이고 11~15번째가 스피릿(초록별)이에요. 15각이면 유일 10각과 같은 +66%예요. 이미 한 각성 효과는 그대로 이어져요.',st:()=>'가능 '+cands().length+'마리',go:[['스피릿 하기',()=>spOpen()]]})}catch(e){}
 }catch(e){console.warn('pk-spirit',e)}})();
 </script>
 
