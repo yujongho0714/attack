@@ -27,7 +27,7 @@ H.draw=(cx,x,y,w,e,right,u,n)=>T(()=>{
     cx.font='bold '+(12*u)+'px sans-serif';cx.textAlign='center';
     const sw=12*u,tot=5*sw,sx=right?x+8*u:x+w-8*u-tot;
     for(let i=0;i<5;i++){let col;
-      if(aw>5)col=i<aw-5?'#ff4a5a':'#b070ff';else if(i<aw)col='#b070ff';else if(lb>5)col=i<lb-5?'#9a7a1a':'#ffc933';else col=i<lb?'#ffc933':'#3a3f55';
+      if(aw>10)col=i<aw-10?'#3ddc84':'#ff4a5a';else if(aw>5)col=i<aw-5?'#ff4a5a':'#b070ff';else if(i<aw)col='#b070ff';else if(lb>5)col=i<lb-5?'#9a7a1a':'#ffc933';else col=i<lb?'#ffc933':'#3a3f55';
       cx.fillStyle=col;if(i<aw){cx.shadowColor=col;cx.shadowBlur=6*u}cx.fillText('★',sx+i*sw+sw/2,cy);cx.shadowBlur=0}
   }
   // 받은 각성 효과 (팀 효과 부여) — 한 줄
