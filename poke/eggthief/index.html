@@ -44,7 +44,11 @@ S0.c+=income()*Math.min(3600,(Date.now()-S0.t)/1000);
 // ---- 포켓몬 그림 (rz) ----
 const BASE='../';let DEX=null,KEYS=[],TIERS=[[],[],[],[],[]],SPR={};
 const tierOf=b=>b>=680?4:b>=600?3:b>=500?2:b>=400?1:0;
-async function loadData(){try{DEX=await (await fetch(BASE+'rzdex.json')).json();const MP=await (await fetch(BASE+'rzmap.json')).json();KEYS=[...new Set(Object.values(MP))].filter(k=>DEX[k]);KEYS.forEach(k=>TIERS[tierOf(DEX[k][3].reduce((a,b)=>a+b,0))].push(k))}catch(e){KEYS=[]}}
+async function loadData(){try{DEX=await (await fetch(BASE+'rzdex.json')).json();const MP=await (await fetch(BASE+'rzmap.json')).json(),NC={};
+ // 디지몬·듀엘리스트 신캐: 본편 규칙대로 「출시 주가 지난 것」만 (ncsched.json 의 order[등급][순서] < 이번 주차)
+ try{const L=await (await fetch(BASE+'newchars.json')).json(),SC=await (await fetch(BASE+'ncsched.json')).json(),m=/^(\d+)-(\d+)-(\d+)/.exec(SC.start||''),wk=m?Math.floor((Date.now()-new Date(+m[1],+m[2]-1,+m[3]).getTime())/6048e5):-1,IX={};
+  for(const g in SC.order)SC.order[g].forEach((d,i)=>IX[d]=i);L.forEach(c=>{if(IX[c.dex]!=null&&IX[c.dex]<wk)NC[c.key]=Math.min(4,c.rar|0)})}catch(e){}
+ KEYS=[...new Set(Object.values(MP))].filter(k=>DEX[k]&&(!k.startsWith('NC_')||k in NC));KEYS.forEach(k=>TIERS[k.startsWith('NC_')?NC[k]:tierOf(DEX[k][3].reduce((a,b)=>a+b,0))].push(k))}catch(e){KEYS=[]}}
 async function loadSpr(k){if(SPR[k])return SPR[k];const b=BASE+'rz/'+k+'/',meta=await (await fetch(b+k+'.pmd.json')).json(),img={};
  await Promise.all(['walk','idle'].map(async st=>{const A=meta.anims&&meta.anims[st];if(!A)return;try{const q=await fetch(b+A.f+'-Anim.png');if(q.ok)img[st]=await createImageBitmap(await q.blob())}catch(e){}}));
  if(!img.walk&&!img.idle)throw 0;return SPR[k]={meta,img}}

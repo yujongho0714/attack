@@ -10955,7 +10955,7 @@ try{HUBIC.artifact='ic_bag';HUB.push({k:'artifact',n:'아티팩트',d:'각성 �
 (function(){const go=()=>{const a=document.getElementById('bTr')||document.getElementById('bGear');if(a&&!document.getElementById('bArt')){const b=document.createElement('button');b.id='bArt';b.innerHTML='<img class="sic" src="ui/ic_bag.webp" alt="" style="filter:hue-rotate(95deg) saturate(1.6)"><span>아티팩트</span>';a.parentNode.insertBefore(b,a.nextSibling);b.onclick=()=>{try{sfx('tap')}catch(e){}try{window.artOpen()}catch(e){toast('아티팩트를 열 수 없어요')}}}};if(document.readyState==='loading')addEventListener('DOMContentLoaded',go);else go()})();
 </script>
 <script>// ===== 9BB 가이드 창 끌어서 옮기기: 도전 조건(⚠) · 목표 바 · 미니맵 · 월드보스 표시 — 손가락으로 끌면 옮겨지고, 자리는 기억해요 =====
-(function(){const IDS={reqHud:'.rqh',hObjW:null,mini:null,wbHud:null},K='pk_hud_pos';let P={};try{P=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
+(function(){const IDS={reqHud:'.rqh',hObjW:null,mini:null,wbHud:null,side:null,wxBadge:null,rewBar:null,chMini:null},K='pk_hud_pos';let P={};try{P=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
   const sv=()=>{try{localStorage.setItem(K,JSON.stringify(P))}catch(e){}};
   function place(el,x,y){const c=P[el.id]||[0,0],r=el.getBoundingClientRect();if(!r.width)return;const W=innerWidth,H=innerHeight;
     const nl=Math.min(Math.max(r.left-c[0]+x,4),Math.max(4,W-r.width-4)),nt=Math.min(Math.max(r.top-c[1]+y,4),Math.max(4,H-r.height-4));
@@ -10968,7 +10968,7 @@ try{HUBIC.artifact='ic_bag';HUB.push({k:'artifact',n:'아티팩트',d:'각성 �
     el.addEventListener('pointerup',end,true);el.addEventListener('pointercancel',end,true);
     el.addEventListener('click',e=>{if(blk||on){e.stopPropagation();e.preventDefault()}},true)}
   const scan=()=>{for(const id in IDS){const el=document.getElementById(id);if(el)attach(el,IDS[id])}};
-  const st=document.createElement('style');st.textContent='#hObjW,#mini,#wbHud,#reqHud .rqh{touch-action:none}.hdg{outline:2px dashed #ffd23f;opacity:.88}';document.head.appendChild(st);
+  const st=document.createElement('style');st.textContent='#hObjW,#mini,#wbHud,#side,#wxBadge,#rewBar,#chMini,#reqHud .rqh{touch-action:none}.hdg{outline:2px dashed #ffd23f;opacity:.88}';document.head.appendChild(st);
   setInterval(scan,800);scan();
   addEventListener('resize',()=>{for(const id in P){const el=document.getElementById(id);if(el&&P[id]){el.style.translate='0px 0px';P[id]=[0,0];el.style.translate=''}}sv()})})();
 </script>

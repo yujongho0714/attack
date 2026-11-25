@@ -26,7 +26,7 @@ function placeFold(){T(()=>{const side=document.getElementById('side');if(!side)
   if(!b){b=document.createElement('button');b.id='sideFold';b.onclick=()=>setFold(!document.body.classList.contains('sideFold'));document.body.appendChild(b)}
   const folded=document.body.classList.contains('sideFold');
   if(!folded){const r=side.getBoundingClientRect();if(r.height>10){lastTop=r.top;lastBot=r.bottom}}
-  if(lastTop==null)return;
+  if(lastTop==null){lastTop=96;lastBot=96}   // 접힌 채로 시작해도 「◀ 메뉴」 단추가 보이게
   b.textContent=folded?'◀ 메뉴':'▶ 접기';
   b.style.top=Math.max(0,folded?lastTop:lastBot+6)+'px'})}
 T(()=>{if(getFold())document.body.classList.add('sideFold')});
