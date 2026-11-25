@@ -32,8 +32,11 @@ const W=4430,H=420,CW=640,BX=380,BW=450;
 // 바이옴: 이름 · 필요 속도(원작 권장 속도) · 색
 const BM=[['숲',0,'#3f7a3a'],['호수',900,'#2f6f9f'],['사막',1e4,'#c9a24a'],['정글',4e4,'#1f6a3a'],['눈',17e4,'#cfe3f0'],['화산',7e5,'#7a2a1a'],['심해',2.5e6,'#143a6a'],['선사시대',1.7e7,'#6a5a3a'],['우주',7e8,'#2a1a4a']];
 const TN=['일반','희귀','영웅','전설','신화'],TC=['#e8e4d8','#bfe0ff','#e6c8ff','#ffe08a','#ffb0c0'],IB=[1,3,9,30,100],HT=[40,90,180,360,720],MUN={1:'',2:'골드 ',4:'무지개 ',8:'글리치 '};
+// 트레일: [이름, 가격, 속도 배율, 색] — 원작처럼 일반~신성 10종, 장착하면 속도 배율이 붙어요
+const TRL=[['일반',200,1.1,'#cfd8dc'],['고급',1e3,1.2,'#7be27b'],['희귀',5e3,1.35,'#5ab4ff'],['영웅',2.5e4,1.5,'#c58cff'],['전설',1.2e5,1.75,'#ffd54a'],['신화',6e5,2,'#ff7ab8'],['영원',3e6,2.5,'#ff8a3d'],['시크릿',1.5e7,3,'#3dffd9'],['신성',8e7,4,'#fff6a8'],['무지개',4e8,5,'rb']];
+const es=()=>S0.s*(S0.trq>=0?TRL[S0.trq][2]:1),TP=[];
 const fmt=n=>n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.floor(n);
-let S0={c:30,s:0,tl:0,pc:5,bat:0,tr:2,eg:[],pets:[],t:Date.now()};
+let S0={c:30,s:0,tl:0,pc:5,bat:0,tr:2,eg:[],pets:[],trl:[],trq:-1,t:Date.now()};
 try{Object.assign(S0,JSON.parse(localStorage.getItem('eggthief2')||'{}'))}catch(e){}
 const sv=()=>{S0.t=Date.now();try{localStorage.setItem('eggthief2',JSON.stringify(S0))}catch(e){}};
 const inc=p=>IB[p.t]*p.sz*p.mu,best=()=>S0.pets.slice().sort((a,b)=>inc(b)-inc(a)).slice(0,S0.pc),income=()=>best().reduce((a,p)=>a+inc(p),0);
@@ -73,7 +76,7 @@ function init(){for(let i=0;i<9;i++){const hx=BX+i*BW+BW/2,hy=H/2;GU.push({i,x:h
  spawn();loadData().then(()=>{GU.forEach(g=>{g.k=pickKey(Math.min(4,Math.floor(g.i*5/9)));if(g.k)loadSpr(g.k).then(S=>g.S=S).catch(()=>0)});S0.pets.slice(0,12).forEach(p=>p.k&&loadSpr(p.k).catch(()=>0))});
  if(FR)$('ex').hidden=false;requestAnimationFrame(loop)}
 function mv(o,tx,ty,sp,dt){const dx=tx-o.x,dy=ty-o.y,L=Math.hypot(dx,dy);if(L<1)return L;const k=Math.min(L,sp*dt)/L;o.x+=dx*k;o.y+=dy*k;o.d=Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u');return L}
-const spd=()=>Math.min(300,120+30*Math.log10(1+S0.s))*(P.carry?1/(1+.18*P.carry.sz):1);
+const spd=()=>Math.min(300,120+30*Math.log10(1+es()))*(P.carry?1/(1+.18*P.carry.sz):1);
 function drop(o,e){e.x=o.x+r(30)-15;e.y=o.y+r(30)-15;e.on=1}
 // ---- 갱신 ----
 function update(dt){
@@ -81,7 +84,8 @@ function update(dt){
  RS-=dt;if(RS<=0){closed=13;P.carry=null;P.x=80;P.y=200;P.stun=0;BOT.forEach(b=>{b.carry=null;b.x=BX-30});EG=[];msg('ALL EGG RESET! 지도가 13초 동안 닫혀요');return}
  batCd-=dt;swing-=dt;warn-=dt;
  if(P.stun>0)P.stun-=dt;else{let vx=0,vy=0;held.forEach(k=>{if(k=='l')vx=-1;if(k=='r')vx=1;if(k=='u')vy=-1;if(k=='d')vy=1});
-  if(vx||vy){const L=Math.hypot(vx,vy),s=spd();P.x=Math.max(8,Math.min(W-8,P.x+vx/L*s*dt));P.y=Math.max(14,Math.min(H-8,P.y+vy/L*s*dt));P.d=Math.abs(vx)>=Math.abs(vy)?(vx>0?'r':'l'):(vy>0?'d':'u')}}
+  if(vx||vy){const L=Math.hypot(vx,vy),s=spd();P.x=Math.max(8,Math.min(W-8,P.x+vx/L*s*dt));P.y=Math.max(14,Math.min(H-8,P.y+vy/L*s*dt));P.d=Math.abs(vx)>=Math.abs(vy)?(vx>0?'r':'l'):(vy>0?'d':'u');if(S0.trq>=0)for(let q=0;q<2;q++)TP.push({x:P.x+R()*8-4,y:P.y+R()*6,l:.7,c:TRL[S0.trq][3]=='rb'?'hsl('+r(360)+',90%,60%)':TRL[S0.trq][3]})}}
+ for(let q=TP.length-1;q>=0;q--){TP[q].l-=dt;if(TP[q].l<=0)TP.splice(q,1)}
  // 러닝머신
  if(!P.carry&&inR(TRD,P.x,P.y)&&!held.length){S0.s+=gain()*dt}
  // 알 줍기
@@ -96,7 +100,7 @@ function update(dt){
  // 가디언 (속도 검사)
  const b0=bi();
  GU.forEach(g=>{g.cd-=dt;const need=BM[g.i][1],d=Math.hypot(P.x-g.x,P.y-g.y),act=b0==g.i&&d<(P.carry?280:120)&&P.stun<=0;
-  if(act){const slow=S0.s>=need;mv(g,P.x,P.y,slow?spd()*.5:Math.max(spd(),120)*1.3,dt);
+  if(act){const slow=es()>=need;mv(g,P.x,P.y,slow?spd()*.5:Math.max(spd(),120)*1.3,dt);
    if(d<26&&g.cd<=0){g.cd=2.5;if(!slow){if(P.carry){drop(P,P.carry);P.carry=null}P.hit=1;P.stun=2;P.x=Math.max(8,P.x-110);msg(BM[g.i][0]+' 가디언에게 잡혔다! 속도가 부족해요 (필요 '+fmt(need)+')')}else msg('속도가 충분해서 가디언이 못 잡아요!')}}
   else mv(g,g.hx,g.hy,70,dt)});
  // 라이벌
@@ -115,7 +119,7 @@ function egg(px,py,e,sc){const rx=7*Math.sqrt(e.sz)*sc,ry=9*Math.sqrt(e.sz)*sc;x
  x.fillStyle=TC[e.t];x.fill();x.lineWidth=2;x.strokeStyle=e.mu==2?'#fc0':e.mu==4?'hsl('+(now*200%360)+',90%,60%)':e.mu==8?'#0f8':'#1c2550';x.stroke();if(e.mu>1){x.fillStyle='#fff8';x.fillRect(px-2,py-ry-6,4,4)}}
 function draw(){const cx=Math.max(0,Math.min(W-CW,P.x-CW/2)),t=now;x.clearRect(0,0,CW,H);
  x.fillStyle='#4a5a6a';x.fillRect(-cx,0,BX,H);
- BM.forEach((b,i)=>{const bx=BX+i*BW-cx;if(bx>CW||bx<-BW)return;x.fillStyle=b[2];x.fillRect(bx,0,BW,H);x.fillStyle='#0003';x.fillRect(bx,0,3,H);x.fillStyle=S0.s>=b[1]?'#fff':'#ffb0b0';x.font='bold 12px sans-serif';x.fillText((S0.s>=b[1]?'✔ ':'🔒 ')+b[0]+' · 속도 '+(b[1]?fmt(b[1]):'제한없음'),bx+8,16)});
+ BM.forEach((b,i)=>{const bx=BX+i*BW-cx;if(bx>CW||bx<-BW)return;x.fillStyle=b[2];x.fillRect(bx,0,BW,H);x.fillStyle='#0003';x.fillRect(bx,0,3,H);x.fillStyle=es()>=b[1]?'#fff':'#ffb0b0';x.font='bold 12px sans-serif';x.fillText((es()>=b[1]?'✔ ':'🔒 ')+b[0]+' · 속도 '+(b[1]?fmt(b[1]):'제한없음'),bx+8,16)});
  const bx=-cx;x.font='bold 12px sans-serif';
  x.fillStyle='#2b2f36';x.fillRect(TRD.x+bx,TRD.y,TRD.w,TRD.h);x.fillStyle='#ffd54a';x.fillText('🏃러닝머신',TRD.x+bx+6,TRD.y+34);
  x.fillStyle='#a55';x.fillRect(SHP.x+bx,SHP.y,SHP.w,SHP.h);x.fillStyle='#fff';x.fillText('🏪 상점',SHP.x+bx+16,SHP.y+34);
@@ -127,20 +131,22 @@ function draw(){const cx=Math.max(0,Math.min(W-CW,P.x-CW/2)),t=now;x.clearRect(0
  EG.forEach(e=>{if(e.on)egg(e.x-cx,e.y,e,1)});
  GU.forEach(g=>{const gx=g.x-cx;if(gx<-60||gx>CW+60)return;x.fillStyle='#0004';x.beginPath();x.ellipse(gx,g.y,16,6,0,0,7);x.fill();if(!(g.S&&drawSpr(g.S,'walk',ROW[g.d]||0,t,gx,g.y+6,64))){x.font='28px sans-serif';x.fillText('🐲',gx-14,g.y)}x.font='bold 11px sans-serif';x.fillStyle='#fff';x.fillText('가디언',gx-18,g.y-48)});
  BOT.forEach(b=>{x.fillStyle=b.stun>0?'#888':b.col;x.fillRect(b.x-cx-8,b.y-18,16,22);x.fillStyle='#fff';x.font='10px sans-serif';x.fillText('라이벌',b.x-cx-16,b.y-22);if(b.carry)egg(b.x-cx,b.y-30,b.carry,.8)});
+ TP.forEach(o=>{x.globalAlpha=Math.max(0,o.l/.7);x.fillStyle=o.c;x.beginPath();x.arc(o.x-cx,o.y,2+o.l*4,0,7);x.fill()});x.globalAlpha=1;
  // 나
  x.fillStyle='#0004';x.beginPath();x.ellipse(P.x-cx,P.y+4,10,4,0,0,7);x.fill();x.fillStyle=P.stun>0?'#999':'#3be';x.fillRect(P.x-cx-8,P.y-20,16,24);x.fillStyle='#fff';x.fillRect(P.x-cx-5,P.y-16,10,6);
  if(P.carry)egg(P.x-cx,P.y-34,P.carry,.9);if(swing>0){x.font='24px sans-serif';x.fillText('🏏',P.x-cx+(P.d=='l'?-30:10),P.y-4)}
  if(P.stun>0){x.font='bold 14px sans-serif';x.fillStyle='#ff0';x.fillText('💫',P.x-cx-8,P.y-46)}
  if(P.carry&&GU.some(g=>g.i==bi()&&Math.hypot(P.x-g.x,P.y-g.y)<280)){x.font='bold 22px sans-serif';x.fillStyle='#f33';x.fillText('RUN!!',CW/2-30,50)}
  if(closed>0){x.fillStyle='#000c';x.fillRect(0,0,CW,H);x.fillStyle='#fff';x.font='bold 24px sans-serif';x.fillText('ALL EGG RESET! '+Math.ceil(closed)+'초',CW/2-120,H/2)}}
-function hud(){const b=bi(),nx=BM.findIndex(m=>m[1]>S0.s);$('hud').innerHTML=`🪙 <b>${fmt(S0.c)}</b> (+${fmt(income())}/초) · 🏃속도 <b>${fmt(S0.s)}</b>${nx>0?' (다음 '+BM[nx][0]+' '+fmt(BM[nx][1])+')':nx<0?' (우주까지 OK!)':''} · 🕒 리셋 ${Math.max(0,Math.ceil(RS))}초 · ${b>=0?BM[b][0]:'기지'}${FR&&Q!=null?' · 진짜 알 '+Math.max(0,Q)+'회':''}`}
+function hud(){const b=bi(),nx=BM.findIndex(m=>m[1]>es());$('hud').innerHTML=`🪙 <b>${fmt(S0.c)}</b> (+${fmt(income())}/초) · 🏃속도 <b>${fmt(es())}</b>${S0.trq>=0?' (트레일 ×'+TRL[S0.trq][2]+')':''}${nx>0?' (다음 '+BM[nx][0]+' '+fmt(BM[nx][1])+')':nx<0?' (우주까지 OK!)':''} · 🕒 리셋 ${Math.max(0,Math.ceil(RS))}초 · ${b>=0?BM[b][0]:'기지'}${FR&&Q!=null?' · 진짜 알 '+Math.max(0,Q)+'회':''}`}
 // ---- 상점 ----
 const row=(i,l,c,sell)=>`<div class="r"><span>${l}</span><button data-i="${i}">${sell?'+':''}${fmt(c)}🪙</button></div>`;
-function shop(){const q=Date.now()/1000;let h=`<button id="xs">닫기 ✕</button> 🪙 <b>${fmt(S0.c)}</b> · 수입 ${fmt(income())}/초 · 속도 ${fmt(S0.s)}`;
+function shop(){const q=Date.now()/1000;let h=`<button id="xs">닫기 ✕</button> 🪙 <b>${fmt(S0.c)}</b> · 수입 ${fmt(income())}/초 · 속도 ${fmt(es())}`;
  h+=row('tl','🏃 러닝머신 Lv.'+S0.tl+' (서 있으면 초당 +'+fmt(gain())+')',tlCost());
  h+=row('pc','🏠 펜 칸 '+S0.pc+' → '+(S0.pc+1)+' (돈 버는 펫 수)',pcCost());
  h+=S0.bat?'<div class="r">🏏 방망이 보유 중</div>':row('bat','🏏 야구방망이 (라이벌을 쳐서 알을 뺏어요)',150);
  h+=row('tr','🪤 곰덫 +1 (보유 '+S0.tr+')',60);
+ TRL.forEach((t,i)=>{h+=S0.trl.includes(i)?`<div class="r"><span>✨ ${t[0]} 트레일 (속도 ×${t[2]})${S0.trq==i?' · 장착 중':''}</span><button data-i="te${i}">${S0.trq==i?'해제':'장착'}</button></div>`:row('tb'+i,'✨ '+t[0]+' 트레일 (속도 ×'+t[2]+')',t[1])});
  S0.eg.forEach((e,i)=>{const l=Math.max(0,Math.ceil(e.at/1000+htOf(e)-q));h+=row('sk'+i,'🥚 '+MUN[e.mu]+TN[e.t]+' 알 · '+l+'초 남음 · 바로 부화',l*(1+e.t))});
  const bs=best();S0.pets.slice().sort((a,b)=>inc(b)-inc(a)).forEach(p=>{const i=S0.pets.indexOf(p);h+=row('sl'+i,(bs.includes(p)?'💰 ':'💤 ')+MUN[p.mu]+nameOf(p.k)+' · '+TN[p.t]+' · 크기 '+p.sz+' · 초당 '+fmt(inc(p))+' · 판매',Math.floor(inc(p)*45),1)});
  $('sh').innerHTML=h}
@@ -148,6 +154,8 @@ function showShop(){$('sh').hidden=false;shop()}
 $('sh').onclick=ev=>{const e=ev.target;if(e.id=='xs'){$('sh').hidden=true;return}const k=e.dataset&&e.dataset.i;if(!k)return;
  const pay=c=>{if(S0.c<c){msg('돈이 부족해요');return false}S0.c-=c;return true};
  if(k=='tl'){if(pay(tlCost()))S0.tl++}else if(k=='pc'){if(pay(pcCost()))S0.pc++}else if(k=='bat'){if(pay(150))S0.bat=1}else if(k=='tr'){if(pay(60))S0.tr++}
+ else if(k.startsWith('tb')){const i=+k.slice(2);if(!S0.trl.includes(i)&&pay(TRL[i][1])){S0.trl.push(i);S0.trq=i;msg('✨ '+TRL[i][0]+' 트레일을 샀어요! 속도 ×'+TRL[i][2])}}
+ else if(k.startsWith('te')){const i=+k.slice(2);S0.trq=S0.trq==i?-1:i}
  else if(k.startsWith('sk')){const i=+k.slice(2),g=S0.eg[i];if(g){const l=Math.max(0,Math.ceil(g.at/1000+htOf(g)-Date.now()/1000));if(pay(l*(1+g.t)))g.at-=1e9}}
  else if(k.startsWith('sl')){const i=+k.slice(2),p=S0.pets[i];if(p){S0.c+=Math.floor(inc(p)*45);S0.pets.splice(i,1)}}
  sv();shop()};
