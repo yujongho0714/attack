@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>계란훔치기</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{margin:0;background:#12161c;color:#eee;font:14px system-ui,sans-serif;display:flex;justify-content:center}
+#app{width:100%;max-width:640px;padding:8px}
+#hud{display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:6px;flex-wrap:wrap}
+.bar{width:70px;height:10px;background:#333;border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:#4c8}
+#ag{background:#e94}
+#wrap{position:relative}canvas{width:100%;display:block;border-radius:8px;background:#000}
+#msg{min-height:34px;margin:6px 0;padding:6px 8px;background:#222a35;border-radius:6px;font-size:13px}
+#dex{font-size:11px;color:#9ab;margin-bottom:6px}
+#pad{display:flex;justify-content:space-between;align-items:center;user-select:none}
+.dp{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,54px);gap:4px}
+button{font:inherit;color:#fff;background:#2c3a4d;border:0;border-radius:10px;font-size:20px}
+button:active{background:#4a6a90}#run{width:96px;height:96px;border-radius:50%;font-size:15px;background:#8a3a3a}
+#bt{position:absolute;inset:0;background:rgba(10,14,20,.92);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px}
+#bt[hidden]{display:none}.hp{height:12px;background:#333;border-radius:6px;overflow:hidden}.hp i{display:block;height:100%;background:#e55}.hp.me i{background:#4c8}
+#bl{flex:1;font-size:14px}#bb{display:grid;grid-template-columns:1fr 1fr;gap:8px}#bb button{font-size:15px;padding:12px}
+</style></head><body><div id="app">
+<div id="hud"><button id="ex" hidden style="font-size:12px;padding:4px 10px">나가기</button>🥚 <b id="cnt">0</b> <span id="tier"></span> <div class="bar"><i id="ag"></i></div><span>어그로</span> <div class="bar"><i id="st"></i></div><span>달리기</span></div>
+<div id="wrap"><canvas id="c" width="640" height="448"></canvas>
+<div id="bt" hidden><div id="en"></div><canvas id="bc" width="96" height="96" style="width:96px;height:96px;align-self:center"></canvas><div class="hp"><i id="eh"></i></div><div>내 파트너</div><div class="hp me"><i id="mh"></i></div><div id="bl"></div>
+<div id="bb"><button onclick="bAct(0)">몸통박치기</button><button onclick="bAct(1)">10만볼트(70%)</button><button onclick="bAct(2)" id="pot">회복약 ×2</button><button onclick="bAct(3)">도망(알 포기)</button></div></div></div>
+<div id="msg">방향키/WASD 또는 화면 패드로 이동, Shift=달리기. 오른쪽 위 둥지의 🥚(어미는 전 종 랜덤)를 훔쳐 파란 기지의 🧑‍🔬에게 가져가자!</div>
+<div id="dex"></div>
+<div id="pad"><div class="dp"><span></span><button data-d="u">▲</button><span></span><button data-d="l">◀</button><span></span><button data-d="r">▶</button><span></span><button data-d="d">▼</button><span></span></div><button id="run">달리기</button></div>
+</div>
+<script>
+const M=["####################","#BBBB...#.....##...#","#BBDB...#..##.##.E.#","#BBBB.......#......#","#.......##..#.##...#","#..##...#.....#....#","#..##...#..##...M..#","#.......#..##......#","#..###..........##.#","#.......#####......#","#..##...#...#..##..#","#..##.......#......#","#.......##.....###.#","####################"];
+const W=20,H=14,T=32,V={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]},K=['u','d','l','r'];
+const SP=[{n:'망나뇽',e:'🐉'},{n:'마기라스',e:'🦖'},{n:'갸라도스',e:'🐲'},{n:'라프라스',e:'🦕'}];
+const $=i=>document.getElementById(i),cv=$('c'),x=cv.getContext('2d'),r=n=>Math.floor(Math.random()*n);
+let dex={};try{dex=JSON.parse(localStorage.getItem('eggthief')||'{}')}catch(e){}
+const find=ch=>{for(let j=0;j<H;j++){const i=M[j].indexOf(ch);if(i>=0)return[i,j]}};
+const E=find('E'),MH=find('M'),D=find('D'),START=[2,3];
+let g={},held=[],runKey=false,B=null,last=performance.now(),mt=0;
+const solid=(a,b)=>a<0||b<0||a>=W||b>=H||M[b][a]=='#';
+const safe=()=>M[g.p.y][g.p.x]=='B';
+function msg(t){$('msg').textContent=t;clearTimeout(mt);mt=setTimeout(()=>$('msg').textContent='',4500)}
+// 포켓몬 데이터: poke/rzdex.json(이름·스탯), poke/rzmap.json(도감번호→키), poke/rz/<키>/ (8방향 걷기·대기 스프라이트)
+const TN=['일반','희귀','영웅','전설','신화'],TC=['#e8e4d8','#bfe0ff','#e6c8ff','#ffe08a','#ffb0c0'],TW=[40,30,18,9,3];
+const tierOf=b=>b>=680?4:b>=600?3:b>=500?2:b>=400?1:0;
+const BASE='../';let DEX=null,KEYS=[],TIERS=[[],[],[],[],[]],SPR={};
+async function loadData(){try{DEX=await (await fetch(BASE+'rzdex.json')).json();const MP=await (await fetch(BASE+'rzmap.json')).json();KEYS=[...new Set(Object.values(MP))].filter(k=>DEX[k]);KEYS.forEach(k=>TIERS[tierOf(DEX[k][3].reduce((a,b)=>a+b,0))].push(k))}catch(e){KEYS=[]}}
+async function loadSpr(k){if(SPR[k])return SPR[k];const b=BASE+'rz/'+k+'/',meta=await (await fetch(b+k+'.pmd.json')).json(),img={};
+ await Promise.all(['walk','idle'].map(async st=>{const A=meta.anims&&meta.anims[st];if(!A)return;try{const q=await fetch(b+A.f+'-Anim.png');if(q.ok)img[st]=await createImageBitmap(await q.blob())}catch(e){}}));
+ if(!img.walk&&!img.idle)throw 0;return SPR[k]={meta,img}}
+function frameAt(S,A,t){const d=A.d||[];let tot=0;for(let i=0;i<A.n;i++)tot+=d[i]||4;let u=(t*(S.meta.tick||60))%tot;for(let i=0;i<A.n;i++){u-=d[i]||4;if(u<0)return i}return 0}
+const ROW={d:0,r:2,u:4,l:6}; // 시트 8행: 아래,우하,우,우상,위,좌상,좌,좌하
+function drawSpr(c,S,st,row,t,cx,by,fit){if(!S.img[st])st=S.img.idle?'idle':'walk';const A=S.meta.anims[st],im=S.img[st];if(!A||!im)return;
+ if(im.height<(row+1)*A.h)row=0;const sc=Math.max(.8,Math.min(1.8,fit/Math.max(A.w,A.h)));c.imageSmoothingEnabled=false;
+ c.drawImage(im,frameAt(S,A,t)*A.w,row*A.h,A.w,A.h,Math.round(cx-A.w*sc/2),Math.round(by-A.h*sc),Math.round(A.w*sc),Math.round(A.h*sc))}
+async function newRound(){g.carry=g.gone=false;g.aggro=0;g.loading=1;if(g.m)g.m.alive=false;let sp=null;
+ for(let t=0;t<8&&!sp&&KEYS.length;t++){let u=r(100),ti=0;while(ti<4&&(u-=TW[ti])>=0)ti++;const L=TIERS[ti].length?TIERS[ti]:KEYS,k=L[r(L.length)];try{const S=await loadSpr(k),d=DEX[k];sp={k,n:d[1],hp:d[3][0],atk:d[3][1],tier:tierOf(d[3].reduce((a,b)=>a+b,0)),S}}catch(e){}}
+ if(!sp){const s=SP[r(SP.length)];sp={n:s.n,e:s.e,hp:80,atk:80,tier:r(3)}}
+ g.sp=sp;g.fought=false;g.m={x:MH[0],y:MH[1],d:'l',t:0,mv:0,alive:true,hunt:false};g.loading=0}
+function init(){g={p:{x:START[0],y:START[1],d:'r',t:0},stam:100,st:'play',flash:0,aggro:0,loading:1,m:{alive:false}};hud();loadData().then(()=>newRound()).then(hud)}
+function hud(){$('cnt').textContent=Object.values(dex).reduce((a,b)=>a+b,0);
+ $('dex').textContent='도감 '+Object.keys(dex).length+'/'+(KEYS.length||SP.length)+'종'+(g.lastName?' · 최근: '+g.lastName:'')}
+const canM=(a,b)=>!solid(a,b)&&M[b][a]!='B'&&M[b][a]!='D'&&!(a==g.p.x&&b==g.p.y);
+const canP=(a,b)=>!solid(a,b)&&M[b][a]!='D'&&!(g.m.alive&&a==g.m.x&&b==g.m.y);
+// 전방 시야: 정면 4칸(어그로 60 이상이면 6칸), 좌우 1칸 폭, 벽에 막힘
+function sight(){const m=g.m,R=g.aggro>=60?6:4,[dx,dy]=V[m.d],px=-dy,py=dx,o=[];
+ for(let k=1;k<=R;k++){const cx=m.x+dx*k,cy=m.y+dy*k;if(solid(cx,cy))break;
+  for(let s=-1;s<=1;s++){const a=cx+px*s,b=cy+py*s;if(!solid(a,b))o.push([a,b])}}return o}
+// BFS 최단경로: 플레이어 인접칸까지 첫 걸음 방향
+function bfs(){const m=g.m,p=g.p,q=[[m.x,m.y]],seen={[m.x+','+m.y]:1},f={};
+ while(q.length){const[a,b]=q.shift();
+  for(const k of K){const n=a+V[k][0],o=b+V[k][1],id=n+','+o;if(seen[id]||!canM(n,o))continue;
+   seen[id]=1;f[id]=f[a+','+b]||k;if(Math.abs(n-p.x)+Math.abs(o-p.y)<=1)return f[id];q.push([n,o])}}return null}
+function tryMove(c,k,ok){c.d=k;const a=c.x+V[k][0],b=c.y+V[k][1];if(ok(a,b)){c.x=a;c.y=b;c.mv=performance.now();return true}return false}
+function step(now,dt){const p=g.p,m=g.m,k=held[held.length-1];
+ const run=runKey&&g.stam>0&&k;
+ if(run)g.stam=Math.max(0,g.stam-45*dt);else g.stam=Math.min(100,g.stam+18*dt);
+ if(k&&now-p.t>=(run?110:200)){tryMove(p,k,canP);p.t=now}
+ if(!g.carry&&!g.gone&&p.x==E[0]&&p.y==E[1]){g.carry=g.gone=true;g.aggro=50;m.hunt=true;g.flash=.6;
+  msg('둥지에서 '+TN[g.sp.tier]+' 알('+g.sp.n+')을 훔쳤다! 어미가 울부짖는다! 기지로 도망쳐!')}
+ if(g.carry&&Math.abs(p.x-D[0])+Math.abs(p.y-D[1])<=1){dex[g.sp.n]=(dex[g.sp.n]||0)+1;
+  try{localStorage.setItem('eggthief',JSON.stringify(dex))}catch(e){}
+  const killed=!g.m.alive,tt=Math.min(4,g.sp.tier+(killed?1:0));
+  msg(TN[tt]+' 알 납품 성공!'+(killed?' (어미 격파: 등급 상승)':'')+(!g.fought?' (전투 없이 성공: 보너스 알)':'')+(FR?' 부화기로 보냈어요.':''));
+  if(FR)parent.postMessage({src:'eggthief',type:'deliver',tier:g.sp.tier,killed,fought:g.fought,key:g.sp.k||''},location.origin);g.lastName=g.sp.n;newRound().then(hud);hud();return}
+ if(g.carry)g.aggro=Math.min(100,g.aggro+dt);
+ if(!m.alive)return;
+ if(!m.hunt&&!safe()&&sight().some(t=>t[0]==p.x&&t[1]==p.y)){m.hunt=true;msg('어미 포켓몬에게 발각됐다!')}
+ if(m.hunt){
+  if(safe()){m.hunt=false;msg('기지 안은 안전하다. 어미가 추격을 포기했다.')}
+  else{const lv=4,iv=420-60*lv; // 평소 속도 2단계 → 추격 시 4단계
+   if(now-m.t>=iv){const d=bfs();if(d)tryMove(m,d,canM);m.t=now}
+   if(Math.abs(p.x-m.x)+Math.abs(p.y-m.y)<=1)startBattle()}
+ }else if(now-m.t>=700){const k2=K[r(4)];m.t=now;
+  if(Math.random()<.5)m.d=k2;else if(Math.abs(m.x+V[k2][0]-MH[0])+Math.abs(m.y+V[k2][1]-MH[1])<=3)tryMove(m,k2,canM)}}
+function startBattle(){g.st='battle';g.fought=true;B={hp:150,eh:Math.min(320,Math.round((80+g.sp.hp*1.6)*(1+.12*g.sp.tier))),pot:2,lock:0};B.mx=B.eh;held=[];$('bt').hidden=false;
+ $('en').textContent=(g.sp.e||'')+' 어미 '+g.sp.n+'  Lv.50 (보스)';bl('어미 '+g.sp.n+'이(가) 덮쳐왔다!');rend()}
+function rend(){$('eh').style.width=B.eh/B.mx*100+'%';$('mh').style.width=B.hp/150*100+'%';$('pot').textContent='회복약 ×'+B.pot}
+function bl(t){$('bl').textContent=t}
+function bAct(k){if(B.lock)return;let t;
+ if(k==3){endB('flee');return}
+ if(k==2){if(B.pot<=0){bl('회복약이 없다!');return}B.pot--;B.hp=Math.min(150,B.hp+50);t='회복약! HP +50'}
+ else if(k==1){if(Math.random()<.7){const d=45+r(16);B.eh-=d;t='10만볼트! '+d+' 피해'}else t='10만볼트가 빗나갔다!'}
+ else{const d=22+r(9);B.eh-=d;t='몸통박치기! '+d+' 피해'}
+ B.lock=1;bl(t);
+ if(B.eh<=0){B.eh=0;rend();setTimeout(()=>endB('win'),800);return}
+ rend();setTimeout(()=>{const big=Math.random()<.25,kk=.7+.6*g.sp.atk/100,d=Math.round(big?(32+r(12))*kk:(14+r(11))*kk);B.hp-=d;
+  bl(t+' / '+g.sp.n+'의 '+(big?'파괴광선! ':'몸통박치기! ')+d+' 피해');
+  if(B.hp<=0){B.hp=0;rend();setTimeout(()=>endB('lose'),800);return}rend();B.lock=0},700)}
+function endB(res){$('bt').hidden=true;g.st='play';const m=g.m;
+ if(res=='win'){m.alive=false;m.hunt=false;g.aggro=0;
+  msg('어미 '+g.sp.n+'을(를) 물리쳤다!'+(g.carry?' 알을 안전하게 기지로 가져가자.':''));return}
+ // 도망/패배: 알을 빼앗기고 기지로 강제 워프
+ msg(res=='flee'?'도망쳤지만 알을 빼앗겼다!':'패배했다... 알을 빼앗기고 기지로 돌아왔다.');
+ g.carry=g.gone=false;g.aggro=0;m.x=MH[0];m.y=MH[1];m.hunt=false;g.p.x=START[0];g.p.y=START[1];g.flash=1}
+function egg(cx,cy,w,col){x.fillStyle=col;x.strokeStyle='#1c2550';x.lineWidth=2;x.beginPath();x.ellipse(cx,cy,w,w*1.25,0,0,7);x.fill();x.stroke();x.fillStyle='#0002';x.beginPath();x.ellipse(cx+w*.3,cy+w*.35,w*.45,w*.7,0,0,7);x.fill()}
+function txt(s,i,j,z=26){x.font=z+'px serif';x.textAlign='center';x.textBaseline='middle';x.fillText(s,i*T+16,j*T+18)}
+const bx=$('bc').getContext('2d');
+function draw(dt){x.clearRect(0,0,640,448);if(g.st=='battle'&&g.sp&&g.sp.S){bx.clearRect(0,0,96,96);drawSpr(bx,g.sp.S,'idle',0,performance.now()/1000,48,92,84)}
+ for(let j=0;j<H;j++)for(let i=0;i<W;i++){const c=M[j][i];
+  x.fillStyle=c=='#'?'#2f6b3a':c=='B'||c=='D'?'#8fb8d8':(i+j)%2?'#5da35d':'#68ad66';x.fillRect(i*T,j*T,T,T);if(c=='#')txt('🌲',i,j)}
+ txt('🧑‍🔬',D[0],D[1]);if(!g.gone&&!g.loading&&g.sp)egg(E[0]*T+16,E[1]*T+18,9,TC[g.sp.tier]);
+ if(g.m.alive&&g.sp&&!g.loading){x.fillStyle=g.m.hunt?'rgba(255,0,0,.28)':'rgba(255,230,0,.18)';
+  for(const t of sight())x.fillRect(t[0]*T,t[1]*T,T,T);if(g.sp.S)drawSpr(x,g.sp.S,performance.now()-g.m.mv<320?'walk':'idle',ROW[g.m.d],performance.now()/1000,g.m.x*T+16,g.m.y*T+30,38);else txt(g.sp.e,g.m.x,g.m.y,30);if(g.m.hunt)txt('❗',g.m.x,g.m.y-.8,18)}
+ txt(g.carry?'🏃':'🧒',g.p.x,g.p.y);if(g.carry)egg(g.p.x*T+26,g.p.y*T+6,5,TC[g.sp.tier]);
+ if(g.flash>0){x.fillStyle='rgba(255,0,0,'+g.flash*.5+')';x.fillRect(0,0,640,448);g.flash-=dt*2}
+ if(g.sp){$('tier').textContent=TN[g.sp.tier]+' 알';$('tier').style.color=TC[g.sp.tier]}$('ag').style.width=g.aggro+'%';$('ag').style.background=g.aggro>=60?'#e33':'#e94';$('st').style.width=g.stam+'%'}
+function tick(now){const dt=Math.min(.1,(now-last)/1000);last=now;if(g.st=='play'&&!g.loading)step(now,dt);draw(dt);requestAnimationFrame(tick)}
+const KM={ArrowUp:'u',w:'u',ArrowDown:'d',s:'d',ArrowLeft:'l',a:'l',ArrowRight:'r',d:'r'};
+addEventListener('keydown',e=>{if(e.key=='Shift')runKey=true;const k=KM[e.key];if(k){e.preventDefault();if(!held.includes(k))held.push(k)}});
+addEventListener('keyup',e=>{if(e.key=='Shift')runKey=false;const k=KM[e.key];if(k)held=held.filter(h=>h!=k)});
+document.querySelectorAll('[data-d]').forEach(b=>{const k=b.dataset.d;
+ b.onpointerdown=e=>{e.preventDefault();if(!held.includes(k))held.push(k)};
+ ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>held=held.filter(h=>h!=k)))});
+const rb=$('run');rb.onpointerdown=e=>{e.preventDefault();runKey=true};['pointerup','pointerleave','pointercancel'].forEach(ev=>rb.addEventListener(ev,()=>runKey=false));
+const FR=window.parent!==window;if(FR){$('ex').hidden=false;$('ex').onclick=()=>parent.postMessage({src:'eggthief',type:'close'},location.origin)}
+init();requestAnimationFrame(tick);
+</script></body></html>
