@@ -1,4 +1,4 @@
-/* 9M 3대3 팀 실시간 전투 (PvP 자동 전용) — rtbattle.js를 바탕으로 만든 별도 파일 (1대1 전투는 그대로)
+/* 9M 3대3 팀 실시간 전투 (야생 무리용으로 ctx.teamN 으로 최대 5대5까지) (PvP 자동 전용) — rtbattle.js를 바탕으로 만든 별도 파일 (1대1 전투는 그대로)
  * 사용: RTB3.start({meTeam:[mon×3], foeTeam:[mon×3], ...rtbattle과 같은 옵션}) -> 'win'|'lose'|'draw'|'quit' · 양쪽 모두 AI(같은 단계)
  * 원래 설명: 레조넌스 실시간 전투 (6B)
  * 규칙 출처: 레조넌스_전투규칙_명세서.md (60틱 고정, 아레나 1200x760, 구르기 2충전, 기술 4개)
@@ -1262,18 +1262,18 @@ function stop(r){
   try{for(const p of W.proj)if(p.fxa)C.fxe.VFX.stop(p.fxa)}catch(er){}   // 9E: 날아가던 기술 그림(돌·소용돌이)이 다음 전투에 남던 문제
   if(fxOn()){try{for(let i=0;i<4;i++){C.fxe.VFX.update(3)}C.fxe.FX2.clear();C.fxe.VFX.clear&&C.fxe.VFX.clear()}catch(er){}}
   W.root.remove();IN.keys={};IN.stick={on:0,id:null,sx:0,sy:0,x:0,y:0};IN.press=[];IN.hold={};IN.roll=0;
-  try{const hpBy=Object.assign({},W.hpBy);hpBy[W.me.mon.uid]=W.me.hp/(W.me.hm||1);window.RTB3.last={r,meHp:W.me.hp/(W.me.hm||1),meMax:W.me.max/(W.me.hm||1),foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time,meUid:W.me.mon.uid,hpBy,used:W.used.slice()}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
+  try{const hpBy=Object.assign({},W.hpBy);hpBy[W.me.mon.uid]=W.me.hp/(W.me.hm||1);W.ents.filter(e=>e.side===0).forEach(e=>{if(e.mon&&e.mon.uid!=null)hpBy[e.mon.uid]=e.hp/(e.hm||1)});window.RTB3.last={foeList:W.ents.filter(e=>e.side===1).map(e=>e.hp),r,meHp:W.me.hp/(W.me.hm||1),meMax:W.me.max/(W.me.hm||1),foeHp:W.foe.hp,foeMax:W.foe.max,time:W.time,meUid:W.me.mon.uid,hpBy,used:W.used.slice()}}catch(er){}   // 6F-2: 진짜 전투가 체력을 되받아 감
   const res=W.res;W=null;res(r);
 }
 async function start(ctx){
   if(W)return 'quit';
   C=ctx;
   rnd=C.seed?mkRng(C.seed):Math.random;
-  const T0=(C.meTeam||[C.me]).slice(0,3),T1=(C.foeTeam||[C.foe]).slice(0,3);C.me=T0[0];C.foe=T1[0];
+  const TN=Math.max(1,Math.min(5,(C.teamN|0)||3));const T0=(C.meTeam||[C.me]).slice(0,TN),T1=(C.foeTeam||[C.foe]).slice(0,TN);C.me=T0[0];C.foe=T1[0];
   const SS0=await Promise.all(T0.map(m=>C.getSpr(C.sprKey(m)))),SS1=await Promise.all(T1.map(m=>C.getSpr(C.sprKey(m))));
   W={tick:0,time:0,hitstop:0,proj:[],zones:[],delays:[],chain:[],fx:[],clones:[],over:null,overT:0,hpBy:{},used:[C.me.uid],swCd:0,itCd:0};
   try{C.fxe&&C.fxe.VFX.clear&&C.fxe.VFX.clear();C.fxe&&C.fxe.FX2.clear()}catch(er){}   // 9E: 지난 전투 그림 지우고 시작
-  W.ents=[];const YS=[380,230,530];
+  W.ents=[];const YS=[380,230,530,110,650];
   T0.forEach((m,i)=>{const e=mkEnt(m,SS0[i],0,C.hp0?C.hp0(m):null);e.x=230+(i?-40:0);e.y=YS[i];W.ents.push(e)});
   T1.forEach((m,i)=>{const e=mkEnt(m,SS1[i],1,C.hp1?C.hp1(m):null);e.x=970+(i?40:0);e.y=YS[i];W.ents.push(e)});
   W.me=W.ents[0];W.foe=W.ents.find(e=>e.side===1);
@@ -1297,7 +1297,7 @@ async function start(ctx){
       if(W.paused){acc=0}else while(acc>=TICK&&n<(W.fast?10:5)){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
       if(n>=(W.fast?10:5))acc=0;
       if(C.autoMe){if(W.over&&W.overT>1.6&&!W.pp&&!W.ip){stop(W.over);return}
-        if(W.autoTag){const a=autoNow(),tx=a?'⚔ 3대3 자동 대전':'⚔ 3대3 자동 대전';if(W.autoTag._t!==tx){W.autoTag._t=tx;W.autoTag.textContent=tx;W.autoTag.style.color=a?'#9bf0a8':'#ffd23f';W.autoTag.style.borderColor=a?'#9bf0a8':'#ffd23f'}}}
+        if(W.autoTag){const a=autoNow(),tx='⚔ '+W.ents.filter(e=>e.side===0).length+'대'+W.ents.filter(e=>e.side===1).length+' 자동 대전';if(W.autoTag._t!==tx){W.autoTag._t=tx;W.autoTag.textContent=tx;W.autoTag.style.color=a?'#9bf0a8':'#ffd23f';W.autoTag.style.borderColor=a?'#9bf0a8':'#ffd23f'}}}
       if(fxOn()&&!W.paused){try{C.fxe.FX2.update(dt);C.fxe.VFX.update(dt)}catch(er){}}
       render();
       W.raf=requestAnimationFrame(loop)};

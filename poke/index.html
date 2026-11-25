@@ -2924,7 +2924,7 @@ async function itRun(k,it,m,go){
   try{if(!document.querySelector('.panel'))bagOpen()}catch(e){}}
 
 // ===== 포켓몬 편성 (출전 최대 6마리 · 나머지는 보관함) =====
-function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf${m.aw?' awk':''}"><img src="${faceUrl(lkOf(m),r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${dLv(m)}</small>${(w==='p'&&(lbEff(m)>(m.lb|0)||awEff(m)>awOf(m)))?`<small class="tlb" style="color:#1d8a3a">🤝 팀 공유 ★${lbEff(m)} · 각성 ${awEff(m)}</small>`:''}<div>${awStars(m)} <small style="font-size:11px;color:#6a3aa8">한계돌파 ${m.lb|0}/${LBMAX} · 각성 ${awOf(m)}/${AWMAX}</small></div><div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
+function teamOpen(){if(!G)return;const nxt=G.box.length?G.box.map(m=>({m,s:recScore(m)})).sort((a,b)=>b.s-a.s)[0].m:null;const row=(m,i,w)=>{const S=stOf(m),r=Math.max(0,m.hp/S[0]);const rr=rarM(m);return `<div class="tm ${w} rr${rr}" style="--rc:${RARC[rr]}"><div class="tmf${m.aw?' awk':''}"><img src="${faceUrl(lkOf(m),r<.3?'Pain':'Normal')}"><u class="trar">${RAR[rr]}</u></div><div class="ti"><b>${nm(m)}</b> <small>Lv.${dLv(m)}</small>${(w==='p'&&lbEff(m)>(m.lb|0))?`<small class="tlb" style="color:#1d8a3a">🤝 한계돌파 ★${lbEff(m)} 공유</small>`:''}${(w==='p'&&window.awTag)?window.awTag(m):''}<div>${window.awStarsEff?window.awStarsEff(m):awStars(m)} <small style="font-size:11px;color:#6a3aa8">한계돌파 ${m.lb|0}/${LBMAX} · 각성 ${awOf(m)}/${AWMAX}</small></div>${window.awBirthLine?window.awBirthLine(m):''}<div class="tt">${META[m.n].types.map(t=>`<em style="background:${TCOL[t]}">${TN[t]}</em>`).join('')}</div><div class="thp"><i style="width:${r*100}%"></i></div></div>${w==='p'?`<button data-out="${i}" ${G.party.length<=1?'disabled':''}>편성 해제</button>`:`<button data-in="${i}">출전하기</button>`}</div>`};
   openPanel('포켓몬 편성 · 출전 '+G.party.length+' / 6',`<h4>출전 중 (최대 6마리)</h4><div class="tg">${G.party.map((m,i)=>row(m,i,'p')).join('')}${Array(6-G.party.length).fill(nxt?`<div class="tm empty add"><span>빈 자리</span><button data-add="1">＋ 추천순 <small>${nm(nxt)} Lv.${dLv(nxt)}</small></button></div>`:'<div class="tm empty">빈 자리</div>').join('')}</div>
     <h4>보관함 ${G.box.length}마리</h4><div class="tg">${G.box.length?G.box.map((m,i)=>row(m,i,'b')).join(''):'<small>보관함이 비어 있어요</small>'}</div>`,null,p=>{
     p.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{if(G.party.length>=6||!G.box.length)return;const best=G.box.map((m,i)=>({i,s:recScore(m)})).sort((a,c)=>c.s-a.s)[0];const m=G.box.splice(best.i,1)[0];G.party.push(m);sfx('get');save();refreshSpr();toast('추천순 · '+nm(m)+' 출전!');teamOpen()});
@@ -8087,8 +8087,8 @@ function awStars(m){const a=awOf(m),sl=awSlots(m);let h='';for(let i=0;i<AWMAX;i
 function awOpen(){if(!G)return;const sl=awSlots();
   const all=[...G.party,...G.box].map(m=>({m,k:awOf(m)*100000+rarM(m)*1000+m.lv})).sort((a,b)=>b.k-a.k).slice(0,80).map(x=>x.m);
   const rows=all.map((m,i)=>{const a=awOf(m),n=a+1,full=a>=AWMAX,ok=n<=sl,r=rarB(m),d=(G.dupes||[]).filter(x=>x.kind==='P'&&x.rar===r).length,cost=awCost(n);
-    return `<div class="hrow ${full?'ok':''}"><img class="${a?'awk':''}" src="${THUMB[lkOf(m)]||''}" style="width:48px;height:48px;object-fit:contain"><span><b>${nm(m)} <small style="color:${RARC[r]}">[${RAR[r]}]</small></b><div>${awStars(m)}</div><small>지금 능력치 +${a*AWPCT}%${full?' · 최대!':ok?' · 다음 각성 → +'+n*AWPCT+'%':' · 한계돌파 ★가 늘면 별 칸이 열려요'}</small>${full||!ok?'':`<small>재료: 같은 등급 영혼 ${awNeed(n)}개 (가진 것 ${d}) · 💰 ${cost.toLocaleString()}원 (가진 것 ${G.money.toLocaleString()})</small>`}</span>${full||!ok?'':`<button data-aw="${i}" ${G.money>=cost&&d>=awNeed(n)?'':'disabled'}>각성하기</button>`}</div>`}).join('');
-  openPanel('각성',`<p class="hhint">포켓몬 아래 ★ 한 칸은 <b>한계돌파 ★가 늘 때마다</b> 하나씩 열려요 (지금 ${sl}/${AWMAX}칸). <b>같은 등급 영혼 ${AWNEED}개</b>(<b>6번째 각성부터는 점점 늘어서 ${awNeed(6)}개 → 10번째는 ${awNeed(10)}개</b>)와 <b>골드</b>(6번째부터 점점 비싸져요)로 각성하면 ★ 하나가 <b style="color:#9a4dff">보라색</b>이 되고 모든 능력치가 +${AWPCT}% 올라가요. 몸 둘레에 보라 <b>픽셀 불꽃</b>도 타올라요! (영혼은 같은 등급 카드·영혼 어느 것이든 돼요)</p>${sl?'':'<p class="hhint"><b>아직 열린 별 칸이 없어요.</b> 한계돌파하면 첫 별 칸이 열려요.</p>'}${rows}`,null,p=>{p.querySelectorAll('[data-aw]').forEach(b=>b.onclick=()=>awGo(all[+b.dataset.aw]))})}
+    return `<div class="hrow ${full?'ok':''}"><img class="${a?'awk':''}" src="${THUMB[lkOf(m)]||''}" style="width:48px;height:48px;object-fit:contain"><span><b>${nm(m)} <small style="color:${RARC[r]}">[${RAR[r]}]</small></b><div>${awStars(m)}</div><small>지금 능력치 +${window.awBirth.pct(m,a)}%${full?' · 최대!':ok?' · 다음 각성 → +'+window.awBirth.pct(m,n)+'%':' · 한계돌파 ★가 늘면 별 칸이 열려요'}</small>${full||!ok?'':`<small>재료: 같은 등급 영혼 ${awNeed(n)}개 (가진 것 ${d}) · 💰 ${cost.toLocaleString()}원 (가진 것 ${G.money.toLocaleString()})</small>`}</span>${full||!ok?'':`<button data-aw="${i}" ${G.money>=cost&&d>=awNeed(n)?'':'disabled'}>각성하기</button>`}</div>`}).join('');
+  openPanel('각성',`<p class="hhint">포켓몬 아래 ★ 한 칸은 <b>한계돌파 ★가 늘 때마다</b> 하나씩 열려요 (지금 ${sl}/${AWMAX}칸). <b>같은 등급 영혼 ${AWNEED}개</b>(<b>6번째 각성부터는 점점 늘어서 ${awNeed(6)}개 → 10번째는 ${awNeed(10)}개</b>)와 <b>골드</b>(6번째부터 점점 비싸져요)로 각성하면 ★ 하나가 <b style="color:#9a4dff">보라색</b>이 되고 모든 능력치가 +${AWPCT}% 올라가요. 몸 둘레에 보라 <b>픽셀 불꽃</b>도 타올라요! (영혼은 같은 등급 카드·영혼 어느 것이든 돼요)<br><b>🎖 태생별 각성 효과</b> (10각 기준): 노말 50% · 희귀 60% · 영웅 70% · 전설 80% · 신화 90% · 환상 100% · 유일 110%<br><b>🤝 팀 효과 부여</b>: 같이 편성한 포켓몬의 각성 효과를 나눠 받아요 · 준 쪽 태생에 따라 노말 40% ~ 유일 100%만 받고, 내 효과가 더 좋으면 내 것만, 받는 쪽이 더 좋으면 제일 좋은 한 마리 것만 적용돼요 (겹치지 않아요)</p>${sl?'':'<p class="hhint"><b>아직 열린 별 칸이 없어요.</b> 한계돌파하면 첫 별 칸이 열려요.</p>'}${rows}`,null,p=>{p.querySelectorAll('[data-aw]').forEach(b=>b.onclick=()=>awGo(all[+b.dataset.aw]))})}
 async function awGo(m){const a=awOf(m),n=a+1;if(n>awSlots(m)||a>=AWMAX){toast('한계돌파 ★가 모자라요 · 이 포켓몬을 먼저 한계돌파해요');return}const r=rarB(m),cost=awCost(n);
   if(G.money<cost){toast('골드가 모자라요');return}
   const idx=[];(G.dupes||[]).forEach((x,i)=>{if(x.kind==='P'&&x.rar===r&&idx.length<awNeed(n))idx.push(i)});if(idx.length<awNeed(n)){toast('같은 등급 영혼이 모자라요');return}
@@ -8626,7 +8626,7 @@ awOpen=function(){if(!G)return;const sl=awSlots(),adm=awAdmin();
 async function awOne(m){const started=awOf(m);
   for(let guard=0;guard<60;guard++){const I=awInfo(m),adm=awAdmin();
     const mat=I.full?'<b style="color:#8a3dff">★ 최대예요!</b>':!I.slotOk?'<b class="awx-no">아직 별 칸이 없어요</b> · 한계돌파하면 칸이 열려요':'다음 각성 <b>★'+I.n+'</b> → 능력치 <b>+'+I.n*AWPCT+'%</b><br>👻 <b style="color:'+RARC[I.r]+'">'+RAR[I.r]+'</b> 영혼 '+mkN(I.have,I.need)+'<br>💰 골드 '+mkN(G.money,I.cost);
-    const body=`<div style="text-align:center"><img src="${faceUrl(lkOf(m),'Normal')}" style="width:64px;height:64px;image-rendering:pixelated"><br><b>${esc(nm(m))}</b> <small>Lv.${dLv(m)}</small><br>${awStars(m,1)}<br><small>지금 각성 능력치 +${I.a*AWPCT}% · 열린 별 칸 ${I.sl}/${AWMAX}</small></div><div class="awx-c">${mat}</div>`;
+    const body=`<div style="text-align:center"><img src="${faceUrl(lkOf(m),'Normal')}" style="width:64px;height:64px;image-rendering:pixelated"><br><b>${esc(nm(m))}</b> <small>Lv.${dLv(m)}</small><br>${awStars(m,1)}<br><small>지금 각성 능력치 +${window.awBirth.pct(m,I.a)}% · 열린 별 칸 ${I.sl}/${AWMAX}</small></div><div class="awx-c">${mat}</div>`;
     const B=[];if(!I.full)B.push({t:'⭐ 각성하기',main:1,v:'go'});B.push({t:'✨ 각성 효과 미리보기',v:'pv'},{t:'📖 영혼 · 각성 설명',v:'help'});
     if(adm)B.push({t:'🛠 운영자: ★ +1',v:'up'},{t:'🛠 운영자: ★ −1',v:'dn'});B.push({t:'닫기',v:false});B.col=1;
     const v=await ovBox('⭐ 각성',body,B);
@@ -8647,7 +8647,7 @@ async function monNick(m){
   return true}
 async function monMenu(m){let changed=0;
   for(let guard=0;guard<60;guard++){const I=awInfo(m),adm=awAdmin();
-    const body=`<div style="text-align:center"><img src="${faceUrl(lkOf(m),'Normal')}" style="width:64px;height:64px;image-rendering:pixelated"><br><b>${esc(nm(m))}</b> <small>Lv.${dLv(m)} · <span style="color:${RARC[I.r]}">${RAR[I.r]}</span></small><br>${awStars(m,1)}<br><small>각성 +${I.a*AWPCT}% · 한계돌파 ★${rbTier()} · 별 칸 ${I.sl}/${AWMAX}</small>${window.tsLine?window.tsLine(m):''}</div>`;
+    const body=`<div style="text-align:center"><img src="${faceUrl(lkOf(m),'Normal')}" style="width:64px;height:64px;image-rendering:pixelated"><br><b>${esc(nm(m))}</b> <small>Lv.${dLv(m)} · <span style="color:${RARC[I.r]}">${RAR[I.r]}</span></small><br>${awStars(m,1)}<br><small>각성 +${window.awBirth.pct(m,I.a)}% · 한계돌파 ★${rbTier()} · 별 칸 ${I.sl}/${AWMAX}</small>${window.tsLine?window.tsLine(m):''}</div>`;
     const B=[{t:'⭐ 각성하기',main:1,v:'aw'},{t:'✨ 스킬 바꾸기',v:'sk'}];if(typeof pxReroll==='function')B.push({t:'🎰 접두사 바꾸기',v:'px'});B.push({t:'✏️ 별명 짓기',v:'nk'});if(window.lkPanel)B.push({t:'🎭 모습 · 이름 바꾸기',v:'lk'});
     B.push({t:'🎬 각성 효과 미리보기',v:'pv'},{t:'📖 한계돌파 · 각성 설명',v:'info'});
     if(adm)B.push({t:'🛠 운영자: 각성 ★ +1',v:'up'},{t:'🛠 운영자: 각성 ★ −1',v:'dn'});B.push({t:'닫기',v:false});B.col=1;
@@ -11475,23 +11475,56 @@ setInterval(btnUpd,1500);
 
 // ---- 경험치 2배: giveExp 안에서만 난이도 경험치 배율을 잠깐 2배로 ----
 {const _ge=giveExp;giveExp=async function(f,part){let ap=0,d=0;try{const x=G&&G.xpc;if(x&&x.on&&x.left>0&&window.__xpOk){ap=1;d=DIFF();DEXP[d]*=2}}catch(e){ap=0}
-  try{return await _ge.apply(this,arguments)}finally{if(ap){DEXP[d]/=2;const x=G.xpc;x.left=Math.max(0,x.left-1);if(x.left<=0)toast('🎟️ 경험치 2배 쿠폰을 다 썼어요');save();btnUpd()}}}}
+  try{return await _ge.apply(this,arguments)}finally{if(ap){DEXP[d]/=2;const x=G.xpc;x.left=Math.max(0,x.left-(window.__xpFree?0:1));if(x.left<=0)toast('🎟️ 경험치 2배 쿠폰을 다 썼어요');save();btnUpd()}}}}
 
 // ---- 어떤 전투에 적용할지: 야생(wild) · 필드 트레이너(trainerSpot) · 챔피언 ----
 window.__xpSrc=0;window.__inLeague=0;
 {const _w=wild;
+
+ // ---- 야생 무리: 2~5마리가 나오면 N:N 한 경기장에서 동시에 (rtteam.js 3대3 전투를 5대5까지 늘림) ----
+ let _r3=null;const loadR3=()=>window.RTB3?Promise.resolve():(_r3||(_r3=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='rtteam.js?v='+Date.now();sc.onload=ok;sc.onerror=()=>{_r3=null;no(new Error('rtteam.js'))};document.head.appendChild(sc)})));
+ async function groupWild(A,kind,n0){
+   const T=kind==='w'?A.enc.w:A.enc.g;if(!T||!T.length)return false;
+   const mine=G.party.filter(m=>m&&m.hp>0&&META[m.n]);const n=Math.min(n0,mine.length,5);if(n<2)return false;
+   if(typeof window.rtLoadBase!=='function'||typeof window.rtCtxBase!=='function')return false;
+   try{await window.rtLoadBase();await loadR3();if(typeof rzMovesLoad==='function')await rzMovesLoad()}catch(e){console.warn('pk-group load',e);return false}
+   const pl=T.filter(e=>{try{return rarOf(e.n)<3&&(typeof rarCapOk!=='function'||rarCapOk(e.n))}catch(x){return true}});const pool=pl.length?pl:T;   // 무리는 전설 미만으로만
+   const [lo,hi]=areaLv(G.a),foes=[];
+   for(let i=0;i<n;i++){const wm=mkMon(wpick(pool),ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc()}if(G.rebirth){wm.rbf=1;try{wm.hp=stOf(wm)[0]}catch(e){}}foes.push(wm)}
+   const team=mine.slice(0,n),base=window.rtCtxBase();let r='quit';
+   try{toast('🐾 야생 포켓몬 '+n+'마리가 무리 지어 나타났다! '+n+' : '+n+' 대전!')}catch(e){}
+   SCENE='battle';BS.on=1;BS.trainer=null;BS.bg=A.th===THEME.town?'meadow':RTH[(G.a-1)/2];BS.potN=0;BS.me=BS.foe=null;BS.foes=foes;
+   try{FX2.clear()}catch(e){}try{BGM.battle({foes})}catch(e){}try{sfx('enc')}catch(e){}
+   try{
+     r=await RTB3.start(Object.assign({},base,{meTeam:team.map(m=>Object.assign({},m,{moves:m.moves.slice()})),foeTeam:foes,teamN:n,hp0:m=>{const q=G.party.find(x=>x.uid===m.uid);return q?q.hp:null},aiTier:'T2',autoMe:1,noQuit:0,quitText:'도망칠까요?',maxTime:240,loseTxt:'무리에게 밀렸다…',drawTxt:'시간이 다 됐다',endHint:'자동으로 돌아가요'}));
+     const L=window.RTB3.last||{};
+     if(L.hpBy){for(const q of G.party){const hb=L.hpBy[q.uid];if(hb!=null)q.hp=hb>0?Math.max(1,Math.round(hb)):0}}
+     const fl=L.foeList||[],down=foes.filter((f,i)=>fl[i]!=null?fl[i]<=0:r==='win'),win=r==='win'&&down.length>0||down.length===foes.length;
+     const part=new Set(team.map(m=>m.uid));
+     try{FX2.clear()}catch(e){}showBattleUI(1);
+     try{BS.me={m:team[0],S:await base.getSpr(base.sprKey(team[0])),st:'idle',t:0,in:0,hide:0};BS.foe={m:foes[0],S:await base.getSpr(base.sprKey(foes[0])),st:'faint',t:0,in:0,hide:1}}catch(e){}
+     const ok0=window.__xpOk;window.__xpOk=1;
+     try{let k=0;for(const f of down){window.__xpFree=k++>0?1:0;await giveExp(f,part)}}catch(e){console.warn('pk-group exp',e)}finally{window.__xpOk=ok0;window.__xpFree=0}
+     if(win){let mo=0;for(const f of foes)mo+=Math.round(Math.max(220,(f.lv||1)*24)*DMONEY[DIFF()]);G.money+=mo;try{toast('💰 무리를 이겨서 '+mo+'원을 주웠다!')}catch(e){}
+       if(DIFF()&&R()<DPACK[DIFF()]){try{REWQ.push({kind:R()<.5?'P':'M',msg:'난이도 보너스! 카드팩 1장',why:'난이도 보너스'})}catch(e){}}
+       for(let i=0;i<foes.length;i++){const u=Math.random();let acc=0;for(const t2 of XPC.tiers){acc+=dropP(t2);if(u<acc){addItem('xpc'+t2,1);try{toast('🎟️ 경험치 2배 쿠폰 '+t2+'회를 주웠다!');btnUpd()}catch(e){}break}}}}
+     else if(r==='lose')try{toast('무리에게 밀렸다…')}catch(e){}
+     window.__lastBR=win?'win':r==='lose'?'lose':'run';
+   }catch(e){console.warn('pk-group rt',e);window.__lastBR='run'}
+   try{await evolveCheck()}catch(e){}
+   try{FX2.clear()}catch(e){}showBattleUI(0);SCENE='over';BS.on=0;try{await refreshSpr()}catch(e){}try{hud()}catch(e){}save();try{BGM.area()}catch(e){}P.grace=ri(4,7);
+   if(!alive().length){try{await blackout()}catch(e){}}
+   return true}
  wild=async function(A,kind){window.__xpSrc++;try{
    const u=Math.random();let acc=0,n=1;for(const [c,p] of GRPW){acc+=p;if(u<acc){n=c;break}}
-   for(let i=0;i<n;i++){
-     if(n>1){try{toast(i===0?'🐾 야생 포켓몬 '+n+'마리가 무리 지어 나타났다!':'🐾 다음 포켓몬! ('+(i+1)+'/'+n+')')}catch(e){}}
-     window.__lastBR=undefined;await _w.call(this,A,kind);const r=window.__lastBR;
-     if(r!=='win'&&r!=='caught')break}
+   if(n>1){let ok=false;try{ok=await groupWild(A,kind,n)}catch(e){console.warn('pk-group',e);try{FX2.clear();showBattleUI(0);SCENE='over';BS.on=0}catch(x){}ok=true}if(ok)return}
+   await _w.call(this,A,kind)
  }finally{window.__xpSrc--}}}
 if(typeof trainerSpot==='function'){const _t=trainerSpot;trainerSpot=async function(){window.__xpSrc++;try{return await _t.apply(this,arguments)}finally{window.__xpSrc--}}}
 if(typeof league==='function'){const _l=league;league=async function(){window.__inLeague=1;try{return await _l.apply(this,arguments)}finally{window.__inLeague=0}}}
 
 // ---- battle 감싸기: 쿠폰 적용 표시 · 결과 기록 · 야생 승리 시 쿠폰 드롭 ----
-{const _b=battle;battle=async function(o){let ok=false;try{ok=!!(o&&!o.wb&&!o.pvp&&(window.__xpSrc>0||(window.__inLeague&&o.scaled)||/챔피언/.test(o.trainer||'')))}catch(e){}
+{const _b=battle;battle=async function(o){try{window.__lastFoe=o&&o.foes&&o.foes[0]}catch(e){}let ok=false;try{ok=!!(o&&!o.wb&&!o.pvp&&(window.__xpSrc>0||(window.__inLeague&&o.scaled)||/챔피언/.test(o.trainer||'')))}catch(e){}
   const prev=window.__xpOk;window.__xpOk=ok;let r;try{r=await _b.apply(this,arguments)}finally{window.__xpOk=prev}
   window.__lastBR=r;
   try{if(r==='win'&&o&&!o.trainer&&!o.wb&&!o.pvp&&window.__xpSrc>0){const u=Math.random();let acc=0;for(const n of XPC.tiers){acc+=dropP(n);if(u<acc){addItem('xpc'+n,1);save();toast('🎟️ 경험치 2배 쿠폰 '+n+'회를 주웠다!');btnUpd();break}}}}catch(e){}
@@ -11518,5 +11551,23 @@ const M=META[m.n],nw=!G.dex.c[M.dex];G.dex.s[M.dex]=1;G.dex.c[M.dex]=1;sfx('tap'
 if(typeof monCapOk==='function'&&!monCapOk(m)){soulFrom(m)}else{if(G.party.length<6)G.party.push(m);else G.box.push(m);pop(m,M,nw)}
 save();try{refreshSpr()}catch(e){}try{spAdd(15)}catch(e){}}
 }catch(e){console.warn('pk-egg-popup',e)}})();
+</script>
+<script id="pk-awbirth">
+// 태생별 각성 효과 · 팀 효과 부여: 내 효과 = 각성 × 태생배율(노말 50% … 유일 110%) · 부여받는 효과 = (준 쪽 각성−2, 5 미만이면 최대 5) × 준 쪽 태생배율(40% … 100%) · 둘 중 제일 좋은 하나만 적용
+(function(){try{
+const OWN=[.5,.6,.7,.8,.9,1,1.1],SHR=[.4,.5,.6,.7,.8,.9,1],PCT=6;
+const ao=m=>Math.max(0,Math.min(10,(m&&m.aw)|0));
+const bo=m=>{try{return Math.max(0,Math.min(6,rarB(m)|0))}catch(e){return 0}};
+function info(m){const o=ao(m),own=o*OWN[bo(m)];let v=own,from=null,st=0;
+ try{if(inTeam(m)){for(const d of G.party){if(!d||d===m)continue;const a=ao(d);if(a<1)continue;const q=o>=5?a-2:Math.min(5,a-2);if(q<1)continue;const x=q*SHR[bo(d)];if(x>v){v=x;from=d;st=q}}}}catch(e){}
+ return{v,own,from,st}}
+window.awBirth={OWN,SHR,info,bo,pct:(m,k)=>+((k||0)*PCT*OWN[bo(m)]).toFixed(1)};
+awEff=function(m){return info(m).v};
+window.awEffMon=m=>info(m).v;
+window.awDisp=m=>{const i=info(m);return i.from?Math.max(ao(m),Math.min(10,Math.round(i.v))):ao(m)};
+window.awStarsEff=(m,big)=>{const a=window.awDisp(m);return window.unStars(Math.max((m&&m.lb)|0,a),a,big)};
+window.awTag=m=>{const i=info(m);if(!i.from)return '';const d=i.from;return `<small class="tlb" style="color:#8a3ad8;display:block">🤝 효과 부여중 · ${nm(d)}의 각성 ${i.st}★ × ${Math.round(SHR[bo(d)]*100)}% → 능력치 +${(i.v*PCT).toFixed(1)}% (보라·빨강 별로 보여요)</small>`};
+window.awBirthLine=m=>{const b=bo(m);return `<small style="display:block;font-size:11px;color:#6a6a7a">태생 <b style="color:${RARC[b]}">${RAR[b]}</b> · 각성 효과 ${Math.round(OWN[b]*100)}% (10각 기준) · 효과 부여 ${Math.round(SHR[b]*100)}%</small>`};
+}catch(e){console.warn('pk-awbirth',e)}})();
 </script>
 </body></html>
