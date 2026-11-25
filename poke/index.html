@@ -5041,7 +5041,7 @@ try{(function(){const ETM=5,td=()=>{G.flags=G.flags||{};const d=new Date().toISO
    let r=Math.max(0,Math.min(4,m.tier|0));if(m.killed)r=Math.min(4,r+1);try{r=Math.min(r,rarCap())}catch(_){}
    G.eggq=G.eggq||[];G.eggq.push(r);let bonus='';if(!m.fought){addItem('egg',1);bonus=' + 보너스 알'}
    save();eggFill();try{sfx('get')}catch(_){}toast('계란훔치기 성공! '+RAR[r]+' 알'+bonus+' · 오늘 '+f.n+'/'+ETM)}});
- UB.push({k:'eggthief',n:'계란훔치기',d:'둥지의 알을 훔쳐 파란 기지로 도망치는 미니게임. 어미 포켓몬(전 종)이 쫓아와요. 어미 등급이 곧 알 등급(일반~신화)! 어미를 쓰러뜨리고 납품하면 등급이 한 단계 올라가고, 싸우지 않고 도망쳐 성공하면 보너스 알을 줘요. 잡히거나 도망치면 알을 빼앗겨요. 하루 5회.',st:()=>'오늘 '+td().n+'/'+ETM,go:[['도전하기',()=>eggThiefOpen()]]})})()}catch(e){}
+ HUB.push({k:'eggthief',n:'계란훔치기',d:'둥지의 알을 훔쳐 파란 기지로 도망치는 미니게임. 어미 포켓몬(전 종)이 쫓아와요. 어미 등급이 곧 알 등급(일반~신화)! 어미를 쓰러뜨리고 납품하면 등급이 한 단계 올라가고, 싸우지 않고 도망쳐 성공하면 보너스 알을 줘요. 잡히거나 도망치면 알을 빼앗겨요. 하루 5회.',st:()=>'오늘 '+td().n+'/'+ETM,go:[['도전하기',()=>eggThiefOpen()]]})})()}catch(e){}
 
 (function(){const c=document.createElement('style');c.textContent=`
 .egg{display:inline-block;position:relative;width:18px;height:22px;border-radius:50% 50% 46% 46%/60% 60% 40% 40%;background:radial-gradient(circle at 35% 30%,#fff 0 18%,var(--ec) 19%);box-shadow:inset -3px -3px 0 #0002,0 0 0 2px #1c2550}
@@ -5310,7 +5310,7 @@ const c=document.createElement('style');c.textContent=`
 `;document.head.appendChild(c)})();
 
 // ===== 아이콘이 없던 것들에 아이콘 (힉스필드 그림 ui/ic_*.webp) =====
-const HUBIC={story:'ic_badge',mg:'ic_quest',shop:'ic_shop',rm:'ic_badge',card:'ic_gift',dex:'ic_dex',team:'ic_star',wild:'ic_auto',portal:'ic_portal',rank:'ic_rank',gear:'ic_bag',wb:'ic_fast',trash:'ic_trash',prefix:'ic_scroll',stop:'ic_stop',wx:'ic_wx',egg:'ic_egg',season:'ic_season',diff:'ic_menu'};
+const HUBIC={story:'ic_badge',mg:'ic_quest',shop:'ic_shop',rm:'ic_badge',card:'ic_gift',dex:'ic_dex',team:'ic_star',wild:'ic_auto',portal:'ic_portal',rank:'ic_rank',gear:'ic_bag',wb:'ic_fast',trash:'ic_trash',prefix:'ic_scroll',stop:'ic_stop',wx:'ic_wx',egg:'ic_egg',eggthief:'ic_egg',season:'ic_season',diff:'ic_menu'};
 // 아이템 아이콘
 try{ITEMS.pxsc.e='<img class="ic" src="ui/ic_scroll.webp">';ITEMS.spxsc.e='<img class="ic" src="ui/ic_scroll.webp" style="filter:hue-rotate(280deg) saturate(1.8) drop-shadow(0 0 4px #ff2aa0)">';ITEMS.egg.e='<img class="ic" src="ui/ic_egg.webp">'}catch(e){}
 // 컨텐츠 카드 앞에 아이콘
@@ -10355,7 +10355,7 @@ const SEC={day:[['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매�
   bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 매주 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🗡 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스)',['svx','svg','svs','svb','svk']]],
   fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
   up:[['🐾 포켓몬 키우기',['team','trans','awake','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
-  col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','wild']],['🏘 마을 · 날씨',['mg','shop','wx']]],
+  col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','eggthief','wild']],['🏘 마을 · 날씨',['mg','shop','wx']]],
   set:[['📢 소식 · 정보',['news','odds']],['🖥 화면 · 전투',['vscale','btmode','dskin','hitfx','a2fx','dmeter']]]};
 const catOf=k=>{for(const c in SEC)for(const x of SEC[c])if(x[1].includes(k))return c;return 'col'};
 const DX=d=>['p',d],IM=s=>['i',s],SH=s=>['s',s];
@@ -10363,7 +10363,7 @@ const HZP={season:IM('ui/ic_season.webp'),dq:IM('ui/tr/gem.png'),stop:IM('ui/ic_
   tg:DX(493),story:IM('badges/b7.webp'),wb:DX(150),wbc:DX(384),wbe:DX(487),ctw:DX(249),tower:DX(68),first:IM('ui/rk_crown1.webp'),diff:DX(491),
   brawl:SH('ui/news/n14_brawl.webp'),raid:DX(383),pvp:SH('ui/news/n10_pvp3.webp'),rmroom:DX(448),trade:DX(132),rank:IM('ui/podium.webp'),wc:DX(201),dojo:DX(107),
   team:DX(6),gear:IM('ui/cube2.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/tr/core.png'),rebirth:DX(250),lb:IM('items/RARECANDY.png'),prefix:IM('ui/ic_scroll.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
-  dex:IM('ui/ic_dex.webp'),dxr:DX(151),card:IM('cardpack/pk3.webp'),egg:IM('ui/ic_egg.webp'),wild:DX(25),mg:DX(129),shop:IM('ui/ic_shop.webp'),wx:IM('ui/ic_wx.webp'),
+  dex:IM('ui/ic_dex.webp'),dxr:DX(151),card:IM('cardpack/pk3.webp'),egg:IM('ui/ic_egg.webp'),eggthief:IM('ui/ic_egg.webp'),wild:DX(25),mg:DX(129),shop:IM('ui/ic_shop.webp'),wx:IM('ui/ic_wx.webp'),
   news:SH('ui/news/n01_hub.webp'),vscale:SH('ui/news/n08_scale.webp'),btmode:SH('ui/news/n02_mode.webp'),dskin:SH('ui/news/n03_skin.webp'),hitfx:SH('ui/news/n20_sprfx.webp'),a2fx:SH('ui/news/n15_proj.webp'),dmeter:SH('ui/news/n04_battle.webp'),odds:IM('ui/ic_coin.webp'),svx:IM('items/RARECANDY.png'),svg:IM('ui/ic_coin.webp'),svs:IM('ui/tr/core.png'),svb:DX(144),svk:IM('ui/cube2.webp')};
 const pic=k=>{const p=HZP[k]||IM('ui/'+((typeof HUBIC!=='undefined'&&HUBIC[k])||'ic_star')+'.webp');
   if(p[0]==='p'){const n=BYDEX[p[1]];return `<img class="hzpk" src="${(n&&THUMB[n])||''}" alt="">`}
