@@ -1715,8 +1715,9 @@ function render(){try{teraUi()}catch(er){}try{gmUi()}catch(er){}
 }
 function hud(cx,Wd,Hd){
   const me=W.me,foe=W.foe,u=Math.max(1,Math.min(Wd,Hd*1.6)/700);
+  const PKN=C.net?6:((W.ents&&W.ents.length)?Math.max(W.ents.filter(q=>q.side===0).length,W.ents.filter(q=>q.side===1).length):1);
   const bar=(x,y,w,e,right)=>{
-    cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(x,y,w,46*u);
+    cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(x,y,w,(window.PKHX?PKHX.h(PKN):46)*u);
     cx.fillStyle='#fff';cx.font='bold '+(15*u)+'px sans-serif';cx.textAlign=right?'right':'left';
     cx.fillText(C.nm(e.mon)+'  Lv.'+(C.dLv?C.dLv(e.mon):e.mon.lv),right?x+w-8*u:x+8*u,y+18*u);
     cx.fillStyle='#222';cx.fillRect(x+8*u,y+26*u,w-16*u,10*u);
@@ -1725,6 +1726,7 @@ function hud(cx,Wd,Hd){
     // 상태
     const ss=Object.keys(e.ail).map(s=>({burn:'화',poison:'독',paralysis:'마',sleep:'잠',freeze:'얼',confusion:'혼'})[s]||s).join('');
     if(ss){cx.fillStyle='#f9a';cx.textAlign=right?'left':'right';cx.fillText(ss,right?x+8*u:x+w-8*u,y+18*u)}
+    try{window.PKHX&&PKHX.draw(cx,x,y+46*u,w,e,right,u,PKN)}catch(er){}
   };
   const bw=Math.min(Wd*.42,300*u);
   bar(8*u,8*u,bw,me,false);bar(Wd-bw-8*u,8*u,bw,foe,true);

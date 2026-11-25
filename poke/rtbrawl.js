@@ -952,8 +952,9 @@ function render(){try{teraUi()}catch(er){}
 }
 function hud(cx,Wd,Hd){
   const me=W.me,foe=W.foe,u=Math.max(1,Math.min(Wd,Hd*1.6)/700);
+  const PKN=C.net?6:((W.ents&&W.ents.length)?Math.max(W.ents.filter(q=>q.side===0).length,W.ents.filter(q=>q.side===1).length):1);
   const bar=(x,y,w,e,right)=>{
-    cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(x,y,w,46*u);
+    cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(x,y,w,(window.PKHX?PKHX.h(PKN):46)*u);
     cx.fillStyle='#fff';cx.font='bold '+(15*u)+'px sans-serif';cx.textAlign=right?'right':'left';
     cx.fillText(C.nm(e.mon)+'  Lv.'+(C.dLv?C.dLv(e.mon):e.mon.lv),right?x+w-8*u:x+8*u,y+18*u);
     cx.fillStyle='#222';cx.fillRect(x+8*u,y+26*u,w-16*u,10*u);
@@ -962,10 +963,11 @@ function hud(cx,Wd,Hd){
     // 상태
     const ss=Object.keys(e.ail).map(s=>({burn:'화',poison:'독',paralysis:'마',sleep:'잠',freeze:'얼',confusion:'혼'})[s]||s).join('');
     if(ss){cx.fillStyle='#f9a';cx.textAlign=right?'left':'right';cx.fillText(ss,right?x+8*u:x+w-8*u,y+18*u)}
+    try{window.PKHX&&PKHX.draw(cx,x,y+46*u,w,e,right,u,PKN)}catch(er){}
   };
   const bw=Math.min(Wd*.3,230*u);   // 9M: 팀 체력바 3칸씩
-  if(C.net){bar(6*u,6*u,bw,W.me,false);W.ents.filter(e=>e!==W.me).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.4;bar(Wd-bw*.8-6*u,(6+i*48)*u,bw*.8,e,true)});cx.globalAlpha=1}
-  else{W.ents.filter(e=>e.side===0).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.45;bar(6*u,(6+i*50)*u,bw,e,false)});W.ents.filter(e=>e.side===1).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.45;bar(Wd-bw-6*u,(6+i*50)*u,bw,e,true)});cx.globalAlpha=1}
+  if(C.net){bar(6*u,6*u,bw,W.me,false);W.ents.filter(e=>e!==W.me).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.4;bar(Wd-bw*.8-6*u,(6+i*(window.PKHX?PKHX.h(PKN)+2:48))*u,bw*.8,e,true)});cx.globalAlpha=1}
+  else{W.ents.filter(e=>e.side===0).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.45;bar(6*u,(6+i*(window.PKHX?PKHX.h(PKN)+4:50))*u,bw,e,false)});W.ents.filter(e=>e.side===1).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.45;bar(Wd-bw-6*u,(6+i*(window.PKHX?PKHX.h(PKN)+4:50))*u,bw,e,true)});cx.globalAlpha=1}
   cx.fillStyle='rgba(0,0,0,.5)';cx.font='bold '+(16*u)+'px sans-serif';cx.textAlign='center';
   const left=Math.max(0,Math.ceil((C.net?(C.maxTime||120):180)-W.time));cx.fillStyle='#fff';cx.fillText(Math.floor(left/60)+':'+String(left%60).padStart(2,'0'),Wd/2,24*u);
   // 구르기 충전

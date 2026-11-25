@@ -548,7 +548,7 @@ function update(){
   W.time+=TICK;
   if(W.swCd>0)W.swCd=Math.max(0,W.swCd-TICK);   // 6F-4b: 교체 쿨타임
   if(W.itCd>0)W.itCd=Math.max(0,W.itCd-TICK);   // 6F-4c: 약 쿨타임
-  for(const e of W.ents){if(e.hp<=0){e.wish={x:0,y:0};continue}e.tgtT=(e.tgtT||0)-TICK;if(e.tgtT<=0||!e.tgt||e.tgt.hp<=0){const t=pickTgt(e);if(t)e.tgt=t;e.tgtT=2.5}if(e.tgt&&e.tgt.hp>0)aiUpdate(e,e.ai,e.tgt);else e.wish={x:0,y:0}}
+  for(const e of W.ents){if(e.hp<=0){e.wish={x:0,y:0};continue}e.tgtT=(e.tgtT||0)-TICK;if(e.tgtT<=0||!e.tgt||e.tgt.hp<=0){const t=pickTgt(e);if(t)e.tgt=t;e.tgtT=2.5}if(C.manual&&e===W.me&&!autoNow())playerInput(e);else if(e.tgt&&e.tgt.hp>0)aiUpdate(e,e.ai,e.tgt);else e.wish={x:0,y:0}}
   for(const e of W.ents){
     if(e.hp<=0)continue;
     e.at+=TICK;
@@ -707,6 +707,7 @@ function playerInput(me){
 }
 function doRoll(e){
   if(e.rollT>0||e.rc<1||e.stun>0||e.swapT>0||e.hp<=0)return;
+  if(C&&C.noFoeRoll&&e.side===1)return;
   if(e.cast&&e.cast.phase!=='recovery')return;
   let d=e.wish&&len(e.wish.x,e.wish.y)>.2?norm(e.wish.x,e.wish.y):(e.face||{x:1,y:0});
   e.cast=null;e.beam=null;e.hidden=false;
@@ -763,7 +764,7 @@ function aiUpdate(a,ai0,p0){
   if(!threat)ai.sawT=0;
   if(ai.sawT>0){ai.sawT-=TICK;if(ai.sawT<=0&&!a.cast){
     const pr={m:T.dodgeMelee,s:T.dodgeShot,b:T.dodgeBeam,a:T.dodgeArea}[ai.kind]+(low?.1:0);
-    if(a.rc>=1&&rnd()<pr){const s=rnd()<.5?1:-1;a.wish={x:-to.y*s,y:to.x*s};doRoll(a)}
+    if(a.rc>=1&&!(C.noFoeRoll&&a.side===1)&&rnd()<pr){const s=rnd()<.5?1:-1;a.wish={x:-to.y*s,y:to.x*s};doRoll(a)}
     else if(rnd()<T.sidestepP){ai.side=.5;ai.s=rnd()<.5?1:-1}}}
   // 이동
   ai.t-=TICK;if(ai.t<=0){ai.t=rr(1.2,3);ai.s=rnd()<.5?1:-1}
@@ -943,8 +944,9 @@ function render(){try{teraUi()}catch(er){}
 }
 function hud(cx,Wd,Hd){
   const me=W.me,foe=W.foe,u=Math.max(1,Math.min(Wd,Hd*1.6)/700);
+  const PKN=C.net?6:((W.ents&&W.ents.length)?Math.max(W.ents.filter(q=>q.side===0).length,W.ents.filter(q=>q.side===1).length):1);
   const bar=(x,y,w,e,right)=>{
-    cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(x,y,w,46*u);
+    cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(x,y,w,(window.PKHX?PKHX.h(PKN):46)*u);
     cx.fillStyle='#fff';cx.font='bold '+(15*u)+'px sans-serif';cx.textAlign=right?'right':'left';
     cx.fillText(C.nm(e.mon)+'  Lv.'+(C.dLv?C.dLv(e.mon):e.mon.lv),right?x+w-8*u:x+8*u,y+18*u);
     cx.fillStyle='#222';cx.fillRect(x+8*u,y+26*u,w-16*u,10*u);
@@ -953,9 +955,10 @@ function hud(cx,Wd,Hd){
     // 상태
     const ss=Object.keys(e.ail).map(s=>({burn:'화',poison:'독',paralysis:'마',sleep:'잠',freeze:'얼',confusion:'혼'})[s]||s).join('');
     if(ss){cx.fillStyle='#f9a';cx.textAlign=right?'left':'right';cx.fillText(ss,right?x+8*u:x+w-8*u,y+18*u)}
+    try{window.PKHX&&PKHX.draw(cx,x,y+46*u,w,e,right,u,PKN)}catch(er){}
   };
   const bw=Math.min(Wd*.3,230*u);   // 9M: 팀 체력바 3칸씩
-  W.ents.filter(e=>e.side===0).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.45;bar(6*u,(6+i*50)*u,bw,e,false)});W.ents.filter(e=>e.side===1).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.45;bar(Wd-bw-6*u,(6+i*50)*u,bw,e,true)});cx.globalAlpha=1;
+  W.ents.filter(e=>e.side===0).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.45;bar(6*u,(6+i*(window.PKHX?PKHX.h(PKN)+4:50))*u,bw,e,false)});W.ents.filter(e=>e.side===1).forEach((e,i)=>{cx.globalAlpha=e.hp>0?1:.45;bar(Wd-bw-6*u,(6+i*(window.PKHX?PKHX.h(PKN)+4:50))*u,bw,e,true)});cx.globalAlpha=1;
   cx.fillStyle='rgba(0,0,0,.5)';cx.font='bold '+(16*u)+'px sans-serif';cx.textAlign='center';
   const left=Math.max(0,Math.ceil(180-W.time));cx.fillStyle='#fff';cx.fillText(Math.floor(left/60)+':'+String(left%60).padStart(2,'0'),Wd/2,24*u);
   // 구르기 충전
@@ -1282,12 +1285,12 @@ async function start(ctx){
   // AI 기본 사거리: 가진 기술 중 위력 높은 기술 기준
   const best=W.foe.moves.filter(m=>m.p>0).sort((a,b)=>b.p-a.p)[0];
   if(best)W.ai.range=best.k==='melee'?120:best.k==='pulse'?150:best.k==='leap'?170:300;
-  for(const e of W.ents){e.ai=mkAi(AI_T[C.aiTier]?C.aiTier:'T2');e.ai.range=aiRange(e)}W.ai=W.foe.ai;
+  for(const e of W.ents){e.ai=mkAi((C.manual&&e.side===0&&AI_T.T4)?'T4':(AI_T[C.aiTier]?C.aiTier:'T2'));e.ai.range=aiRange(e)}W.ai=W.foe.ai;
   buildUI();
   {W.fast=false;try{W.fast=(C.fast&&C.fast())||localStorage.getItem('pka-rtfast')==='1'}catch(er){}   // 9O: 전투 안 ⏩ 2배속 버튼
    const fb=document.createElement('div');fb.style.cssText='position:absolute;left:calc(50% + 82px);top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 12px;color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #56627f;pointer-events:auto;cursor:pointer;user-select:none;z-index:4;white-space:nowrap';
    const up=()=>{fb.textContent=W.fast?'⏩ 2배속 ON':'⏩ 2배속';fb.style.background=W.fast?'#e8a020':'#2a3256'};up();
-   fb.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.fast=!W.fast;try{localStorage.setItem('pka-rtfast',W.fast?'1':'0');C.setFast&&C.setFast(W.fast)}catch(er){}up()});W.root.appendChild(fb);W.fastBtn=fb}try{const U=W.ui;(U.btns||[]).forEach(b=>b.style.display='none');['rb','rcnt','bb','bsw','jb'].forEach(k=>{if(U[k]&&U[k].style)U[k].style.display='none'});[...W.root.querySelectorAll('div,button')].forEach(el=>{if(/^(교대|약)$/.test((el.textContent||'').trim()))el.style.display='none'})}catch(er){}   // 9M: 자동 전용 — 조작 버튼 숨김
+   fb.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.fast=!W.fast;try{localStorage.setItem('pka-rtfast',W.fast?'1':'0');C.setFast&&C.setFast(W.fast)}catch(er){}up()});W.root.appendChild(fb);W.fastBtn=fb}try{const U=W.ui;if(!C.manual)(U.btns||[]).forEach(b=>b.style.display='none');(C.manual?['bb','bsw']:['rb','rcnt','bb','bsw','jb']).forEach(k=>{if(U[k]&&U[k].style)U[k].style.display='none'});[...W.root.querySelectorAll('div,button')].forEach(el=>{if(/^(교대|약)$/.test((el.textContent||'').trim()))el.style.display='none'})}catch(er){}   // 9M: 자동 전용 — 조작 버튼 숨김
   if(C.autoMe){const t=document.createElement('div');t.style.cssText='position:absolute;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.55);color:#9bf0a8;font:bold 13px sans-serif;pointer-events:none;white-space:nowrap;border:2px solid #9bf0a8';W.root.appendChild(t);W.autoTag=t}
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
