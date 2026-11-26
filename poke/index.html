@@ -1366,9 +1366,11 @@ function canGo(A,x,y,mode){if(x<0||y<0||x>=A.W||y>=A.H)return false;const t=A.M[
 const hasType=t=>G.party.some(m=>m.hp>0&&META[m.n]&&META[m.n].types.includes(t));
 const canSurf=()=>hasType('WATER'),canFly=()=>hasType('FLYING')||G.party.some(m=>META[m.n]&&META[m.n].types.includes('DRAGON')&&m.lv>=30);
 // 길 찾기 (BFS) — 여러 목표 중 가장 가까운 곳
-function bfs(A,sx,sy,goal,mode){const W=A.W,H=A.H,prev=new Int32Array(W*H).fill(-1),Q=[sy*W+sx];prev[sy*W+sx]=sy*W+sx;
+/* 9DX: 길찾기는 목적지가 아닌 문(집·체육관·센터)을 피해서 돌아가요. 문을 안 지나면 길이 없을 때만 문 위로 지나가요 */
+function bfs(A,sx,sy,goal,mode){const p=bfs0(A,sx,sy,goal,mode,1);return p||bfs0(A,sx,sy,goal,mode,0)}
+function bfs0(A,sx,sy,goal,mode,noDoor){const W=A.W,H=A.H,prev=new Int32Array(W*H).fill(-1),Q=[sy*W+sx];prev[sy*W+sx]=sy*W+sx;
   while(Q.length){const i=Q.shift(),x=i%W,y=(i/W)|0;if(goal(x,y)&&!(x===sx&&y===sy&&Q.length===0&&false)){if(!(x===sx&&y===sy)||goal.self){const p=[];let j=i;while(j!==sy*W+sx){p.push([j%W,(j/W)|0]);j=prev[j]}return p.reverse()}}
-    for(const [dx,dy] of [[0,-1],[1,0],[-1,0],[0,1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=W||Y>=H)continue;const k=Y*W+X;if(prev[k]>=0)continue;if(!canGo(A,X,Y,mode)&&!goal(X,Y))continue;if(A.wAt&&A.wAt[X+','+Y]&&!goal(X,Y))continue;prev[k]=i;Q.push(k)}}return null}
+    for(const [dx,dy] of [[0,-1],[1,0],[-1,0],[0,1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=W||Y>=H)continue;const k=Y*W+X;if(prev[k]>=0)continue;if(!canGo(A,X,Y,mode)&&!goal(X,Y))continue;if(A.wAt&&A.wAt[X+','+Y]&&!goal(X,Y))continue;if(noDoor&&A.M[Y][X]===T_.DOOR&&!goal(X,Y))continue;prev[k]=i;Q.push(k)}}return null}
 
 // ===== 상위 지역 (챔피언 이후 · 배 타고 가는 섬들) =====
 // 19 얼음 해협 · 20 얼음꽃마을 · 21 어둠의 숲 · 22 그림자시티 · 23 황금 협곡 · 24 황금시티 · 25 용의 길 · 26 용의 성채
@@ -1466,7 +1468,7 @@ async function go(a,side,X){P.busy=1;await fade(1);const A=genArea(a);const y=si
 function afterStep(){const A=curA(),t=A.M[P.y][P.x];P.fr=(P.fr+1)%4;
   if(A.res){const e=A.wAt[P.x+','+P.y];if(e){P.queue=null;if(e.to>G.a&&!gateOk(A)){const b=e.arr;P.x=b.x;P.y=b.y;return}goRes(e.to);return}}
   const it=A.items.find(i=>i.x===P.x&&i.y===P.y&&!G.got[i.id]);if(it){G.got[it.id]=1;addItem(it.it,it.n);toast('✨ '+ITEMS[it.it].n+' ×'+it.n+' 주웠다!');sfx('get');save()}
-  if(t===T_.DOOR){const b=A.bld.find(b=>b.door.x===P.x&&b.door.y===P.y);if(b){P.queue=null;enterBld(b);return}}
+  if(t===T_.DOOR){const b=A.bld.find(b=>b.door.x===P.x&&b.door.y===P.y);/* 9DX: 가는 길 중간에 밟은 문은 그냥 지나가요 (목적지 문일 때만 들어가요) */if(b&&!(P.queue&&P.queue.length)){P.queue=null;if(AUTO.on&&bldLoop(b)){autoStop();toast('🔁 같은 건물만 계속 들어가서 자동을 멈췄어요');return}enterBld(b);return}}
   if(P.mode!=='fly'){for(const n of A.npc)if(n.kind==='trainer'&&!G.beat[n.id]&&!n.gone&&sees(n)){P.queue=null;trainerSpot(n);return}
     let enc=t===T_.TG?(A.th.cave?.06:.05):P.mode==='surf'&&t===T_.WATER?.035:0;if(enc&&(P.grace||0)>0){P.grace--;enc=0}if(enc&&A.enc&&R()<enc*(G.repel>0?0:1)){P.queue=null;wild(A,t===T_.WATER?'w':'g');return}}
   if(G.repel>0)G.repel--}
@@ -2001,6 +2003,8 @@ const ITEMS={ball:{n:'몬스터볼',e:'<img class="ic" src="items/POKEBALL.png">
 function addItem(k,n){G.bag[k]=(G.bag[k]||0)+n}
 let META={},SPECIES=[],BYDEX={},FXA={},THUMB={},LOC={};let G=null;
 const AUTO={on:0,hunt:null,goal:null,stuck:0};
+// 9DX: 자동 중에 같은 건물을 30초 안에 3번 넘게 들어가면 멈춰요 (예: 이미 배지를 받은 체육관만 왔다 갔다)
+function bldLoop(b){const now=Date.now(),k=G.a+':'+b.kind+':'+b.door.x+','+b.door.y;AUTO.inLog=(AUTO.inLog||[]).filter(e=>now-e.t<30000);AUTO.inLog.push({k,t:now});return AUTO.inLog.filter(e=>e.k===k).length>3}
 // ---------- 대화 · 알림 · 화면 전환 ----------
 const dlgH=l=>typeof l==='string'?l:(l.f?faceImg(l.f[0],l.f[1]):'')+l.t;
 // 긴 글은 글자를 줄여서 위가 안 잘리게 맞춰요
