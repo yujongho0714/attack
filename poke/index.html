@@ -1655,6 +1655,8 @@ async function battle(o){if(o&&!o.wb&&!o.pvp&&typeof window.rtWild==='function')
     const fm=BS.trainer?bestMove(f,me):(R()<.35?bestMove(f,me):mv(pick(f.moves)));
     const order=act.t==='rt'||(RT&&act.t!=='move')?['chk']:act.t==='move'?((act.m.pri||0)>(fm.pri||0)||((act.m.pri||0)===(fm.pri||0)&&stOf(me)[5]>=stOf(f)[5])?['me','foe']:['foe','me']):['foe'];
     let end=false;for(const who of order){if(who==='me'){if(me.hp<=0)continue;await useMove(me,f,act.m,1)}else if(who==='foe'){if(f.hp<=0)continue;await useMove(f,me,fm,0)}
+      if(f.hp<=0&&!BS.trainer&&!o.pvp&&!o.wb){let _sv=false;try{_sv=BALLS().length>0&&mustCatch(f)}catch(e){}
+        if(_sv){f.hp=1;try{bbox()}catch(e){}window._svSet=window._svSet||new WeakSet();if(!window._svSet.has(f)){window._svSet.add(f);await msg('<b>'+nm(f)+'</b>(은)는 겨우 버티고 있다! 지금 몬스터볼을 던지자!',FAST()?500:900)}}}
       if(f.hp<=0){BS.foe.st='faint';BS.foe.t=0;sfx('faint');await msg((BS.trainer?'상대 ':'야생 ')+'<b>'+nm(f)+'</b>(은)는 쓰러졌다!');BS.foe.hide=1;
         await giveExp(f,part);fi++;if(fi<foes.length){await sendFoe(foes[fi]);await msg(o.trainer+'(은)는 <b>'+nm(foes[fi])+'</b>(을)를 내보냈다!',FAST()?400:800);part.clear();part.add(BS.me.m.uid)}else{end=true}break}
       if(me.hp<=0){BS.me.st='faint';BS.me.t=0;sfx('faint');await msg('<b>'+nm(me)+'</b>(은)는 쓰러졌다!');BS.me.hide=1;const nx=alive();if(!nx.length){res='lose';end=true;break}
@@ -1666,10 +1668,12 @@ async function battle(o){if(o&&!o.wb&&!o.pvp&&typeof window.rtWild==='function')
   if(res==='lose'){await msg('눈앞이 캄캄해졌다…',1500)}
   actEnd(null);ACT.cd={};if(AUTO.stopAfter)autoStop();try{if(res==='win'){BGM.win(o);await sleep(FAST()?600:1400)}}catch(e){}await evolveCheck();showBattleUI(0);SCENE='over';BS.on=0;await refreshSpr();hud();save();try{BGM.area()}catch(e){}return res}
 function forcePick(){return new Promise(r=>{bt('bTx').innerHTML='다음 포켓몬을 고르세요';bt('bMenu').innerHTML=G.party.map((m,i)=>`<button data-p="${i}" ${m.hp<=0?'disabled':''}>${nm(m)} Lv.${dLv(m)} ${Math.ceil(m.hp)}/${stOf(m)[0]}</button>`).join('');bt('bMenu').querySelectorAll('[data-p]').forEach(x=>x.onclick=()=>r(G.party[+x.dataset.p]))})}
+// 꼭 잡아야 하는 포켓몬: 잡기 의뢰 중 · 찾던 포켓몬 · 전설 이상 → 체력이 0이 돼도 쓰러지지 않고 1로 버텨요
+function mustCatch(f){try{if(!f||capFull(f))return false;if(AUTO.hunt&&AUTO.hunt.n===f.n)return true;if(rarM(f)>=3)return true;const q=window.__dqNext&&window.__dqNext();if(q&&(q.id==='catch'||q.id==='catchR'))return true}catch(e){}return false}
 async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FAST()?300:600);const fp=side(0),mp=side(1);BS.ball={x:mp.x,y:mp.y,col:it.col};
   for(let i=0;i<=20;i++){const u=i/20;BS.ball.x=mp.x+(fp.x-mp.x)*u;BS.ball.y=mp.y-VW*.1+(fp.y-VW*.12-mp.y+VW*.1)*u-Math.sin(u*Math.PI)*VH*.18;BS.ball.rot=u*12;await sleep(18)}
   BS.foe.white=1;await sleep(160);BS.foe.hide=1;BS.foe.white=0;BS.flash=.15;for(let i=0;i<10;i++){BS.ball.y+=VH*.012;await sleep(16)}
-  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);BS.catchK=1;const _rd=f.hp/S[0]<=.2;const redHit=(!_rd&&f.hp/S[0]<=.35&&R()<.5);if(redHit)try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}const sh=Math.pow(redHit?1:(_rd?Math.max(p,.5):p),.25);
+  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);BS.catchK=1;const _rd=f.hp/S[0]<=.2;const redHit=(!_rd&&f.hp/S[0]<=.35&&R()<.5);if(redHit)try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}const sh=(typeof rarM==='function'&&rarM(f)>=3)?1:Math.pow(redHit?1:(_rd?Math.max(p,.5):p),.25);   // 전설 이상은 무조건 잡혀요
   let n=0;for(;n<3;n++){await sleep(380);if(R()>sh)break;for(let k=0;k<8;k++){BS.ball.rot=Math.sin(k/8*6.28)*.5;await sleep(28)}BS.ball.rot=0;sfx('tap')}
   await sleep(300);if(n>=3&&R()<sh){sfx('get');await msg('신난다! <b>'+nm(f)+'</b>(을)를 잡았다!',1300,[f.n,'Happy']);BS.ball=null;return true}
   BS.ball=null;BS.foe.hide=0;BS.foe.in=.3;await msg(['안 돼! 포켓몬이 볼에서 나와 버렸다!','아쉽다! 조금만 더 하면 잡을 수 있었는데!','으앗! 잡은 줄 알았는데!'][Math.min(2,n)]);return false}
@@ -9216,7 +9220,7 @@ async function rtWild(o){
   const balls=()=>BALLS().map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0}));
   const takeBall=k=>{const it=ITEMS[k];if(!it||(G.bag[k]||0)<=0)return null;G.bag[k]--;let r=it;
     if(it.ball&&it.ball<255&&(G.bag.razz||0)>0&&G.opt.razz!==false){G.bag.razz--;r=Object.assign({},it,{ball:it.ball*1.5});try{toast('🍓 라즈열매를 먼저 줬다! 잡기 쉬워졌다')}catch(e){}}return r};
-  const catchP=(x,it,ratio)=>{if(ratio>.2&&ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);const _pp=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);return ratio<=.2?Math.max(_pp,.5):_pp};
+  const catchP=(x,it,ratio)=>{if(rarM(x)>=3)return 1;if(ratio>.2&&ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);const _pp=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);return ratio<=.2?Math.max(_pp,.5):_pp};
   let res='win',lastMon=null,timeUp=0;
   const setBS=async(f,faint)=>{const me2=(lastMon&&lastMon.hp>0)?lastMon:(alive()[0]||lastMon||G.party[0]);
     BS.foe={m:f,S:await getSpr(sprKey(f)),st:faint?'faint':'idle',t:0,in:0,hide:faint?1:0};
@@ -9242,7 +9246,7 @@ async function rtWild(o){
         loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:autoActive()?'자동으로 계속해요':'화면을 누르면 계속해요',
         // 7A: 자동전투 — 내 포켓몬도 AI(T4). 야생은 잡고 싶은 포켓몬이면 자동 볼(예전 자동 규칙 wantCatch·autoBallFor 그대로)
         autoMe:autoActive()?1:0,autoTier:'T4',rollTut:!G.rollTut,onRollTut:()=>{G.rollTut=1;save()},catchAt:()=>{try{const r=rarM(f);return r<=0?.35:r===1?.28:r===2?.22:.15}catch(e){return .25}},autoBall:()=>{try{return(!tr&&autoActive()&&wantCatch(f)&&!capFull(f))?autoBallFor(f):null}catch(e){return null}}},
-        tr?{noQuit:1,maxTime:300}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
+        tr?{noQuit:1,maxTime:300}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,saveFoe:()=>{try{return BALLS().length>0&&mustCatch(f)}catch(e){return false}},blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
       const L=window.RTB.last||{};
       // 6F-4b: 교대로 여러 마리가 싸웠을 수 있음 → 체력은 uid별로 저장, 마지막에 싸운 포켓몬이 cur
       if(L.hpBy){for(const q of G.party){const hb=L.hpBy[q.uid];if(hb!=null)q.hp=hb>0?Math.max(1,Math.round(hb)):0}}
@@ -10310,6 +10314,7 @@ async function dqAuto(id){try{if(!G)return;if(!reach(6)){toast('천계에 가면
 const DQAUTO_K=['wild','catch','catchR','trainer'];
 const dqOn=()=>{try{return !!(G&&G.party&&G.party.length&&G.autoQuest&&AUTO.on&&!AUTO.guide&&!AUTO.huntOnly&&reach(6))}catch(e){return false}};
 function dqNext(){try{if(!dqOn())return null;return dqS().L.find(q=>!q.got&&q.c<q.n&&DQAUTO_K.includes(q.id))||null}catch(e){return null}}
+window.__dqNext=dqNext;
 // 풀숲이 있고 갈 수 있는 길 중 지금 위치에서 가장 가까운 곳 (같으면 더 높은 길)
 const DQAC={k:'',a:-1};
 function dqArea(){try{const k=G.a+'|'+(G.badges|0)+'|'+(G.champ?1:0)+'|'+(G.ub|0);if(DQAC.k===k)return DQAC.a;let best=-1,bd=1e9;
@@ -11250,6 +11255,11 @@ loadPool=async function(...a){const r=await _lp.apply(this,a);
   try{const L=await ncLoad();ncFlag(L);
     if(L.length){SPECIES=SPECIES.filter(n=>!(META[n]&&META[n].nc));try{RPOOL.ok=0;RPOOL.P=RPOOL.P.map(()=>[]);RPOOL.M=RPOOL.M.map(()=>[])}catch(e){}}}catch(e){console.warn('신캐',e)}
   return r};
+// 처음 켤 때는 위 필터가 등록되기 전에 포켓몬 목록이 만들어질 수 있어서, 시작 직후 한 번 더 걸러요 (야생에 신캐가 나오지 않게)
+(async()=>{try{for(let i=0;i<60&&!(typeof SPECIES!=='undefined'&&SPECIES.length>10);i++)await new Promise(r=>setTimeout(r,250));
+  const L=await ncLoad();ncFlag(L);
+  if(L.length&&SPECIES.some(n=>META[n]&&META[n].nc)){SPECIES=SPECIES.filter(n=>!(META[n]&&META[n].nc));try{RPOOL.ok=0;RPOOL.P=RPOOL.P.map(()=>[]);RPOOL.M=RPOOL.M.map(()=>[])}catch(e){}
+    if(!G){try{for(const k in AREAS)delete AREAS[k];buildLoc()}catch(e){}}}}catch(e){console.warn('신캐 재필터',e)}})();
 window.ncGiveTest=function(min){try{if(!G)return;const L=(NCD||[]).filter(c=>c.rar>=(min|0)&&META['sc:'+c.dex]&&![...G.party,...G.box].some(m=>m.n==='sc:'+c.dex));
   for(let i=L.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[L[i],L[j]]=[L[j],L[i]]}
   let n=0;for(const c of L.slice(0,6)){const m=mkMon('sc:'+c.dex,30);if(G.party.length<6)G.party.push(m);else G.box.push(m);n++}

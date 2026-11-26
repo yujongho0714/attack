@@ -1372,6 +1372,7 @@ function update(){
   for(const f of W.fx)f.t+=TICK;W.fx=W.fx.filter(f=>f.t<f.life);
   // 승패
   if(!W.over&&(!W.ball||me.hp<=0)){
+    if(foe.hp<=0&&me.hp>0&&C.saveFoe){let _sv=false;try{_sv=C.saveFoe()}catch(er){}if(_sv){foe.hp=1;if(!W._svMsg){W._svMsg=1;floatTxt(foe.x,foe.y-100,'겨우 버티고 있다! 볼을 던지자!','#ffe08a',true)}}}   // 잡기 의뢰 · 전설 이상: 쓰러지지 않고 1로 버텨서 꼭 잡을 수 있게
     if(foe.hp<=0&&me.hp<=0)finish('draw');else if(foe.hp<=0)finish('win');else if(me.hp<=0)finish('lose');
     else if(W.time>=(C.maxTime||180)){if(C.noTimeLimit)finish('draw');else finish(me.hp/me.max>=foe.hp/foe.max?(me.hp/me.max===foe.hp/foe.max?'draw':'win'):'lose')}
   }

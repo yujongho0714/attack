@@ -92,7 +92,7 @@ async function loadData(){try{DEX=await (await fetch(BASE+'rzdex.json')).json();
  // 디지몬·듀엘리스트 신캐: 본편 규칙대로 「출시 주가 지난 것」만 (ncsched.json 의 order[등급][순서] < 이번 주차)
  try{const L=await (await fetch(BASE+'newchars.json')).json(),SC=await (await fetch(BASE+'ncsched.json')).json(),m=/^(\d+)-(\d+)-(\d+)/.exec(SC.start||''),wk=m?Math.floor((Date.now()-new Date(+m[1],+m[2]-1,+m[3]).getTime())/6048e5):-1,IX={};
   for(const g in SC.order)SC.order[g].forEach((d,i)=>IX[d]=i);L.forEach(c=>{if(IX[c.dex]!=null&&IX[c.dex]<wk)NC[c.key]=Math.min(4,c.rar|0)})}catch(e){}
- KEYS=[...new Set(Object.values(MP))].filter(k=>DEX[k]&&(!k.startsWith('NC_')||k in NC));KEYS.forEach(k=>TIERS[k.startsWith('NC_')?NC[k]:tierOf(DEX[k][3].reduce((a,b)=>a+b,0))].push(k))}catch(e){KEYS=[]}}
+ KEYS=[...new Set(Object.values(MP))].filter(k=>DEX[k]&&!k.startsWith('NC_'));KEYS.forEach(k=>TIERS[k.startsWith('NC_')?NC[k]:tierOf(DEX[k][3].reduce((a,b)=>a+b,0))].push(k))}catch(e){KEYS=[]}}
 async function loadSpr(k){if(SPR[k])return SPR[k];const b=BASE+'rz/'+k+'/',meta=await (await fetch(b+k+'.pmd.json')).json(),img={};
  await Promise.all(['walk','idle'].map(async st=>{const A=meta.anims&&meta.anims[st];if(!A)return;try{const q=await fetch(b+A.f+'-Anim.png');if(q.ok)img[st]=await createImageBitmap(await q.blob())}catch(e){}}));
  if(!img.walk&&!img.idle)throw 0;return SPR[k]={meta,img}}
@@ -138,7 +138,7 @@ function spawn(){EG=[];for(let i=0;i<9;i++)for(let k=0;k<4;k++)EG.push(mkEgg(i))
  GU.forEach(g=>{g.x=g.hx;g.y=g.hy;g.cd=0})}
 function init(){for(let i=0;i<9;i++){const hx=BX+i*BW+BW/2,hy=H/2;GU.push({i,x:hx,y:hy,hx,hy,d:'l',k:'',S:null,cd:0})}
  for(let k=0;k<3;k++)BOT.push({x:BX-30,y:80+k*100,carry:null,stun:0,cool:0,col:['#e55','#59f','#fb3'][k],d:'r'});
- spawn();loadArt();loadData().then(()=>{GU.forEach(g=>{g.k=pickKey(Math.min(4,Math.floor(g.i*5/9)));if(g.k)loadSpr(g.k).then(S=>g.S=S).catch(()=>0)});S0.pets.slice(0,12).forEach(p=>p.k&&loadSpr(p.k).catch(()=>0))});
+ spawn();loadArt();loadData().then(()=>{S0.pets.forEach(p=>{if(p.k&&p.k.startsWith('NC_'))p.k=pickKey(p.t)});S0.dex=S0.dex.filter(k=>!k.startsWith('NC_'));GU.forEach(g=>{g.k=pickKey(Math.min(4,Math.floor(g.i*5/9)));if(g.k)loadSpr(g.k).then(S=>g.S=S).catch(()=>0)});S0.pets.slice(0,12).forEach(p=>p.k&&loadSpr(p.k).catch(()=>0))});
  if(FR)$('ex').hidden=false;requestAnimationFrame(loop)}
 function mv(o,tx,ty,sp,dt){const dx=tx-o.x,dy=ty-o.y,L=Math.hypot(dx,dy);if(L<1)return L;const k=Math.min(L,sp*dt)/L;o.x+=dx*k;o.y+=dy*k;o.d=Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u');return L}
 const spd=()=>Math.min(300,120+30*Math.log10(1+es()))*(P.carry?1/(1+.18*P.carry.sz):1);
