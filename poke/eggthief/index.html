@@ -79,7 +79,7 @@ const dexM=()=>1+Math.min(3,Math.floor((S0.dex||[]).length/5)*.05),inc=p=>IB[p.t
 const gain=()=>TM[S0.tmq|0][1],pcCost=()=>Math.floor(150*Math.pow(3,S0.pc-5));
 const htOf=e=>HT[e.t]*Math.sqrt(e.sz);
 // 오프라인 수입 (최대 1시간)
-S0.c+=income()*Math.min(3600,(Date.now()-S0.t)/1000);
+{const a0=income()*Math.min(3600,(Date.now()-S0.t)/1000);S0.c+=a0;S0.gp=(S0.gp||0)+a0}   // 번 돈은 게임돈 교환 대기분(gp)에도 쌓아요
 
 // ---- 원본 게임 그림 (poke/stages · poke/dressup · poke/ui) ----
 const IMG={};function ld(src){return IMG[src]||(IMG[src]=new Promise(rs=>{const i=new Image();i.onload=()=>rs(i);i.onerror=()=>rs(null);i.src=src}))}
@@ -182,7 +182,7 @@ function update(dt){
    if(FR)parent.postMessage({src:'eggthief',type:'deliver',tier:e.t,killed:false,fought:!!P.hit},location.origin)}}
  // 부화
  for(let i=S0.eg.length-1;i>=0;i--){const e=S0.eg[i];if(Date.now()>=e.at+htOf(e)*1000){S0.eg.splice(i,1);const k=pickKey(e.t),p={k,t:e.t,sz:e.sz,mu:e.mu};S0.pets.push(p);if(k)loadSpr(k).catch(()=>0);let nw='';if(k&&!S0.dex.includes(k)){S0.dex.push(k);nw='📖 도감 새 등록 '+S0.dex.length+'/'+KEYS.length+'! ';}sv();msg(nw+'부화 성공! '+MUN[e.mu]+nameOf(k)+' ('+TN[e.t]+') 초당 '+fmt(inc(p))+'🪙')}}
- S0.c+=income()*dt;
+ {const a1=income()*dt;S0.c+=a1;S0.gp=(S0.gp||0)+a1}
  // 가디언 (속도 검사)
  const b0=bi();
  // 가디언: 「알을 훔친 사람」만 쫓아가요 (나는 알을 안 들었으면 안 따라와요 · 알 든 라이벌이 있으면 그쪽을 쫓아가요)
@@ -248,7 +248,7 @@ function draw(){const cx=Math.max(0,Math.min(W-CW,P.x-CW/2)),t=now;x.setTransfor
  if(J.fxT>0){x.font='bold 18px sans-serif';x.fillStyle=J.fx.startsWith('삐')?'#f88':'#7ff';x.fillText(J.fx,P.x-cx-40,P.y-124-J.z-(1.1-J.fxT)*14)}
  if(closed>0){x.fillStyle='#000c';x.fillRect(0,0,CW,H);x.fillStyle='#fff';x.font='bold 24px sans-serif';x.fillText('ALL EGG RESET! '+Math.ceil(closed)+'초',CW/2-120,H/2)}
  const jx=(held.includes('r')?1:0)-(held.includes('l')?1:0),jy=(held.includes('d')?1:0)-(held.includes('u')?1:0),jm=jx&&jy?.72:1;$('joyK').style.transform='translate('+jx*jm*26+'px,'+jy*jm*26+'px)';$('joyZ').classList.toggle('on',held.length>0);$('bDash').classList.toggle('on',!!J.dh);$('bJump').classList.toggle('on',!!J.air)}
-function hud(){const b=bi(),nx=BM.findIndex(m=>m[1]>es());$('hud').innerHTML=`🪙 <b>${fmt(S0.c)}</b> (+${fmt(income())}/초) · 🏃속도 <b>${fmt(es())}</b>${S0.trq>=0?' (트레일 ×'+TRL[S0.trq][2]+')':''}${nx>0?' (다음 '+BM[nx][0]+' '+fmt(BM[nx][1])+')':nx<0?' (우주까지 OK!)':''} · 🕒 리셋 ${Math.max(0,Math.ceil(RS))}초 · ${b>=0?BM[b][0]:'기지'}${FR&&Q!=null?' · 진짜 알 '+Math.max(0,Q)+'회':''}`}
+function hud(){const b=bi(),nx=BM.findIndex(m=>m[1]>es());$('hud').innerHTML=`🪙 <b>${fmt(S0.c)}</b> (+${fmt(income())}/초) · 🏃속도 <b>${fmt(es())}</b>${S0.trq>=0?' (트레일 ×'+TRL[S0.trq][2]+')':''}${nx>0?' (다음 '+BM[nx][0]+' '+fmt(BM[nx][1])+')':nx<0?' (우주까지 OK!)':''} · 🕒 리셋 ${Math.max(0,Math.ceil(RS))}초 · ${b>=0?BM[b][0]:'기지'}${FR&&Q!=null?' · 진짜 알 '+Math.max(0,Q)+'회':''}${FR&&WL?' · 게임돈 오늘 '+WL.paid.toLocaleString()+' / '+WL.cap.toLocaleString()+'원':''}`}
 // ---- 상점 ----
 const row=(i,l,c,sell)=>`<div class="r"><span>${l}</span><button data-i="${i}">${sell?'+':''}${fmt(c)}🪙</button></div>`;
 let DX=0;
@@ -291,8 +291,12 @@ $('bShop').onclick=()=>{$('sh').hidden?showShop():$('sh').hidden=true};$('bBat')
  bd.addEventListener('pointermove',e=>{if(pid!==e.pointerId||jd)return;const dx=e.clientX-sx,dy=e.clientY-sy;if(dx>=26&&Math.abs(dy)<Math.max(40,dx*1.5)){jd=1;doJump()}});
  const up=e=>{if(pid!==null&&e.pointerId!==pid)return;pid=null;dashUp()};
  ['pointerup','pointercancel'].forEach(n=>bd.addEventListener(n,up))}$('bTrap').onclick=putTrap;
-$('ex').onclick=()=>{sv();parent.postMessage({src:'eggthief',type:'close'},location.origin)};
-addEventListener('message',e=>{const m=e.data;if(m&&m.src==='pka'&&m.type==='quota'){Q=m.max-m.n}});
+$('ex').onclick=()=>{xflush(0);sv();parent.postMessage({src:'eggthief',type:'close'},location.origin)};
+let WL=null;   // 게임돈 교환 현황 {paid 오늘 받은 돈, cap 오늘 한도}
+const bestInc=()=>S0.pets.reduce((a,p)=>Math.max(a,inc(p)),0);
+const xflush=(force)=>{if(!FR)return;const n=Math.floor(S0.gp||0);if(n>=1){S0.gp-=n;parent.postMessage({src:'eggthief',type:'exchange',amt:n,best:bestInc()},location.origin)}else if(force||!WL)parent.postMessage({src:'eggthief',type:'exchange',amt:0,best:bestInc()},location.origin)};
+setInterval(()=>xflush(0),3000);
+addEventListener('message',e=>{const m=e.data;if(m&&m.src==='pka'&&m.type==='quota'){Q=m.max-m.n}if(m&&m.src==='pka'&&m.type==='wallet'){WL={paid:m.paid|0,cap:m.cap|0}}});
 cv.addEventListener('pointerdown',e=>{const rc=cv.getBoundingClientRect(),cx=Math.max(0,Math.min(W-CW,P.x-CW/2)),mx=(e.clientX-rc.left)/rc.width*CW+cx,my=(e.clientY-rc.top)/rc.height*H;if(inR(SHP,mx,my))showShop()});
 let lt=performance.now(),sc=0;
 function loop(n){const dt=Math.min(.05,(n-lt)/1000);lt=n;now=n/1000;update(dt);draw();hudT-=dt;if(hudT<=0){hudT=.25;hud();if(!$('sh').hidden&&!DX)shop()}sc+=dt;if(sc>10){sc=0;sv()}requestAnimationFrame(loop)}

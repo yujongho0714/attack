@@ -5053,17 +5053,20 @@ function eggOpen(){const I=eggS();openPanel('알 부화기 · '+I.length+'/'+EGG
 try{HUB.push({k:'egg',n:'알 부화',d:'포케스탑 · 히든 포탈에서 포켓몬 알을 얻어요. 부화기(3칸)에 들어가면 등급이 정해지고, 걸을수록 부화해요. 안 잡아 본 포켓몬이 잘 나와요! 일반 150 · 희귀 300 · 영웅 600 · 전설 1200 · 신화 2000 걸음 (신화 알은 어려움부터).',st:()=>'부화기 '+eggS().length+'/'+EGG_SLOT+' · 가방 '+(G.bag.egg||0)+'개',go:[['알 부화기',()=>eggOpen()]]})}catch(e){}
 // ===== 계란훔치기 (eggthief/index.html 을 화면 위에 띄움) =====
 // 납품 성공 → 그 어미 등급의 알을 G.eggq 에 넣음 (부화기가 비면 먼저 들어감). 하루 5회.
-try{(function(){const ETM=5,td=()=>{G.flags=G.flags||{};const d=new Date().toISOString().slice(0,10);if(!G.flags.et||G.flags.et.d!==d)G.flags.et={d,n:0};return G.flags.et};
+try{(function(){const MAXW=300000,wd=()=>{G.flags=G.flags||{};const d=new Date(Date.now()+9*36e5).toISOString().slice(0,10);if(!G.flags.etm||G.flags.etm.d!==d)G.flags.etm={d,w:0};return G.flags.etm},wcap=b=>Math.round(MAXW*Math.sqrt(Math.max(0,Math.min(1,(+b||0)/900)))/100)*100;   // 알훔치기 펫 수입 → 게임돈: 하루 최대 30만원 · 한도는 제일 좋은 펫(초당 수입, 최고 900)에 따라 차등
+const ETM=5,td=()=>{G.flags=G.flags||{};const d=new Date().toISOString().slice(0,10);if(!G.flags.et||G.flags.et.d!==d)G.flags.et={d,n:0};return G.flags.et};
  window.eggThiefOpen=function(){if(!G)return;
   closePanel(1);const o=document.createElement('div');o.id='etOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#12161c';
   o.innerHTML='<iframe src="eggthief/index.html" style="width:100%;height:100%;border:0"></iframe>';document.body.appendChild(o)};
  addEventListener('message',e=>{const o=document.getElementById('etOv'),m=e.data;if(!o||e.origin!==location.origin||e.source!==o.querySelector('iframe').contentWindow||!m||m.src!=='eggthief')return;
-  if(m.type==='close'){o.remove();return}
-  if(m.type==='deliver'&&G){const f=td(),fw=o.querySelector('iframe').contentWindow,qt=()=>{try{fw.postMessage({src:'pka',type:'quota',n:f.n,max:ETM},location.origin)}catch(_){}};if(f.n>=ETM){qt();return}f.n++;
+  if(m.type==='close'){o.remove();try{hud()}catch(_){}return}
+  if(m.type==='exchange'&&G){const w=wd(),fw=o.querySelector('iframe').contentWindow,cap=wcap(m.best),amt=Math.max(0,Math.floor(+m.amt||0)),g=Math.max(0,Math.min(amt,cap-w.w));if(g>0){w.w+=g;G.money+=g;save()}try{fw.postMessage({src:'pka',type:'wallet',paid:w.w,cap},location.origin)}catch(_){}return}
+  if(m.type==='deliver'&&G){const f=td(),fw=o.querySelector('iframe').contentWindow,qt=()=>{try{fw.postMessage({src:'pka',type:'quota',n:f.n,max:ETM},location.origin)}catch(_){}};
    let r=Math.max(0,Math.min(4,m.tier|0));if(m.killed)r=Math.min(4,r+1);try{r=Math.min(r,rarCap())}catch(_){}
+   f.t=f.t||{};if(f.t[r]){toast('계란훔치기 성공! 오늘 '+RAR[r]+' 알 진짜 보상은 이미 받았어요 · 이번엔 재미로!');qt();return}f.t[r]=1;f.n++;   // 등급(일반~신화)마다 하루 한 번만 진짜 알 · 나머지는 재미로
    G.eggq=G.eggq||[];G.eggq.push(r);let bonus='';if(!m.fought){addItem('egg',1);bonus=' + 보너스 알'}
-   save();eggFill();try{sfx('get')}catch(_){}toast('계란훔치기 성공! '+RAR[r]+' 알'+bonus+' · 오늘 '+f.n+'/'+ETM);qt()}});
- HUB.push({k:'eggthief',n:'계란훔치기',d:'로블록스 「Steal an Egg」처럼! 9개 바이옴(숲~우주)에서 알을 훔쳐 기지 펜으로 가져가요. 러닝머신(8단계)으로 속도를 올려야 먼 바이옴 가디언에게 안 잡혀요. 부화한 포켓몬은 도감에 등록되고, 5종마다 펫 수입이 +5%예요. 알은 펜에서 부화해 펫이 되고 펫이 돈을 벌어요. 방망이로 라이벌을 치고 곰덫을 놓을 수 있어요. 대시 · 점프를 하고 착지하는 순간 대시를 누르면 「착지 대시」로 게이지 없이 계속 빨라지고 가디언도 뛰어넘어요. 5분마다 알이 새로 나와요. 알을 펜에 넣으면 진짜 포켓몬 알도 하루 5번까지 받아요 (싸우지 않고 안 맞고 성공하면 보너스 알).',st:()=>'오늘 '+td().n+'/'+ETM,go:[['도전하기',()=>eggThiefOpen()]]})})()}catch(e){}
+   save();eggFill();try{sfx('get')}catch(_){}toast('계란훔치기 성공! '+RAR[r]+' 알'+bonus+' · 오늘 진짜 알 등급 '+f.n+'/'+ETM);qt()}});
+ HUB.push({k:'eggthief',n:'계란훔치기',d:'로블록스 「Steal an Egg」처럼! 9개 바이옴(숲~우주)에서 알을 훔쳐 기지 펜으로 가져가요. 러닝머신(8단계)으로 속도를 올려야 먼 바이옴 가디언에게 안 잡혀요. 부화한 포켓몬은 도감에 등록되고, 5종마다 펫 수입이 +5%예요. 알은 펜에서 부화해 펫이 되고 펫이 돈을 벌어요. 방망이로 라이벌을 치고 곰덫을 놓을 수 있어요. 대시 · 점프를 하고 착지하는 순간 대시를 누르면 「착지 대시」로 게이지 없이 계속 빨라지고 가디언도 뛰어넘어요. 5분마다 알이 새로 나와요. 알을 펜에 넣으면 진짜 포켓몬 알을 받아요 — 등급(일반~신화)마다 하루 한 번씩만이고, 같은 등급은 재미로만 즐겨요 (싸우지 않고 안 맞고 성공하면 보너스 알). 펫이 번 돈은 게임돈으로도 들어와요 (하루 최대 30만원 · 제일 좋은 펫이 좋을수록 한도가 커요).',st:()=>'오늘 '+td().n+'/'+ETM,go:[['도전하기',()=>eggThiefOpen()]]})})()}catch(e){}
 
 // ===== 동물에게 먹이던지기 (foodthrow/index.html 을 화면 위에 띄움 · 기술 이펙트 연결) =====
 try{(function(){
@@ -9525,6 +9528,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112603,date:'11월 26일',t:'계란훔치기 → 게임돈 (하루 최대 30만원)',items:[{h:"💰 펫이 번 돈이 게임돈으로 들어와요",p:["<b>무엇이 바뀌었어요?</b> 계란훔치기에서 펫이 버는 🪙은 그대로 쓰면서, 번 만큼 <b>게임돈(원)</b>도 같이 들어와요. 화면 위에 「게임돈 오늘 ○ / ○원」으로 보여요.","<b>하루 한도</b>는 <b>제일 좋은 펫 한 마리</b>로 정해져요. 제일 좋은 펫(신화 · 스피릿 변이 · 큰 크기)이면 <b>30만원</b>, 그보다 낮으면 차등이에요. 대략 보통 크기 기준으로 일반 약 1만 · 희귀 약 2만 · 영웅 약 3만 · 전설 약 6만 · 신화 약 11만원이고, 변이 · 크기가 클수록 더 올라요.","더 좋은 펫이 나오면 한도도 바로 올라가요. 한도는 매일 밤 12시에 새로 시작해요."]},{h:"🥚 진짜 알은 등급마다 하루 한 번",p:["<b>무엇이 바뀌었어요?</b> 알을 펜에 넣었을 때 받는 <b>진짜 포켓몬 알</b>은 일반 · 희귀 · 영웅 · 전설 · 신화 <b>등급마다 하루 한 번씩</b>만 받아요. 신화 알을 여러 번 받을 수는 없어요.","같은 등급 알은 그다음부터 <b>재미로</b> 할 수 있어요. 펫이 되어 돈을 버는 것과 게임돈은 그대로예요."]}]},
  {v:2026112602,date:'11월 26일',t:'월드보스 5일마다 · 진행도 랭킹 고침',items:[{h:"⏱ 월드보스가 5일마다 바뀌어요",p:["<b>무엇이 바뀌었어요?</b> 월드보스(노말 · 카오스)가 7일이 아니라 <b>5일마다</b> 새 보스로 바뀌어요.","<b>지금 보스</b>는 여기서 끝나고 순위대로 보상이 와요. 오늘(11/26)부터 <b>다음 보스</b>가 시작돼요.","월드보스 화면의 시간표에서 앞으로 3번의 보스를 볼 수 있어요."]},{h:"🏆 진행도 랭킹을 고쳤어요",p:["<b>무엇이 바뀌었어요?</b> 한계돌파를 많이 한 친구가 아래로 내려가던 문제를 고쳤어요. 이제 <b>한계돌파 횟수</b>가 제일 먼저 순위에 들어가요.","순위 순서: 한계돌파 횟수 → 난이도 → 진행 단계 → 도감 수. 난이도를 잠깐 낮춰도 순위가 떨어지지 않아요.","랭킹은 게임을 켜면 몇 분 안에 자동으로 다시 올라가요."]}]},
  {v:2026112601,date:'11월 26일',t:'계란훔치기 가디언 · 러닝머신 · 트레일 / 체육관 장치 설명',items:[{h:"🥚 가디언이 「알 훔친 사람」만 쫓아와요",p:["<b>무엇이 바뀌었어요?</b> 알을 안 들고 있으면 가디언이 나를 <b>쫓아오지 않아요</b>. 알을 훔친 순간부터 쫓아와요.","알 든 <b>라이벌</b>이 있으면 가디언은 그 라이벌을 쫓아가서 알을 떨어뜨리게 해요. 그때 떨어진 알을 주워요!"]},{h:"🏃 러닝머신 · ✨ 트레일 새 그림",p:["<b>어디서 봐요?</b> 계란훔치기 → 상점. 러닝머신(불꽃 · 황금 · 빙하 · 해커 · 천사)과 트레일 10종에 <b>새 그림</b>이 붙었어요.","<b>트레일</b>은 달릴 때 뒤에 길게 남아요. 장착하면 그 그림으로 바뀌어요. 기지의 러닝머신도 장착한 것으로 보여요."]},{h:"🏟 체육관 장치 설명이 작아졌어요",p:["<b>무엇이 바뀌었어요?</b> 싸움 시작 때 화면 위에 크게 뜨던 설명 글을 없애고, 왼쪽에 작은 <b>「🏟 장치 ⓘ」</b> 단추로 바꿨어요.","<b>어떻게 봐요?</b> 단추를 누르면 설명이 잠깐 떠요. 다시 누르면 닫혀요. 게임 화면은 안 가려요."]}]},
  {v:2026112504,date:'11월 25일',t:'계란훔치기 새로 만들었어요',items:[{h:"🥚 계란훔치기: 로블록스 「알 훔치기」처럼 바뀌었어요",p:["<b>어디서 해요?</b> 허브 → 「계란훔치기」 → 도전하기.","<b>어떻게 해요?</b> 알을 훔쳐서 <b>왼쪽 기지의 펜</b>에 가져가요. 알은 펜에서 부화해 펫이 되고, 펫이 <b>돈을 벌어요</b>. 돈으로 <b>러닝머신 · 펜 · 방망이 · 곰덫</b>을 사요.","<b>속도가 중요해요!</b> 러닝머신에 서 있으면 속도가 올라요. 속도가 모자라면 그 바이옴 <b>가디언</b>에게 잡혀서 알을 놓쳐요. 숲은 제한 없음 · 호수 900 · 사막 1만 … 우주 7억.","<b>5분마다</b> 알이 새로 나와요 (13초 동안 지도가 닫혀요). 진짜 포켓몬 알 보상은 하루 5번까지예요."]}]},
