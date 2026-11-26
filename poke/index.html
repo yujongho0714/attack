@@ -11585,7 +11585,7 @@ window.__xpSrc=0;window.__inLeague=0;
    try{await window.rtLoadBase();await loadR3();if(typeof rzMovesLoad==='function')await rzMovesLoad()}catch(e){console.warn('pk-group load',e);return false}
    const pl=T.filter(e=>{try{return rarOf(e.n)<3&&(typeof rarCapOk!=='function'||rarCapOk(e.n))}catch(x){return true}});const pool=pl.length?pl:T;   // 무리는 전설 미만으로만
    const [lo,hi]=areaLv(G.a),foes=[];
-   for(let i=0;i<n;i++){const wm=mkMon(wpick(pool),ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc()}if(G.rebirth){wm.rbf=1;try{wm.hp=stOf(wm)[0]}catch(e){}}foes.push(wm)}
+   for(let i=0;i<n;i++){const wm=mkMon(wpick(pool),ri(lo,hi));if(R()<1/DSHINY[DIFF()]){wm.sh=1;wm.shc=rollShc()}if(G.rebirth){wm.rbf=1;try{wm.hp=stOf(wm)[0]}catch(e){}}try{const hx=DHX[DIFF()],dx=DDEF[DIFF()];if(hx>1||dx>1){wm.hpx=(wm.hpx||1)*hx;wm.dfx=(wm.dfx||1)*dx;wm.hp=stOf(wm)[0]}}catch(e){}foes.push(wm)}   // 야생 무리도 난이도 체력·방어 배율(천계 ×25 · 천상계 ×90 …) — 빠져 있어서 천계·천상계가 똑같았음
    const team=mine.slice(0,n),base=window.rtCtxBase();let r='quit';
    try{toast('🐾 야생 포켓몬 '+n+'마리가 무리 지어 나타났다! '+n+' : '+n+' 대전!')}catch(e){}
    SCENE='battle';BS.on=1;BS.trainer=null;BS.bg=A.th===THEME.town?'meadow':RTH[(G.a-1)/2];BS.potN=0;BS.me=BS.foe=null;BS.foes=foes;
