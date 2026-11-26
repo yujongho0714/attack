@@ -47,4 +47,5 @@ f.onsubmit=function(e){e.preventDefault();if(pw.value)tryOpen(pw.value,false)};
 var s=null;try{s=localStorage.getItem(K)}catch(e){}if(s)tryOpen(s,true);else pw.focus();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e});})();
-</script></body></html>
+</script><script src="https://yujongho0714.github.io/allinone/back-guard.js" defer></script>
+</body></html>
