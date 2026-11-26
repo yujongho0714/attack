@@ -8237,7 +8237,7 @@ window.trOpen=function(sel){if(!G)return;const t=trm(),L=trListF();
     p.querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{sfx('tap');TRF.t=b.dataset.ft;const y=(p.querySelector('.pb')||{}).scrollTop||0;closePanel(1);trOpen();setTimeout(()=>{const q=document.querySelector('.panel .pb');if(q)q.scrollTop=y},30)});
     const g=p.querySelector('#trGM');if(g)g.onclick=()=>{trmAdd('gem',50);trmAdd('core',30);trmAdd('breath',60);trmAdd('seal',9);save();closePanel(1);trOpen()}})};
 async function trDetail(L,i){const m=L[i],t=trm(),r=rarM(m),nx=r+1,X=TRX[nx];const full=!X;
-  let st0=[],st1=[];try{st0=stOf(m);const c=Object.assign({},m,{ax:nx,uid:(m.uid||'')+'~pv'});st1=stOf(c)}catch(e){}
+  let st0=[],st1=[];try{st0=stOf(m);const _had=Object.prototype.hasOwnProperty.call(m,'ax'),_ax=m.ax;m.ax=nx;try{st1=stOf(m)}finally{if(_had)m.ax=_ax;else delete m.ax}}catch(e){}   // 복사본이 아니라 진짜 포켓몬으로 계산해야 성격·도감 보너스·환생 보너스가 똑같이 들어가요
   const SN=['체력','공격','방어','특수공격','특수방어','스피드'];
   const stats=full?'':`<table class="tt9"><tr><th>능력치</th><th>지금</th><th>초월 후</th></tr>${SN.map((n,k)=>st0[k]!=null?`<tr><td>${n}</td><td>${(st0[k]|0).toLocaleString()}</td><td class="up">${(st1[k]|0).toLocaleString()} ▲${Math.max(0,(st1[k]|0)-(st0[k]|0)).toLocaleString()}</td></tr>`:'').join('')}</table>`;
   const mv=(m.moves||[]).map(id=>{let o=null;try{o=typeof id==='string'?(MOVES[id]||mvOf({id})):mvOf(id)}catch(e){}return o}).filter(Boolean);
