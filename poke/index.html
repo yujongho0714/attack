@@ -3865,7 +3865,7 @@ const WBRW={n:{pk:[4,3,3,2,1,1],mp:[20,16,14,10,7,5],gem:[16,13,11,9,7,6]},
   e:{pk:[3,3,2,2,1,1],mat:[18,14,12,9,6,4],seal:[2,2,1,1,1,0]}};
 async function wbPayout(){const w=wbS(),o=w.last;if(!o||w.paid[o.wk])return;let L=await wbFetch(o.wk,1),rank=null,killed=false;
   if(L){const i=L.findIndex(x=>x.id===G.pid);rank=i>=0?i+1:L.length+1;killed=wbTotal(L)>=WB_HP}else if(wbCfg())return;else killed=o.dmg>=WB_HP;
-  w.paid[o.wk]=1;delete w.last;save();const t=wbTier(rank),top=t<=3,np=WBRW.n.pk[t],nm=WBRW.n.mp[t];
+  w.paid[o.wk]=1;delete w.last;save();try{window.embWbReward&&embWbReward(rank)}catch(e){}const t=wbTier(rank),top=t<=3,np=WBRW.n.pk[t],nm=WBRW.n.mp[t];
   for(let i=0;i<np;i++)REWQ.push({kind:'P',rar:2,msg:'월드보스 주간 보상'+(rank?' · '+rank+'위':''),why:'월드보스 보상'});
   REWQ.push({multi:Array(nm).fill('P'),msg:'월드보스 보상 포켓몬팩',title:'월드보스 주간 보상'+(rank?' ('+rank+'위)':'')+' · 포켓몬팩 '+nm+'장'},{multi:Array(nm).fill('M'),msg:'월드보스 보상 기술팩',title:'월드보스 주간 보상 · 기술팩 '+nm+'장'});
   if(killed)REWQ.push({kind:'P',rar:3,msg:'월드보스 격파 보너스! 전설 카드팩',why:'월드보스 격파'});
@@ -4010,7 +4010,7 @@ let podium=function(L,val){const T=L.slice(0,3);const ord=[1,0,2].filter(i=>T[i]
 @keyframes crownB{50%{transform:translateX(-50%) translateY(-4px)}}
 .pdc.me .pdb{outline:3px dashed #ff2aa0;outline-offset:2px}`;document.head.appendChild(c)})();
 // ===== 순위 휘장: 1~3위 금·은·동 왕관 · 4~10위 금 훈장 · 11~20위 금메달 · 21~30위 은메달 · 31~40위 동메달 =====
-const rkIco=i=>i<3?'rk_crown'+(i+1):i<10?'rk_order':i<20?'rk_med1':i<30?'rk_med2':i<40?'rk_med3':null;
+const rkIco=i=>i<3?'gm/rank2/rank_'+(i+1)+'_trophy_'+['gold','silver','bronze'][i]:i===3?'gm/rank2/rank_4_masterball':i<10?'gm/rank2/star_laurel_gold':i<20?'gm/rank2/star_laurel_silver':'gm/rank2/star_laurel_bronze';   // 9EC 1~3위 트로피 · 4위 마스터볼 · 5~10 금 · 11~20 은 · 21~ 동 월계관 별
 const rkTier=i=>i<3?'c'+(i+1):i<10?'o':i<20?'m1':i<30?'m2':i<40?'m3':'';
 {const _ro=rankOpen;rankOpen=async function(){const r=await _ro.apply(this,arguments);const fix=()=>{const p=document.querySelector('.panel');if(!p)return;
   p.querySelectorAll('.rkr:not(.rkgm)').forEach(row=>{if(row.dataset.ic)return;const n=row.querySelector('.rkn');const i=+(n&&n.textContent)-1;if(!(i>=0))return;row.dataset.ic=1;const ic=rkIco(i);if(ic){n.innerHTML=`<img class="rkic" src="ui/${ic}.webp" alt=""><span>${i+1}</span>`;row.classList.add('rt-'+rkTier(i))}});
@@ -9555,6 +9555,10 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112701,date:'11월 27일',t:'엠블럼 · 액자틀 · 새 아이콘 · 순위 트로피',items:[
+  {h:"엠블럼 (내 포켓몬 모두 강해져요)",p:["<b>찾는 곳</b>: 메뉴 → <b>키우기</b> → 포켓몬 키우기 → <b>엠블럼 · 액자틀</b> → 엠블럼 탭.","엠블럼을 <b>하나 장착</b>하면 내 포켓몬 모두 능력치가 올라요: 1위 아르세우스 +30% · 2위 뮤츠 +25% · 3위 칠색조 +20% · 4~10위 레쿠쟈 +15% · 11~20위 리자몽 +10% · 21위 이하 루카리오 +5%. 엠블럼마다 고유 효과도 있어요.","<b>얻는 법</b>: 월드보스 주간 순위 보상 · 업적(강화 관장 10단계 = 팬텀, 액자틀 20종 = 따라큐, 한정뽑기권 10장 = 구미호, 전설 액자틀 5종 = 루기아)."]},
+  {h:"액자틀 78종 (포켓몬마다 끼워요)",p:["엠블럼 · 액자틀 → <b>액자틀 탭</b>에서 위쪽 내 포켓몬을 고르고 아래 틀을 누르면 끼워져요.","같은 타입 포켓몬에 끼우면 <b>공격·특공 +20%</b>, 전설 틀은 <b>+40%</b>(체력도 +10%). 다른 타입이어도 +5%.","<b>액자틀 상자</b>를 열면 78종 중 하나! 전설 틀은 8% 확률. 같은 틀이 또 나오면 +1 강화(최대 +4, 한 칸마다 +10%).","모은 종류가 10종 +3% · 30종 +5% · 50종 +8% · 78종 모두 +15% (내 포켓몬 전체).","상자는 월드보스 주간 순위로 받아요: 1위 3개 · 2~3위 2개 · 4~20위 1개. 이번 업데이트 기념으로 모두에게 <b>2개 선물</b>!"]},
+  {h:"새 그림",p:["메뉴의 컨텐츠 아이콘(월드보스 · 탑 · 재대결 · 레이드 · PVP · 각성 · 한계돌파 등)을 새 그림으로 바꿨어요.","랭킹 순위 표시: 1위 금 트로피 · 2위 은 트로피 · 3위 동 트로피 · 4위 마스터볼 · 5~10위 금 월계관 별 · 11~20위 은 월계관 별 · 21위부터 동 월계관 별."]}]},
  {v:2026112604,date:'11월 26일',t:'영혼 교환소 · 강화 관장 · 월보 스킵 · 월보 자동 체력',items:[
   {h:"👻 영혼 교환소 (남는 영혼 → 🎟 한정뽑기권 · 💰 골드)",p:["<b>찾는 곳</b>: 메뉴 → <b>키우기</b> → 🐾 포켓몬 키우기 → <b>👻 영혼 교환소</b> · <b>각성</b> 화면 맨 위 「영혼 교환소」 단추로도 가요.","<b>🎟 한정뽑기권</b> 1장 = 유일 영혼 10개 값 (일반 70개 · 희귀 60개 · 영웅 50개 · 전설 40개 · 신화 30개 · 환상 20개). <b>낮은 등급 영혼부터</b> 써요.","한정뽑기에서 1회 · 10회 소환을 누르면 <b>「뽑기권 쓰기」</b>를 고를 수 있어요 (1장 = 1회, 10장 = 10회 + 보너스 1회).","<b>💰 골드</b>: 영혼 1개 = 일반 300 · 희귀 500 · 영웅 800 · 전설 1,200 · 신화 2,000 · 환상 3,500 · 유일 6,000원.","🔒 한계돌파가 덜 된 <b>내 포켓몬의 영혼</b>은 한계돌파 재료라서 안 바뀌어요. 각성용으로 등급마다 <b>남길 개수</b>(0 · 10 · 30 · 60 · 120개, 기본 30개)는 남겨 둬요."]},
   {h:"🏟️ 관장 재대결 → 강화 관장 (최대 50단계)",p:["<b>찾는 곳</b>: 배지 케이스에서 받은 배지를 누르면 나오는 관장 카드 → <b>「강화 단계 ◀ ▶」</b>로 단계를 고르고 「재대결하기」.","이기면 <b>다음 단계</b>가 열려요. 한 단계마다 관장 체력 ×1.35 · 방어 ×1.04 · 공격 ×1.18 · 상금 +25%.","처음 깬 단계마다 <b>보너스 상금</b>, <b>5 · 10 · 15 … 단계</b>를 처음 깨면 🎟 <b>한정뽑기권 1장</b>!","어려우면 ◀로 낮은 단계를 골라도 돼요. 하루 5번(배지마다)은 그대로예요."]},
@@ -10435,15 +10439,15 @@ const HZC=[['day','ic_gift','매일 할 것','#e09a00','출석 · 의뢰 · 포�
 const SEC={day:[['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매일 다시 도전',['rm','portal']]],
   bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 5일 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🗡 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스)',['svx','svg','svs','svb','svk']]],
   fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
-  up:[['🐾 포켓몬 키우기',['team','trans','awake','soulx','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
+  up:[['🐾 포켓몬 키우기',['team','embl','trans','awake','soulx','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
   col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','eggthief','wild']],['🏘 마을 · 날씨',['mg','shop','wx','foodthrow']]],
   set:[['📢 소식 · 정보',['news','odds']],['🖥 화면 · 전투',['vscale','btmode','dskin','hitfx','a2fx','dmeter']]]};
 const catOf=k=>{for(const c in SEC)for(const x of SEC[c])if(x[1].includes(k))return c;return 'col'};
 const DX=d=>['p',d],IM=s=>['i',s],SH=s=>['s',s];
-const HZP={season:IM('ui/ic_season.webp'),dq:IM('ui/tr/gem.png'),stop:IM('ui/ic_stop.webp'),rm:IM('badges/b3.webp'),portal:IM('ui/ic_portal.webp'),
-  tg:DX(493),story:IM('badges/b7.webp'),wb:DX(150),wbc:DX(384),wbe:DX(487),ctw:DX(249),tower:DX(68),first:IM('ui/rk_crown1.webp'),diff:DX(491),
-  brawl:SH('ui/news/n14_brawl.webp'),raid:DX(383),pvp:SH('ui/news/n10_pvp3.webp'),rmroom:DX(448),trade:DX(132),rank:IM('ui/podium.webp'),wc:DX(201),dojo:DX(107),
-  team:DX(6),gear:IM('ui/cube2.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/tr/core.png'),soulx:IM('ui/ic_coin.webp'),rebirth:DX(250),lb:IM('items/RARECANDY.png'),prefix:IM('ui/ic_scroll.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
+const HZP={season:IM('ui/gm/ic/ic_season.webp'),dq:IM('ui/gm/ic/ic_quest.webp'),stop:IM('ui/gm/ic/ic_stop.webp'),rm:IM('ui/gm/ic/ic_rematch.webp'),portal:IM('ui/gm/ic/ic_portal.webp'),
+  tg:DX(493),story:IM('badges/b7.webp'),wb:IM('ui/gm/ic/ic_wb.webp'),wbc:IM('ui/gm/ic/ic_wb_chaos.webp'),wbe:IM('ui/gm/ic/ic_wb_eternal.webp'),ctw:DX(249),tower:IM('ui/gm/ic/ic_tower.webp'),first:IM('ui/rk_crown1.webp'),diff:DX(491),
+  brawl:IM('ui/gm/ic/ic_brawl.webp'),raid:IM('ui/gm/ic/ic_raid.webp'),pvp:IM('ui/gm/ic/ic_pvp.webp'),rmroom:DX(448),trade:IM('ui/gm/ic/ic_trade.webp'),rank:IM('ui/gm/rank2/rank_1_trophy_gold.webp'),wc:DX(201),dojo:DX(107),
+  team:DX(6),gear:IM('ui/gm/ic/ic_gear.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/gm/ic/ic_awake.webp'),soulx:IM('ui/gm/ic/ic_soulx.webp'),embl:IM('ui/gm/rank/rank_1_arceus.webp'),rebirth:DX(250),lb:IM('ui/gm/ic/ic_limit.webp'),prefix:IM('ui/gm/ic/ic_prefix.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
   dex:IM('ui/ic_dex.webp'),dxr:DX(151),card:IM('cardpack/pk3.webp'),egg:IM('ui/ic_egg.webp'),eggthief:IM('ui/ic_egg.webp'),foodthrow:IM('ui/ic_gift.webp'),wild:DX(25),mg:DX(129),shop:IM('ui/ic_shop.webp'),wx:IM('ui/ic_wx.webp'),
   news:SH('ui/news/n01_hub.webp'),vscale:SH('ui/news/n08_scale.webp'),btmode:SH('ui/news/n02_mode.webp'),dskin:SH('ui/news/n03_skin.webp'),hitfx:SH('ui/news/n20_sprfx.webp'),a2fx:SH('ui/news/n15_proj.webp'),dmeter:SH('ui/news/n04_battle.webp'),odds:IM('ui/ic_coin.webp'),svx:IM('items/RARECANDY.png'),svg:IM('ui/ic_coin.webp'),svs:IM('ui/tr/core.png'),svb:DX(144),svk:IM('ui/cube2.webp')};
 const pic=k=>{const p=HZP[k]||IM('ui/'+((typeof HUBIC!=='undefined'&&HUBIC[k])||'ic_star')+'.webp');
@@ -11807,6 +11811,106 @@ try{HUBIC.soulx='ic_coin';HUB.push({k:'soulx',n:'👻 영혼 교환소',d:'다 �
 // 각성 화면 맨 위에 「영혼 교환소」 바로가기
 {const _a=awOpen;awOpen=function(){const r=_a.apply(this,arguments);try{const pb=PANEL&&PANEL.d&&PANEL.d.querySelector('.pb');if(pb&&!pb.querySelector('.sxgo')){const d=document.createElement('div');d.className='sx sxgo';d.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 8px';d.innerHTML='<span style="font-size:24px">👻</span><span style="flex:1"><b style="color:#ffd23f">영혼이 남나요? 영혼 교환소</b><br><small style="font-size:10.5px;color:#cfd6ff">남는 영혼 → 🎟 한정뽑기권 · 💰 골드</small></span><b style="color:#ff9ad5">열기 ▶</b>';d.onclick=()=>{try{sfx('tap')}catch(e){}sxOpen()};pb.insertBefore(d,pb.firstChild)}}catch(e){}return r}}
 }catch(e){console.warn('9EA 영혼 교환소',e)}})();
+</script>
+<script id="emb9ec">
+// ===== 9EC 엠블럼 · 액자틀 =====
+// 엠블럼: 하나 장착 → 팀 전체(내 포켓몬 모두) 능력치 + 고유 효과 · 시즌(월드보스 주간) 순위 보상과 업적으로 얻어요
+// 액자틀: 포켓몬마다 하나씩 끼워요 → 같은 타입이면 공격·특공 +20%(전설 틀 +40%) · 강화 +1마다 +10% · 모은 종류 수만큼 팀 전체 보너스
+(function(){try{
+const GM='ui/gm/';
+const EMB=[
+ {id:'arceus',n:'아르세우스 엠블럼',img:GM+'rank/rank_1_arceus.webp',src:'월드보스 주간 1위',all:30,x:{def:20,spd:20},xd:'방어·특방 +20% 더'},
+ {id:'mewtwo',n:'뮤츠 엠블럼',img:GM+'rank/rank_2_mewtwo.webp',src:'월드보스 주간 2위',all:25,x:{spe:20,spa:10},xd:'스피드 +20% · 특공 +10% 더'},
+ {id:'hooh',n:'칠색조 엠블럼',img:GM+'rank/rank_3_hooh.webp',src:'월드보스 주간 3위',all:20,x:{hp:25},xd:'체력 +25% 더'},
+ {id:'rayquaza',n:'레쿠쟈 엠블럼',img:GM+'rank/rank_10_rayquaza.webp',src:'월드보스 주간 4~10위',all:15,x:{atk:10,spa:10},xd:'공격·특공 +10% 더'},
+ {id:'charizard',n:'리자몽 엠블럼',img:GM+'rank/rank_30_charizard.webp',src:'월드보스 주간 11~20위',all:10,ty:'FIRE',tyb:30,xd:'불꽃 타입 공격·특공 +30% 더'},
+ {id:'lucario',n:'루카리오 엠블럼',img:GM+'rank/rank_50_lucario.webp',src:'월드보스 주간 21위 이하 참여',all:5,x:{spe:10},xd:'스피드 +10% 더'},
+ {id:'gengar',n:'팬텀 엠블럼',img:GM+'rank/ach_gengar.webp',src:'업적: 강화 관장 10단계 클리어',all:5,ty:'GHOST',tyb:25,xd:'고스트 타입 공격·특공 +25% 더',ach:()=>Object.values(G.rmT||{}).some(v=>v>=10)},
+ {id:'mimikyu',n:'따라큐 엠블럼',img:GM+'rank/ach_mimikyu.webp',src:'업적: 액자틀 20종 모으기',all:5,x:{def:15,spd:15},xd:'방어·특방 +15% 더',ach:()=>frCnt()>=20},
+ {id:'ninetales',n:'구미호 엠블럼',img:GM+'rank/ach_ninetales.webp',src:'업적: 한정뽑기권 10장 모으기(누적)',all:5,ty:'FAIRY',tyb:25,xd:'페어리 타입 공격·특공 +25% 더',ach:()=>(G.ncgtSum|0)>=10},
+ {id:'lugia',n:'루기아 엠블럼',img:GM+'rank/ach_lugia.webp',src:'업적: 전설 액자틀 5종 모으기',all:5,ty:'PSYCHIC',tyb:25,xd:'에스퍼 타입 공격·특공 +25% 더',ach:()=>FR.filter(f=>f.leg&&G.frm&&G.frm[f.id]).length>=5}
+];
+const T18=['NORMAL','FIRE','WATER','ELECTRIC','GRASS','ICE','FIGHTING','POISON','GROUND','FLYING','PSYCHIC','BUG','ROCK','GHOST','DRAGON','DARK','STEEL','FAIRY'];
+const FT='DARK ELECTRIC FIRE PSYCHIC FIGHTING FAIRY ELECTRIC FIRE WATER GRASS FIGHTING GHOST ICE FIRE STEEL STEEL STEEL DRAGON STEEL FIRE STEEL STEEL DRAGON DRAGON GHOST GHOST GHOST DARK ELECTRIC FIRE ICE DRAGON WATER STEEL GHOST FIRE DRAGON WATER GROUND PSYCHIC GHOST FIRE WATER FIGHTING PSYCHIC DARK STEEL FLYING WATER GHOST FIRE WATER FIGHTING PSYCHIC DARK STEEL FLYING WATER'.split(' ');
+const LEG={arceus:['NORMAL','아르세우스'],dialga_a:['STEEL','디아루가'],dialga_b:['STEEL','디아루가 II'],giratina:['GHOST','기라티나'],groudon:['GROUND','그란돈'],hooh:['FIRE','칠색조'],kyogre:['WATER','가이오가'],lugia:['PSYCHIC','루기아'],lunala:['PSYCHIC','루나아라'],mewtwo_b:['PSYCHIC','뮤츠'],mewtwo_m:['PSYCHIC','뮤츠 II'],palkia_a:['WATER','펄기아'],palkia_b:['WATER','펄기아 II'],rayquaza_a:['DRAGON','레쿠쟈'],rayquaza_b:['DRAGON','레쿠쟈 II'],reshiram:['FIRE','레시라무'],solgaleo:['STEEL','솔가레오'],zacian:['FAIRY','자시안'],zamazenta:['FIGHTING','자마젠타'],zekrom:['ELECTRIC','제크로무']};
+const FR=[];FT.forEach((t,i)=>{const k=String(i+1).padStart(2,'0');FR.push({id:'f'+k,img:GM+'frames/frame_'+k+'.webp',ty:t,leg:0,n:(TN[t]||t)+' 액자틀 '+k})});
+for(const k in LEG)FR.push({id:'L_'+k,img:GM+'frames_leg/frame_leg_'+k+'.webp',ty:LEG[k][0],leg:1,n:'전설 · '+LEG[k][1]});
+const FRMAX=5;
+window.EMB=EMB;window.FR=FR;
+const frById=id=>FR.find(f=>f.id===id);
+function frCnt(){return G&&G.frm?Object.keys(G.frm).filter(k=>G.frm[k]>0).length:0}
+function colB(){const c=frCnt();return c>=FR.length?15:c>=50?8:c>=30?5:c>=10?3:0}
+function embOn(){return G&&G.embEq&&G.emb&&G.emb[G.embEq]?EMB.find(e=>e.id===G.embEq):null}
+const mineM=m=>m&&G&&(G.party.includes(m)||G.box.includes(m));
+const IX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};
+// 능력치 반영
+{const _s=stOf;stOf=function(m){const S=_s.apply(this,arguments);try{if(!mineM(m))return S;const o=S.slice?S.slice():S.slice();const tys=(META[m.n]&&META[m.n].types)||[];
+  const mul=[1,1,1,1,1,1];const e=embOn();
+  if(e){for(let i=0;i<6;i++)mul[i]+=e.all/100;if(e.x)for(const k in e.x)mul[IX[k]]+=e.x[k]/100;if(e.ty&&tys.includes(e.ty)){mul[1]+=e.tyb/100;mul[3]+=e.tyb/100}}
+  const cb=colB();if(cb)for(let i=0;i<6;i++)mul[i]+=cb/100;
+  const f=m.frm&&frById(m.frm),lv=f&&G.frm&&G.frm[f.id];
+  if(f&&lv){const b=(tys.includes(f.ty)?(f.leg?40:20):5)*(1+.1*(lv-1));mul[1]+=b/100;mul[3]+=b/100;if(f.leg){mul[0]+=.1}}
+  for(let i=0;i<6;i++)if(mul[i]!==1)o[i]=Math.round(o[i]*mul[i]);return o}catch(er){return S}}}
+// 아이템
+ITEMS.frbox={n:'액자틀 상자',e:'<img class="ic" src="'+GM+'items/it_honor_box.webp">'};
+try{ITD.frbox={s:'포켓몬 액자틀 78종 중 하나가 랜덤으로 나와요',use:'메뉴 → 키우기 → 엠블럼 · 액자틀 → 액자틀 상자 열기',good:'전설 액자틀은 낮은 확률(8%)로 나와요 · 같은 틀이 또 나오면 그 틀이 +1 강화돼요(최대 +5)',who:'포켓몬을 더 세게, 더 멋지게 꾸미고 싶은 친구',tip:'월드보스 주간 순위 보상으로 받아요 (1위 3개 · 2~3위 2개 · 4~20위 1개)'}}catch(e){}
+try{ITEMS.ncgt.e='<img class="ic" src="'+GM+'items/it_ticket_ltd.webp">'}catch(e){}
+{const _a=addItem;addItem=function(k,n){if(k==='ncgt'&&n>0&&G)G.ncgtSum=(G.ncgtSum|0)+n;return _a.apply(this,arguments)}}
+function giveEmb(id,why){G.emb=G.emb||{};const fresh=!G.emb[id];G.emb[id]=G.emb[id]||{t:Date.now(),why:why||''};if(!G.embEq)G.embEq=id;return fresh}
+function achCheck(){if(!G)return;let n=[];for(const e of EMB)if(e.ach&&!(G.emb&&G.emb[e.id])){try{if(e.ach()){giveEmb(e.id,'업적');n.push(e.n)}}catch(er){}}if(n.length){save();toast('새 엠블럼! '+n.join(' · '))}}
+window.embAch=achCheck;
+// 월드보스 주간 순위 보상
+window.embWbReward=function(rank){if(!G||!(rank>0))return;const id=rank===1?'arceus':rank===2?'mewtwo':rank===3?'hooh':rank<=10?'rayquaza':rank<=20?'charizard':'lucario';
+  const box=rank===1?3:rank<=3?2:rank<=20?1:0;const f=giveEmb(id,'월드보스 '+rank+'위');if(box)addItem('frbox',box);save();
+  toast((f?'새 엠블럼 '+EMB.find(e=>e.id===id).n:'엠블럼 '+EMB.find(e=>e.id===id).n+' 다시 획득')+(box?' · 액자틀 상자 '+box+'개':''))};
+// 상자 열기
+function openBox(){if((G.bag.frbox|0)<1){toast('액자틀 상자가 없어요');return}G.bag.frbox--;const L=FR.filter(f=>f.leg),N=FR.filter(f=>!f.leg);const f=Math.random()<.08?L[Math.random()*L.length|0]:N[Math.random()*N.length|0];
+  G.frm=G.frm||{};const had=G.frm[f.id]|0;let msg;if(!had){G.frm[f.id]=1;msg='새 액자틀!'}else if(had<FRMAX){G.frm[f.id]=had+1;msg='겹쳐서 +'+had+' 강화!'}else{G.money+=20000;msg='최대 강화라 20,000원으로 바꿨어요'}
+  save();try{sfx('badge')}catch(e){}achCheck();showBox(f,msg)}
+function showBox(f,msg){const d=document.createElement('div');d.className='frpop';d.innerHTML=`<div class="frpi"><div class="frph">${f.leg?'전설 액자틀':'액자틀'}</div><div class="frpw"><img src="${f.img}" alt=""></div><b>${f.n}</b><span>${msg} · ${TN[f.ty]||f.ty} 타입 포켓몬에 끼우면 공격·특공 +${f.leg?40:20}%</span><button type="button" class="emb-b">확인</button></div>`;d.querySelector('button').onclick=()=>{d.remove();embOpen('fr')};document.body.appendChild(d)}
+// 화면
+let tab='emb',sel=0;
+function embHtml(){const e=embOn(),own=G.emb||{};return `<div class="emb-g">${EMB.map(x=>{const o=!!own[x.id],on=G.embEq===x.id;return `<div class="emb-c ${o?'':'lk'} ${on?'on':''}"><img src="${x.img}" alt=""><b>${x.n}</b><small>팀 전체 +${x.all}% · ${x.xd}</small><small class="src">${o?(own[x.id].why||'획득'):x.src}</small>${o?`<button type="button" class="emb-b ${on?'gy':''}" data-eq="${x.id}">${on?'장착 중':'장착'}</button>`:'<span class="emb-lk">잠김</span>'}</div>`}).join('')}</div>`}
+function frHtml(){const P=G.party,m=P[sel]||P[0],own=G.frm||{},c=frCnt(),cb=colB();const nx=c<10?10:c<30?30:c<50?50:FR.length;
+  return `<div class="fr-top"><div class="fr-team">${P.map((p,i)=>{const f=p.frm&&frById(p.frm);return `<button type="button" class="fr-tm ${i===sel?'on':''}" data-sel="${i}"><span class="fr-ph"><img class="fr-pk" src="${faceUrl(lkOf(p),'Normal')}" alt="">${f?`<img class="fr-fx" src="${f.img}" alt="">`:''}</span><small>${nm(p)}</small></button>`}).join('')}</div>
+   <div class="fr-side"><div class="fr-box"><img src="${GM}items/it_honor_box.webp" alt=""><span>액자틀 상자 <b>${G.bag.frbox|0}</b>개</span><button type="button" class="emb-b" data-open="1" ${(G.bag.frbox|0)?'':'disabled'}>열기</button></div>
+   <div class="fr-col">모은 액자틀 <b>${c} / ${FR.length}</b> · 팀 전체 <b>+${cb}%</b>${c<FR.length?` · ${nx}종이면 +${nx>=FR.length?15:nx>=50?8:nx>=30?5:3}%`:''}</div>
+   <div class="fr-hint">${m?`<b>${nm(m)}</b>(${((META[m.n]&&META[m.n].types)||[]).map(t=>TN[t]||t).join('·')})에 끼울 틀을 누르세요 · 같은 타입이면 +20%(전설 +40%)`:''}</div></div></div>
+   <div class="fr-g">${FR.map(f=>{const lv=own[f.id]|0,mt=m&&((META[m.n]&&META[m.n].types)||[]).includes(f.ty),on=m&&m.frm===f.id;return `<button type="button" class="fr-c ${lv?'':'lk'} ${f.leg?'leg':''} ${mt&&lv?'mt':''} ${on?'on':''}" data-fr="${f.id}" ${lv?'':'disabled'}><img src="${f.img}" alt="" loading="lazy"><small>${lv?f.n+(lv>1?' +'+(lv-1):''):'???'}</small><i style="background:${TCOL[f.ty]||'#888'}">${TN[f.ty]||''}</i></button>`}).join('')}</div>`}
+window.embOpen=function(t){if(!G)return;achCheck();if(t)tab=t;
+  openPanel('엠블럼 · 액자틀',`<div class="emb"><div class="emb-tabs"><button type="button" data-tab="emb" class="${tab==='emb'?'on':''}">엠블럼</button><button type="button" data-tab="fr" class="${tab==='fr'?'on':''}">액자틀</button></div>
+   <div class="emb-now">${(()=>{const e=embOn();return e?`<img src="${e.img}" alt=""><span><b>${e.n}</b> 장착 중<br><small>내 포켓몬 모두 능력치 +${e.all}% · ${e.xd}</small></span>`:'<span>아직 엠블럼이 없어요 · 월드보스 주간 순위나 업적으로 얻어요</span>'})()}</div>
+   ${tab==='emb'?embHtml():frHtml()}</div>`,null,p=>{
+   p.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{try{sfx('tap')}catch(e){}embOpen(b.dataset.tab)});
+   p.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{G.embEq=b.dataset.eq;save();try{sfx('tap');hud()}catch(e){}embOpen('emb')});
+   p.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>{sel=+b.dataset.sel;embOpen('fr')});
+   p.querySelectorAll('[data-fr]').forEach(b=>b.onclick=()=>{const m=G.party[sel];if(!m)return;m.frm=m.frm===b.dataset.fr?null:b.dataset.fr;save();try{sfx('tap')}catch(e){}embOpen('fr')});
+   const o=p.querySelector('[data-open]');if(o)o.onclick=openBox})};
+const css=document.createElement('style');css.textContent=`
+.emb{font-family:'Galmuri11',monospace;color:#f6e7c4;border-style:solid;border-width:26px;border-image:url(${GM}ui/ui_panel_main.webp) 110 fill stretch;image-rendering:pixelated;margin:2px 0}
+.emb-tabs{display:flex;gap:6px;margin-bottom:8px}.emb-tabs button{flex:1;font:700 15px 'Galmuri11',monospace;color:#fff;border-style:solid;border-width:8px 12px;border-image:url(${GM}ui/ui_btn_sub.webp) 34 44 fill stretch;background:none;padding:2px;cursor:pointer;text-shadow:2px 2px 0 #1a0e06;filter:grayscale(.7) brightness(.8)}.emb-tabs button.on{border-image-source:url(${GM}ui/ui_btn_main.webp);filter:none}
+.emb-now{display:flex;align-items:center;gap:10px;border-style:solid;border-width:12px;border-image:url(${GM}ui/ui_panel_dark.webp) 56 fill stretch;margin-bottom:8px;font-size:13px}.emb-now img{height:64px}.emb-now small{color:#e9d3a8;font-size:11px}
+.emb-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.emb-c{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;border-style:solid;border-width:12px;border-image:url(${GM}ui/ui_panel_dark.webp) 56 fill stretch}.emb-c img{height:110px}.emb-c b{font-size:13px;color:#fff;text-shadow:2px 2px 0 #1a0e06}.emb-c small{font-size:10.5px;line-height:1.35;color:#e9d3a8}.emb-c small.src{color:#9fd0ff}
+.emb-c.lk img{filter:brightness(0) contrast(.5) opacity(.55)}.emb-c.on{outline:3px solid #ffd23f;outline-offset:-3px}.emb-lk{font-size:11px;color:#a89070}
+.emb-b{font:700 13px 'Galmuri11',monospace;color:#fff;border-style:solid;border-width:6px 10px;border-image:url(${GM}ui/ui_btn_main.webp) 30 40 fill stretch;background:none;padding:1px 6px;cursor:pointer;text-shadow:1px 1px 0 #3a1200}.emb-b.gy,.emb-b:disabled{filter:grayscale(1) brightness(.75);cursor:default}
+.fr-top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.fr-team{display:flex;gap:4px;flex-wrap:wrap;flex:1 1 300px}
+.fr-tm{background:none;border:0;padding:2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;color:#f6e7c4;font-family:inherit}.fr-tm small{font-size:10px;max-width:72px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fr-ph{position:relative;width:72px;height:72px;display:block}.fr-pk{position:absolute;left:18%;top:18%;width:64%;height:64%;object-fit:contain;image-rendering:pixelated}.fr-fx{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.fr-tm.on .fr-ph{outline:3px solid #ffd23f;outline-offset:1px;border-radius:4px}
+.fr-side{flex:1 1 260px;display:flex;flex-direction:column;gap:4px;font-size:12px}.fr-box{display:flex;align-items:center;gap:8px}.fr-box img{height:46px}.fr-box span{flex:1}.fr-box b,.fr-col b{color:#ffd23f}.fr-hint{color:#e9d3a8;font-size:11px}
+.fr-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.fr-c{position:relative;background:rgba(0,0,0,.25);border:2px solid #4a3a2a;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:#f6e7c4;font-family:inherit}.fr-c img{width:100%;aspect-ratio:1;object-fit:contain}.fr-c small{font-size:9.5px;text-align:center;line-height:1.2}
+.fr-c i{position:absolute;left:3px;top:3px;font-style:normal;font-size:9px;color:#fff;padding:0 3px;text-shadow:1px 1px 0 #000}
+.fr-c.lk img{filter:brightness(0) contrast(.5) opacity(.5)}.fr-c.lk{cursor:default}.fr-c.leg{border-color:#c8961e}.fr-c.mt{box-shadow:0 0 0 2px #5ff0a0 inset}.fr-c.on{background:rgba(255,210,63,.25);border-color:#ffd23f}
+.frpop{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;font-family:'Galmuri11',monospace}
+.frpi{width:min(340px,90vw);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:#fff3d6;border-style:solid;border-width:30px;border-image:url(${GM}ui/ui_panel_ornate.webp) 104 fill stretch;image-rendering:pixelated}
+.frph{font-size:18px;color:#ffd23f;text-shadow:2px 2px 0 #1a0e06}.frpw img{width:220px;height:220px;object-fit:contain;animation:frIn .6s ease-out;filter:drop-shadow(0 0 18px rgba(255,210,63,.7))}.frpi span{font-size:12px;color:#e9d3a8}
+@keyframes frIn{0%{transform:scale(.2) rotate(-20deg);opacity:0}70%{transform:scale(1.1)}100%{transform:none;opacity:1}}`;document.head.appendChild(css);
+try{HUB.push({k:'embl',n:'엠블럼 · 액자틀',d:'엠블럼을 하나 장착하면 내 포켓몬 모두 능력치가 올라요(1위 아르세우스 +30%). 액자틀은 포켓몬마다 끼우고, 같은 타입이면 공격·특공 +20%(전설 +40%). 모은 종류가 많을수록 팀 전체 보너스!',st:()=>{try{const e=embOn();return (e?e.n+' 장착':'엠블럼 없음')+' · 액자틀 '+frCnt()+'/'+FR.length+' · 상자 '+(G.bag.frbox|0)}catch(e){return''}},go:[['엠블럼 · 액자틀 열기',()=>embOpen('emb')]]})}catch(e){}
+// 처음 1번: 출시 기념 액자틀 상자 2개
+setTimeout(function g(){if(!G){setTimeout(g,3000);return}if(!G.frGift){G.frGift=1;addItem('frbox',2);save();try{toast('새 기능! 액자틀 상자 2개 선물 · 메뉴 → 키우기 → 엠블럼 · 액자틀')}catch(e){}}achCheck()},4000);
+}catch(e){console.warn('9EC 엠블럼',e)}})();
 </script>
 <style>#mg .mgb{overflow-y:auto;max-height:calc(100vh - 64px);-webkit-overflow-scrolling:touch}</style>
 <script src="https://yujongho0714.github.io/allinone/back-guard.js" defer></script>
