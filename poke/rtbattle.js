@@ -2142,6 +2142,11 @@ async function start(ctx){
    const fb=document.createElement('div');fb.style.cssText='position:absolute;left:calc(50% + 82px);top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 12px;color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #56627f;pointer-events:auto;cursor:pointer;user-select:none;z-index:4;white-space:nowrap';
    const up=()=>{fb.textContent=W.fast?'⏩ 2배속 ON':'⏩ 2배속';fb.style.background=W.fast?'#e8a020':'#2a3256'};up();
    fb.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.fast=!W.fast;try{localStorage.setItem('pka-rtfast',W.fast?'1':'0');C.setFast&&C.setFast(W.fast)}catch(er){}up()});W.root.appendChild(fb);W.fastBtn=fb}
+  // 9DY: 스킵 — C.skipAfter초가 지나면 「⏭ 스킵」 단추가 나와요. 누르면 화면 없이 끝까지 자동으로 빨리 돌려서 결과만 보여줘요 (다음 포켓몬도 이어서 스킵)
+  W.skip=!!(C.skipOn&&C.skipOn());if(W.skip)W.autoOn=true;
+  if(C.skipAfter){const sb=document.createElement('div');sb.style.cssText='position:absolute;left:calc(50% + 172px);top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 14px;background:linear-gradient(#ff7a3a,#d8481a);color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #ffb07a;pointer-events:auto;cursor:pointer;user-select:none;z-index:6;white-space:nowrap;display:none;text-shadow:0 2px 0 #7a2208';
+   sb.textContent='⏭ 스킵';sb.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();if(W.over||W.skip)return;W.skip=true;W.autoOn=true;W.paused=false;try{C.onSkip&&C.onSkip()}catch(er){}sb.textContent='⏭ 스킵 중…';sb.style.background='#555'});W.root.appendChild(sb);W.skipBtn=sb;
+   if(W.skip){sb.style.display='';sb.textContent='⏭ 스킵 중…';sb.style.background='#555'}}
   {const ab=document.createElement('div');ab.style.cssText='position:absolute;left:50%;top:calc(44px + env(safe-area-inset-top));transform:translateX(-50%);padding:6px 14px;background:#2a3256;color:#fff;font:900 14px "Galmuri11",sans-serif;border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #56627f;pointer-events:auto;cursor:pointer;user-select:none;z-index:4;white-space:nowrap';
    const upd=()=>{ab.textContent=W.autoOn?'🤖 자동 ON':'🤖 자동 OFF';ab.style.background=W.autoOn?'#2bbf5a':'#2a3256';if(W.autoTag)W.autoTag.style.display=W.autoOn?'':'none'};
    ab.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();W.autoOn=!W.autoOn;W.manT=null;try{localStorage.setItem('pka-rtauto',W.autoOn?'1':'0')}catch(er){}upd()});W.root.appendChild(ab);W.autoBtn=ab;W.autoUpd=upd}
@@ -2162,6 +2167,8 @@ async function start(ctx){
       if(!W||W.stopped)return;
       const raw=now-last;let dt=Math.min(.1,raw/1000);last=now;acc+=dt*(W.fast?2:1);let n=0;   // 9O: 2배속
       autoQ(raw);
+      if(W.skipBtn&&!W.skip&&W.skipBtn.style.display==='none'&&W.time+((C.skipT0&&C.skipT0())||0)>=C.skipAfter)W.skipBtn.style.display='';
+      if(W.skip){const t0=performance.now();W.paused=false;try{if(W.pp)closeParty();if(W.ip)closeItems()}catch(er){}W.manT=null;while(!W.over&&performance.now()-t0<14){for(let k=0;k<40&&!W.over;k++)update()}if(W.over){stop(W.over);return}try{render()}catch(er){}W.raf=requestAnimationFrame(loop);return}
       if(W.paused){acc=0}else while(acc>=TICK&&n<(W.fast?10:5)){update();acc-=TICK;n++;if(W.over)W.overT+=TICK}
       if(n>=(W.fast?10:5))acc=0;
       if(W.autoUpd&&W.autoBtn&&W.autoBtn._s!==W.autoOn){W.autoBtn._s=W.autoOn;W.autoUpd()}

@@ -1617,7 +1617,7 @@ function drawBattle(dt){const W=cv.width,H=cv.height,d=DPR;FX2.update(dt);VFX.up
   actDrawOver();FX2.draw(cx);VFX.draw(cx);try{GMFX.draw(cx)}catch(e){}try{JD.redrawAtk()}catch(e){}try{CINE.front(cx,dt)}catch(e){}cx.setTransform(d,0,0,d,0,0);FX2.overlay(cx,VW,VH);if(BS.flash>0){BS.flash-=dt;cx.fillStyle='rgba(255,255,255,'+Math.max(0,BS.flash*2)+')';cx.fillRect(0,0,VW,VH)}cx.setTransform(1,0,0,1,0,0)}
 // ---------- 기술 쓰기 ----------
 function dmgCalc(a,d,m,crit){const A=stOf(a),D=stOf(d),Ma=META[a.n],Md=META[d.n];const at=m.ph?A[1]:A[3],df=m.ph?D[2]:D[4];const e=eff(m.type,Md.types),stab=Ma.types.includes(m.type)?1.5:1;
-  const ml=a.moves.includes(m.id)?mlv(a,m.id):1;const base=((2*a.lv/5+2)*m.pw*(1+.08*(ml-1))*at/Math.max(1,df))/50+2;const mine=G.party.includes(a),wx=wxMul(m.type,Md.types);return{d:Math.max(1,Math.floor(base*stab*e*(crit?1.5:1)*wx*(mine?1:DDMG[DIFF()]))),e}}
+  const ml=a.moves.includes(m.id)?mlv(a,m.id):1;const base=((2*a.lv/5+2)*m.pw*(1+.08*(ml-1))*at/Math.max(1,df))/50+2;const mine=G.party.includes(a),wx=wxMul(m.type,Md.types);return{d:Math.max(1,Math.floor(base*stab*e*(crit?1.5:1)*wx*(mine?1:DDMG[DIFF()]*(a.akx||1)))),e}}
 function bestMove(a,d,mode){const L=a.moves.map(mv).map(m=>({m,s:dmgCalc(a,d,m,0).d*(m.acc/100)}));if(mode==='weak'){const nz=L.filter(x=>x.s>0).sort((p,q)=>p.s-q.s);return(nz[0]||L[0]).m}L.sort((p,q)=>q.s-p.s);return L[0].m}
 function resetActor(B){if(!B)return;Object.assign(B,{ox:0,oy:0,lift:0,sc:1,sq:0,alpha:1,sink:0,hide:0,rot:0,trail:0,glow:0,clones:null})}
 async function useMove(atk,def,m,mine){const AB=mine?BS.me:BS.foe,DB=mine?BS.foe:BS.me;await msg((mine?'':(BS.trainer?'상대 ':'야생 '))+'<b>'+nm(atk)+'</b>의 <b style="color:'+TCOL[m.type]+'">'+SKFX.nm(m.name,mine&&atk.moves.includes(m.id)?mlv(atk,m.id):1)+'</b>!',FAST()?380:700,[atk.n,'Determined']);
@@ -2836,19 +2836,26 @@ function leaderCard(i){if(!G)return;const g=GYM[i],got=i<G.badges,ace=BYDEX[GACE
   openPanel(town+' 체육관',`<div class="ldC"><div class="ldL"><img class="ldT" src="trainers/${TRS.gym[i]}.png"><div class="ldN">${g.n}</div><div class="ldTy"><u class="tyl" style="${tyLab(g.t)}"></u> 타입 전문</div></div>
     <div class="ldR">${badgeHtml(i,got,0)}<b>${town} 배지</b><small>${got?'획득했어요!':'아직 못 받았어요'}</small><div class="ldP"><span>파트너</span>${ace?`<img src="${faceUrl(ace,'Normal')}"><b>${META[ace].name}</b>`:''}</div>
     <p class="ldQ">"${GLINE[i].pre[1]||GLINE[i].pre[0]}"</p></div></div>
-    ${got?`<button class="it" id="ldRe" style="width:100%" ${done?'disabled':''}>${done?'오늘 재대결 5번을 다 했어요 (내일 다시!)':'재대결하기 ('+rmLeft(i)+'/5 남음) · 관장 Lv.'+(lv+LVO())+' · 이기면 상금 + 카드팩'+(DIFF()>=6?' · 5% 확률로 '+(G.rmDD===dayKey()?'(오늘 받음) ':'')+(DIFF()===6?'<img class="tri" src="ui/tr/core.png" alt=""> 핵':'🌟 숨결'):'')}</button>`:`<p style="text-align:center;font-weight:800">${town}에서 ${g.n}을(를) 이기면 배지를 받아요</p>`}`,null,p=>{
-    const b=p.querySelector('#ldRe');if(b)b.onclick=()=>{closePanel(1);rematch(i)}})}
-async function rematch(i){if(SCENE!=='over'){toast('마을이나 길에서만 할 수 있어요');return}if(rmLeft(i)<=0){toast('오늘 재대결은 다 했어요 (배지마다 하루 5번)');return}rmUse(i);const g=GYM[i],lv=Math.max(gymAce(i),topLv()+2);
-  await trainerScene(TRS.gym[i],g.n,['다시 왔구나! 그동안 나도 더 강해졌다.','이번엔 진심으로 간다. 준비됐겠지?']);
+    ${got?`<div class="sx rmT"><div class="rmTr"><span><b>🏟️ 강화 단계</b><small>최고 ${rmBest(i)}단계 · 이기면 다음 단계가 열려요 (최대 ${RMCAP})</small></span><button data-rt="-1" ${rmSel(i)<=0?'disabled':''}>◀</button><b class="rmTn">${rmSel(i)?rmSel(i)+'단계':'기본'}</b><button data-rt="1" ${rmSel(i)>=Math.min(RMCAP,rmBest(i)+1)?'disabled':''}>▶</button></div>
+    <small class="rmTi">${(()=>{const t=rmSel(i),u=rmMul(t);return t?'관장 체력 ×'+fmtX(u.h)+' · 방어 ×'+fmtX(u.d)+' · 공격 ×'+fmtX(u.a)+' · 상금 +'+(25*t)+'%'+(t>rmBest(i)?' · <b style="color:#ffd23f">첫 클리어 보너스'+(t%5===0?' + 🎟 뽑기권':'')+'</b>':''):'예전 재대결 그대로 (관장 Lv.'+(lv+LVO())+')'})()}</small></div><button class="it" id="ldRe" style="width:100%" ${done?'disabled':''}>${done?'오늘 재대결 5번을 다 했어요 (내일 다시!)':'재대결하기 ('+rmLeft(i)+'/5 남음) · 관장 Lv.'+(lv+LVO())+' · 이기면 상금 + 카드팩'+(DIFF()>=6?' · 5% 확률로 '+(G.rmDD===dayKey()?'(오늘 받음) ':'')+(DIFF()===6?'<img class="tri" src="ui/tr/core.png" alt=""> 핵':'🌟 숨결'):'')}</button>`:`<p style="text-align:center;font-weight:800">${town}에서 ${g.n}을(를) 이기면 배지를 받아요</p>`}`,null,p=>{
+    const b=p.querySelector('#ldRe');if(b)b.onclick=()=>{closePanel(1);rematch(i)};p.querySelectorAll('[data-rt]').forEach(x=>x.onclick=()=>{try{sfx('tap')}catch(e){}G.rmSel=G.rmSel||{};G.rmSel[i]=Math.max(0,Math.min(Math.min(RMCAP,rmBest(i)+1),rmSel(i)+(+x.dataset.rt)));save();leaderCard(i)})})}
+const fmtX=v=>v>=1000?Math.round(v).toLocaleString():v>=10?v.toFixed(0):v.toFixed(2).replace(/\.?0+$/,'');
+async function rematch(i){if(SCENE!=='over'){toast('마을이나 길에서만 할 수 있어요');return}if(rmLeft(i)<=0){toast('오늘 재대결은 다 했어요 (배지마다 하루 5번)');return}rmUse(i);const g=GYM[i],lv=Math.max(gymAce(i),topLv()+2),T=rmSel(i),MU=rmMul(T);
+  await trainerScene(TRS.gym[i],g.n+(T?' · 강화 '+T+'단계':''),T?['강화 '+T+'단계에 도전하는구나!','지금의 나는 체력 ×'+fmtX(MU.h)+' · 공격 ×'+fmtX(MU.a)+'! 버틸 수 있겠어?']:['다시 왔구나! 그동안 나도 더 강해졌다.','이번엔 진심으로 간다. 준비됐겠지?']);
   const team=typeTeam(g.t,420+40*i,5,[lv-3,lv-2,lv-1,lv-1,lv],G.seed+i*97+(G.rmN||0));const a=mkMon(BYDEX[GACE[i]],lv+1);team.push(a);
-  const r=await battle({scaled:1,gym:i+1,trainer:g.n,foes:team,money:lv*150,lose:'역시 너는 강하구나!',bg:GYMBG[i]});
-  if(r==='win'){G.rmN=(G.rmN||0)+1;save();await trainerScene(TRS.gym[i],g.n,['훌륭하다! 다시 붙어도 너를 이길 수가 없구나.','이건 재대결 보상이다. 내일 또 오너라!'],'win');REWQ.push({kind:'P',msg:'재대결 승리 보상! 포켓몬 카드팩',why:'재대결'});rmDrop();REWQ.push({kind:'M',msg:'재대결 승리 보상! 기술 카드팩',why:'재대결'})}
+  if(T)for(const f of team){f.hpx=(f.hpx||1)*MU.h;f.dfx=(f.dfx||1)*MU.d;f.akx=MU.a;f.hp=stOf(f)[0]}
+  const r=await battle({scaled:1,gym:i+1,trainer:g.n+(T?' (강화 '+T+')':''),foes:team,money:Math.round(lv*150*(1+.25*T)),lose:'역시 너는 강하구나!',bg:GYMBG[i]});
+  if(r==='win'){G.rmN=(G.rmN||0)+1;try{if(T>rmBest(i)){G.rmT=G.rmT||{};G.rmT[i]=T;G.rmSel=G.rmSel||{};G.rmSel[i]=Math.min(RMCAP,T+1);const bm=Math.round(lv*300*T);G.money+=bm;let t='🏟️ 강화 '+T+'단계 첫 클리어! 보너스 '+bm.toLocaleString()+'원';if(T%5===0){addItem('ncgt',1);t+=' · 🎟 한정뽑기권 1장'}toast(t+(T<RMCAP?' · 다음 '+(T+1)+'단계가 열렸어요':''))}}catch(e){}save();await trainerScene(TRS.gym[i],g.n,['훌륭하다! 다시 붙어도 너를 이길 수가 없구나.','이건 재대결 보상이다. 내일 또 오너라!'],'win');REWQ.push({kind:'P',msg:'재대결 승리 보상! 포켓몬 카드팩',why:'재대결'});rmDrop();REWQ.push({kind:'M',msg:'재대결 승리 보상! 기술 카드팩',why:'재대결'})}
   else if(r==='lose'){await trainerScene(TRS.gym[i],g.n,['아직이야! 더 강해져서 다시 와라.']);await blackout()}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.bcase .bdg2');if(!b)return;const all=[...b.parentNode.children];const i=all.indexOf(b);if(i>=0){sfx('tap');leaderCard(i)}});
 
 // 관장 재대결: 배지마다 하루 5번
 const RMMAX=5;function rmRec(i){G.rematch=G.rematch||{};let r=G.rematch[i];if(!r||typeof r!=='object'||r.d!==dayKey())r=G.rematch[i]={d:dayKey(),n:0};return r}
 function rmLeft(i){return RMMAX-rmRec(i).n}function rmUse(i){rmRec(i).n++;save()}
+// 9EB 강화 관장: 재대결에서 이길 때마다 다음 「강화 단계」가 열려요. 단계마다 관장 체력 ×1.35 · 방어 ×1.04 · 공격 ×1.18 · 상금 +25%
+// 처음 깬 단계마다 보너스 상금, 5단계마다 처음 깨면 🎟 한정뽑기권 1장 · 낮은 단계를 골라서 해도 돼요
+const RMCAP=50;function rmBest(i){return ((G.rmT||{})[i])|0}function rmSel(i){const b=rmBest(i),v=(G.rmSel||{})[i];return Math.max(0,Math.min(Math.min(RMCAP,b+1),v==null?Math.min(RMCAP,b+1):v|0))}
+function rmMul(t){return{h:Math.pow(1.35,t),d:Math.pow(1.04,t),a:Math.pow(1.18,t)}}
 
 // ===== 기술 추천 포켓몬 (보유 · 미보유) =====
 function recFor(id){const v=mv(id);if(!v)return[];const out=[];for(const n of SPECIES){const M=META[n];if(!M||M.form)continue;const learn=(M.moves||[]).some(x=>x.id===id);const st=M.types.includes(v.type);if(!learn&&!st)continue;
@@ -9183,7 +9190,7 @@ const rtPartyRow=q=>({uid:q.uid,name:nm(q),lv:dLv(q),hp:q.hp,max:stOf(q)[0],face
 // 7D: 숫자 배율 K = 10^(표시레벨/200) → Lv.1 ×1 · Lv.100 ×3 · 환생3(Lv.400) ×100 · 환생9(Lv.1000) ×10만 (체력·데미지 숫자만, 승패 밸런스와 무관)
 const rtNumK=m=>{try{return Math.min(1e9,Math.pow(10,dLv(m)/200)*(DIFF()>=9?1e4:DIFF()>=8?1e3:DIFF()>=7?100:DIFF()>=6?10:1))}catch(e){return 1}};   // 9C: 천계 숫자 ×10 · 천상계 ×100 (보이는 숫자만)
 // 7D: 예전 전투와 같은 보정 — 기술 레벨(+8%/레벨) · 난이도별 상대 데미지(DDMG)
-const rtDmgMul=(a,d,id)=>{let k=1;try{k*=awDmgOf(a,id)}catch(e){}try{if(a&&a.moves&&a.moves.includes(id))k*=1+.08*(mlv(a,id)-1)}catch(e){}try{if(!isMine(a))k*=DDMG[DIFF()]}catch(e){}
+const rtDmgMul=(a,d,id)=>{let k=1;try{k*=awDmgOf(a,id)}catch(e){}try{if(a&&a.moves&&a.moves.includes(id))k*=1+.08*(mlv(a,id)-1)}catch(e){}try{if(!isMine(a))k*=DDMG[DIFF()]*((a&&a.akx)||1)}catch(e){}
   // 환생하면 체력이 ×(1+0.4×환생)으로 커지는데 데미지는 그대로라 실시간 전투가 너무 길어짐(환생9 트레이너 74초) → 데미지도 같은 배율(양쪽 똑같이, 밸런스 그대로)
   try{if((G.rebirth||(a.gmrb!=null&&opAny()))&&(isMine(a)||a.rbf))k*=1+REBSTAT*rbOf(a)}catch(e){}
   // 7G: 예전 전투에만 있던 위력 보너스도 새 전투에 — 부적(타입 +5%/개) · 등급 위력(신화 +15% … 태초 +70%)
@@ -9320,7 +9327,7 @@ async function rtWB(o){
   SCENE='battle';BS.on=1;BS.trainer='월드보스';BS.bg=o.bg||'worldboss';BS.turn=0;BS.potN=0;BS.fx=[];BS.me=BS.foe=null;BS.foes=[f];
   try{FX2.clear()}catch(e){}try{BGM.battle(o)}catch(e){}try{sfx('enc')}catch(e){}
   f.hpx=hx/SC;const H0=stOf(f)[0];f.hp=Math.max(1,Math.min(H0,hp0/SC));
-  let left=WB_TLIM,res='lose';const gmS={n:0};
+  let left=WB_TLIM,res='lose';const gmS={n:0};BS.wbSkip=0;   // 9DY: 30초 뒤 스킵
   while(left>.5){
     const m=alive()[0];if(!m)break;
     const me=Object.assign({},m,{moves:m.moves.slice()});
@@ -9331,7 +9338,7 @@ async function rtWB(o){
       items:()=>Object.keys(ITEMS).filter(k=>ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]||0)>0).sort((a,b)=>(ITEMS[a].pct||0)-(ITEMS[b].pct||0)||ITEMS[a].heal-ITEMS[b].heal).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0,heal:ITEMS[k].heal,pct:ITEMS[k].pct})),
       useItem:k=>{const it=ITEMS[k];if(!it||!it.heal||it.ball||(G.bag[k]||0)<=0)return null;const L=POTLIM();if(L&&(BS.potN||0)>=L)return{deny:'물약은 전투 1번에 '+L+'개까지!'};G.bag[k]--;BS.potN=(BS.potN||0)+1;return{heal:it.heal,pct:it.pct}},sfx,
       loseTxt:alive().length>1?'쓰러졌다! 다음 포켓몬!':'모두 쓰러졌다…',drawTxt:'시간 끝!',endHint:autoActive()?'자동으로 계속해요':'화면을 누르면 계속해요',
-      bossNoFrac:1,giant:(G&&G.wbK&&G.wbK!=='n')?1:0,bossWarn:1,bossLook:(G&&G.wbK==='c')?7:(G&&G.wbK==='e')?8:0,nm:x=>(x===f||x&&f&&x.uid===f.uid?wbPre():'')+nm(x),bossBase:H0/(f.hpx||1),bossHit:(window.WBHIT&&WBHIT())||.08,autoMe:autoActive()?1:0,autoTier:'T4',noTimeLimit:1,maxTime:left,quitText:'그만 싸울까요? (이번 판 데미지는 없어지고 도전 횟수는 돌려받아요)'}));
+      bossNoFrac:1,giant:(G&&G.wbK&&G.wbK!=='n')?1:0,bossWarn:1,bossLook:(G&&G.wbK==='c')?7:(G&&G.wbK==='e')?8:0,nm:x=>(x===f||x&&f&&x.uid===f.uid?wbPre():'')+nm(x),bossBase:H0/(f.hpx||1),bossHit:(window.WBHIT&&WBHIT())||.08,autoMe:autoActive()?1:0,autoTier:'T4',noTimeLimit:1,maxTime:left,skipAfter:30,skipOn:()=>!!BS.wbSkip,onSkip:()=>{BS.wbSkip=1},skipT0:()=>WB_TLIM-left,quitText:'그만 싸울까요? (이번 판 데미지는 없어지고 도전 횟수는 돌려받아요)'}));
     const L=window.RTB.last||{};
     if(L.hpBy){for(const q of G.party){const hb=L.hpBy[q.uid];if(hb!=null)q.hp=hb>0?Math.max(1,Math.round(hb)):0}}
     else if(L.meHp!=null)m.hp=L.meHp>0?Math.max(1,Math.round(L.meHp)):0;
@@ -9419,7 +9426,19 @@ const KD={n:{nm:'월드보스',lb:'전설',suf:'',hp:300000000,sc:100,ai:'T2',pa
           e:{nm:'이터널 월드보스',lb:'환상',suf:'-E',hp:900000000,sc:100,ai:'G4',pack:5,mat:'breath',hit:.13}};
 window.WBKD=KD;const HP0=WB_HP;
 const cur=()=>(G&&G.wbK)||'n';const old=k=>k==='n'&&wbWeekB()<NEWWK;
-function apply(k){WB_HP=old(k)?HP0:KD[k].hp;WBSUF=KD[k].suf;try{WBC.list=null;WBC.wk=null}catch(e){}}
+// 9DZ 월보 자동 체력: 이번 판 체력 = 지난 판에 모두가 넣은 데미지 합 × 0.8 (기본 체력보다 낮아지진 않아요) · 앞 두 자리로 반올림해서 모두 같은 값이 나오게
+// 아이들이 세지면 보스도 같이 단단해지고, 못 잡은 판 다음엔 다시 약해져요. 판마다 한 번 계산해서 G.wbHpA에 기억해요(보상 판정도 그 값으로)
+const AUTOK=.8,AUTO0='2026-11-26';
+const hpKey=(k,wk)=>k+':'+wk;
+const prevWk=wk=>{const t=Date.parse(wk+'T00:00:00Z')-WBD*864e5;return new Date(t).toISOString().slice(0,10)};
+const r2=n=>{if(!(n>0))return 0;const p=Math.pow(10,Math.max(0,Math.floor(Math.log10(n))-1));return Math.round(n/p)*p};
+function hpOf(k,wk){const b=KD[k].hp;if(wk<AUTO0)return b;const c=G&&G.wbHpA&&G.wbHpA[hpKey(k,wk)];return c>0?Math.max(b,c):b}
+window.wbHpOf=hpOf;
+window.wbAutoHp=async function(k0){k0=k0||cur();const wk=wbWeekB();if(!G||old(k0)||wk<AUTO0)return;G.wbHpA=G.wbHpA||{};const key=hpKey(k0,wk);if(G.wbHpA[key])return;
+  const pw=prevWk(wk);let v=KD[k0].hp;if(pw>=AUTO0){const sf0=WBSUF,keep=WBC.list,kw=WBC.wk,ks=WBC.sf,kt=WBC.t;WBSUF=KD[k0].suf;let L=null;try{L=await wbFetch(pw,1)}catch(e){}finally{WBSUF=sf0;WBC.list=keep;WBC.wk=kw;WBC.sf=ks;WBC.t=kt}
+    if(!L)return;v=Math.max(v,r2(wbTotal(L)*AUTOK))}
+  G.wbHpA[key]=v;for(const q in G.wbHpA){const w=q.split(':')[1];if(w<prevWk(prevWk(prevWk(wk))))delete G.wbHpA[q]}save();if(cur()===k0)apply(k0)};
+function apply(k){WB_HP=old(k)?HP0:hpOf(k,wbWeekB());WBSUF=KD[k].suf;try{WBC.list=null;WBC.wk=null}catch(e){}}
 window.wbKind=function(k){if(!G||!KD[k])return;const c=cur();if(k!==c){G['wb_'+c]=G.wb||null;G.wb=G['wb_'+k]||null;delete G['wb_'+k];G.wbK=k}apply(k)};
 window.WBSC=()=>old(cur())?1:KD[cur()].sc;window.WBNEW=()=>!old(cur());window.WBAI=()=>KD[cur()].ai;window.WBHIT=()=>KD[cur()].hit;
 window.WBNM=()=>KD[cur()].nm;window.WBLB=()=>KD[cur()].lb;
@@ -9444,7 +9463,7 @@ const stOfK=k=>{const w=k===cur()?G.wb:G['wb_'+k];return w&&w.wk===wbWeekB()?w:{
 // 싸움: 새 전투로 (일반 월보는 새 주부터)
 {const _bt=battle;battle=async function(o){if(o&&o.wb&&window.rtWB&&WBNEW()){const r=await rtWB(o);if(r!==undefined){try{if(cur()==='c'&&BS.wbLast&&BS.wbLast.dmg>0){trmAdd('gem',2);save();toast('<img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 +2 (카오스 도전)')}}catch(e){}return r}}return _bt.apply(this,arguments)}}
 // 주간 보상: 종류마다 따로 받기 + 카오스·이터널 추가 보상(카드팩 등급·초월 재료)
-{const _p=wbPayout;wbPayout=async function(){const k0=cur();try{for(const k of ['n','c','e']){wbKind(k);const w=wbS(),o=w.last;if(!o||w.paid[o.wk])continue;if(k==='n'&&o.wk<NEWWK)WB_HP=HP0;/* 개편 전 주(5만 단위)는 예전 체력으로 격파 판정 */
+{const _p=wbPayout;wbPayout=async function(){const k0=cur();try{for(const k of ['n','c','e']){wbKind(k);const w=wbS(),o=w.last;if(!o||w.paid[o.wk])continue;if(k==='n'&&o.wk<NEWWK)WB_HP=HP0;/* 개편 전 주(5만 단위)는 예전 체력으로 격파 판정 */else WB_HP=hpOf(k,o.wk);/* 9DZ 그 판의 자동 체력으로 격파 판정 */
     let L=null;try{L=await wbFetch(o.wk,1)}catch(e){}const i=L?L.findIndex(x=>x.id===G.pid):-1,rank=i>=0?i+1:null,killed=L?wbTotal(L)>=WB_HP:false;
     await _p.apply(this,arguments);if(w.paid[o.wk]&&k==='n'&&!w['gem_'+o.wk]){w['gem_'+o.wk]=1;const g=WBRW.n.gem[wbTier(rank)];trmAdd('gem',g);save();toast('월드보스 보상: <img class="tri" src="ui/tr/gem.png" alt=""> 승급의 결정 ×'+g)}if(!w.paid[o.wk]||k==='n')continue;const D=KD[k],T=wbTier(rank),RW=WBRW[k];
     for(let j=0;j<RW.pk[T];j++)REWQ.push({kind:'P',rar:D.pack,msg:D.nm+' 주간 보상 · '+D.lb+' 카드팩 ('+WBTN[T]+(rank?' · '+rank+'위':'')+')',why:D.nm+' 보상'});
@@ -9463,8 +9482,12 @@ try{const h=HUB.find(x=>x.k==='wb');if(h){h.go=[['월드보스 열기',()=>wbOpe
     {k:'wbe',n:'이터널 월드보스 (매주)',d:'거다이맥스 환상 등급 보스! 가장 강한 월드보스예요. 쓰러뜨리면 참여한 사람 모두(쓰러진 뒤에 때린 사람도) 포획 기회 5번 — 잡으면 환상 등급! 주간 순위 보상(1위 · 2위 · 3위 · 4~10위 · 11~30위 · 나머지): 환상 카드팩 3~1 + <img class="tri" src="ui/tr/breath.png" alt=""> 태초의 숨결 18~4 + <img class="tri" src="ui/tr/seal.png" alt=""> 만제의 인장 2~0. 보스를 쓰러뜨리면 모두 <img class="tri" src="ui/tr/breath.png" alt="">+12 <img class="tri" src="ui/tr/seal.png" alt="">+1! (태초 = 숨결 60개 · 만제 = 인장 9개)',st:()=>'내 데미지 '+stOfK('e').dmg.toLocaleString(),go:[['이터널 월드보스 열기',()=>wbOpen('e')]]})}catch(e){}
 const css=document.createElement('style');css.textContent=`.wbk{display:flex;gap:5px;margin:0 0 8px}.wbk button{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:3px solid #1c2550;border-radius:0;background:#2a3256;color:#cfd6ff;font:900 12px 'Galmuri11',monospace;box-shadow:0 3px 0 #1c2550}
 .wbk button small{font-size:10px;opacity:.8}.wbrw{margin:0 0 8px;border:3px solid #1c2550;background:#141a38;box-shadow:0 3px 0 #0b0f24;font:900 11px 'Galmuri11',monospace;color:#dfe5ff}.wbrwh{background:#2a3256;padding:4px 6px;color:#ffd23f}.wbrwh small{float:right;color:#9fb0ff;font-size:10px}.wbrwr{display:flex;align-items:center;gap:4px;padding:3px 6px;border-top:2px solid #1c2550}.wbrwr b{width:62px;color:#cfd6ff}.wbrwr i{flex:1;font-style:normal;text-align:center}.wbrwr.r0 b{color:#ffd23f}.wbrwr.r1 b{color:#e6ecff}.wbrwr.r2 b{color:#ffa45c}.wbrwr.r0{background:#2b2a1a}.wbpr{margin:8px 0 0}.wbprb b{color:#7dffb0!important}.wbpr .wbgb.wbprb{background:linear-gradient(#1f6a4a,#0f3323)!important}.wbgo{display:flex;flex-direction:column;gap:8px;margin:10px 0 4px}.wbgo .wbgb,.wbpr .wbgb{cursor:pointer;display:flex!important;align-items:center;gap:10px;text-align:left;padding:8px 10px;border:3px solid #1c2550!important;background:linear-gradient(#3a1f5c,#22113a)!important;color:#fff!important;width:100%;box-shadow:0 4px 0 #0b0f24;font:900 13px 'Galmuri11',monospace}.wbgo img,.wbpr img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated;background:#0003}.wbgo span,.wbpr span{flex:1}.wbgo b,.wbpr b{display:block;font-size:15px;color:#ffd23f}.wbgo small,.wbpr small{color:#e3d4ff;font-size:11px}.wbgo em,.wbpr em{font-style:normal;color:#ffd23f;white-space:nowrap}.wbrwr.hd{background:#1c2550;color:#9fb0ff;font-size:10px}.wbrwr.hd i,.wbrwr.hd b{color:#9fb0ff}.wbk button.on{background:#ffd23f!important;color:#1c2550!important;border-color:#fff!important;transform:translateY(-2px)}.wbk button.on{background:#ffd23f;color:#1c2550}.wbk button[data-k="c"].on{background:#ff4060;color:#fff}.wbk button[data-k="e"].on{background:#14c8b8;color:#fff}`;document.head.appendChild(css);
+// 9DZ: 월보 화면을 열거나 싸우기 전에 이번 판 자동 체력을 먼저 정해요 · 보상 계산 중엔 체력을 바꾸지 않아요
+{const _o=wbOpen;wbOpen=async function(k){try{await wbAutoHp(k||cur())}catch(e){}return _o.apply(this,arguments)}}
+{const _f=wbFight;wbFight=async function(){try{await wbAutoHp(cur())}catch(e){}return _f.apply(this,arguments)}}
+{const _p=wbPayout;wbPayout=async function(){window.__wbPay=1;try{return await _p.apply(this,arguments)}finally{window.__wbPay=0;try{apply(cur())}catch(e){}}}}
 // 처음: 저장된 종류 맞추기
-const fix=()=>{try{if(G)apply(cur())}catch(e){}};setInterval(fix,5000);fix();
+const fix=()=>{try{if(G&&!window.__wbPay)apply(cur())}catch(e){}};setInterval(fix,5000);fix();
 }catch(e){console.warn('9H 월보 종류',e)}})();
 </script>
 
@@ -9532,6 +9555,11 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112604,date:'11월 26일',t:'영혼 교환소 · 강화 관장 · 월보 스킵 · 월보 자동 체력',items:[
+  {h:"👻 영혼 교환소 (남는 영혼 → 🎟 한정뽑기권 · 💰 골드)",p:["<b>찾는 곳</b>: 메뉴 → <b>키우기</b> → 🐾 포켓몬 키우기 → <b>👻 영혼 교환소</b> · <b>각성</b> 화면 맨 위 「영혼 교환소」 단추로도 가요.","<b>🎟 한정뽑기권</b> 1장 = 유일 영혼 10개 값 (일반 70개 · 희귀 60개 · 영웅 50개 · 전설 40개 · 신화 30개 · 환상 20개). <b>낮은 등급 영혼부터</b> 써요.","한정뽑기에서 1회 · 10회 소환을 누르면 <b>「뽑기권 쓰기」</b>를 고를 수 있어요 (1장 = 1회, 10장 = 10회 + 보너스 1회).","<b>💰 골드</b>: 영혼 1개 = 일반 300 · 희귀 500 · 영웅 800 · 전설 1,200 · 신화 2,000 · 환상 3,500 · 유일 6,000원.","🔒 한계돌파가 덜 된 <b>내 포켓몬의 영혼</b>은 한계돌파 재료라서 안 바뀌어요. 각성용으로 등급마다 <b>남길 개수</b>(0 · 10 · 30 · 60 · 120개, 기본 30개)는 남겨 둬요."]},
+  {h:"🏟️ 관장 재대결 → 강화 관장 (최대 50단계)",p:["<b>찾는 곳</b>: 배지 케이스에서 받은 배지를 누르면 나오는 관장 카드 → <b>「강화 단계 ◀ ▶」</b>로 단계를 고르고 「재대결하기」.","이기면 <b>다음 단계</b>가 열려요. 한 단계마다 관장 체력 ×1.35 · 방어 ×1.04 · 공격 ×1.18 · 상금 +25%.","처음 깬 단계마다 <b>보너스 상금</b>, <b>5 · 10 · 15 … 단계</b>를 처음 깨면 🎟 <b>한정뽑기권 1장</b>!","어려우면 ◀로 낮은 단계를 골라도 돼요. 하루 5번(배지마다)은 그대로예요."]},
+  {h:"⏭ 월드보스 30초 뒤 스킵",p:["월드보스 전투가 <b>30초</b> 지나면 위쪽 「자동 · 2배속」 옆에 주황색 <b>「스킵」</b> 단추가 나와요.","누르면 남은 전투를 자동으로 <b>순식간에 끝까지</b> 돌려서 결과(데미지)만 보여줘요. 다음 포켓몬도 이어서 스킵돼요."]},
+  {h:"🐉 월드보스 체력이 다 같이 세져요",p:["다음 판(12월 1일 보스)부터 보스 체력 = <b>지난 판에 모두가 넣은 데미지 합 × 0.8</b> (원래 체력보다 낮아지진 않아요).","다 같이 세지면 보스도 단단해지고, 못 잡은 판 다음엔 다시 약해져요. 일반 · 카오스 · 이터널 따로 계산해요."]}]},
  {v:2026112603,date:'11월 26일',t:'계란훔치기 → 게임돈 (하루 최대 30만원)',items:[{h:"💰 펫이 번 돈이 게임돈으로 들어와요",p:["<b>무엇이 바뀌었어요?</b> 계란훔치기에서 펫이 버는 🪙은 그대로 쓰면서, 번 만큼 <b>게임돈(원)</b>도 같이 들어와요. 화면 위에 「게임돈 오늘 ○ / ○원」으로 보여요.","<b>하루 한도</b>는 <b>제일 좋은 펫 한 마리</b>로 정해져요. 제일 좋은 펫(신화 · 스피릿 변이 · 큰 크기)이면 <b>30만원</b>, 그보다 낮으면 차등이에요. 대략 보통 크기 기준으로 일반 약 1만 · 희귀 약 2만 · 영웅 약 3만 · 전설 약 6만 · 신화 약 11만원이고, 변이 · 크기가 클수록 더 올라요.","더 좋은 펫이 나오면 한도도 바로 올라가요. 한도는 매일 밤 12시에 새로 시작해요."]},{h:"🥚 진짜 알은 등급마다 하루 한 번",p:["<b>무엇이 바뀌었어요?</b> 알을 펜에 넣었을 때 받는 <b>진짜 포켓몬 알</b>은 일반 · 희귀 · 영웅 · 전설 · 신화 <b>등급마다 하루 한 번씩</b>만 받아요. 신화 알을 여러 번 받을 수는 없어요.","같은 등급 알은 그다음부터 <b>재미로</b> 할 수 있어요. 펫이 되어 돈을 버는 것과 게임돈은 그대로예요."]}]},
  {v:2026112602,date:'11월 26일',t:'월드보스 5일마다 · 진행도 랭킹 고침',items:[{h:"⏱ 월드보스가 5일마다 바뀌어요",p:["<b>무엇이 바뀌었어요?</b> 월드보스(노말 · 카오스)가 7일이 아니라 <b>5일마다</b> 새 보스로 바뀌어요.","<b>지금 보스</b>는 여기서 끝나고 순위대로 보상이 와요. 오늘(11/26)부터 <b>다음 보스</b>가 시작돼요.","월드보스 화면의 시간표에서 앞으로 3번의 보스를 볼 수 있어요."]},{h:"🏆 진행도 랭킹을 고쳤어요",p:["<b>무엇이 바뀌었어요?</b> 한계돌파를 많이 한 친구가 아래로 내려가던 문제를 고쳤어요. 이제 <b>한계돌파 횟수</b>가 제일 먼저 순위에 들어가요.","순위 순서: 한계돌파 횟수 → 난이도 → 진행 단계 → 도감 수. 난이도를 잠깐 낮춰도 순위가 떨어지지 않아요.","랭킹은 게임을 켜면 몇 분 안에 자동으로 다시 올라가요."]}]},
  {v:2026112601,date:'11월 26일',t:'계란훔치기 가디언 · 러닝머신 · 트레일 / 체육관 장치 설명',items:[{h:"🥚 가디언이 「알 훔친 사람」만 쫓아와요",p:["<b>무엇이 바뀌었어요?</b> 알을 안 들고 있으면 가디언이 나를 <b>쫓아오지 않아요</b>. 알을 훔친 순간부터 쫓아와요.","알 든 <b>라이벌</b>이 있으면 가디언은 그 라이벌을 쫓아가서 알을 떨어뜨리게 해요. 그때 떨어진 알을 주워요!"]},{h:"🏃 러닝머신 · ✨ 트레일 새 그림",p:["<b>어디서 봐요?</b> 계란훔치기 → 상점. 러닝머신(불꽃 · 황금 · 빙하 · 해커 · 천사)과 트레일 10종에 <b>새 그림</b>이 붙었어요.","<b>트레일</b>은 달릴 때 뒤에 길게 남아요. 장착하면 그 그림으로 바뀌어요. 기지의 러닝머신도 장착한 것으로 보여요."]},{h:"🏟 체육관 장치 설명이 작아졌어요",p:["<b>무엇이 바뀌었어요?</b> 싸움 시작 때 화면 위에 크게 뜨던 설명 글을 없애고, 왼쪽에 작은 <b>「🏟 장치 ⓘ」</b> 단추로 바꿨어요.","<b>어떻게 봐요?</b> 단추를 누르면 설명이 잠깐 떠요. 다시 누르면 닫혀요. 게임 화면은 안 가려요."]}]},
@@ -10407,7 +10435,7 @@ const HZC=[['day','ic_gift','매일 할 것','#e09a00','출석 · 의뢰 · 포�
 const SEC={day:[['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매일 다시 도전',['rm','portal']]],
   bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 5일 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🗡 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스)',['svx','svg','svs','svb','svk']]],
   fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
-  up:[['🐾 포켓몬 키우기',['team','trans','awake','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
+  up:[['🐾 포켓몬 키우기',['team','trans','awake','soulx','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
   col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','eggthief','wild']],['🏘 마을 · 날씨',['mg','shop','wx','foodthrow']]],
   set:[['📢 소식 · 정보',['news','odds']],['🖥 화면 · 전투',['vscale','btmode','dskin','hitfx','a2fx','dmeter']]]};
 const catOf=k=>{for(const c in SEC)for(const x of SEC[c])if(x[1].includes(k))return c;return 'col'};
@@ -10415,7 +10443,7 @@ const DX=d=>['p',d],IM=s=>['i',s],SH=s=>['s',s];
 const HZP={season:IM('ui/ic_season.webp'),dq:IM('ui/tr/gem.png'),stop:IM('ui/ic_stop.webp'),rm:IM('badges/b3.webp'),portal:IM('ui/ic_portal.webp'),
   tg:DX(493),story:IM('badges/b7.webp'),wb:DX(150),wbc:DX(384),wbe:DX(487),ctw:DX(249),tower:DX(68),first:IM('ui/rk_crown1.webp'),diff:DX(491),
   brawl:SH('ui/news/n14_brawl.webp'),raid:DX(383),pvp:SH('ui/news/n10_pvp3.webp'),rmroom:DX(448),trade:DX(132),rank:IM('ui/podium.webp'),wc:DX(201),dojo:DX(107),
-  team:DX(6),gear:IM('ui/cube2.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/tr/core.png'),rebirth:DX(250),lb:IM('items/RARECANDY.png'),prefix:IM('ui/ic_scroll.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
+  team:DX(6),gear:IM('ui/cube2.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/tr/core.png'),soulx:IM('ui/ic_coin.webp'),rebirth:DX(250),lb:IM('items/RARECANDY.png'),prefix:IM('ui/ic_scroll.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
   dex:IM('ui/ic_dex.webp'),dxr:DX(151),card:IM('cardpack/pk3.webp'),egg:IM('ui/ic_egg.webp'),eggthief:IM('ui/ic_egg.webp'),foodthrow:IM('ui/ic_gift.webp'),wild:DX(25),mg:DX(129),shop:IM('ui/ic_shop.webp'),wx:IM('ui/ic_wx.webp'),
   news:SH('ui/news/n01_hub.webp'),vscale:SH('ui/news/n08_scale.webp'),btmode:SH('ui/news/n02_mode.webp'),dskin:SH('ui/news/n03_skin.webp'),hitfx:SH('ui/news/n20_sprfx.webp'),a2fx:SH('ui/news/n15_proj.webp'),dmeter:SH('ui/news/n04_battle.webp'),odds:IM('ui/ic_coin.webp'),svx:IM('items/RARECANDY.png'),svg:IM('ui/ic_coin.webp'),svs:IM('ui/tr/core.png'),svb:DX(144),svk:IM('ui/cube2.webp')};
 const pic=k=>{const p=HZP[k]||IM('ui/'+((typeof HUBIC!=='undefined'&&HUBIC[k])||'ic_star')+'.webp');
@@ -11352,8 +11380,10 @@ function roll(g,s){const U=pickup(g),C=RATE[g];s.pt[g]++;let r=Math.random()*100
   else{const P=oldPool(rar);rr=P.r;id=P.L[R()*P.L.length|0];if(typeof id==='string'){f=id;id=META[f].dex}}
   const o={kind:'P',id,rar:rr,lv,sh:R()<1/100?1:0,serial:0,key:'pk'+Date.now().toString(36)+(R()*1e6|0)};if(f)o.f=f;if(up)o.ncup=1;return o}
 async function pull(g,n){const U=pickup(g);if(!U){toast('지금은 열려 있는 한정뽑기가 없어요');return}const s=st();
-  const cost=COST[g]*n,cnt=n===10?11:1;if(G.money<cost){toast('돈이 모자라요 ('+cost.toLocaleString()+'원 필요)');return}
-  G.money-=cost;const L=[];for(let i=0;i<cnt;i++)L.push(roll(g,s));save();try{hud()}catch(e){}
+  const cost=COST[g]*n,cnt=n===10?11:1;let useT=false;   // 9EA: 한정뽑기권(영혼 교환소)이 있으면 돈 대신 써요 · 1장 = 1회 (10장 = 10회 + 보너스 1회)
+  if((G.bag.ncgt||0)>=n){const v=await ovBox('🎟 한정뽑기권 쓰기',`한정뽑기권 <b>${n}장</b>으로 ${RAR[g]} 확률업 <b>${cnt}회</b> 뽑을까요?<br><small>가진 뽑기권 ${G.bag.ncgt}장 · 돈으로 하면 ${cost.toLocaleString()}원</small>`,[{t:'🎟 뽑기권 '+n+'장 쓰기',v:'t',main:1},{t:'💰 돈으로 ('+cost.toLocaleString()+'원)',v:'m'},{t:'그만두기',v:''}]);if(!v)return;useT=v==='t'}
+  if(!useT&&G.money<cost){toast('돈이 모자라요 ('+cost.toLocaleString()+'원 필요)'+((G.bag.ncgt|0)?' · 뽑기권은 '+G.bag.ncgt+'장 있어요':''));return}
+  if(useT)G.bag.ncgt-=n;else G.money-=cost;const L=[];for(let i=0;i<cnt;i++)L.push(roll(g,s));save();try{hud()}catch(e){}
   closePanel(1);await multiOpen(L,'✨ '+RAR[g]+' 확률업 '+cnt+'회');
   try{let n=0,so=0;for(const o of L){if(!o||o.fail||o.kind!=='P')continue;const i=(G.gifts||[]).indexOf(o);if(i<0)continue;let nm=BYDEX[o.id];if(!nm&&META['sc:'+o.id])nm='sc:'+o.id;if(!nm||!META[nm])continue;
     const m=mkMon(nm,Math.max(o.lv|0,1));if(o.f&&META[o.f]){m.n=o.f;m.hp=stOf(m)[0];G.forms=G.forms||{};G.forms[o.f]=1}m.gift=1;if(o.sh)m.sh=1;G.dex.s[o.id]=1;G.dex.c[o.id]=1;
@@ -11374,11 +11404,11 @@ function ncgOpen(tab){if(!G)return;if(tab!=null)TAB=tab;const w=ncWeek(),A=ST.fi
   <div class="ty">${(M.types||[]).map(t=>TN[t]||t).join(' · ')} · 능력치 합 ${sum}</div>
   <div class="rt">확률업 ${pct(C.up)} · 다른 ${RAR[g]} ${pct(C.same)}${C.hi.map(h=>' · '+RAR[h[0]]+' '+pct(h[1])).join('')} · 나머지 ${RAR[0]}~${RAR[g-1]} ${pct(lo)}<br><small>확률업이 아닌 칸에는 기존 포켓몬만 나와요</small></div>
   <div class="pt">천장까지 <b>${Math.max(0,PITY-pt)}</b>회 남음 <small>(${PITY}회째 확률업 확정)</small><div class="bar"><i style="width:${Math.min(100,pt/PITY*100)}%"></i><span>${pt}/${PITY}</span></div></div>
-  <div class="gchm"><div id="ncg1" class="${G.money>=c1?'':'off'}">1회 소환<small>${c1.toLocaleString()}원</small></div><div id="ncg10" class="${G.money>=c10?'':'off'}">10회 소환<small>${c10.toLocaleString()}원 · +1회 보너스</small></div></div>
-  <p>가진 돈 <b style="color:#ffd75e">${(G.money|0).toLocaleString()}</b>원</p></div>
+  <div class="gchm"><div id="ncg1" class="${G.money>=c1||(G.bag.ncgt|0)>=1?'':'off'}">1회 소환<small>${c1.toLocaleString()}원</small></div><div id="ncg10" class="${G.money>=c10||(G.bag.ncgt|0)>=10?'':'off'}">10회 소환<small>${c10.toLocaleString()}원 · +1회 보너스</small></div></div>
+  <p>가진 돈 <b style="color:#ffd75e">${(G.money|0).toLocaleString()}</b>원 · 🎟 한정뽑기권 <b style="color:#ff9ad5">${G.bag.ncgt|0}</b>장 <small>(영혼 교환소에서 만들어요)</small></p></div>
   <p class="hhint">이번 주 확률업 신캐는 <b>${leftTxt()}</b> 동안 여기서만 나와요. 다음 주부터는 <b>등급 뽑기(카드팩 · 합성)</b>에 섞여요. 천장 횟수는 등급마다 따로 세고, 기간 안에 확률업을 못 뽑으면 <b>다음 주 신캐로 그대로 넘어가요</b>. 이미 있는 캐릭터가 나오면 몬스터볼 5개 + 합성 재료가 돼요.</p>`,null,p=>{
     p.querySelectorAll('.tb').forEach(b=>b.onclick=()=>{if(b.disabled)return;sfx('tap');ncgOpen(+b.dataset.g)});
-    p.querySelector('#ncg1').onclick=()=>{if(G.money>=c1)pull(g,1)};p.querySelector('#ncg10').onclick=()=>{if(G.money>=c10)pull(g,10)}})}
+    p.querySelector('#ncg1').onclick=()=>{if(G.money>=c1||(G.bag.ncgt|0)>=1)pull(g,1)};p.querySelector('#ncg10').onclick=()=>{if(G.money>=c10||(G.bag.ncgt|0)>=10)pull(g,10)}})}
 window.ncgOpen=ncgOpen;
 const css=document.createElement('style');css.textContent=`
 .panel .ncg{background:linear-gradient(#2d4fa8,#12204f);border:3px solid #0b0f24;box-shadow:0 4px 0 #0b0f24,inset 0 0 0 2px #6b8cff;padding:10px;color:#fff;text-align:center;margin-bottom:8px}
@@ -11724,6 +11754,59 @@ d.innerHTML='<div class="iic"><div class="iih">'+it.e+'<div><b>'+it.n+'</b><smal
 document.body.appendChild(d);d.onclick=e=>{if(e.target===d)d.remove()};d.querySelector('#iiX').onclick=()=>d.remove();
 d.querySelectorAll('.iip').forEach(b=>b.onclick=()=>{const m=L[+b.dataset.i];if((m.dxc|0)>8){toast('변신 10회가 이미 가득 찼어요 (최대 10회)');return}if(!((G.bag.dmax||0)>0)){d.remove();return}
 G.bag.dmax--;m.dxc=Math.min(10,(m.dxc|0)+2);save();try{sfx('badge')}catch(e){}toast('🔴 '+nm(m)+' 변신 '+m.dxc+'/10회 (밴드 '+(G.bag.dmax||0)+'개 남음)');d.remove();try{bagOpen()}catch(e){}})}catch(e){console.warn('dxBandUse',e)}};
+</script>
+<script id="soulx9ea">
+// ===== 9EA 영혼 교환소: 남는 영혼 → 🎟 한정뽑기권 · 💰 골드 =====
+// · 한계돌파가 덜 된 내 포켓몬의 영혼(그 포켓몬 전용 재료)은 빼고 세요
+// · 등급마다 「남길 개수」만큼은 각성용으로 남겨 둬요 (기본 30개)
+(function(){try{
+const SXG=[300,500,800,1200,2000,3500,6000];   // 영혼 1개 → 골드 (일반 ~ 유일)
+const TKU=10;   // 한정뽑기권 1장 = 유일 영혼 10개 값 (일반 7개 = 유일 1개 · SPRATIO 비율)
+const KEEPS=[0,10,30,60,120];
+const RAT=()=>{try{return SPRATIO}catch(e){return[7,6,5,4,3,2,1]}};
+ITEMS.ncgt={n:'한정뽑기권',e:'<i class="ic" style="display:inline-block;width:1.25em;height:1.25em;vertical-align:-.25em;background:url(&quot;data:image/svg+xml,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M2 7h28v6a2.5 2.5 0 0 0 0 5v6H2v-6a2.5 2.5 0 0 0 0-5z' fill='#ff5fb4' stroke='#3a0a2a' stroke-width='1.6' stroke-linejoin='round'/><path d='M24 8.5v15' stroke='#3a0a2a' stroke-width='1' stroke-dasharray='1.6 1.6'/><path d='M13 10l1.6 3.4 3.7.4-2.8 2.5.8 3.7-3.3-1.9-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z' fill='#fff6a8' stroke='#3a0a2a' stroke-width='.8'/></svg>")+'&quot;) center/contain no-repeat"></i>'};
+try{ITD.ncgt={s:'✨ 한정뽑기를 돈 대신 1회 뽑을 수 있는 뽑기권',use:'한정뽑기에서 1회 · 10회 소환을 누르면 「뽑기권 쓰기」를 고를 수 있어요',good:'어느 등급(전설 ~ 유일) 확률업이든 1장 = 1회예요 · 10장이면 10회 + 보너스 1회',who:'영혼이 많이 남는 친구',tip:'메뉴 → 키우기 → <b>영혼 교환소</b>에서 남는 영혼으로 만들어요'}}catch(e){}
+const keepN=()=>{const v=G&&G.sxKeep;return KEEPS.includes(v)?v:30};
+// 바꿀 수 있는 영혼 (등급별 인덱스 목록): 한계돌파 덜 된 내 포켓몬 영혼 빼고 · 남길 개수 빼고 · 안 가진 포켓몬 영혼부터
+function pool(){const need=new Set();for(const m of [...G.party,...G.box]){try{if((m.lb|0)<LBMAX)need.add(META[m.n].dex)}catch(e){}}
+  const by=[[],[],[],[],[],[],[]],lock=[0,0,0,0,0,0,0];(G.dupes||[]).forEach((x,i)=>{if(!x||x.kind!=='P'||!(x.rar>=0&&x.rar<7))return;if(need.has(x.id)){lock[x.rar]++;return}by[x.rar].push(i)});
+  const k=keepN();return by.map((L,r)=>({r,all:L.length+lock[r],lock:lock[r],free:L.slice(0,Math.max(0,L.length-Math.max(0,k-lock[r])))}))}
+function take(idx){const s=new Set(idx);G.dupes=G.dupes.filter((x,i)=>!s.has(i))}
+const units=P=>P.reduce((a,p)=>a+p.free.length/RAT()[p.r],0);
+function toGold(r,n){const P=pool(),p=P[r];const k=Math.min(n,p.free.length);if(k<=0){toast('바꿀 수 있는 '+RAR[r]+' 영혼이 없어요');return}take(p.free.slice(0,k));const g=k*SXG[r];G.money+=g;save();try{hud()}catch(e){}try{sfx('get')}catch(e){}toast('💰 '+RAR[r]+' 영혼 '+k+'개 → '+g.toLocaleString()+'원');sxOpen()}
+function toTicket(n){const P=pool();let needU=TKU*n;if(units(P)+1e-9<needU){toast('영혼이 모자라요 (유일 환산 '+(TKU*n)+'개 필요)');return}
+  const idx=[];for(let r=0;r<7&&needU>1e-9;r++){const p=P[r],R=RAT()[r];const c=Math.min(p.free.length,Math.ceil(needU*R-1e-9));idx.push(...p.free.slice(0,c));needU-=c/R}
+  take(idx);addItem('ncgt',n);save();try{sfx('badge')}catch(e){}toast('🎟 한정뽑기권 '+n+'장 만들었어요! (영혼 '+idx.length+'개 · 낮은 등급부터 썼어요)');sxOpen()}
+window.sxOpen=function(){if(!G)return;const P=pool(),U=units(P),canT=Math.floor(U/TKU+1e-9),k=keepN();
+  const card=p=>{const r=p.r,f=p.free.length;return `<div class="sxc" style="--rc:${RARC[r]}"><div class="sxh"><span class="sxr">${RAR[r]}</span><b>${p.all}</b><small>개</small></div>
+    <div class="sxi">바꿀 수 있는 것 <b>${f}</b>개${p.lock?`<br><small>🔒 한계돌파용 ${p.lock}개</small>`:''}<br><small>1개 = 💰${SXG[r].toLocaleString()}원 · 유일 환산 ${(1/RAT()[r]).toFixed(2).replace(/\.?0+$/,'')}</small></div>
+    <div class="sxb"><button data-g="${r}" data-n="10" ${f>=1?'':'disabled'}>💰 10개</button><button data-g="${r}" data-n="99999" ${f>=1?'':'disabled'}>💰 전부<small>${(f*SXG[r]).toLocaleString()}</small></button></div></div>`};
+  openPanel('👻 영혼 교환소',`<div class="sx">
+   <div class="sxt"><div class="sxtic">${ITEMS.ncgt.e}</div><div class="sxtx"><b>🎟 한정뽑기권 만들기</b><small>유일 영혼 ${TKU}개 값 = 1장 (일반 ${RAT()[0]*TKU}개 · 전설 ${RAT()[3]*TKU}개 …) · <b>낮은 등급 영혼부터</b> 써요<br>지금 바꿀 수 있는 영혼 = 유일 환산 <b>${U.toFixed(1)}</b>개 → <b>${canT}장</b> 가능 · 가진 뽑기권 <b>${G.bag.ncgt|0}</b>장</small></div>
+    <div class="sxtb"><button data-t="1" ${canT>=1?'':'disabled'}>1장</button><button data-t="10" ${canT>=10?'':'disabled'}>10장</button><button data-t="${canT}" ${canT>=1?'':'disabled'}>최대 ${canT}장</button></div></div>
+   <div class="sxk"><span>각성용으로 등급마다 남길 영혼</span>${KEEPS.map(v=>`<button data-k="${v}" class="${v===k?'on':''}">${v}개</button>`).join('')}</div>
+   <div class="sxg">${P.map(card).join('')}</div>
+   <p class="sxn">🔒 한계돌파가 덜 끝난 내 포켓몬의 영혼은 그 포켓몬 한계돌파 재료라서 빼고 셌어요 · 골드는 각성 · 한정뽑기 · 상점에 써요</p></div>`,null,p=>{
+   p.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{try{sfx('tap')}catch(e){}toGold(+b.dataset.g,+b.dataset.n)});
+   p.querySelectorAll('[data-t]').forEach(b=>b.onclick=async()=>{const n=+b.dataset.t;if(!(n>=1))return;const v=await ovBox('🎟 한정뽑기권 만들기',`영혼 <b>유일 환산 ${TKU*n}개</b>로 한정뽑기권 <b>${n}장</b>을 만들까요?<br><small>낮은 등급 영혼부터 써요 · 각성용 ${k}개씩은 남겨요</small>`,[{t:'🎟 만들기',v:1,main:1},{t:'그만두기',v:0}]);if(v)toTicket(n)});
+   p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{try{sfx('tap')}catch(e){}G.sxKeep=+b.dataset.k;save();sxOpen()})})};
+const css=document.createElement('style');css.textContent=`.sx{font-family:'Galmuri11',monospace;color:#e8ecff;background:#141a38;border:3px solid #1c2550;box-shadow:0 4px 0 #0b0f24;padding:8px;margin:4px 0}
+.sxt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:linear-gradient(135deg,#4a1240,#2a0f3c);border:3px solid #ff5fb4;box-shadow:0 3px 0 #3a0a2a,inset 0 0 0 2px #7a2a66;padding:8px}
+.sxtic{font-size:34px;line-height:1;filter:drop-shadow(0 2px 0 #000)}.sxtx{flex:1;min-width:180px}.sxtx b{color:#ffd23f;font-size:15px}.sxtx small{display:block;font-size:11px;line-height:1.45;color:#ffd6ef;margin-top:2px}
+.sxtb,.sxb{display:flex;gap:5px}.sx button{font:900 13px 'Galmuri11',monospace;color:#fff;background:linear-gradient(#3b8cff,#1f5fd1);border:3px solid #0a0d18;box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #7fb4ff;padding:6px 10px;border-radius:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.sx button small{font-size:9.5px;opacity:.85}.sx button:active{transform:translateY(2px);box-shadow:0 1px 0 #0a0d18}.sx button:disabled{filter:grayscale(1) brightness(.6);cursor:default}
+.sxtb button{background:linear-gradient(#ff7ac8,#d8308a);box-shadow:0 3px 0 #0a0d18,inset 0 0 0 2px #ffb3dd}
+.sxk{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:8px 0;font-size:11.5px;color:#cfd6ff}.sxk span{margin-right:4px;font-weight:900}.sxk button{padding:3px 8px;font-size:11.5px;background:#2a3256;box-shadow:0 2px 0 #0a0d18}.sxk button.on{background:linear-gradient(#ffd23f,#e8a020);color:#2a1a00}
+.sxg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px}
+.sxc{background:#0f1430;border:3px solid var(--rc);box-shadow:0 3px 0 #0a0d18;padding:6px;display:flex;flex-direction:column;gap:5px}
+.sxh{display:flex;align-items:baseline;gap:5px}.sxr{background:var(--rc);color:#0a0d18;font-weight:900;font-size:12px;padding:2px 7px;text-shadow:none}.sxh b{font-size:22px;color:#fff;text-shadow:0 2px 0 #000;margin-left:auto}.sxh small{font-size:11px}
+.sxi{font-size:11.5px;line-height:1.4}.sxi b{color:#ffd23f}.sxi small{font-size:10px;color:#9fb0ff}.sxb button{flex:1}
+.sxn{font-size:10.5px;color:#9fb0ff;margin:8px 0 0;line-height:1.45}
+.rmT{margin:6px 0}.rmTr{display:flex;align-items:center;gap:6px}.rmTr span{flex:1;display:flex;flex-direction:column}.rmTr span b{color:#ffd23f}.rmTr span small{font-size:10px;color:#9fb0ff}.rmTn{min-width:62px;text-align:center;font-size:16px;color:#fff;text-shadow:0 2px 0 #000}.rmTi{display:block;margin-top:4px;font-size:11px;color:#dfe5ff;line-height:1.4}`;document.head.appendChild(css);
+try{HUBIC.soulx='ic_coin';HUB.push({k:'soulx',n:'👻 영혼 교환소',d:'다 쓰고 남는 영혼을 🎟 한정뽑기권(유일 영혼 10개 값 = 1장) 이나 💰 골드로 바꿔요. 한계돌파가 덜 된 내 포켓몬 영혼은 빼고, 각성용으로 등급마다 정한 개수(기본 30개)는 남겨 둬요.',st:()=>{try{const P=pool();return '바꿀 수 있는 영혼 '+P.reduce((a,p)=>a+p.free.length,0)+'개 · 🎟 '+(G.bag.ncgt|0)+'장'}catch(e){return''}},go:[['영혼 교환소 열기',()=>sxOpen()]]})}catch(e){}
+// 각성 화면 맨 위에 「영혼 교환소」 바로가기
+{const _a=awOpen;awOpen=function(){const r=_a.apply(this,arguments);try{const pb=PANEL&&PANEL.d&&PANEL.d.querySelector('.pb');if(pb&&!pb.querySelector('.sxgo')){const d=document.createElement('div');d.className='sx sxgo';d.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 8px';d.innerHTML='<span style="font-size:24px">👻</span><span style="flex:1"><b style="color:#ffd23f">영혼이 남나요? 영혼 교환소</b><br><small style="font-size:10.5px;color:#cfd6ff">남는 영혼 → 🎟 한정뽑기권 · 💰 골드</small></span><b style="color:#ff9ad5">열기 ▶</b>';d.onclick=()=>{try{sfx('tap')}catch(e){}sxOpen()};pb.insertBefore(d,pb.firstChild)}}catch(e){}return r}}
+}catch(e){console.warn('9EA 영혼 교환소',e)}})();
 </script>
 <style>#mg .mgb{overflow-y:auto;max-height:calc(100vh - 64px);-webkit-overflow-scrolling:touch}</style>
 <script src="https://yujongho0714.github.io/allinone/back-guard.js" defer></script>
