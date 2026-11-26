@@ -21,7 +21,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#eee;font:13px system-ui,sans-serif}
 #wrap{position:fixed;inset:0}canvas{width:100%;height:100%;display:block;background:#000}
-#hud{position:fixed;left:8px;top:6px;z-index:3;font-size:12px;background:#0b1220cc;border:1px solid #ffd54a55;border-radius:12px;padding:4px 10px;line-height:1.4;pointer-events:none}#hud b{color:#ffd54a}
+#hud{position:fixed;left:8px;top:6px;z-index:3;font-size:12px;background:#0b1220cc;border:1px solid #ffd54a55;border-radius:12px;padding:4px 10px;line-height:1.4;pointer-events:none}#hud b{color:#ffd54a}.tb{display:inline-block;vertical-align:middle;margin-right:6px;background-color:#0b1220;border-radius:6px}
 #msg{position:fixed;left:8px;top:44px;z-index:3;max-width:44vw;padding:4px 10px;background:#0b1220cc;border-radius:10px;font-size:12px;pointer-events:none}#msg:empty{display:none}
 #cap{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;z-index:6;padding:7px 14px;border-radius:10px;background:#000b;color:#fff;font-size:14px;font-weight:700;text-align:center;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap}
 #joyZ{position:fixed;left:0;bottom:0;width:48vw;height:62vh;z-index:4;touch-action:none}
@@ -63,6 +63,12 @@ const TM=[['기본 러닝머신',6,0],['사이언스 러닝머신',26,150],['불
 // 트레일: [이름, 가격, 속도 배율, 색] — 원작처럼 일반~신성 10종, 장착하면 속도 배율이 붙어요
 const TRL=[['일반',200,1.1,'#cfd8dc'],['고급',1e3,1.2,'#7be27b'],['희귀',5e3,1.35,'#5ab4ff'],['영웅',2.5e4,1.5,'#c58cff'],['전설',1.2e5,1.75,'#ffd54a'],['신화',6e5,2,'#ff7ab8'],['영원',3e6,2.5,'#ff8a3d'],['시크릿',1.5e7,3,'#3dffd9'],['신성',8e7,4,'#fff6a8'],['무지개',4e8,5,'rb']];
 const es=()=>S0.s*(S0.trq>=0?TRL[S0.trq][2]:1),TP=[];
+// 러닝머신 · 트레일 그림 (fx/ 폴더, 4칸 가로 이어붙인 그림). 러닝머신은 그림이 있는 단계만, 나머지는 예전 아이콘
+const FXI={},TMI={0:'tm_rust',1:'tm_cyan',2:'tm_lava',3:'tm_rocket',4:'tm_gold',5:'tm_ice',6:'tm_elec',7:'tm_angel'},TLH=[116,107,119,146,94,96,112,125,134,246],TLS={a:0,ang:0};
+['tm_rust','tm_cyan','tm_rocket','tm_lava','tm_gold','tm_ice','tm_elec','tm_angel','tl_0','tl_1','tl_2','tl_3','tl_4','tl_5','tl_6','tl_7','tl_8','tl_9'].forEach(n=>{const i=new Image();i.src='fx/'+n+'.webp';FXI[n]=i});
+const fxOk=n=>{const i=n&&FXI[n];return i&&i.complete&&i.naturalWidth?i:null};
+const tmThumb=i=>TMI[i]?`<i class="tb" style="width:44px;height:34px;background:url(fx/${TMI[i]}.webp) 0 0/176px 34px no-repeat"></i>`:'';
+const tlThumb=i=>{const h=30,w=Math.round(h*360/TLH[i]);return `<i class="tb" style="width:${w}px;height:${h}px;background:url(fx/tl_${i}.webp) 0 0/${w*4}px ${h}px no-repeat"></i>`};
 const fmt=n=>n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.floor(n);
 let S0={c:30,s:0,tl:0,tmq:0,tmo:[0],dex:[],pc:5,bat:0,tr:2,eg:[],pets:[],trl:[],trq:-1,t:Date.now()};
 try{Object.assign(S0,JSON.parse(localStorage.getItem('eggthief2')||'{}'))}catch(e){}
@@ -163,8 +169,8 @@ function update(dt){
  if(closed>0){closed-=dt;if(closed<=0){spawn();RS=300;msg('새 알이 나타났어요!')}return}
  RS-=dt;if(RS<=0){closed=13;P.carry=null;P.x=80;P.y=200;P.stun=0;jr();BOT.forEach(b=>{b.carry=null;b.x=BX-30});EG=[];msg('ALL EGG RESET! 지도가 13초 동안 닫혀요');return}
  batCd-=dt;swing-=dt;warn-=dt;phys(dt);
- if(P.stun>0)P.stun-=dt;else{let vx=0,vy=0;held.forEach(k=>{if(k=='l')vx=-1;if(k=='r')vx=1;if(k=='u')vy=-1;if(k=='d')vy=1});
-  if(vx||vy){const L=Math.hypot(vx,vy),s=spd()*mm();P.x=Math.max(8,Math.min(W-8,P.x+vx/L*s*dt));P.y=Math.max(14,Math.min(H-8,P.y+vy/L*s*dt));P.d=Math.abs(vx)>=Math.abs(vy)?(vx>0?'r':'l'):(vy>0?'d':'u');if(mm()>1.2&&R()<.6)TP.push({x:P.x+R()*8-4,y:P.y+R()*6-J.z,l:.5,c:'#9ef'});if(S0.trq>=0)for(let q=0;q<2;q++)TP.push({x:P.x+R()*8-4,y:P.y+R()*6,l:.7,c:TRL[S0.trq][3]=='rb'?'hsl('+r(360)+',90%,60%)':TRL[S0.trq][3]})}}
+ if(P.stun>0){P.stun-=dt;TLS.a=Math.max(0,TLS.a-dt*4)}else{let vx=0,vy=0;held.forEach(k=>{if(k=='l')vx=-1;if(k=='r')vx=1;if(k=='u')vy=-1;if(k=='d')vy=1});
+  if(vx||vy){const L=Math.hypot(vx,vy),s=spd()*mm();P.x=Math.max(8,Math.min(W-8,P.x+vx/L*s*dt));P.y=Math.max(14,Math.min(H-8,P.y+vy/L*s*dt));P.d=Math.abs(vx)>=Math.abs(vy)?(vx>0?'r':'l'):(vy>0?'d':'u');if(mm()>1.2&&R()<.6)TP.push({x:P.x+R()*8-4,y:P.y+R()*6-J.z,l:.5,c:'#9ef'});TLS.ang=Math.atan2(vy,vx);TLS.a=Math.min(1,TLS.a+dt*8)}else TLS.a=Math.max(0,TLS.a-dt*4)}
  for(let q=TP.length-1;q>=0;q--){TP[q].l-=dt;if(TP[q].l<=0)TP.splice(q,1)}
  // 러닝머신
  if(!P.carry&&inR(TRD,P.x,P.y)&&!held.length){S0.s+=gain()*dt}
@@ -179,9 +185,13 @@ function update(dt){
  S0.c+=income()*dt;
  // 가디언 (속도 검사)
  const b0=bi();
- GU.forEach(g=>{g.cd-=dt;const need=BM[g.i][1],d=Math.hypot(P.x-g.x,P.y-g.y),act=b0==g.i&&d<(P.carry?280:120)&&P.stun<=0;
-  if(act){const slow=es()>=need;mv(g,P.x,P.y,slow?spd()*.5:Math.max(spd(),120)*1.3,dt);
+ // 가디언: 「알을 훔친 사람」만 쫓아가요 (나는 알을 안 들었으면 안 따라와요 · 알 든 라이벌이 있으면 그쪽을 쫓아가요)
+ GU.forEach(g=>{g.cd-=dt;const need=BM[g.i][1];let tg=null,td=1e9;
+  if(P.carry&&P.stun<=0&&b0==g.i){const d=Math.hypot(P.x-g.x,P.y-g.y);if(d<280){tg=P;td=d}}
+  for(const b of BOT)if(b.carry&&b.stun<=0&&Math.floor((b.x-BX)/BW)==g.i){const d=Math.hypot(b.x-g.x,b.y-g.y);if(d<280&&d<td){tg=b;td=d}}
+  if(tg===P){const d=td,slow=es()>=need;mv(g,P.x,P.y,slow?spd()*.5:Math.max(spd(),120)*1.3,dt);
    if(d<26&&g.cd<=0&&J.z<14){g.cd=2.5;if(!slow){if(P.carry){drop(P,P.carry);P.carry=null}P.hit=1;P.stun=2;P.x=Math.max(8,P.x-110);msg(BM[g.i][0]+' 가디언에게 잡혔다! 속도가 부족해요 (필요 '+fmt(need)+')')}else msg('속도가 충분해서 가디언이 못 잡아요!')}}
+  else if(tg){mv(g,tg.x,tg.y,150,dt);if(td<26&&g.cd<=0){g.cd=2.5;drop(tg,tg.carry);tg.carry=null;tg.stun=3;msg('가디언이 알 훔친 라이벌을 잡았다!')}}
   else mv(g,g.hx,g.hy,70,dt)});
  // 라이벌
  BOT.forEach(b=>{b.cool-=dt;if(b.stun>0){b.stun-=dt;return}
@@ -212,8 +222,9 @@ function draw(){const cx=Math.max(0,Math.min(W-CW,P.x-CW/2)),t=now;x.setTransfor
   pill((ok?'✔ ':'🔒 ')+b[0]+' · 속도 '+(b[1]?fmt(b[1]):'제한없음'),bx+8,8,ok?'#7be27b88':'#ff7b7b88')});
  const bx=-cx;
  // 기지 시설 (원본 아이콘)
- const bld=(o,ic,label)=>{x.fillStyle='#0b1220b0';x.beginPath();x.roundRect(o.x+bx,o.y,o.w,o.h,12);x.fill();x.strokeStyle='#ffd54a99';x.lineWidth=1.5;x.stroke();if(ICN[ic])x.drawImage(ICN[ic],o.x+bx+o.w/2-24,o.y+4,48,48);plate(label,o.x+bx+o.w/2,o.y+o.h-8,'#ffd54a')};
- bld(TRD,'fast','러닝머신');bld(SHP,'shop','상점');
+ const bld=(o,ic,label,sk)=>{x.fillStyle='#0b1220b0';x.beginPath();x.roundRect(o.x+bx,o.y,o.w,o.h,12);x.fill();x.strokeStyle='#ffd54a99';x.lineWidth=1.5;x.stroke();if(!sk&&ICN[ic])x.drawImage(ICN[ic],o.x+bx+o.w/2-24,o.y+4,48,48);plate(label,o.x+bx+o.w/2,o.y+o.h-8,'#ffd54a')};
+ const tmI=fxOk(TMI[S0.tmq|0]);bld(TRD,'fast','러닝머신',!!tmI);bld(SHP,'shop','상점');
+  if(tmI){const fw=tmI.naturalWidth/4,fh=tmI.naturalHeight,run=!P.carry&&inR(TRD,P.x,P.y)&&!held.length,fi=Math.floor(now*(run?12:5))%4,dh=TRD.h-14,dw=dh*fw/fh;x.imageSmoothingEnabled=true;x.drawImage(tmI,fi*fw,0,fw,fh,TRD.x+bx+TRD.w/2-dw/2,TRD.y+2,dw,dh)}
  x.fillStyle='#0b122080';x.beginPath();x.roundRect(PEN.x+bx,PEN.y,PEN.w,PEN.h,14);x.fill();x.strokeStyle='#ffd54acc';x.lineWidth=2;x.stroke();pill('펜 (알 '+S0.eg.length+'/4)',PEN.x+bx+6,PEN.y+6);
  S0.eg.forEach((e,i)=>{egg(PEN.x+bx+34+i*48,PEN.y+56,e,.95);const l=Math.max(0,Math.ceil(e.at/1000+htOf(e)-Date.now()/1000));plate(l+'초',PEN.x+bx+34+i*48,PEN.y+84)});
  best().slice(0,8).forEach((p,i)=>{const S=SPR[p.k],px=PEN.x+bx+28+i%4*48,py=PEN.y+(i<4?122:150);if(!(p.k&&S&&drawSpr(S,'idle',0,t,px,py,40))){x.fillStyle=TC[p.t];x.fillRect(px-8,py-16,16,16)}});
@@ -224,7 +235,8 @@ function draw(){const cx=Math.max(0,Math.min(W-CW,P.x-CW/2)),t=now;x.setTransfor
  GU.forEach(g=>{const gx=g.x-cx;if(gx<-60||gx>CW+60)return;L.push([g.y,()=>{x.fillStyle='#0006';x.beginPath();x.ellipse(gx,g.y,20,7,0,0,7);x.fill();if(!(g.S&&drawSpr(g.S,'walk',ROW[g.d]||0,t,gx,g.y+6,70))){x.font='28px sans-serif';x.fillText('🐲',gx-14,g.y)}plate('가디언 · '+nameOf(g.k),gx,g.y-58,'#ffb0b0')}])});
  BOT.forEach((b,i)=>L.push([b.y,()=>{const bx2=b.x-cx;x.fillStyle='#0006';x.beginPath();x.ellipse(bx2,b.y+3,13,5,0,0,7);x.fill();person(RVF[i],b.d,b.stun<=0,bx2,b.y+3,.66);if(b.stun>0){x.font='16px sans-serif';x.fillText('💫',bx2-8,b.y-66)}plate('라이벌',bx2,b.y-70,b.col);if(b.carry)egg(bx2,b.y-88,b.carry,.8)}]));
  L.push([P.y,()=>{const px=P.x-cx,gy=P.y+4;x.fillStyle='#0007';x.beginPath();x.ellipse(px,gy,15-J.z*.04,5,0,0,7);x.fill();
-  TP.forEach(o=>{x.globalAlpha=Math.max(0,o.l/.7);x.fillStyle=o.c;x.beginPath();x.arc(o.x-cx,o.y,2+o.l*4,0,7);x.fill()});x.globalAlpha=1;
+  {const tl=S0.trq>=0&&TLS.a>.02?fxOk('tl_'+S0.trq):null;if(tl){const fw=tl.naturalWidth/4,fh=tl.naturalHeight,len=140+S0.trq*9,h=len*fh/fw,fi=Math.floor(now*10)%4;x.save();x.imageSmoothingEnabled=true;x.translate(px,gy-22-J.z);x.rotate(TLS.ang);x.globalAlpha=Math.min(1,TLS.a*1.1);x.drawImage(tl,fi*fw,0,fw,fh,-len*.94,-h/2,len,h);x.restore();x.globalAlpha=1}}
+   TP.forEach(o=>{x.globalAlpha=Math.max(0,o.l/.7);x.fillStyle=o.c;x.beginPath();x.arc(o.x-cx,o.y,2+o.l*4,0,7);x.fill()});x.globalAlpha=1;
   if(J.dash||J.ov>1.2){x.globalAlpha=.25;x.fillStyle='#6ef';x.beginPath();x.ellipse(px-(P.d=='l'?-14:14),gy-26-J.z,22,30,0,0,7);x.fill();x.globalAlpha=1}
   if(!person(MEF,P.d,held.length&&P.stun<=0,px,gy-J.z,.66,swing>0)){x.fillStyle='#3be';x.fillRect(px-8,gy-24-J.z,16,24)}
   if(P.carry)egg(px,gy-96-J.z,P.carry,.95);if(P.stun>0){x.font='bold 16px sans-serif';x.fillText('💫',px-8,gy-82-J.z)}plate('나',px,gy-76-J.z,'#7ff')}]);
@@ -246,11 +258,11 @@ function dexShop(){const TK={};TIERS.forEach((L,t)=>L.forEach(k=>TK[k]=t));let h
  $('sh').innerHTML=h}
 function shop(){if(DX){dexShop();return}const q=Date.now()/1000,st=$('sh').scrollTop;let h=`<button id="xs">닫기 ✕</button> 🪙 <b>${fmt(S0.c)}</b> · 수입 ${fmt(income())}/초 · 속도 ${fmt(es())}`;
  h+=`<div class="r"><span>📖 도감 ${S0.dex.length}/${KEYS.length} · 수입 ×${dexM().toFixed(2)} (5종마다 +5%)</span><button data-i="dx">보기</button></div>`;
- TM.forEach((t,i)=>{h+=S0.tmo.includes(i)?`<div class="r"><span>🏃 ${t[0]} (초당 속도 +${fmt(t[1])})${S0.tmq==i?' · 장착 중':''}</span><button data-i="me${i}">${S0.tmq==i?'사용 중':'장착'}</button></div>`:row('mb'+i,'🏃 '+t[0]+' (초당 속도 +'+fmt(t[1])+')',t[2])});
+ TM.forEach((t,i)=>{h+=S0.tmo.includes(i)?`<div class="r"><span>${tmThumb(i)}🏃 ${t[0]} (초당 속도 +${fmt(t[1])})${S0.tmq==i?' · 장착 중':''}</span><button data-i="me${i}">${S0.tmq==i?'사용 중':'장착'}</button></div>`:row('mb'+i,tmThumb(i)+'🏃 '+t[0]+' (초당 속도 +'+fmt(t[1])+')',t[2])});
  h+=row('pc','🏠 펜 칸 '+S0.pc+' → '+(S0.pc+1)+' (돈 버는 펫 수)',pcCost());
  h+=S0.bat?'<div class="r">🏏 방망이 보유 중</div>':row('bat','🏏 야구방망이 (라이벌을 쳐서 알을 뺏어요)',150);
  h+=row('tr','🪤 곰덫 +1 (보유 '+S0.tr+')',60);
- TRL.forEach((t,i)=>{h+=S0.trl.includes(i)?`<div class="r"><span>✨ ${t[0]} 트레일 (속도 ×${t[2]})${S0.trq==i?' · 장착 중':''}</span><button data-i="te${i}">${S0.trq==i?'해제':'장착'}</button></div>`:row('tb'+i,'✨ '+t[0]+' 트레일 (속도 ×'+t[2]+')',t[1])});
+ TRL.forEach((t,i)=>{h+=S0.trl.includes(i)?`<div class="r"><span>${tlThumb(i)}✨ ${t[0]} 트레일 (속도 ×${t[2]})${S0.trq==i?' · 장착 중':''}</span><button data-i="te${i}">${S0.trq==i?'해제':'장착'}</button></div>`:row('tb'+i,tlThumb(i)+'✨ '+t[0]+' 트레일 (속도 ×'+t[2]+')',t[1])});
  S0.eg.forEach((e,i)=>{const l=Math.max(0,Math.ceil(e.at/1000+htOf(e)-q));h+=row('sk'+i,'🥚 '+MUN[e.mu]+TN[e.t]+' 알 · '+l+'초 남음 · 바로 부화',l*(1+e.t))});
  const bs=best();S0.pets.slice().sort((a,b)=>inc(b)-inc(a)).forEach(p=>{const i=S0.pets.indexOf(p);h+=row('sl'+i,(bs.includes(p)?'💰 ':'💤 ')+MUN[p.mu]+nameOf(p.k)+' · '+TN[p.t]+' · 크기 '+p.sz+' · 초당 '+fmt(inc(p))+' · 판매',Math.floor(inc(p)*45),1)});
  $('sh').innerHTML=h;$('sh').scrollTop=st}

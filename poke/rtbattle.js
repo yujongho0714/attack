@@ -2149,7 +2149,13 @@ async function start(ctx){
   {const t=document.createElement('div');t.style.cssText='position:absolute;left:6px;top:calc(8px + env(safe-area-inset-top));max-width:46vw;padding:3px 7px;border-radius:6px;background:rgba(0,0,0,.5);color:#cfe3ff;font:bold 11px "Galmuri11",sans-serif;line-height:1.35;pointer-events:none;z-index:4';
    const upd=()=>{if(!W||!W.me||!W.foe)return;const a=abNames(W.me),b=abNames(W.foe);t.innerHTML=(a?'🟦 내 특성 '+a:'')+(a&&b?'<br>':'')+(b?'🟥 상대 특성 '+b:'');t.style.display=(a||b)?'':'none'};upd();W.root.appendChild(t);W.abUpd=upd}   // ② 특성 이름 표시
   try{abEnter(W.me,W.foe);abEnter(W.foe,W.me);W.abUpd&&W.abUpd()}catch(er){}   // ② 특성 B: 등장 때 발동(위협·다운로드·트레이스 …)
-  if(W.gx&&window.GYMFX&&GYMFX.info(C.gx)){const h=document.createElement('div');h.style.cssText='position:absolute;left:50%;top:calc(92px + env(safe-area-inset-top));transform:translateX(-50%);max-width:86vw;padding:6px 12px;background:rgba(10,13,24,.82);color:#ffe14a;font:900 13px "Galmuri11",sans-serif;border:3px solid #ffd23f;box-shadow:0 3px 0 #000;pointer-events:none;text-align:center;transition:opacity .8s;z-index:4';h.textContent='🏟 '+GYMFX.info(C.gx);W.root.appendChild(h);setTimeout(()=>{h.style.opacity='0'},7000);setTimeout(()=>{try{h.remove()}catch(er){}},8000)}
+  if(W.gx&&window.GYMFX&&GYMFX.info(C.gx)){   // 장치 설명: 화면 가운데를 가리던 큰 글 대신, 왼쪽 가장자리의 작은 「🏟 장치」 단추 — 누르면 설명이 잠깐 떠요 (다시 누르면 닫혀요)
+    const h=document.createElement('div'),pn=document.createElement('div');let tm=0;
+    h.style.cssText='position:absolute;left:4px;top:calc(92px + env(safe-area-inset-top));padding:2px 7px;background:rgba(10,13,24,.5);color:#ffe14a;font:900 11px "Galmuri11",sans-serif;border:2px solid rgba(255,210,63,.55);border-radius:10px;z-index:4;opacity:.75;touch-action:manipulation;cursor:pointer';h.textContent='🏟 장치 ⓘ';
+    pn.style.cssText='position:absolute;left:4px;top:calc(116px + env(safe-area-inset-top));max-width:min(58vw,340px);padding:5px 9px;background:rgba(10,13,24,.82);color:#ffe14a;font:900 11px/1.35 "Galmuri11",sans-serif;border:2px solid #ffd23f;border-radius:10px;z-index:5;display:none;touch-action:manipulation';pn.textContent=GYMFX.info(C.gx);
+    const tg=on=>{pn.style.display=on?'block':'none';clearTimeout(tm);if(on)tm=setTimeout(()=>{pn.style.display='none'},6000)};
+    h.addEventListener('pointerdown',e=>{e.stopPropagation();tg(pn.style.display==='none')});pn.addEventListener('pointerdown',e=>{e.stopPropagation();tg(false)});
+    W.root.appendChild(h);W.root.appendChild(pn)}
   return new Promise(res=>{
     W.res=res;let last=performance.now(),acc=0;
     const loop=now=>{
