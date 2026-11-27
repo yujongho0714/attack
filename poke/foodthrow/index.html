@@ -283,7 +283,7 @@ const PENS=[
   {name:'용암 황금 정원',cost:130000000},{name:'얼음 궁전',cost:1000000000},{name:'천상의 무지개 성소',cost:8000000000}
 ];
 const penMult=t=>1+t*.6;
-const ZL=76, Z0=-20;
+const ZL=130, Z0=-20;   // 11/27: 구역을 길게 (예전 76)
 // 구역: 바닥(f) · 벽 · 하늘 · 포켓몬 3종 [보통, 희귀, 보스]
 const BIOMES=[
   {name:'초원',f:{stud:0x5ccf6e},wall:0x7a4a1c,top:0x3cae4f,sky:0x7cc4ff,mons:[['EEVEE','일반',10,'EXP'],['PIKACHU','고급',28,'POWER'],['SNORLAX','희귀',80,'LUCK']]},
@@ -299,6 +299,12 @@ const BIOMES=[
 ];
 BIOMES.forEach((b,i)=>{b.zStart=Z0-i*ZL;b.zEnd=Z0-(i+1)*ZL});
 const MAXD=ZL*BIOMES.length;
+// 11/27 원작처럼 엄청 멀리: 구역마다 실제 거리(m)가 점점 크게 늘어나요 → 처음엔 초원 근처, 힘을 많이 키워야 우주까지
+const DM=[0,120,350,900,2200,5500,14000,35000,90000,230000,600000];
+function zOfDist(d){for(let i=0;i<BIOMES.length;i++){if(d<DM[i+1]){const f=(d-DM[i])/(DM[i+1]-DM[i]);return Z0-(i+f)*ZL}}
+  const last=BIOMES.length-1,f=Math.min(.97,.9+Math.log10(d/DM[last+1]+1)*.07);return Z0-(last+f)*ZL}
+function distOfZ(z){const t=Math.max(0,(Z0-z)/ZL),i=Math.min(BIOMES.length-1,Math.floor(t)),f=t-i;return Math.round(DM[i]+(DM[i+1]-DM[i])*Math.min(1,f))}
+const fmtM=m=>m>=1e4?(m/1e3).toFixed(m>=1e5?0:1)+'km':m+'m';
 // 구역 입구 아치 (그림 gate_0~9) · 배수 토템
 const GATES=BIOMES.map((b,i)=>({z:b.zStart,img:'gate_'+i,mult:[1,1,1.5,1,2,1,2,1,2,1][i],tot:[null,null,'tot_t15g',null,'tot_t20c',null,'tot_t20y',null,'tot_t20r',null][i]}));
 const SP={};const ALLSP=[];
@@ -352,7 +358,7 @@ const scene=new THREE.Scene();
 const SKY0=new THREE.Color(0x7cc4ff);
 scene.background=SKY0.clone();
 scene.fog=new THREE.Fog(0x7cc4ff,60,260);
-const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1200);
+const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,2200);
 const LOWDEV=(navigator.hardwareConcurrency||4)<=4||(navigator.deviceMemory||4)<=3;
 const renderer=new THREE.WebGLRenderer({antialias:!LOWDEV,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,LOWDEV?1:1.5));VOX.heroRes=LOWDEV?130:180;
@@ -496,12 +502,12 @@ function onThrow(){
   if(v>=.8){mult=1.35;lb=2;sfx.perfect();toast('완벽해요!  힘 +20%  행운 2배','#3ee08a')}
   else if(v>=.55){mult=1.15;lb=1.35;sfx.pullup();toast('좋아요!','#ffe16b')}
   else{sfx.whoosh();toast('아쉬워요','#ff9aa6')}
-  const f=FOODS[save.food];const dist=Math.min(MAXD-6,Math.round(35+Math.pow(save.power,.68)*f.pm*mult*3.2));
-  const target=Z0-dist;
+  const f=FOODS[save.food];const dist=Math.round(15+Math.pow(save.power,.8)*f.pm*mult*2.2);
+  const target=zOfDist(dist);if(dist>(save.bestD||0)){save.bestD=dist}
   const base=+(totalLuck()*lb).toFixed(2);let gm=1;GATES.forEach(g=>{if(g.z>target&&g.z<Z0+.1)gm*=g.mult});
   state.atk=.36;
   foodSpr.geometry=vgeo('food_'+save.food,2.8,56);foodSpr.visible=true;foodSpr.position.set(0,3,-16);
-  state.mode='FLYING';state.fl={p:0,dur:Math.min(5.2,1.6+dist/170),sz:-16,tz:target,dist,base,luck:base,final:+(base*gm).toFixed(2),food:f,passed:0,trailT:0};
+  state.mode='FLYING';state.fl={p:0,dur:Math.min(6.5,1.8+Math.log10(dist+1)*.9),sz:-16,tz:target,dist,base,luck:base,final:+(base*gm).toFixed(2),food:f,passed:0,trailT:0};
   $('flight').classList.remove('hide');sfx.whoosh();updateHUD()}
 function rollMut(l){const L=MUTS.map((m,i)=>({m,w:i?m.w*(1+Math.log10(Math.max(1,l))):m.w}));const T=L.reduce((s,v)=>s+v.w,0);let r=Math.random()*T;for(const it of L){if(r<it.w)return it.m.r;r-=it.w}return 0}
 function biomeAt(z){return BIOMES.find(b=>z<=b.zStart&&z>b.zEnd)||(z>Z0?BIOMES[0]:BIOMES[BIOMES.length-1])}
@@ -593,7 +599,7 @@ function renderM(){
       <span style="color:#ffe16b">필요: 힘 ${fmt(rp)} (지금 ${fmt(save.power)}) · 골드 ${fmt(rc)} (지금 ${fmt(save.cash)})</span></div></div><button id="bReb" class="btn ${ok?'p':'k'}" style="width:100%;padding:12px;font-size:15px">환생하기</button>`;
     $('bReb').onclick=()=>{if(!ok)return toast('힘과 골드가 모자라요','#ff9aa6');save.reb++;Object.assign(save,{cash:100,power:10,level:1,exp:0,maxExp:10,food:0,foods:[0],bar:0,bars:[0],pen:0,pens:[0]});refreshBar();refreshPen();sfx.levelUp();persist();updateHUD();closeM();toast(save.reb+'번째 환생!  영구 수익 x'+rebMult().toFixed(1),'#d9b8ff')};
   }else if(t==='gates'){
-    B.innerHTML='<div class="grid">'+BIOMES.map((b,i)=>{const g=GATES[i];return `<div class="card"><div class="im"><img src="img/${g.img}.webp" class="px" alt="">${g.tot?`<img src="img/${g.tot}.webp" class="px" style="max-height:60px;margin-left:-14px" alt="">`:''}</div><div class="nm">${i+1}. ${b.name}</div><div class="ds">${Math.round(-b.zStart+Z0)}m ~ ${Math.round(-b.zEnd+Z0)}m${g.mult>1?`<br><b style="color:#ffe16b">아치 통과 행운 x${g.mult}</b>`:''}</div><div style="display:flex;gap:2px">${b.mons.map(m=>`<img src="${face(m[0])}" class="px" style="width:30px;height:30px;border-radius:6px;border:2px solid #0b1020;${save.dex.includes(m[0])?'':'filter:brightness(0) opacity(.5)'}" alt="">`).join('')}</div></div>`}).join('')+'</div>';
+    B.innerHTML='<div class="grid">'+BIOMES.map((b,i)=>{const g=GATES[i];return `<div class="card"><div class="im"><img src="img/${g.img}.webp" class="px" alt="">${g.tot?`<img src="img/${g.tot}.webp" class="px" style="max-height:60px;margin-left:-14px" alt="">`:''}</div><div class="nm">${i+1}. ${b.name}</div><div class="ds">${fmtM(DM[i])} ~ ${i===BIOMES.length-1?'끝없이':fmtM(DM[i+1])}${(save.bestD||0)>=DM[i]?' · 가 봤어요':''}${g.mult>1?`<br><b style="color:#ffe16b">아치 통과 행운 x${g.mult}</b>`:''}</div><div style="display:flex;gap:2px">${b.mons.map(m=>`<img src="${face(m[0])}" class="px" style="width:30px;height:30px;border-radius:6px;border:2px solid #0b1020;${save.dex.includes(m[0])?'':'filter:brightness(0) opacity(.5)'}" alt="">`).join('')}</div></div>`}).join('')+'</div>';
   }
 }
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>openM(b.dataset.m));
@@ -688,12 +694,12 @@ function loop(){
       const F=state.fl;F.p+=dt/F.dur;hero.root.position.copy(player.pos);
       if(F.p>=1){land(F.tz,F.final)}else{
         const e=F.p<.5?2*F.p*F.p:1-Math.pow(-2*F.p+2,2)/2;// 처음·끝은 천천히
-        const z=F.sz+(F.tz-F.sz)*e,y=2.4+Math.sin(F.p*Math.PI)*Math.min(30,12+F.dist*.03);foodSpr.position.set(0,y,z);foodSpr.rotation.y+=dt*6;foodSpr.rotation.x+=dt*3;
+        const z=F.sz+(F.tz-F.sz)*e,y=2.4+Math.sin(F.p*Math.PI)*Math.min(34,12+(F.sz-F.tz)*.03);foodSpr.position.set(0,y,z);foodSpr.rotation.y+=dt*6;foodSpr.rotation.x+=dt*3;
         // 아치 통과
         while(F.passed<GATES.length&&z<=GATES[F.passed].z){const G=GATES[F.passed];if(G.z<Z0+.1&&G.mult>1){F.luck=+(F.luck*G.mult).toFixed(2);sfx.gate();toast('아치 통과!  행운 x'+G.mult,'#ffe16b');fxPlay('fa_burst',new THREE.Vector3(0,y,G.z),12,{fps:10,dt:false})}F.passed++}
         F.trailT+=dt;if(F.trailT>(LOWDEV?.09:.05)){F.trailT=0;const tr=F.food.trail;fxPlay(tr,new THREE.Vector3((Math.random()-.5)*.6,y,z+1.2),/^pj_/.test(tr)?3.2:4.2,{fps:14,rot:Math.PI/2,add:true})}
-        const bm=biomeAt(z),dm=Math.round(-(z-Z0)<0?0:-(z-Z0));
-        $('fluck').textContent=F.luck.toFixed(2)+'X';$('fbiome').textContent=bm.name+'  '+dm+'m';$('fmark').style.left=(4+Math.min(1,dm/MAXD)*90)+'%';
+        const bm=biomeAt(z),dm=Math.min(F.dist,distOfZ(z)),zf=Math.max(0,(Z0-z)/MAXD);
+        $('fluck').textContent=F.luck.toFixed(2)+'X';$('fbiome').textContent=bm.name+'  '+fmtM(dm);$('fmark').style.left=(4+Math.min(1,zf)*90)+'%';
         scene.background.lerp(new THREE.Color(bm.sky),.04);scene.fog.color.copy(scene.background);
       }
     }else if(state.mode==='EATING'){

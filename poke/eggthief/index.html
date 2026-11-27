@@ -212,7 +212,8 @@ const BIOMES=[
   {id:'cosmic',n:'우주',req:700000000,g:['#141a3a','#1d2550','#0e1230'],tree:'crystal',gk:'RAYQUAZA',gn:'우주의 수호자 레쿠쟈',sky:'#1a1440',pets:[['CLEFAIRY',8,7000000,260],['PONYTA',9,15000000,280],['LUNALA',9,30000000,300]]}
 ];
 const PW=[50,30,14,6];
-{let z=-22;[46,48,50,52,54,56,58,60,66].forEach((L,i)=>{BIOMES[i].z0=z;BIOMES[i].z1=z-L;BIOMES[i].gs=Math.max(300,BIOMES[i].req);z-=L})}
+{let z=-22;[115,120,125,130,135,140,150,160,175].forEach((L,i)=>{   // 11/27 원작처럼 길게 (예전 46~66)
+ BIOMES[i].z0=z;BIOMES[i].z1=z-L;BIOMES[i].gs=Math.max(300,BIOMES[i].req);z-=L})}
 const ZEND=BIOMES[BIOMES.length-1].z1;
 const SPECIAL=[['DIALGA',7,1100000,60,'연구소 합성'],['ARCEUS',9,45000000,90,'불꽃과 우주 융합'],['GROUDON',9,60000000,90,'불꽃과 우주 융합']];
 const PETS={};BIOMES.forEach((b,bi)=>b.pets.forEach(p=>PETS[p[0]]={id:p[0],r:p[1],inc:p[2],ht:p[3],bi}));SPECIAL.forEach(p=>PETS[p[0]]={id:p[0],r:p[1],inc:p[2],ht:p[3],sp:p[4]});
@@ -328,13 +329,17 @@ function buildBiomes(){
       box(1.2,1.1,len,M({color:new THREE.Color(b.g[0]).multiplyScalar(.55)}),sd*(LW/2+.6),.55,zm)});
     if(b.lake){const w=new THREE.Mesh(new THREE.CircleGeometry(12,40),new THREE.MeshPhysicalMaterial({color:0x2a8fd8,roughness:.08,metalness:.1,transparent:true,opacity:.82,clearcoat:1,envMapIntensity:1.2}));w.rotation.x=-Math.PI/2;w.position.set(0,.05,zm);w.receiveShadow=true;scene.add(w);W.water=w}
     // 나무는 길 바깥에만 (길을 막지 않아요)
-    for(let k=0;k<14;k++){const sd=k%2?1:-1;tree(b.tree,sd*(LW/2+4+Math.random()*22),b.z0-2-Math.random()*(len-4),.9+Math.random()*.6)}
+    for(let k=0;k<22;k++){const sd=k%2?1:-1;tree(b.tree,sd*(LW/2+4+Math.random()*22),b.z0-2-Math.random()*(len-4),.9+Math.random()*.6)}
     // 입구: 길 양옆에 아치 · 지역 이름 · 권장 속도
     const gi=['gate_0','gate_1','gate_6','gate_2','gate_5','gate_7','gate_8','gate_3','gate_9'][i];const im=IMG[gi];
     if(im){const g=VOX.build(im,0,0,im.width,im.height,{h:8,res:56,maxT:6,bulge:1,ay:'auto'});[-1,1].forEach(sd=>{const m=new THREE.Mesh(g,VOX.mat());m.position.set(sd*(LW/2+5),0,b.z0);m.castShadow=true;scene.add(m)})}
     const L=labelSprite((i+1)+'. '+b.n+(b.req?'  · 권장 속도 '+fmt(b.req):''),'#ffe16b');L.position.set(LW/2+5,9.5,b.z0);L.scale.multiplyScalar(1.3);scene.add(L);
     const L2=L.clone();L2.position.x=-(LW/2+5);scene.add(L2);
     const ln=new THREE.Mesh(new THREE.PlaneGeometry(LW,.5),new THREE.MeshBasicMaterial({color:0xffd23f,transparent:true,opacity:.6}));ln.rotation.x=-Math.PI/2;ln.position.set(0,.03,b.z0);scene.add(ln);
+    // 원작처럼: 속도가 모자라면 못 들어가는 빨간 장막 (속도를 채우면 사라져요)
+    if(b.req>0){const cm=new THREE.Mesh(new THREE.PlaneGeometry(LW,6),new THREE.MeshBasicMaterial({color:0xf43f5e,transparent:true,opacity:.38,side:THREE.DoubleSide,depthWrite:false}));cm.position.set(0,3,b.z0);
+      const cl=labelSprite('속도 '+fmt(b.req)+' 필요','#ffffff');cl.position.set(0,4.2,b.z0+.2);cl.scale.multiplyScalar(1.4);
+      const cg=new THREE.Group();cg.add(cm,cl);scene.add(cg);W.gates.push({b,g:cg})}
     // 수호 포켓몬
     {const grp=new THREE.Group();grp.userData={zm,len};scene.children.slice(n0).forEach(o=>grp.add(o));scene.add(grp);W.bg.push(grp)}
     const gp=new VOX.Poke('../rz/',b.gk,{size:1.8+i*.1});gp.root.position.set(0,0,zm);scene.add(gp.root);
@@ -596,6 +601,8 @@ function loop(){
     else{P.vel.x*=.76;P.vel.z*=.76;if(onTM){ST.face.x=0;ST.face.z=-1}}
     P.vel.y-=28*dt;P.pos.addScaledVector(P.vel,dt);if(P.pos.y<=0){P.pos.y=0;P.vel.y=0;P.ground=true}
     if(ST.night&&P.pos.z<-21.2)P.pos.z=-21.2;
+    // 속도 장막: 속도가 모자라면 그 지역에 못 들어가요
+    for(const gt of W.gates){const lock=save.speed<gt.b.req;if(gt.g.visible!==lock)gt.g.visible=lock;if(lock&&P.pos.z<gt.b.z0+.5){P.pos.z=gt.b.z0+.5;if(!ST.gtT||performance.now()-ST.gtT>2500){ST.gtT=performance.now();toast(gt.b.n+'에 들어가려면 속도 '+fmt(gt.b.req)+' 이 필요해요','#ff9aa6')}}}
     {const hw=P.pos.z<-22?LW/2-1:MAP_W/2-1.5;P.pos.x=Math.max(-hw,Math.min(hw,P.pos.x))}P.pos.z=Math.max(ZEND+2,Math.min(20,P.pos.z));
     // 수호 포켓몬
     W.guards.forEach(g=>{let vx=0,vz=0;
