@@ -9425,9 +9425,9 @@ window.lgRevert=function(){try{if(!window._lgG)return;window._lgG=0;for(const m 
 (function(){try{
 const NEWWK='2026-11-20';   // 오늘(11/20 금)부터 새 월보 · 주 단위도 금요일 시작
 
-const KD={n:{nm:'월드보스',lb:'전설',suf:'',hp:300000000,sc:100,ai:'T2',pack:3,mat:null,hit:.07},
-          c:{nm:'카오스 월드보스',lb:'신화',suf:'-C',hp:600000000,sc:100,ai:'G4',pack:4,mat:'core',hit:.10},
-          e:{nm:'이터널 월드보스',lb:'환상',suf:'-E',hp:900000000,sc:100,ai:'G4',pack:5,mat:'breath',hit:.13}};
+const KD={n:{nm:'월드보스',lb:'전설',suf:'',hp:3000000000,sc:100,ai:'T2',pack:3,mat:null,hit:.07},
+          c:{nm:'카오스 월드보스',lb:'신화',suf:'-C',hp:12000000000,sc:100,ai:'G4',pack:4,mat:'core',hit:.10},
+          e:{nm:'이터널 월드보스',lb:'환상',suf:'-E',hp:27000000000,sc:100,ai:'G4',pack:5,mat:'breath',hit:.13}};
 window.WBKD=KD;const HP0=WB_HP;
 const cur=()=>(G&&G.wbK)||'n';const old=k=>k==='n'&&wbWeekB()<NEWWK;
 // 9DZ 월보 자동 체력: 이번 판 체력 = 지난 판에 모두가 넣은 데미지 합 × 0.8 (기본 체력보다 낮아지진 않아요) · 앞 두 자리로 반올림해서 모두 같은 값이 나오게
@@ -9440,7 +9440,7 @@ function hpOf(k,wk){const b=KD[k].hp;if(wk<AUTO0)return b;const c=G&&G.wbHpA&&G.
 window.wbHpOf=hpOf;
 window.wbAutoHp=async function(k0){k0=k0||cur();const wk=wbWeekB();if(!G||old(k0)||wk<AUTO0)return;G.wbHpA=G.wbHpA||{};const key=hpKey(k0,wk);if(G.wbHpA[key])return;
   const pw=prevWk(wk);let v=KD[k0].hp;if(pw>=AUTO0){const sf0=WBSUF,keep=WBC.list,kw=WBC.wk,ks=WBC.sf,kt=WBC.t;WBSUF=KD[k0].suf;let L=null;try{L=await wbFetch(pw,1)}catch(e){}finally{WBSUF=sf0;WBC.list=keep;WBC.wk=kw;WBC.sf=ks;WBC.t=kt}
-    if(!L)return;v=Math.max(v,r2(wbTotal(L)*AUTOK))}
+    if(!L)return;const ph=hpOf(k0,pw),tot=wbTotal(L);v=Math.max(v,tot>=ph*.98?r2(ph*2):r2(tot*AUTOK))}
   G.wbHpA[key]=v;for(const q in G.wbHpA){const w=q.split(':')[1];if(w<prevWk(prevWk(prevWk(wk))))delete G.wbHpA[q]}save();if(cur()===k0)apply(k0)};
 function apply(k){WB_HP=old(k)?HP0:hpOf(k,wbWeekB());WBSUF=KD[k].suf;try{WBC.list=null;WBC.wk=null}catch(e){}}
 window.wbKind=function(k){if(!G||!KD[k])return;const c=cur();if(k!==c){G['wb_'+c]=G.wb||null;G.wb=G['wb_'+k]||null;delete G['wb_'+k];G.wbK=k}apply(k)};
@@ -9559,7 +9559,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
- {v:2026112707,date:'11월 27일',t:'하계 체육관 고침 · 던전 버튼 · 하는 방법 · 일일 숙제 자동',items:[{img:"",h:"하계 · 명계 체육관이 다시 돼요",p:["<b>하계 · 명계 상대가 더 단단해졌어요</b> — 하계 체력 ×3, 명계 체력 ×5.","배틀 안 체력 · 데미지 숫자를 <b>내 포켓몬과 상대가 같은 배율</b>로 보여 줘요. 예전엔 상대 숫자만 1000배쯤 크게 보여서 명계가 이상해 보였어요.","하계 · 명계에서 체육관에 들어가면 멈추던 문제를 고쳤어요. 이제 수련생 → 관장 순서로 싸워요.","<b>빛의 조각 = 하계의 배지</b>예요. 관장을 이기면 1개씩 받아요. 하계는 <b>타입 상성이 반대</b>예요!"]},
+ {v:2026112707,date:'11월 27일',t:'하계 체육관 고침 · 던전 버튼 · 하는 방법 · 일일 숙제 자동',items:[{img:"",h:"하계 · 명계 체육관이 다시 돼요",p:["<b>월드보스가 훨씬 단단해졌어요</b> — 월드보스 체력 ×10, 카오스 ×20, 이터널 ×30. 지난 판에 잡았으면 다음 판은 체력 2배!","<b>하계 · 명계 상대가 더 단단해졌어요</b> — 하계 체력 ×3, 명계 체력 ×5.","배틀 안 체력 · 데미지 숫자를 <b>내 포켓몬과 상대가 같은 배율</b>로 보여 줘요. 예전엔 상대 숫자만 1000배쯤 크게 보여서 명계가 이상해 보였어요.","하계 · 명계에서 체육관에 들어가면 멈추던 문제를 고쳤어요. 이제 수련생 → 관장 순서로 싸워요.","<b>빛의 조각 = 하계의 배지</b>예요. 관장을 이기면 1개씩 받아요. 하계는 <b>타입 상성이 반대</b>예요!"]},
   {img:"",h:"퀘스트 옆 「하는 방법」",p:["화면 위 퀘스트 줄 옆 <b>「하는 방법」</b>을 누르면 지금 퀘스트를 어떻게 하는지 그림과 함께 자세히 알려 줘요.","체육관이면 관장 그림 · 추천 레벨 · <b>센 타입 · 약한 타입</b>까지 보여 줘요."]},
   {img:"",h:"사이드 메뉴 「던전」",p:["일일 던전 · 변이 던전 · 탑 · 월드보스 · 포탈을 한곳에 모았어요."]},
   {img:"",h:"일일 숙제 자동",p:["일일 숙제 창의 <b>「자동으로」</b>를 누르면 남은 일일 던전을 한 번에 끝내요.","변이 던전 · 계란훔치기 · 먹이 던지기도 숙제 목록에 들어갔어요.","화면 크기가 폰에 맞춰 자동으로 줄어요 (메뉴 → 화면 크기 → 자동)."]}]},
