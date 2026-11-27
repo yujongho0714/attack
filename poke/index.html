@@ -9574,7 +9574,8 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
- {v:2026112709,date:'11월 28일',t:'천계 교육 (넘길 수 없어요) · 큐브 7종 실습 · 이탈 옵션',items:[{img:"",h:"천계부터는 교육이 먼저예요",p:["천계 이상이면 <b>방어율 · 방무 · 보스 공격력 · 크리티컬 저항 · 스위칭 템 · 이탈 옵션</b> 설명 6장이 먼저 나와요. 넘길 수 없어요.","끝나면 <b>견습 엠블럼 · 연습용 아티팩트 · 큐브 7종 하나씩</b>을 무료로 주고, 큐브 창에서 <b>하나씩 직접 써 봐야</b> 교육이 끝나요. 다 하면 명장의 큐브 10개 더!"]},
+ {v:2026112709,date:'11월 28일',t:'천계 교육 (넘길 수 없어요) · 큐브 7종 실습 · 이탈 옵션',items:[{img:"",h:"방무가 모자라면 큐브 영상 · 큐브 창 자동",p:["상대가 단단해서 데미지가 60% 아래로 깎이면, 배틀 전에 <b>큐브 영상</b>이 나와요 (넘길 수 없어요 · 20분에 한 번). 레어 → 유니크 → 레전드리로 올리면 방무 · 보공이 생기고 <b>한 방 데미지가 얼마나 커지는지</b> 보여 줘요.","배틀이 끝나면 <b>큐브 창이 저절로 열리고</b>, 장착한 엠블럼(없으면 무기 · 방패)이 큐브 박스에 들어가 있어요. 가진 큐브 중 제일 좋은 걸 골라 둬요."]},
+  {img:"",h:"천계부터는 교육이 먼저예요",p:["천계 이상이면 <b>방어율 · 방무 · 보스 공격력 · 크리티컬 저항 · 스위칭 템 · 이탈 옵션</b> 설명 6장이 먼저 나와요. 넘길 수 없어요.","끝나면 <b>견습 엠블럼 · 연습용 아티팩트 · 큐브 7종 하나씩</b>을 무료로 주고, 큐브 창에서 <b>하나씩 직접 써 봐야</b> 교육이 끝나요. 다 하면 명장의 큐브 10개 더!"]},
   {img:"",h:"큐브 창에서 아티팩트도 · 이탈 옵션",p:["큐브 창에서 성유물 · 천공 · 어메이징 큐브로 <b>아티팩트</b>도 돌려요.","<b style='color:#ff7ad9'>이탈 옵션</b>: 앱솔루트 · 어메이징 큐브로 돌리면 줄마다 4% 확률로 그 등급 최대치를 넘는 숫자(최대 1.4배)가 나와요. 분홍 「이탈」로 보여요."]}]},
  {v:2026112708,date:'11월 27일',t:'방어율 · 방어력 무시 · 크리티컬 저항 · 엠블럼 잠재옵션',items:[{img:"",h:"천계부터 상대에게 방어율이 생겼어요",p:["데미지 = 1 − 상대 방어율 × (1 − 내 방어력 무시). 방무가 모자라면 데미지가 반토막 나거나 거의 안 들어가요 (최소 5%).","방어율: 천계 30% · 천상계 50% · 하계 80% · 명계 120% (트레이너 +10% · 관장 +25% · 사천왕 +35% · 챔피언 +50%) · 월드보스 100% · 카오스 150% · 이터널 200%","<b>크리티컬 저항</b>: 천계 10% ~ 명계 40% (보스는 더). 내 크리티컬 확률에서 빠져요. 크확을 맞춰야 크리티컬이 터져요.","배틀을 시작하면 상대 방어율과 내 데미지 비율이 위에 잠깐 나와요."]},
   {img:"",h:"보스 공격력 · 일반 공격력",p:["<b>보스 공격력</b> = 트레이너 · 관장 · 사천왕 · 챔피언 · 월드보스 / <b>일반 공격력</b> = 야생 사냥. 사냥용 · 트레이너전용 옵션이 달라요."]},
@@ -12398,9 +12399,38 @@ function showBar(o){const b=bar(o);if(!b)return;let d=$('dfrBar');if(d)d.remove(
    ${(b.bf&&b.M.norm>b.M.boss)||(!b.bf&&b.M.boss>b.M.norm)?`<div class="dr3">${b.bf?'보스전이에요 · 보스 공격력':'사냥이에요 · 일반 공격력'} 잠재가 더 높은 엠블럼 · 아티팩트로 바꿔 끼우면 더 세요</div>`:''}${b.low?`<div class="dr3">방어력 무시가 모자라요! 데미지 80%가 되려면 방무 <b>${b.need80}%</b> 필요 · 배틀 끝나고 방법을 알려 줄게요</div>`:''}`;
   document.body.appendChild(d);setTimeout(()=>{try{d.classList.add('out');setTimeout(()=>d.remove(),600)}catch(e){}},b.low?7000:4000);return b}
 window.dfrInfo=o=>{const b=bar(o);return b?'상대 방어율 '+Math.round(b.fr*100)+'% · 내 방무 '+Math.round(b.M.ign)+'% → 데미지 '+Math.round(b.k*100)+'%':''};
+// ===== 방무 부족 → 큐브 영상 (넘길 수 없어요 · 유니크 → 레전드리 · 데미지 변화) → 배틀 끝나면 큐브 창 자동 (엠블럼 · 무기 · 방패) =====
+function bestTgt(){try{if(G.embEq&&G.emb&&G.emb[G.embEq])return 'emb:'+G.embEq;const e=G.me&&G.me.eq;if(e&&e.weapon)return 'eq:weapon';if(e&&e.shield)return 'eq:shield';if(G.emb){const k=Object.keys(G.emb)[0];if(k)return 'emb:'+k}}catch(e){}return null}
+function bestCube(){for(const k of ['cube6','cube3','cube2','cube'])if((G.bag[k]||0)>0)return k;return 'cube2'}
+let demoAt=0;
+function cubeDemo(b){return new Promise(done=>{const fr=b.fr,bf=b.bf,i0=b.M.ign,p0=bf?b.M.boss:b.M.norm;
+  const st=[{n:'지금',ign:i0,bo:p0},{n:'유니크',ign:i0+8,bo:p0+15},{n:'레전드리',ign:i0+22,bo:p0+45}].map(x=>Object.assign(x,{k:dmgK(fr,x.ign)*(1+x.bo/100)}));
+  const HIT=1000,fmt=v=>Math.round(v).toLocaleString();
+  const d=document.createElement('div');d.id='cubeDemo';
+  d.innerHTML=`<div class="cdw"><div class="cdh"><b>방어력 무시가 모자라요!</b><small>상대 방어율 ${Math.round(fr*100)}% · 내 방무 ${Math.round(i0)}% → 데미지 <i>${Math.round(dmgK(fr,i0)*100)}%</i></small></div>
+   <div class="cdst"><div class="cdbox"><img class="cdcube" src="ui/cube2.webp" alt=""><div class="cditem g0"><span class="cdg">레어</span><ul><li>체력 +6%</li><li>방어력 +5%</li><li>크리티컬 데미지 +8%</li></ul></div><em class="cdup"></em></div>
+    <div class="cdcmp">${st.map((x,i)=>`<div class="cdr r${i}"><b>${x.n}</b><span><i style="--w:${Math.min(100,x.k/st[2].k*100)}%"></i></span><em>한 방 ${fmt(HIT*x.k)}</em></div>`).join('')}</div></div>
+   <p class="cdtx">무기 · 방패 · 엠블럼을 큐브로 돌려서 등급을 올려요…</p><div class="cdbt"><span class="cdwait">영상이 끝나면 넘어갈 수 있어요</span><button class="main" id="cdOk" style="display:none">큐브 돌리러 가기 · 계속 싸우기</button></div></div>`;
+  document.body.appendChild(d);const it=d.querySelector('.cditem'),tx=d.querySelector('.cdtx'),up=d.querySelector('.cdup'),cube=d.querySelector('.cdcube');
+  const set=(g,gn,L)=>{it.className='cditem g'+g;it.querySelector('.cdg').textContent=gn;it.querySelector('ul').innerHTML=L.map(x=>`<li class="${/방어력 무시|보스 공격력/.test(x)?'pr':''}">${x}</li>`).join('');it.classList.remove('pop');void it.offsetWidth;it.classList.add('pop')};
+  const spin=()=>{cube.classList.remove('spin');void cube.offsetWidth;cube.classList.add('spin')};
+  const flash=t=>{up.textContent=t;up.classList.remove('on');void up.offsetWidth;up.classList.add('on');try{sfx('badge')}catch(e){}};
+  const show=i=>{d.querySelectorAll('.cdr').forEach((r,j)=>r.classList.toggle('on',j<=i))};
+  const T=[[300,()=>{show(0);tx.innerHTML='지금은 한 방에 <b>'+fmt(HIT*st[0].k)+'</b>만 들어가요. 방어율이 데미지를 깎고 있어요.'}],
+   [2600,()=>{spin();tx.innerHTML='명장의 큐브로 돌려요… (에픽)';try{sfx('get')}catch(e){}}],[3300,()=>set(1,'에픽',['공격력 +6%','체력 +8%','크리티컬 확률 +4%'])],
+   [4600,()=>{spin();tx.innerHTML='계속 돌려요… <b>유니크</b>가 되면 방어력 무시 · 보스 공격력이 나와요!'}],[5300,()=>{set(2,'유니크',['방어력 무시 +8%','보스 공격력 +15%','크리티컬 데미지 +16%']);flash('GRADE UP! 유니크')}],
+   [6400,()=>{show(1);tx.innerHTML='유니크 · 방무 +8% · 보공 +15% → 한 방 <b>'+fmt(HIT*st[1].k)+'</b> (×'+(st[1].k/st[0].k).toFixed(2)+')'}],
+   [8800,()=>{spin();tx.innerHTML='더 돌려서 <b>레전드리</b>까지! 무기 · 방패 · 엠블럼에 한 줄씩 모아요'}],[9600,()=>{set(3,'레전드리',['방어력 무시 +12%','보스 공격력 +25%','공격력 +12%']);flash('GRADE UP! 레전드리')}],
+   [10800,()=>{show(2);tx.innerHTML='레전드리 무기 + 엠블럼 · 방무 +22% · 보공 +45% → 한 방 <b>'+fmt(HIT*st[2].k)+'</b> (지금보다 <b>×'+(st[2].k/st[0].k).toFixed(1)+'배</b>)'}],
+   [13500,()=>{d.querySelector('.cdwait').style.display='none';const ok=d.querySelector('#cdOk');ok.style.display='';ok.onclick=()=>{try{sfx('tap')}catch(e){}d.classList.add('out');setTimeout(()=>{d.remove();done()},300)}}]];
+  T.forEach(([t,f])=>setTimeout(()=>{try{f()}catch(e){}},t))})}
+window.cubeDemo=cubeDemo;
+function autoCube(){const t=bestTgt();if(!t){ignGuide();return}const c=bestCube();if(!(G.bag[c]>0)){toast('큐브가 없어요 · 상점 · 서바이버 코인 상점 · 월드보스 보상에서 얻어요');ignGuide();return}
+  toast('방무가 모자라요! '+(t.startsWith('emb')?'엠블럼':t==='eq:weapon'?'무기':'방패')+'을(를) 큐브로 돌려서 유니크 이상 · 방무 · 보공을 노려요');hubOpen2(c,t)}
+window.autoCube=autoCube;
 let lowAt=0;
-{const _b=battle;battle=async function(o){let b=null;try{if(o&&!o.pvp)b=showBar(o)}catch(e){}const r=await _b.apply(this,arguments);
-  try{if(b&&b.low&&Date.now()-lowAt>8*60e3){lowAt=Date.now();setTimeout(()=>{try{if(!PANEL&&SCENE==='over')ignGuide(o)}catch(e){}},700)}}catch(e){}return r}}
+{const _b=battle;battle=async function(o){let b=null;try{if(o&&!o.pvp){const b0=bar(o);if(b0&&b0.low&&!window.__tutRun&&Date.now()-demoAt>20*60e3){demoAt=Date.now();await cubeDemo(b0)}b=showBar(o)}}catch(e){}const r=await _b.apply(this,arguments);
+  try{if(b&&b.low&&Date.now()-lowAt>3*60e3){lowAt=Date.now();setTimeout(()=>{try{if(!PANEL&&SCENE==='over')autoCube()}catch(e){}},700)}}catch(e){}return r}}
 function ignGuide(o0){if(!G)return;const M=myOff(o0||{}),d=DIFF();
   const rows=CLS.map(([k,n,o])=>{const fr=window.dfrOf(o),cr=window.crrOf(o),kk=dmgK(fr,M.ign);return `<tr class="${kk<.6?'lw':''}"><td>${n}</td><td>${Math.round(fr*100)}%</td><td>${needIgn(fr,.5)}%</td><td>${needIgn(fr,.8)}%</td><td><b>${Math.round(kk*100)}%</b></td><td>${Math.round(cr*100)}%</td></tr>`}).join('');
   const hasEmb=!!(G.emb&&Object.keys(G.emb).length);
@@ -12496,12 +12526,12 @@ function pages(){const d=DIFF(),row=(n,o)=>{const fr=window.dfrOf(o),cr=window.c
   ['천계 교육 4/6 · 크리티컬 저항',`<p>상대에게 <b>크리티컬 저항</b>이 있어요. 내 크리티컬 확률에서 저항만큼 빠져요.</p><p>예) 내 크리티컬 30% − 챔피언 저항 ${Math.round(window.crrOf({trainer:'챔피언'})*100)}% = <b>${Math.max(0,30-Math.round(window.crrOf({trainer:'챔피언'})*100))}%</b>만 터져요.</p><p>크리티컬 확률 · 크리티컬 데미지는 장비 · 엠블럼 잠재로 올려요. 크확을 맞춰야 크뎀이 의미가 있어요.</p>`],
   ['천계 교육 5/6 · 스위칭 템',`<p>상황마다 <b>바꿔 끼우는 템</b>이 필요해요.</p><ol><li><b>사냥할 때</b> · 일반 공격력 엠블럼 · 아티팩트</li><li><b>트레이너 · 관장 · 챔피언 · 월드보스</b> · 보스 공격력 + 방무 엠블럼 · 무기 · 방패</li></ol><p>엠블럼마다 잠재옵션이 따로라, 사냥용 · 보스용을 하나씩 돌려 두면 끼우기만 하면 돼요. 배틀 시작할 때 바꾸면 좋은지 알려 줘요.</p>`],
   ['천계 교육 6/6 · 좋은 옵션과 이탈 옵션',`<p>방무 · 보스 공격력 · 총데미지 · 공격력은 <b>한 줄은 잘 나와도 두 줄째부터는 아주 드물어요</b> (8%). 여러 곳(무기 · 방패 · 엠블럼 · 아티팩트)에서 한 줄씩 모으는 게 빨라요.</p><p><b style="color:#ff7ad9">이탈 옵션</b> = 그 등급 최대치를 넘은 숫자예요. <b>앱솔루트 큐브 · 어메이징 큐브</b>로만 나오고 (줄마다 4%), 최대치의 1.4배까지 나와요. 큐브 창에서 분홍색 「이탈」로 보여요.</p><p>이제 <b>큐브 7종을 하나씩 무료로</b> 줄게요. 하나씩 직접 써 봐요!</p>`]]}
-function bar(){let b=$('tutBar');const S=TS(),m=TUTM[S.m|0];if(!tutOn()||S.s!=='cube'||!m){if(b)b.remove();return}if(!b){b=document.createElement('div');b.id='tutBar';document.body.appendChild(b)}
+function tutBarDraw(){let b=$('tutBar');const S=TS(),m=TUTM[S.m|0];if(!tutOn()||S.s!=='cube'||!m){if(b)b.remove();return}if(!b){b=document.createElement('div');b.id='tutBar';document.body.appendChild(b)}
   b.innerHTML=`<b>천계 교육 · 큐브 실습 ${(S.m|0)+1}/${TUTM.length}</b><span><em>${m[1]}</em>를 ${m[2]==='art'?'<em>연습용 아티팩트</em>':'<em>견습 엠블럼</em>'}에 한 번 써 봐요${['cube6','cube7'].includes(m[0])?' → 이전 / 이후 중에 골라요':''}</span><small>${m[3]}</small>`}
-window.tutTick=function(){try{const S=TS();if(!tutOn()||S.s!=='cube'){bar();return}const m=TUTM[S.m|0];if(!m){finish();return}
+window.tutTick=function(){try{const S=TS();if(!tutOn()||S.s!=='cube'){tutBarDraw();return}const m=TUTM[S.m|0];if(!m){finish();return}
   const used=(window.__cubeUsed[m[0]]|0)>(S.base|0);if(used&&!CB.pend){S.m=(S.m|0)+1;S.base=0;save();try{sfx('get')}catch(e){}toast(m[1]+' 실습 완료!');const nx=TUTM[S.m];if(nx){S.base=window.__cubeUsed[nx[0]]|0;CB.auto=0;setTimeout(()=>hubOpen2(nx[0],nx[2]==='art'?'art:'+S.art:'emb:novice'),600)}else setTimeout(finish,600)}
-  bar()}catch(e){}};
-let FIN=0;async function finish(){if(FIN)return;FIN=1;try{const S=TS();S.s='done';addItem('cube2',10);save();bar();closePanel(1);
+  tutBarDraw()}catch(e){}};
+let FIN=0;async function finish(){if(FIN)return;FIN=1;try{const S=TS();S.s='done';addItem('cube2',10);save();tutBarDraw();closePanel(1);
   await page('천계 교육 완료!','<p>방어율 · 방무 · 보공 · 크리 저항 · 스위칭 · 이탈 옵션을 다 배웠어요.</p><p>보상으로 <b>명장의 큐브 10개</b>를 더 줬어요. 견습 엠블럼을 <b>유니크</b>까지 올려서 방무를 노려 봐요!</p><p>막히면 퀘스트 줄의 <b>「하는 방법」</b> → 방어력 무시 자세히 보기에서 다시 볼 수 있어요.</p>','확인');
   hubOpen2('cube2','emb:novice')}finally{FIN=0}}
 async function embTut(force){if(!G||!G.party||!G.party.length)return;const S=TS();if(S.s==='done'){if(force)ignGuide();return}if(window.__tutRun)return;window.__tutRun=1;
@@ -12513,11 +12543,11 @@ async function embTut(force){if(!G||!G.party||!G.party.length)return;const S=TS(
     S.s='cube';S.m=0;S.base=window.__cubeUsed[TUTM[0][0]]|0;save();try{sfx('badge')}catch(e){}
     await page('무료 지급!','<p><b>견습 엠블럼</b>(끼워 줬어요) · <b>연습용 아티팩트</b> · <b>큐브 7종 하나씩</b>을 받았어요.</p><p>이제 큐브 창이 열려요. 위쪽 안내대로 <b>큐브 돌리기</b>를 눌러 하나씩 써 봐요. 다 써야 교육이 끝나요.</p>','큐브 창 열기')}
    if(S.s==='cube'){const m=TUTM[S.m|0];if(m){if(!(G.bag[m[0]]>0))addItem(m[0],1);hubOpen2(m[0],m[2]==='art'?'art:'+S.art:'emb:novice')}else finish()}
-  }finally{window.__tutRun=0;bar()}}
+  }finally{window.__tutRun=0;tutBarDraw()}}
 window.embTut=embTut;
 // 천계 이상이면 무조건 먼저: 필드에서 다른 창이 열려 있어도 닫고 교육 · 실습 중엔 큐브 창이 닫히면 다시 열어요
 setInterval(()=>{try{if(!tutOn()||window.__tutRun||SCENE!=='over'||(DLG&&DLG.on)||document.getElementById('trScene')||document.getElementById('itInfo'))return;const S=TS();
-  if(S.s==='cube'){if(!document.querySelector('.panel .hcw'))embTut();else bar();return}embTut()}catch(e){}},2000);
+  if(S.s==='cube'){if(!document.querySelector('.panel .hcw'))embTut();else tutBarDraw();return}embTut()}catch(e){}},2000);
 // 퀘스트 줄도 교육이 먼저
 {const _o=objective;objective=function(){const r=_o.apply(this,arguments);try{if(tutOn()&&r&&!/치료/.test(r.t||''))return Object.assign({},r,{t:'천계 교육 · 방어력 무시 · 보스 공격력 배우기 (큐브 실습)',g:null,hunt:null})}catch(e){}return r}}
 const css=document.createElement('style');css.textContent=`
@@ -12555,6 +12585,20 @@ const css=document.createElement('style');css.textContent=`
 .panel .hcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}.panel .hcs{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px!important;border:3px solid var(--gc)!important;border-radius:10px!important;background:#fffbe8!important;color:#1c2550!important;box-shadow:0 3px 0 #0b0f24}
 .panel .hcs.on{box-shadow:0 0 0 3px #1c2550,0 0 12px var(--gc)}.panel .hcs img{width:44px;height:44px;object-fit:contain}.panel .hcs b{font-size:11px;text-align:center;line-height:1.2}.panel .hcs small{font-weight:900;font-size:10.5px;color:var(--gc)}.panel .hcs i{font-style:normal;font-size:10px;opacity:.7}
 .panel .hcpb table,.ovb .hcpb table{width:100%;border-collapse:collapse;font-size:12px;margin:4px 0 8px}.hcpb th,.hcpb td{border:1px solid #fff3;padding:2px 4px;text-align:center}.hcpb p{font-size:12px;margin:4px 0}
+#cubeDemo{position:fixed;inset:0;z-index:100004;background:#060818f0;display:grid;place-items:center;transition:opacity .3s}#cubeDemo.out{opacity:0}
+#cubeDemo .cdw{width:min(94vw,680px);max-height:94vh;overflow:auto;padding:12px 14px;background:#141a36;border:3px solid #ffd23f;color:#fff;font:800 13px/1.5 'Galmuri11',system-ui,sans-serif;box-shadow:0 0 30px #ffd23f55}
+#cubeDemo .cdh b{display:block;font-size:18px;color:#ff7a6a}#cubeDemo .cdh small{opacity:.85}#cubeDemo .cdh i{font-style:normal;color:#ff7a6a}
+#cubeDemo .cdst{display:grid;grid-template-columns:1fr 1.2fr;gap:12px;margin:10px 0}@media (max-width:560px){#cubeDemo .cdst{grid-template-columns:1fr}}
+#cubeDemo .cdbox{position:relative;padding:10px;border:3px solid #ff5a4a;border-radius:14px;background:linear-gradient(#1f1533,#0d0a16);display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden}
+#cubeDemo .cdcube{width:62px;height:62px;filter:drop-shadow(0 0 10px #ff5a4a)}#cubeDemo .cdcube.spin{animation:cdSp .7s}@keyframes cdSp{0%{transform:rotate(0) scale(1)}50%{transform:rotate(200deg) scale(1.3)}100%{transform:rotate(360deg) scale(1)}}
+#cubeDemo .cditem{width:100%;padding:6px 8px;border:3px solid var(--gc);border-radius:10px;background:#0a0712;box-shadow:0 0 12px var(--gc)}#cubeDemo .cditem.pop{animation:cdPop .5s}@keyframes cdPop{0%{transform:scale(.85);filter:brightness(2.4)}100%{transform:none}}
+#cubeDemo .cditem.g0{--gc:#4aa4ff}#cubeDemo .cditem.g1{--gc:#a35ae8}#cubeDemo .cditem.g2{--gc:#f0b020}#cubeDemo .cditem.g3{--gc:#3ad66a}#cubeDemo .cdg{color:var(--gc);font-weight:900}
+#cubeDemo .cditem ul{list-style:none;margin:4px 0 0;padding:0}#cubeDemo .cditem li{padding:2px 0;border-bottom:1px dashed #fff2;font-size:12.5px}#cubeDemo .cditem li.pr{color:#ff9ad5}
+#cubeDemo .cdup{position:absolute;left:0;right:0;top:38%;text-align:center;font:italic 900 24px system-ui;color:#ffd23f;-webkit-text-stroke:2px #1c2550;paint-order:stroke fill;opacity:0;pointer-events:none}#cubeDemo .cdup.on{animation:hcUp 1.5s forwards}
+#cubeDemo .cdcmp{display:flex;flex-direction:column;justify-content:center;gap:10px}#cubeDemo .cdr{display:grid;grid-template-columns:64px 1fr 92px;align-items:center;gap:6px;opacity:.15;transition:opacity .4s}#cubeDemo .cdr.on{opacity:1}
+#cubeDemo .cdr span{height:16px;background:#fff1;border:1px solid #fff4}#cubeDemo .cdr i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd23f,#ff7a3a);transition:width 1.2s}#cubeDemo .cdr.on i{width:var(--w)}#cubeDemo .cdr em{font-style:normal;color:#ffd23f;font-size:12px;text-align:right}
+#cubeDemo .cdr.r2 i{background:linear-gradient(90deg,#3ad66a,#ffd23f)}#cubeDemo .cdtx{min-height:42px;margin:6px 0;color:#e8ecff}#cubeDemo .cdtx b{color:#ffd23f}
+#cubeDemo .cdbt{display:flex;justify-content:center}#cubeDemo .cdwait{opacity:.6;font-size:12px}#cubeDemo #cdOk{padding:10px 18px!important;border:3px solid #0b0f24;background:#ffd23f!important;color:#1c2550;font:900 14px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24;border-radius:0!important}
 #dfrBar{position:fixed;left:50%;top:calc(58px + env(safe-area-inset-top));transform:translateX(-50%);z-index:100001;max-width:min(92vw,620px);padding:7px 12px;background:#0c1430ee;border:3px solid #ffd23f;color:#fff;font:800 12.5px/1.45 'Galmuri11',system-ui,sans-serif;box-shadow:0 4px 0 #0008;pointer-events:none;transition:opacity .5s}
 #dfrBar.out{opacity:0}#dfrBar.low{border-color:#ff5a4a}#dfrBar div{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center}#dfrBar b{color:#ffd23f}#dfrBar small{opacity:.7;margin-left:3px}#dfrBar.low .dk{color:#ff7a6a}
 #dfrBar .dr3{margin-top:4px;padding-top:4px;border-top:1px dashed #fff5;color:#ffb0a8}
