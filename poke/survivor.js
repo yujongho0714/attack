@@ -251,13 +251,14 @@ function tasks(){
  return out;
 }
 const css=document.createElement('style');css.textContent=`
-#svHw{position:fixed;z-index:12;width:188px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 4px 0 #0b0f24;font:800 13px 'Galmuri11',system-ui,sans-serif;color:#1c2550;user-select:none;-webkit-user-select:none}
+#svHw{position:fixed;z-index:12;width:176px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 4px 0 #0b0f24;font:800 13px 'Galmuri11',system-ui,sans-serif;color:#1c2550;user-select:none;-webkit-user-select:none}
 #svHw .hwh{display:flex;align-items:center;gap:6px;padding:6px 8px;background:linear-gradient(#2c3a7a,#1c2550);color:#ffd23f;cursor:grab;touch-action:none}
 #svHw .hwh b{flex:1}#svHw .hwh i{font-style:normal;min-width:20px;text-align:center;padding:0 5px;background:#e5482f;color:#fff;border-radius:9px}
 #svHw .hwb{padding:4px}#svHw.cl .hwb{display:none}
 #svHw .hwr{display:flex;align-items:center;gap:6px;padding:5px 4px;border-bottom:1px dashed #1c255055}#svHw .hwr:last-child{border:0}
-#svHw .hwr span{flex:1;min-width:0}#svHw .hwauto{background:#e3f6d8}#svHw .hwauto button{background:#3fae5a!important;color:#fff!important}#svHw .hwr small{display:block;font-size:11px;opacity:.75}
-#svHw .hwr button{padding:5px 9px!important;border:2px solid #0b0f24!important;background:#ffd23f!important;color:#1c2550!important;font:900 12px 'Galmuri11',system-ui!important;box-shadow:0 2px 0 #0b0f24!important;border-radius:0!important;min-height:0!important;height:auto!important;width:auto!important}`;
+#svHw .hwb{max-height:calc(100vh - 150px);overflow-y:auto}#svHw .hwr{padding:3px 4px!important;font-size:12px}#svHw .hwr small{display:inline!important;margin-left:5px;font-size:11px}#svHw .hwr button{padding:3px 8px!important;font-size:11px!important}#svHw .hwr span{flex:1;min-width:0}#svHw .hwauto{background:#e3f6d8}#svHw .hwauto button{background:#3fae5a!important;color:#fff!important}#svHw .hwr small{display:block;font-size:11px;opacity:.75}
+#svHw .hwr button{padding:5px 9px!important;border:2px solid #0b0f24!important;background:#ffd23f!important;color:#1c2550!important;font:900 12px 'Galmuri11',system-ui!important;box-shadow:0 2px 0 #0b0f24!important;border-radius:0!important;min-height:0!important;height:auto!important;width:auto!important}
+#svHw .hwr button{padding:2px 8px!important;font-size:11px!important;box-shadow:0 1px 0 #0b0f24!important}#svHw .hwr{gap:4px}`;
 document.head.appendChild(css);
 let hw=null,sig='';
 const POSK='sv-hw-pos',CLK='sv-hw-cl';
@@ -288,7 +289,7 @@ function pop(){try{
  if(sg!==sig){sig=sg;
   hw.querySelector('.hwh i').textContent=T.length;
   const b=hw.querySelector('.hwb');b.innerHTML='';
-  const aq=autoQueue().length;if(aq>1){const r=document.createElement('div');r.className='hwr hwauto';r.innerHTML='<span>일일 던전 '+aq+'판<small>자동으로 다 돌기</small></span><button>자동</button>';r.querySelector('button').onclick=()=>{try{sfx('tap')}catch(e){}autoAll()};b.appendChild(r)}
+  const aq=autoQueue().length;if(aq>1){const r=document.createElement('div');r.className='hwr hwauto';r.innerHTML='<span>일일 던전 '+aq+'판</span><button>자동으로</button>';r.querySelector('button').onclick=()=>{try{sfx('tap')}catch(e){}autoAll()};b.appendChild(r)}
   T.forEach(x=>{const r=document.createElement('div');r.className='hwr';r.innerHTML='<span>'+x.t+'<small>'+x.c+'</small></span><button>하기</button>';
    r.querySelector('button').onclick=()=>{try{sfx('tap')}catch(e){}x.go()};b.appendChild(r)});
   arrow();clampPos()}
