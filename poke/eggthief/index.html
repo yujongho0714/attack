@@ -47,7 +47,7 @@ body{background:#0b1020;font-family:'Galmuri11',monospace;color:#fff}
 #cycBox{padding:5px 14px;text-align:center}
 #cycT{font-size:11px;color:#ffe16b}#cycN{font-size:18px;font-weight:700}
 #evB{padding:4px 12px;font-size:11px;color:#ffb0ff;border-color:#c45ae0}
-#menu{position:absolute;right:10px;top:10px;display:grid;grid-template-columns:repeat(3,58px);gap:6px}
+#menu{position:absolute;right:10px;top:10px;display:grid;grid-template-columns:repeat(4,58px);gap:6px}
 .mt{width:58px;height:64px;flex-direction:column;gap:1px;padding:3px 2px;font-size:10.5px}
 .mt img{width:36px;height:36px;object-fit:contain}
 #mid{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px}
@@ -101,7 +101,7 @@ body{background:#0b1020;font-family:'Galmuri11',monospace;color:#fff}
 #sload{width:100%;height:16px;border:3px solid #0b1020;border-radius:6px;background:#2a3044;overflow:hidden}#sload i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3ee08a,#ffe16b)}
 #bPlay{width:100%;padding:14px;font-size:20px}
 #pkExit{position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:70;padding:5px 12px;font-size:11px;display:none}
-@media (max-width:640px){#menu{grid-template-columns:repeat(3,50px);gap:4px}.mt{width:50px;height:56px;font-size:9.5px}.mt img{width:30px;height:30px}
+@media (max-width:640px){#menu{grid-template-columns:repeat(4,50px);gap:4px}.mt{width:50px;height:56px;font-size:9.5px}.mt img{width:30px;height:30px}
  #stats{grid-template-columns:auto}.st{font-size:13px}.st img{width:22px;height:22px}.tb{width:48px;height:52px}.tb img{width:26px;height:26px}#bAct{min-width:150px;font-size:13px}#cyc{top:auto;bottom:150px}}
 </style>
 </head>
@@ -137,6 +137,7 @@ body{background:#0b1020;font-family:'Galmuri11',monospace;color:#fff}
     <button class="btn w mt" data-m="index"><img src="../items/POKEBALL.png" class="px" alt="">도감</button>
     <button class="btn c mt" data-m="lab"><img src="../ui/ic_fuse.webp" class="px" alt="">연구소</button>
     <button class="btn k mt" data-m="map"><img src="../ui/ic_map.webp" class="px" alt="">지도</button>
+    <button class="btn k mt" id="bQ"><img src="../ui/ic_menu.webp" class="px" alt=""><span id="tQ">화질</span></button>
     <button class="btn k mt" id="bMute"><img id="mMute" src="../foodthrow/img/fx_ringheart.webp" class="px" alt=""><span id="tMute">소리 켬</span></button>
   </div>
   <div id="mid"><div id="tmPill" class="pnl hide"></div><div id="ctx" class="pnl hide"></div></div>
@@ -234,13 +235,19 @@ const ST={started:false,night:false,cyc:300,carry:null,chase:null,ride:false,shT
    4. 3D 세상 (유니티 느낌: 그림자 · 반사 · 톤매핑)
    ===================================================================== */
 const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,700);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));document.getElementById('cv').appendChild(renderer.domElement);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,170);
+const LOWDEV=(navigator.hardwareConcurrency||4)<=4||(navigator.deviceMemory||4)<=3||/Android [5-9]\b/.test(navigator.userAgent);
+let QL=(()=>{try{const q=localStorage.getItem('et3d-q');if(q)return +q}catch(e){}return LOWDEV?0:1})();   // 0 가볍게 · 1 보통 · 2 좋게
+const renderer=new THREE.WebGLRenderer({antialias:QL>=2,powerPreference:'high-performance'});
+renderer.setSize(innerWidth,innerHeight);document.getElementById('cv').appendChild(renderer.domElement);
 VOX.setupRenderer(renderer,scene,'#5aa8ff','#6a7a5a');
 const DAYBG=scene.background;
-const sun=VOX.sunLight(scene,36);
-scene.fog=new THREE.Fog(0xcfe6ff,90,320);
+const sun=VOX.sunLight(scene,30);
+function applyQ(){const pr=[.75,1,Math.min(devicePixelRatio,1.75)][QL];renderer.setPixelRatio(Math.min(devicePixelRatio,pr));renderer.setSize(innerWidth,innerHeight);
+  const sh=QL>0;if(renderer.shadowMap.enabled!==sh){renderer.shadowMap.enabled=sh;sun.castShadow=sh;scene.traverse(o=>{if(o.material){[].concat(o.material).forEach(m=>m.needsUpdate=true)}})}
+  VOX.heroRes=QL===0?120:QL===1?160:230;try{localStorage.setItem('et3d-q',QL)}catch(e){}const b=document.getElementById('tQ');if(b)b.textContent=['화질 낮음','화질 보통','화질 좋음'][QL]}
+applyQ();
+scene.fog=new THREE.Fog(0xcfe6ff,55,150);
 const hemi=scene.children.find(o=>o.isHemisphereLight);
 function noiseTex(cols,rep,px){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle=cols[0];x.fillRect(0,0,128,128);
   for(let i=0;i<900;i++){x.fillStyle=cols[1+(i%(cols.length-1))];const s=px||2;x.fillRect(Math.random()*128|0,Math.random()*128|0,s,s)}
@@ -291,14 +298,14 @@ function buildBase(){
   W.nightWall=new THREE.Mesh(new THREE.PlaneGeometry(MAP_W,14),new THREE.MeshBasicMaterial({color:0x818cf8,transparent:true,opacity:.35,side:THREE.DoubleSide,depthWrite:false}));W.nightWall.position.set(0,7,-22);W.nightWall.visible=false;scene.add(W.nightWall);
   // 광장 꾸미기 (그림을 입체로)
   [['hub_flags',-1,-(LW/2+2),-21,4.5],['hub_flags',1,LW/2+2,-21,4.5]].forEach(a=>{const im=IMG[a[0]];if(!im)return;const h=a[4],s=h/im.height;
-    const g=VOX.build(im,0,0,im.width,im.height,{s,maxT:8,bulge:.9,ay:'auto'});const m=new THREE.Mesh(g,VOX.mat());m.position.set(a[2],0,a[3]);m.castShadow=true;scene.add(m)});
+    const g=VOX.build(im,0,0,im.width,im.height,{h,res:80,maxT:7,bulge:.9,ay:'auto'});const m=new THREE.Mesh(g,VOX.mat());m.position.set(a[2],0,a[3]);m.castShadow=true;scene.add(m)});
 }
 // 나무들 (지역마다 모양이 달라요)
 const TM={};
 function tree(kind,x,z,s){const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);
   const trunk=TM.trunk||(TM.trunk=M({color:0x6b4423}));
   const L=c=>TM['l'+c]||(TM['l'+c]=M({color:c,roughness:.75}));
-  const add=(geo,mat,y,rx)=>{const m=new THREE.Mesh(geo,mat);m.position.y=y;if(rx)m.position.x=rx;m.castShadow=true;g.add(m);return m};
+  const add=(geo,mat,y,rx)=>{const m=new THREE.Mesh(geo,mat);m.position.y=y;if(rx)m.position.x=rx;g.add(m);return m};
   if(kind==='oak'){add(new THREE.BoxGeometry(.6,2.4,.6),trunk,1.2);add(new THREE.BoxGeometry(2.6,1.6,2.6),L(0x3f9b3a),3);add(new THREE.BoxGeometry(1.8,1,1.8),L(0x4fb548),4.1)}
   else if(kind==='pine'){add(new THREE.BoxGeometry(.5,1.6,.5),trunk,.8);[[2.6,1.2,2],[2,1.1,3],[1.3,1,3.9]].forEach(a=>add(new THREE.BoxGeometry(a[0],a[1],a[0]),L(0xf4fbff),a[2]))}
   else if(kind==='sakura'){add(new THREE.BoxGeometry(.55,2.4,.55),M({color:0x5a3424}),1.2);add(new THREE.BoxGeometry(2.8,1.4,2.8),L(0xf7a8c8),3);add(new THREE.BoxGeometry(1.9,1,1.9),L(0xffc4da),4)}
@@ -313,7 +320,7 @@ function tree(kind,x,z,s){const g=new THREE.Group();g.position.set(x,0,z);g.scal
   else if(kind==='crystal'){const m=new THREE.MeshStandardMaterial({color:0x7df9ff,emissive:0x2dd4bf,emissiveIntensity:.8,roughness:.15,metalness:.2});const o=add(new THREE.OctahedronGeometry(1.2),m,1.6);o.scale.y=1.8}
   scene.add(g);return g}
 function buildBiomes(){
-  BIOMES.forEach((b,i)=>{const len=Math.abs(b.z1-b.z0),zm=(b.z0+b.z1)/2;
+  W.bg=[];BIOMES.forEach((b,i)=>{const len=Math.abs(b.z1-b.z0),zm=(b.z0+b.z1)/2;const n0=scene.children.length;
     // 달리는 길 (가운데) + 양옆 낮은 턱 + 바깥 꾸밈 땅
     const fl=new THREE.Mesh(new THREE.PlaneGeometry(LW,len),M({map:noiseTex(b.g,[18,Math.round(len/4)],3),roughness:b.snow?.6:.9}));fl.rotation.x=-Math.PI/2;fl.position.set(0,.01,zm);fl.receiveShadow=true;scene.add(fl);
     const side=M({map:noiseTex([new THREE.Color(b.g[0]).multiplyScalar(.75).getStyle(),new THREE.Color(b.g[1]).multiplyScalar(.7).getStyle()],[12,Math.round(len/4)],3)});
@@ -324,11 +331,12 @@ function buildBiomes(){
     for(let k=0;k<14;k++){const sd=k%2?1:-1;tree(b.tree,sd*(LW/2+4+Math.random()*22),b.z0-2-Math.random()*(len-4),.9+Math.random()*.6)}
     // 입구: 길 양옆에 아치 · 지역 이름 · 권장 속도
     const gi=['gate_0','gate_1','gate_6','gate_2','gate_5','gate_7','gate_8','gate_3','gate_9'][i];const im=IMG[gi];
-    if(im){const h=8,s2=h/im.height;const g=VOX.build(im,0,0,im.width,im.height,{s:s2,maxT:10,bulge:1,ay:'auto'});[-1,1].forEach(sd=>{const m=new THREE.Mesh(g,VOX.mat());m.position.set(sd*(LW/2+5),0,b.z0);m.castShadow=true;scene.add(m)})}
+    if(im){const g=VOX.build(im,0,0,im.width,im.height,{h:8,res:96,maxT:8,bulge:1,ay:'auto'});[-1,1].forEach(sd=>{const m=new THREE.Mesh(g,VOX.mat());m.position.set(sd*(LW/2+5),0,b.z0);m.castShadow=true;scene.add(m)})}
     const L=labelSprite((i+1)+'. '+b.n+(b.req?'  · 권장 속도 '+fmt(b.req):''),'#ffe16b');L.position.set(LW/2+5,9.5,b.z0);L.scale.multiplyScalar(1.3);scene.add(L);
     const L2=L.clone();L2.position.x=-(LW/2+5);scene.add(L2);
     const ln=new THREE.Mesh(new THREE.PlaneGeometry(LW,.5),new THREE.MeshBasicMaterial({color:0xffd23f,transparent:true,opacity:.6}));ln.rotation.x=-Math.PI/2;ln.position.set(0,.03,b.z0);scene.add(ln);
     // 수호 포켓몬
+    {const grp=new THREE.Group();grp.userData={zm,len};scene.children.slice(n0).forEach(o=>grp.add(o));scene.add(grp);W.bg.push(grp)}
     const gp=new VOX.Poke('../rz/',b.gk,{size:1.8+i*.1});gp.root.position.set(0,0,zm);scene.add(gp.root);
     const gl=labelSprite(b.gn,'#ff9aa6');scene.add(gl);
     W.guards.push({b,p:gp,L:gl,home:zm,pos:new THREE.Vector3(0,0,zm),ang:Math.random()*6,aggro:false,stun:0,v:new THREE.Vector3()});
@@ -344,7 +352,7 @@ function rollMut(){const L=save.bo.luck>0?2.2:1;const w=MUTS.map((m,i)=>i?m.w*L:
 const NEST_M=()=>W.nestM||(W.nestM=M({map:noiseTex(['#c9a35a','#a8823e','#e0bd72'],[3,1],2),roughness:1}));
 function wildEgg(b,pid,sz,x,z){const m=eggMesh(pid,SIZES[sz].s);m.position.set(x,.35,z);scene.add(m);
   const n=new THREE.Mesh(new THREE.TorusGeometry(.95*SIZES[sz].s,.32,8,18),NEST_M());n.rotation.x=-Math.PI/2;n.position.set(x,.22,z);n.receiveShadow=true;scene.add(n);
-  let glow=null;if(PETS[pid].r>=4){glow=new THREE.PointLight(RAR[PETS[pid].r].g,1.2,7);glow.position.set(x,1.4,z);scene.add(glow)}
+  let glow=null;
   const e={b,pid,sz,m,n,x,z,glow};W.eggs.push(e);return e}
 function killEgg(w){scene.remove(w.m);scene.remove(w.n);if(w.glow)scene.remove(w.glow)}
 function pickPet(b){const T=b.pets.reduce((a,_,i)=>a+PW[i],0);let r=Math.random()*T;for(let i=0;i<b.pets.length;i++){if(r<PW[i])return b.pets[i][0];r-=PW[i]}return b.pets[0][0]}
@@ -443,7 +451,7 @@ function shield(){
 function setSprint(on){ST.sprint=on;const b=$('bRun');b.className='btn tb '+(on?'g':'k');$('tRun').textContent=on?'가속 켬':'가속 끔'}
 function jump(){if(P.ground){P.vel.y=11.5;P.ground=false;sfx.jump()}}
 // 터지는 빛
-const BURST=[];function fxBurst(p,col){for(let i=0;i<10;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(.25,.25,.25),new THREE.MeshBasicMaterial({color:col,transparent:true}));m.position.copy(p);scene.add(m);BURST.push({m,v:new THREE.Vector3((Math.random()-.5)*8,Math.random()*7,(Math.random()-.5)*8),l:.6})}}
+const BURST=[],BGEO=new THREE.BoxGeometry(.25,.25,.25);function fxBurst(p,col){for(let i=0;i<(QL?10:5);i++){const m=new THREE.Mesh(BGEO,new THREE.MeshBasicMaterial({color:col,transparent:true}));m.position.copy(p);scene.add(m);BURST.push({m,v:new THREE.Vector3((Math.random()-.5)*8,Math.random()*7,(Math.random()-.5)*8),l:.6})}}
 
 /* =====================================================================
    8. 메뉴 창
@@ -512,6 +520,7 @@ addEventListener('keydown',e=>{ST.keys[e.code]=true;if(!ST.started)return;
   if(e.code==='KeyE')act();if(e.code==='KeyF')bat();if(e.code==='KeyG')trap();if(e.code==='KeyV')shield();if(e.code==='KeyR')toggleMount();if(e.code==='Space'){e.preventDefault();jump()}if(e.code==='ShiftLeft'||e.code==='ShiftRight'){setSprint(!ST.sprint)}});
 addEventListener('keyup',e=>ST.keys[e.code]=false);
 $('bAct').onclick=act;$('bBat').onclick=bat;$('bTrap').onclick=trap;$('bShield').onclick=shield;$('bMount').onclick=toggleMount;$('bJump').onclick=jump;$('bRun').onclick=()=>{setSprint(!ST.sprint);sfx.pop()};
+$('bQ').onclick=()=>{QL=(QL+1)%3;pfS=3;applyQ();toast(['화질 낮음 · 제일 가벼워요','화질 보통','화질 좋음 · 좋은 폰용'][QL],'#c9d7f2')};
 $('bMute').onclick=()=>{sfx.muted=!sfx.muted;$('tMute').textContent=sfx.muted?'소리 끔':'소리 켬';$('mMute').style.filter=sfx.muted?'grayscale(1) brightness(.6)':''};
 renderer.domElement.addEventListener('pointerdown',e=>{ST.drag=true;ST.lm={x:e.clientX,y:e.clientY}});
 addEventListener('pointermove',e=>{if(!ST.drag)return;ST.yaw-=(e.clientX-ST.lm.x)*.0065;ST.pitch=Math.max(.12,Math.min(.85,ST.pitch+(e.clientY-ST.lm.y)*.005));ST.lm={x:e.clientX,y:e.clientY}});
@@ -525,23 +534,24 @@ joy.addEventListener('pointerup',e=>{if(e.pointerId!==joyId)return;joyId=null;kn
 /* =====================================================================
    10. 꼬리 효과 (그림 띠)
    ===================================================================== */
-function trailFx(){const i=save.tr||(ST.sprint?2:0);if(!i)return;const im=IMG['tl_'+i];if(!im)return;
-  const t=new THREE.Texture(im);t.needsUpdate=true;t.encoding=THREE.sRGBEncoding;t.repeat.set(.25,1);t.offset.x=(Math.floor(Math.random()*4))/4;
-  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));const h=1.1;s.scale.set(h*(im.width/4)/im.height,h,1);
-  s.position.set(P.pos.x,P.pos.y+1.2,P.pos.z);s.material.rotation=Math.atan2(-ST.face.z,ST.face.x)*0;scene.add(s);W.trail.push({s,l:.45})}
+const TRP=[];function trailFx(){const i=save.tr||(ST.sprint?2:0);if(!i)return;const im=IMG['tl_'+i];if(!im)return;if(W.trail.length>(QL?18:8))return;
+  const fr=VOX.stripTex(im,4,'tl_'+i);let s=TRP.pop();if(!s){s=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}))}
+  s.material.map=fr[Math.floor(Math.random()*4)];s.material.opacity=1;const h=1.1;s.scale.set(h*(im.width/4)/im.height,h,1);s.position.set(P.pos.x,P.pos.y+1.2,P.pos.z);scene.add(s);W.trail.push({s,l:.45})}
 
 /* =====================================================================
    11. 메인 루프
    ===================================================================== */
 let last=performance.now(),secA=0,trT=0,xT=0;const V=new THREE.Vector3(),FW=new THREE.Vector3(),RT=new THREE.Vector3();
 function loop(){
-  requestAnimationFrame(loop);const now=performance.now(),dt=Math.min((now-last)/1000,.05);last=now;
+  requestAnimationFrame(loop);const now=performance.now(),dt=Math.min((now-last)/1000,.05);last=now;VOX.frame(QL?2:1);perf(dt);
+  if(W.bg)W.bg.forEach(g=>{g.visible=Math.abs(g.userData.zm-P.pos.z)<g.userData.len/2+(QL?110:75)});
+  {const far=QL?110:75;W.eggs.forEach(w=>{const v=Math.abs(w.z-P.pos.z)<far;w.m.visible=w.n.visible=v})}
   if(W.gift){W.gift.rotation.y+=dt*1.2;W.gift.visible=W.giftL.visible=!save.gift}
-  W.eggs.forEach((w,i)=>{w.m.rotation.y+=dt*1.2;w.m.position.y=.1+Math.abs(Math.sin(now*.003+i))*.25});
-  W.slots.forEach((sm,i)=>{const d=save.slots[i];if(!d)return;if(sm.obj)sm.obj.rotation.z=Math.sin(now*.012+i)*.14;if(sm.poke)sm.poke.tick(dt,camera,0,0)});
+  W.eggs.forEach((w,i)=>{if(!w.m.visible)return;w.m.rotation.y+=dt*1.2;w.m.position.y=.1+Math.abs(Math.sin(now*.003+i))*.25});
+  if(P.pos.z>-45)W.slots.forEach((sm,i)=>{const d=save.slots[i];if(!d)return;if(sm.obj)sm.obj.rotation.z=Math.sin(now*.012+i)*.14;if(sm.poke)sm.poke.tick(dt,camera,0,0)});
   if(W.water)W.water.material.color.setHSL(.57,.65,.42+Math.sin(now*.002)*.03);
   // 러닝머신 그림 (4장 돌리기)
-  {const n=TMS[save.tm].img,im=IMG[n];if(im){const fi=Math.floor(now/(140-save.tm*10))%4,k=n+fi;let g=W.tmGeo[k];if(!g){const fw=im.width/4;g=W.tmGeo[k]=VOX.build(im,fi*fw,0,fw,im.height,{s:6/fw,maxT:7,bulge:.9,ay:'auto'})}if(W.tm.geometry!==g)W.tm.geometry=g}}
+  {const n=TMS[save.tm].img,im=IMG[n];if(im){const fi=Math.floor(now/(140-save.tm*10))%4,k=n+fi;let g=W.tmGeo[k];if(!g){const fw=im.width/4;g=W.tmGeo[k]=VOX.build(im,fi*fw,0,fw,im.height,{s:6/fw,res:90,maxT:7,bulge:.9,ay:'auto'})}if(W.tm.geometry!==g)W.tm.geometry=g}}
   if(ST.boss.on){W.boss.tick(dt,camera,Math.sin(now*.001),Math.cos(now*.001));W.bossRing.rotation.z+=dt*2;W.boss.root.position.y=1+Math.sin(now*.002)*.4}
   if(ST.started){
     // 낮 · 밤
@@ -589,7 +599,7 @@ function loop(){
         else{const gs=(10+Math.log2(Math.max(1,g.b.gs/12))*5.2)*1.08;V.subVectors(P.pos,g.pos).setY(0);if(V.length()>.1){V.normalize();vx=V.x;vz=V.z;g.pos.addScaledVector(V,gs*dt)}
           if(g.pos.distanceTo(P.pos)<2.8){sfx.roar();toast(g.b.gn+' 에게 잡혔어요! 알을 놓치고 출발점으로 날아가요','#ff9aa6');setCarry(null);setSprint(false);g.aggro=false;ST.chase=null;ST.fought=true;$('vign').classList.add('hide');P.pos.set(-4,0,10)}}}
       else{g.ang+=dt*.5;const tx=Math.sin(g.ang)*(LW/2-6),tz=g.home+Math.cos(g.ang*.7)*7;V.set(tx-g.pos.x,0,tz-g.pos.z);if(V.length()>.2){V.normalize();vx=V.x;vz=V.z;g.pos.addScaledVector(V,5*dt)}}
-      g.p.root.position.copy(g.pos);g.p.tick(dt,camera,vx,vz);g.L.position.set(g.pos.x,g.p.mesh.geometry&&g.p.mesh.geometry.boundingSphere?g.p.size*g.p.mesh.geometry.boundingSphere.radius*2+1:6,g.pos.z)});
+      g.p.root.position.copy(g.pos);const gv=Math.abs(g.pos.z-P.pos.z)<(QL?110:75);g.p.root.visible=g.L.visible=gv;if(gv)g.p.tick(dt,camera,vx,vz);g.L.position.set(g.pos.x,g.p.mesh.geometry&&g.p.mesh.geometry.boundingSphere?g.p.size*g.p.mesh.geometry.boundingSphere.radius*2+1:6,g.pos.z)});
     // 라이벌 도둑: 야생 알을 훔쳐 자기 기지로 · 가끔 내 기지 알도 노려요 (방망이 · 덫에 걸리면 알을 떨어뜨려요)
     W.rivals.forEach((r,i)=>{let mv2=false;
       if(r.stun>0){r.stun-=dt}else if(r.snare>0){r.snare-=dt}else{
@@ -599,11 +609,11 @@ function loop(){
           if(!r.goal)rivalPlan(r);
           const G=r.goal;V.subVectors(G.p,r.pos).setY(0);
           if(V.length()<1.8){rivalArrive(r)}else{V.normalize();r.pos.addScaledVector(V,(r.carry?6.8:7.8)*dt);r.hx=V.x;r.hz=V.z;mv2=true}}}
-      r.h.root.position.copy(r.pos);r.h.root.rotation.z=r.stun>0?.6:0;r.h.tick(now,camera,r.hx,r.hz,mv2,0);r.L.position.set(r.pos.x,3.6,r.pos.z);
+      r.h.root.position.copy(r.pos);r.h.root.rotation.z=r.stun>0?.6:0;const rv=r.pos.distanceTo(P.pos)<(QL?90:60);r.h.root.visible=r.L.visible=rv;if(rv)r.h.tick(now,camera,r.hx,r.hz,mv2,0);r.L.position.set(r.pos.x,3.6,r.pos.z);
       if(r.cm){r.cm.position.set(r.pos.x,3.1,r.pos.z);r.cm.rotation.y+=dt*2}});
     // 터짐 · 꼬리
     for(let i=BURST.length-1;i>=0;i--){const b=BURST[i];b.l-=dt;b.v.y-=18*dt;b.m.position.addScaledVector(b.v,dt);b.m.material.opacity=Math.max(0,b.l/.6);if(b.l<=0){scene.remove(b.m);BURST.splice(i,1)}}
-    for(let i=W.trail.length-1;i>=0;i--){const t=W.trail[i];t.l-=dt;t.s.material.opacity=Math.max(0,t.l/.45);if(t.l<=0){scene.remove(t.s);t.s.material.map.dispose();W.trail.splice(i,1)}}
+    for(let i=W.trail.length-1;i>=0;i--){const t=W.trail[i];t.l-=dt;t.s.material.opacity=Math.max(0,t.l/.45);if(t.l<=0){scene.remove(t.s);TRP.push(t.s);W.trail.splice(i,1)}}
     updateCtx();
     // 주인공
     const ry=ST.ride&&mountPoke?1.25*(mountPoke.size):0;
@@ -617,6 +627,8 @@ function loop(){
   sun.position.set(P.pos.x+30,60,P.pos.z+25);sun.target.position.set(P.pos.x,0,P.pos.z);
   renderer.render(scene,camera);
 }
+let pfT=0,pfN=0,pfS=0;
+function perf(dt){if(!ST.started)return;pfT+=dt;pfN++;if(pfT>=4){const fps=pfN/pfT;pfT=0;pfN=0;if(fps<26&&QL>0&&pfS<3){QL--;pfS++;applyQ();toast('부드럽게 하려고 화질을 낮췄어요','#c9d7f2')}}}
 function updateCtx(){
   const box=$('ctx'),bt=$('tAct');const show=(t,b)=>{box.textContent=t;box.classList.remove('hide');if(b)bt.textContent=b};
   if(!save.gift&&near(-6.5,13,3.6))return show('[E] 선물 상자 열기  (속도 +10,000 · 꼬리)','선물 열기 [E]');
@@ -626,6 +638,7 @@ function updateCtx(){
   const w=W.eggs.find(w=>near(w.x,w.z,3.8));if(w){const r=RAR[PETS[w.pid].r];return show('[E] '+r.n+' '+SIZES[w.sz].n+' '+nm(w.pid)+' 알 훔치기  (권장 속도 '+fmt(w.b.gs)+')','알 훔치기 [E]')}
   box.classList.add('hide');bt.textContent='훔치기 · 놓기 [E]'}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+applyQ();
 
 /* =====================================================================
    12. 포켓몬 게임과 연결 (진짜 알 보상 · 게임돈)

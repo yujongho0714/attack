@@ -19,6 +19,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>포켓몬 먹이 던지기 3D</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../lib/vox3d.js"></script>
 <style>
 @font-face{font-family:'Galmuri11';src:url(../fonts/Galmuri11.woff2) format('woff2');font-weight:400}
 @font-face{font-family:'Galmuri11';src:url(../fonts/Galmuri11-Bold.woff2) format('woff2');font-weight:700}
@@ -352,24 +353,25 @@ const SKY0=new THREE.Color(0x7cc4ff);
 scene.background=SKY0.clone();
 scene.fog=new THREE.Fog(0x7cc4ff,60,260);
 const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1200);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const LOWDEV=(navigator.hardwareConcurrency||4)<=4||(navigator.deviceMemory||4)<=3;
+const renderer=new THREE.WebGLRenderer({antialias:!LOWDEV,powerPreference:'high-performance'});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,LOWDEV?1:1.5));VOX.heroRes=LOWDEV?130:180;
 renderer.shadowMap.enabled=true;
 document.getElementById('cv').appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x334155,.62));
-const sun=new THREE.DirectionalLight(0xfffbeb,.78);sun.position.set(45,95,40);scene.add(sun);
+VOX.setupRenderer(renderer,scene,'#7cc4ff','#5a8a4a');scene.background=SKY0.clone();
+const sun=VOX.sunLight(scene,40);
 
 function studTex(hex,chk){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#'+hex.toString(16).padStart(6,'0');x.fillRect(0,0,128,128);
   if(chk){x.fillStyle='rgba(0,0,0,.12)';x.fillRect(0,0,64,64);x.fillRect(64,64,64,64)}
   x.fillStyle='rgba(255,255,255,.16)';x.strokeStyle='rgba(0,0,0,.2)';x.lineWidth=3;[32,96].forEach(a=>[32,96].forEach(b=>{x.beginPath();x.arc(a,b,15,0,7);x.fill();x.stroke()}));
-  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
-function texOf(img,near=true){const t=new THREE.Texture(img);if(near){t.magFilter=THREE.NearestFilter}t.needsUpdate=true;return t}
+  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
+function texOf(img,near=true){const t=new THREE.Texture(img);t.encoding=THREE.sRGBEncoding;if(near){t.magFilter=THREE.NearestFilter}t.needsUpdate=true;return t}
 function rot90(img){const c=document.createElement('canvas');c.width=img.height;c.height=img.width;const x=c.getContext('2d');x.translate(c.width,0);x.rotate(Math.PI/2);x.drawImage(img,0,0);return c}
-// 빌보드(항상 카메라를 보는 그림) — 발밑 기준
-function bill(name,h,o={}){const img=IMG[name];const t=texOf(img);const m=new THREE.SpriteMaterial({map:t,transparent:true,alphaTest:o.at==null?.08:o.at,depthWrite:o.dw!==false});
-  const s=new THREE.Sprite(m);s.center.set(.5,o.cy==null?0:o.cy);s.scale.set(h*img.width/img.height,h,1);if(o.ro)s.renderOrder=o.ro;return s}
-// 세워둔 판 그림 (아치처럼 길을 가로지르는 것)
-function plane(name,h){const img=IMG[name];const w=h*img.width/img.height;const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:texOf(img),transparent:true,alphaTest:.1,side:THREE.DoubleSide}));m.position.y=h/2;return m}
+// 그림 → 입체(복셀) 모델 · 발밑 기준
+const VG={};
+function vgeo(name,h,res){const k=name+'|'+h+'|'+(res||96);if(VG[k])return VG[k];const im=IMG[name];return VG[k]=VOX.build(im,0,0,im.width,im.height,{h,res:res||96,maxT:8,bulge:1,ay:'auto'})}
+function bill(name,h,o={}){const m=new THREE.Mesh(vgeo(name,h,o.res),VOX.mat());m.castShadow=true;m.receiveShadow=true;return m}
+function plane(name,h){return bill(name,h,{res:110})}
 
 const CW=42;
 const world={lanes:[],gates:[],deco:{}};
@@ -390,7 +392,7 @@ function buildWorld(){
   [[-11,-12],[11,-12]].forEach(p=>{const f=bill('hub_flags',5.5);f.position.set(p[0],0,p[1]);scene.add(f)});
   [[-30,18],[28,20],[-12,20]].forEach(p=>{const f=bill('hub_flowers',2.6);f.position.set(p[0],0,p[1]);scene.add(f)});
   D.bar=bill('bar_0',7.2);D.bar.position.set(-9,0,4);scene.add(D.bar);
-  D.pen=bill('pen_0',15,{dw:false,ro:0});D.pen.position.set(19,0,13);scene.add(D.pen);
+  D.pen=bill('pen_0',11,{res:100});D.pen.position.set(19,0,-2.5);scene.add(D.pen);
   // 구역 10개
   BIOMES.forEach((b,i)=>{
     const len=ZL,zm=(b.zStart+b.zEnd)/2;let mat;
@@ -416,73 +418,36 @@ function buildWorld(){
 /* =====================================================================
    6. 바람의나라 주인공 (포켓몬 게임에서 입힌 옷 그대로)
    ===================================================================== */
-const HERO={pk:null,F:null,eq:null,c:document.createElement('canvas'),tex:null,s:null,key:'',fi:-1};
+const hero=new VOX.Hero('../dressup/');
+const HERO={get F(){return hero.F},eq:null};
 const DEF_EQ={coat:'coat:001',hair:'hair:001'};
-async function heroBuild(eq){
-  const pk=HERO.pk||(HERO.pk=await fetch('../dressup/dress.json').then(r=>r.json()).catch(()=>null));if(!pk)return;
-  const li=s=>loadImg('../dressup/'+s);const base=await li('base.webp');if(!base)return;
-  const its=[];for(const cat in eq){const [c,id]=String(eq[cat]).split(':');const it=(pk.cats[c]||[]).find(o=>String(o.id)===id);if(!it)continue;its.push({cat,v:it.v,img:await li(it.s),mask:it.e?await li(it.e):null})}
-  const bw=pk.base.box[2],bh=pk.base.box[3],F={};
-  for(const m in pk.base.v){F[m]=pk.base.v[m].map((bf,fi)=>{const c=document.createElement('canvas');c.width=pk.W;c.height=pk.H;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
-    const at=(it,cb)=>{const v=it.v[m];if(!v||!it.img)return;const f=v[4][Math.min(fi,v[4].length-1)];cb(v,f)};
-    its.filter(it=>it.cat==='cape').forEach(it=>at(it,(v,f)=>g.drawImage(it.img,f[0],f[1],v[2],v[3],v[0],v[1],v[2],v[3])));
-    const bc=document.createElement('canvas');bc.width=pk.W;bc.height=pk.H;const bg=bc.getContext('2d');bg.imageSmoothingEnabled=false;bg.drawImage(base,bf[0],bf[1],bw,bh,0,0,bw,bh);bg.globalCompositeOperation='destination-out';
-    its.filter(it=>it.mask&&it.cat!=='cape').forEach(it=>at(it,(v,f)=>bg.drawImage(it.mask,f[0],f[1],v[2],v[3],v[0],v[1],v[2],v[3])));g.drawImage(bc,0,0);
-    ['shoes','weapon','shield','armor','coat','hair','helmet'].forEach(cat=>its.filter(it=>it.cat===cat).forEach(it=>at(it,(v,f)=>g.drawImage(it.img,f[0],f[1],v[2],v[3],v[0],v[1],v[2],v[3]))));return c})}
-  HERO.F=F;HERO.eq=eq;HERO.key='';
-}
-function heroInit(){
-  const c=HERO.c;c.width=311;c.height=294;HERO.tex=new THREE.CanvasTexture(c);HERO.tex.magFilter=THREE.NearestFilter;
-  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:HERO.tex,transparent:true,alphaTest:.1}));
-  s.center.set(144.5/311,1-222/294);const k=.034;s.scale.set(311*k,294*k,1);s.renderOrder=3;HERO.s=s;scene.add(s);
-}
-// 방향: f(앞) b(뒤) r(옆) / l은 r 뒤집기
-function heroFrame(dir,moving,now){
-  if(!HERO.F)return;const atk=state.atk>0;const d=dir==='l'?'r':dir;const L=HERO.F[(atk?'atk_':'walk_')+d]||HERO.F['walk_'+d];if(!L)return;
-  const fi=atk?(state.atk>.18?0:Math.min(1,L.length-1)):moving?Math.floor(now/125)%L.length:0;const key=d+(atk?'a':'w')+fi+(dir==='l'?'L':'');
-  if(key===HERO.key)return;HERO.key=key;const x=HERO.c.getContext('2d');x.clearRect(0,0,311,294);x.imageSmoothingEnabled=false;
-  x.save();if(dir==='l'){x.translate(311,0);x.scale(-1,1);x.translate(311-2*144.5,0)}x.drawImage(L[fi],0,0);x.restore();HERO.tex.needsUpdate=true;
-}
-function drawHeroPreview(cv,now){if(!HERO.F)return;const L=HERO.F.walk_f;const c=L[Math.floor(now/160)%L.length];const g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);g.imageSmoothingEnabled=false;const k=1.5;g.drawImage(c,cv.width/2-144.5*k,cv.height-8-222*k,311*k,294*k)}
+function heroBuild(eq){return hero.dress(eq)}
+function heroInit(){scene.add(hero.root)}
+function drawHeroPreview(cv,now){if(!hero.F)return;const L=hero.F.walk_f;const c=L[Math.floor(now/160)%L.length];const g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);g.imageSmoothingEnabled=false;const k=1.5;g.drawImage(c,cv.width/2-144.5*k,cv.height-8-222*k,311*k,294*k)}
 
 /* =====================================================================
    7. 포켓몬 걷는 그림 (레조넌스 도트 · 8방향)
    ===================================================================== */
-const PKC={},PK_LIVE=[];
-function pkLoad(key){if(PKC[key])return PKC[key];return PKC[key]=(async()=>{const b='../rz/'+key+'/';const meta=await fetch(b+key+'.pmd.json').then(r=>r.json());const img={};
-  await Promise.all(['walk','idle'].map(async st=>{const A=meta.anims[st];if(A)img[st]=await loadImg(b+A.f+'-Anim.png')}));return{meta,img}})().catch(()=>null)}
-function mkPoke(key,size,mut){
-  const m=new THREE.SpriteMaterial({transparent:true,alphaTest:.1,color:mut?MUTS[mut].tint:0xffffff});const s=new THREE.Sprite(m);s.center.set(.5,.14);s.renderOrder=2;s.visible=false;
-  const o={s,key,size:size||1,st:'idle',t:Math.random()*5,mut:mut||0,vx:0,vz:0,ready:false,tex:{}};
-  pkLoad(key).then(P=>{if(!P)return;o.P=P;for(const st in P.img){if(!P.img[st])continue;const t=texOf(P.img[st]);const A=P.meta.anims[st];const H=P.img[st].height;t.repeat.set(1/A.n,A.h/H);o.tex[st]={t,A,rows:Math.max(1,Math.round(H/A.h)),H}}o.ready=true;s.visible=true;pokeTick(o,0,0,0)});
-  return o}
-function pokeDir(vx,vz){ // 카메라 기준 8방향 → PMD 줄 번호
-  const f=new THREE.Vector3();camera.getWorldDirection(f);f.y=0;f.normalize();const r=new THREE.Vector3(-f.z,0,f.x);
-  const sx=vx*r.x+vz*r.z,sd=-(vx*f.x+vz*f.z);const a=Math.atan2(sx,sd);return((Math.round(a/(Math.PI/4))%8)+8)%8}
-let PKDIR_CACHE=0;
-function pokeTick(o,dt,vx,vz,now){
-  if(!o.ready)return;const mv=Math.hypot(vx,vz)>.01;const st=(mv||!o.tex.idle)&&o.tex.walk?'walk':'idle';const T=o.tex[st];if(!T)return;
-  if(o.s.material.map!==T.t){o.s.material.map=T.t;o.s.material.needsUpdate=true}
-  if(mv)o.row=pokeDir(vx,vz);o.t+=dt*(mv?1.4:1);
-  const tot=T.A.d.reduce((a,b)=>a+b,0)/60;let tt=o.t%tot,fi=0;for(;fi<T.A.d.length;fi++){tt-=T.A.d[fi]/60;if(tt<0)break}fi=Math.min(fi,T.A.n-1);
-  const row=T.rows>1?(o.row||0):0;T.t.offset.set(fi/T.A.n,1-(row+1)*T.A.h/T.H);
-  const k=.085*o.size;o.s.scale.set(T.A.w*k,T.A.h*k,1);
-  if(o.mut===3)o.s.material.color.setHSL(((now||0)/2000)%1,.6,.82);
-}
+const PK_LIVE=[];
+function pkLoad(key){return VOX.pkLoad('../rz/',key)}
+// 포켓몬 입체 모델 (s = 위치를 옮기는 뿌리)
+function mkPoke(key,size,mut){const vp=new VOX.Poke('../rz/',key,{size:size||1,tint:mut?MUTS[mut].tint:0});return{s:vp.root,vp,key,size:size||1,mut:mut||0}}
+function pokeTick(o,dt,vx,vz,now){o.vp.tick(dt,camera,vx||0,vz||0)}
+function pokeH(o){const g=o.vp.mesh.geometry;return g&&g.boundingSphere?g.boundingSphere.radius*1.6*o.vp.size:3}
 
 /* =====================================================================
    8. 이펙트 (그림 띠 애니메이션)
    ===================================================================== */
 const FX=[];
 function fxPlay(name,pos,h,o={}){
-  const img=IMG[name];if(!img)return null;const n=STRIPN(name);const t=texOf(img,false);t.repeat.set(1/n,1);
+  const img=IMG[name];if(!img)return null;const n=STRIPN(name);const fr=VOX.stripTex(img,n,name),t=fr[0];
   const m=new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:o.dt!==false,blending:o.add?THREE.AdditiveBlending:THREE.NormalBlending});
   const s=new THREE.Sprite(m);s.center.set(.5,o.cy==null?.5:o.cy);s.scale.set(h*(img.width/n)/img.height,h,1);s.position.copy(pos);s.renderOrder=o.ro||4;if(o.rot)m.rotation=o.rot;scene.add(s);
-  const f={s,t,n,fps:o.fps||12,loop:!!o.loop,age:0,life:o.life||(n/(o.fps||12)),fade:o.fade!==false,vy:o.vy||0};FX.push(f);return f}
+  const f={s,fr,t,n,fps:o.fps||12,loop:!!o.loop,age:0,life:o.life||(n/(o.fps||12)),fade:o.fade!==false,vy:o.vy||0};FX.push(f);return f}
 function fxTick(dt){for(let i=FX.length-1;i>=0;i--){const f=FX[i];f.age+=dt;const fr=Math.floor(f.age*f.fps);
-  if(!f.manual)f.t.offset.x=(f.loop?fr%f.n:Math.min(f.n-1,fr))/f.n;f.s.position.y+=f.vy*dt;
+  if(!f.manual){const k=f.loop?fr%f.n:Math.min(f.n-1,fr);if(f.s.material.map!==f.fr[k])f.s.material.map=f.fr[k]}f.s.position.y+=f.vy*dt;
   if(f.fade&&!f.loop)f.s.material.opacity=Math.max(0,1-Math.max(0,f.age-f.life*.6)/(f.life*.4));
-  if(f.age>=f.life){scene.remove(f.s);f.t.dispose();f.s.material.dispose();FX.splice(i,1)}}}
+  if(f.age>=f.life){scene.remove(f.s);f.s.material.dispose();FX.splice(i,1)}}}
 function fxKill(f){if(!f)return;const i=FX.indexOf(f);if(i>=0){scene.remove(f.s);FX.splice(i,1)}}
 
 /* =====================================================================
@@ -535,7 +500,7 @@ function onThrow(){
   const target=Z0-dist;
   const base=+(totalLuck()*lb).toFixed(2);let gm=1;GATES.forEach(g=>{if(g.z>target&&g.z<Z0+.1)gm*=g.mult});
   state.atk=.36;
-  foodSpr.material.map=texOf(IMG['food_'+save.food]);foodSpr.material.needsUpdate=true;foodSpr.visible=true;foodSpr.position.set(0,3,-16);
+  foodSpr.geometry=vgeo('food_'+save.food,2.8,56);foodSpr.visible=true;foodSpr.position.set(0,3,-16);
   state.mode='FLYING';state.fl={p:0,dur:Math.min(5.2,1.6+dist/170),sz:-16,tz:target,dist,base,luck:base,final:+(base*gm).toFixed(2),food:f,passed:0,trailT:0};
   $('flight').classList.remove('hide');sfx.whoosh();updateHUD()}
 function rollMut(l){const L=MUTS.map((m,i)=>({m,w:i?m.w*(1+Math.log10(Math.max(1,l))):m.w}));const T=L.reduce((s,v)=>s+v.w,0);let r=Math.random()*T;for(const it of L){if(r<it.w)return it.m.r;r-=it.w}return 0}
@@ -643,8 +608,15 @@ function syncRanch(){
   ranch.forEach(o=>scene.remove(o.s));ranch.length=0;comps.forEach(o=>scene.remove(o.s));comps.length=0;
   save.mons.forEach((a,i)=>{const o=mkPoke(a.sp,1.25,a.mu);o.s.position.set(PEN.x-PEN.w/2+Math.random()*PEN.w,0,PEN.z-PEN.d/2+Math.random()*PEN.d);o.tgt=o.s.position.clone();o.wait=Math.random()*2;scene.add(o.s);ranch.push(o);
     if(a.eq){const c=mkPoke(a.sp,1.1,a.mu);c.s.position.set(player.pos.x,0,player.pos.z+2);scene.add(c.s);comps.push(c)}})}
+const PEN_COL=[0x8a5a2b,0x6b7280,0x7a5230,0x3a3f4a,0x8a5a2b,0x5fd0e8,0xd4a830,0x2a1a18,0xb8ecff,0xf0e6ff];let fenceG=null;
+function penFence(){if(fenceG)scene.remove(fenceG);fenceG=new THREE.Group();const m=new THREE.MeshStandardMaterial({color:PEN_COL[save.pen],roughness:.6,metalness:save.pen>=6?.4:.05,emissive:save.pen===7?0xff4a0a:0,emissiveIntensity:save.pen===7?.25:0});
+  const x0=PEN.x-PEN.w/2-1,x1=PEN.x+PEN.w/2+1,z0=PEN.z-PEN.d/2-1,z1=PEN.z+PEN.d/2+1;
+  const rail=(w,d,x,z)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,.25,d),m);b.position.set(x,.9,z);b.castShadow=true;fenceG.add(b);const b2=b.clone();b2.position.y=.45;fenceG.add(b2)};
+  rail(x1-x0,.25,(x0+x1)/2,z1);rail(.25,z1-z0,x0,(z0+z1)/2);rail(.25,z1-z0,x1,(z0+z1)/2);
+  for(let x=x0;x<=x1+.01;x+=2.25){const pst=new THREE.Mesh(new THREE.BoxGeometry(.35,1.3,.35),m);pst.position.set(x,.65,z1);pst.castShadow=true;fenceG.add(pst)}
+  [z0,(z0+z1)/2].forEach(z=>[x0,x1].forEach(x=>{const pst=new THREE.Mesh(new THREE.BoxGeometry(.35,1.3,.35),m);pst.position.set(x,.65,z);fenceG.add(pst)}));scene.add(fenceG)}
 function refreshBar(){if(world.deco.bar){const n=bill('bar_'+save.bar,7.2);n.position.copy(world.deco.bar.position);scene.remove(world.deco.bar);world.deco.bar=n;scene.add(n)}}
-function refreshPen(){if(world.deco.pen){const n=bill('pen_'+save.pen,15,{dw:false,ro:0});n.position.copy(world.deco.pen.position);scene.remove(world.deco.pen);world.deco.pen=n;scene.add(n)}}
+function refreshPen(){penFence();if(world.deco.pen){const n=bill('pen_'+save.pen,11,{res:100});n.position.copy(world.deco.pen.position);scene.remove(world.deco.pen);world.deco.pen=n;scene.add(n)}}
 
 /* =====================================================================
    13. 입력
@@ -674,7 +646,7 @@ joy.addEventListener('pointerup',e=>{if(e.pointerId!==joyId)return;joyId=null;kn
 /* =====================================================================
    15. 주인공 · 먹이
    ===================================================================== */
-const player={pos:new THREE.Vector3(-4,0,8),dir:'b',mv:false};
+const player={pos:new THREE.Vector3(-4,0,8),hx:0,hz:-1,mv:false};
 let foodSpr=null;
 
 /* =====================================================================
@@ -684,7 +656,7 @@ let last=performance.now(),secA=0,laneT=0;const tmpV=new THREE.Vector3();
 function heroDirFromMove(dx,dz){const f=new THREE.Vector3();camera.getWorldDirection(f);f.y=0;f.normalize();const r=new THREE.Vector3(-f.z,0,f.x);const sx=dx*r.x+dz*r.z,sf=dx*f.x+dz*f.z;
   return Math.abs(sf)>=Math.abs(sx)?(sf>0?'b':'f'):(sx>0?'r':'l')}
 function loop(){
-  requestAnimationFrame(loop);const now=performance.now(),dt=Math.min((now-last)/1000,.05);last=now;
+  requestAnimationFrame(loop);const now=performance.now(),dt=Math.min((now-last)/1000,.05);last=now;VOX.frame(LOWDEV?1:2);
   // 바닥 애니메이션
   laneT+=dt;if(laneT>.2){laneT=0;world.lanes.forEach(L=>{L.i=(L.i+1)%L.texs.length;L.mat.map=L.texs[L.i];L.mat.needsUpdate=true})}
   if(state.atk>0)state.atk=Math.max(0,state.atk-dt);
@@ -697,37 +669,37 @@ function loop(){
       if(Math.abs(state.joy.x)>.08||Math.abs(state.joy.y)>.08){rt=state.joy.x;fw=-state.joy.y}
       const fv=new THREE.Vector3(-Math.sin(state.camYaw),0,-Math.cos(state.camYaw)),rv=new THREE.Vector3(Math.cos(state.camYaw),0,-Math.sin(state.camYaw));
       const d=new THREE.Vector3().addScaledVector(fv,fw).addScaledVector(rv,rt);player.mv=d.lengthSq()>.001;
-      if(player.mv){d.normalize();player.pos.addScaledVector(d,13*dt);player.dir=heroDirFromMove(d.x,d.z)}
+      if(player.mv){d.normalize();player.pos.addScaledVector(d,13*dt);player.hx=d.x;player.hz=d.z}
       player.pos.x=Math.max(-32,Math.min(32,player.pos.x));player.pos.z=Math.max(-17,Math.min(24,player.pos.z));
       if(save.store>=1&&Math.hypot(player.pos.x-7.5,player.pos.z-10)<2.6){const a=Math.floor(save.store);save.cash+=a;save.store=0;sfx.coin();updateHUD();toast('자동 수금 +'+fmt(a),'#7cf0a4');fxPlay('fa_glow',new THREE.Vector3(7.5,1,10.5),5,{fps:10})}
       if(Math.hypot(player.pos.x-BAR_POS.x,player.pos.z-BAR_POS.z)<2.2)startPull();
       // 상점 · 마법사 밟으면 열기
       const zn=Math.hypot(player.pos.x+20,player.pos.z-12)<3.2?'food':Math.hypot(player.pos.x+22,player.pos.z+4)<3.2?'rebirth':null;
       if(zn&&state.zone!==zn&&$('mback').classList.contains('hide')){openM(zn)}state.zone=zn;
-      HERO.s.position.copy(player.pos);
+      hero.root.position.copy(player.pos);
     }else if(state.mode==='PULLING'){
       state.pullPh+=dt*6.5;const lift=(Math.sin(state.pullPh)+1)*.5;tmpV.set(camera.position.x-BAR_POS.x,0,camera.position.z-BAR_POS.z).normalize().multiplyScalar(.6);
-      player.pos.set(BAR_POS.x,0,BAR_POS.z);HERO.s.position.set(BAR_POS.x+tmpV.x,2.6+lift,BAR_POS.z+tmpV.z);player.dir='b';player.mv=false;
+      player.pos.set(BAR_POS.x,0,BAR_POS.z);hero.root.position.set(BAR_POS.x+tmpV.x,2.6+lift,BAR_POS.z+tmpV.z);player.hx=0;player.hz=-1;player.mv=false;
       state.pullT+=dt;if(state.pullT>=.65){state.pullT=0;doPull()}
     }else if(state.mode==='GAUGE'){
       state.gv+=state.gd*1.45*dt;if(state.gv>=1){state.gv=1;state.gd=-1}if(state.gv<=0){state.gv=0;state.gd=1}
-      $('garrow').style.bottom=(3+state.gv*92)+'%';player.dir='b';player.mv=false;HERO.s.position.copy(player.pos);
+      $('garrow').style.bottom=(3+state.gv*92)+'%';player.hx=0;player.hz=-1;player.mv=false;hero.root.position.copy(player.pos);
     }else if(state.mode==='FLYING'){
-      const F=state.fl;F.p+=dt/F.dur;HERO.s.position.copy(player.pos);
+      const F=state.fl;F.p+=dt/F.dur;hero.root.position.copy(player.pos);
       if(F.p>=1){land(F.tz,F.final)}else{
         const e=F.p<.5?2*F.p*F.p:1-Math.pow(-2*F.p+2,2)/2;// 처음·끝은 천천히
-        const z=F.sz+(F.tz-F.sz)*e,y=2.4+Math.sin(F.p*Math.PI)*Math.min(30,12+F.dist*.03);foodSpr.position.set(0,y,z);foodSpr.material.rotation+=dt*7;
+        const z=F.sz+(F.tz-F.sz)*e,y=2.4+Math.sin(F.p*Math.PI)*Math.min(30,12+F.dist*.03);foodSpr.position.set(0,y,z);foodSpr.rotation.y+=dt*6;foodSpr.rotation.x+=dt*3;
         // 아치 통과
         while(F.passed<GATES.length&&z<=GATES[F.passed].z){const G=GATES[F.passed];if(G.z<Z0+.1&&G.mult>1){F.luck=+(F.luck*G.mult).toFixed(2);sfx.gate();toast('아치 통과!  행운 x'+G.mult,'#ffe16b');fxPlay('fa_burst',new THREE.Vector3(0,y,G.z),12,{fps:10,dt:false})}F.passed++}
-        F.trailT+=dt;if(F.trailT>.045){F.trailT=0;const tr=F.food.trail;fxPlay(tr,new THREE.Vector3((Math.random()-.5)*.6,y,z+1.2),/^pj_/.test(tr)?3.2:4.2,{fps:14,rot:Math.PI/2,add:true})}
+        F.trailT+=dt;if(F.trailT>(LOWDEV?.09:.05)){F.trailT=0;const tr=F.food.trail;fxPlay(tr,new THREE.Vector3((Math.random()-.5)*.6,y,z+1.2),/^pj_/.test(tr)?3.2:4.2,{fps:14,rot:Math.PI/2,add:true})}
         const bm=biomeAt(z),dm=Math.round(-(z-Z0)<0?0:-(z-Z0));
         $('fluck').textContent=F.luck.toFixed(2)+'X';$('fbiome').textContent=bm.name+'  '+dm+'m';$('fmark').style.left=(4+Math.min(1,dm/MAXD)*90)+'%';
         scene.background.lerp(new THREE.Color(bm.sky),.04);scene.fog.color.copy(scene.background);
       }
     }else if(state.mode==='EATING'){
-      const E=state.enc,P=E.P;HERO.s.position.copy(player.pos);
+      const E=state.enc,P=E.P;hero.root.position.copy(player.pos);
       if(E.walk){const dz=(E.z-2.2)-P.s.position.z;if(dz>.1){const v=Math.min(dz,11*dt);P.s.position.z+=v;pokeTick(P,dt,0,1,now)}else{E.walk=false}}
-      else{E.eat+=dt/2.4;pokeTick(P,dt,0,0,now);if(bowlFx)bowlFx.t.offset.x=Math.min(4,Math.floor(E.eat*5))/5;
+      else{E.eat+=dt/2.4;pokeTick(P,dt,0,0,now);if(bowlFx)bowlFx.s.material.map=bowlFx.fr[Math.min(4,Math.floor(E.eat*5))];
         const n=Math.min(8,Math.floor(E.eat*8));$('eatBar').querySelectorAll('b').forEach((b,i)=>{b.className=i<n?(i%3===0?'on hp':'on'):''});
         if(Math.random()<.2)sfx.munch();if(E.eat>=1){E.eat=-99;capture()}}
     }
@@ -742,11 +714,11 @@ function loop(){
     if(d<.3){o.wait=1+Math.random()*3;o.tgt.set(PEN.x-PEN.w/2+Math.random()*PEN.w,0,PEN.z-PEN.d/2+Math.random()*PEN.d);pokeTick(o,dt,0,0,now);return}
     o.s.position.x+=dx/d*2.2*dt;o.s.position.z+=dz/d*2.2*dt;pokeTick(o,dt,dx/d,dz/d,now)});
   PK_LIVE.forEach(o=>{o.t2=(o.t2||Math.random()*9)+dt;const vx=Math.cos(o.t2*.5),vz=Math.sin(o.t2*.5);o.s.position.x=o.home.x+vx*2;o.s.position.z=o.home.z+vz*2;pokeTick(o,dt,-Math.sin(o.t2*.5),Math.cos(o.t2*.5),now)});
-  if(HERO.s)heroFrame(player.dir,player.mv,now);
+  if(hero.F)hero.tick(now,camera,player.hx,player.hz,player.mv,state.atk>0?(state.atk>.18?1:.3):0);
   fxTick(dt);
   // 카메라
   if(state.mode==='FLYING'){const p=foodSpr.position;camera.position.lerp(tmpV.set(0,p.y+6,p.z+14),.2);camera.lookAt(0,p.y-1,p.z-14)}
-  else if(state.mode==='EATING'){const z=state.enc.z,h=Math.max(3,state.enc.P.s.scale.y);camera.position.lerp(tmpV.set(5+h*.35,3.5+h*.45,z+6+h*.9),.12);camera.lookAt(0,h*.38,z-2)}
+  else if(state.mode==='EATING'){const z=state.enc.z,h=Math.max(3,pokeH(state.enc.P));camera.position.lerp(tmpV.set(5+h*.35,3.5+h*.45,z+6+h*.9),.12);camera.lookAt(0,h*.38,z-2)}
   else{const R=state.mode==='GAUGE'?10:12,cx=player.pos.x+Math.sin(state.camYaw)*Math.cos(state.camPitch)*R,cy=2.8+Math.sin(state.camPitch)*R,cz=player.pos.z+Math.cos(state.camYaw)*Math.cos(state.camPitch)*R;
     camera.position.lerp(tmpV.set(cx,cy,cz),.18);camera.lookAt(player.pos.x,2.2,player.pos.z)}
   renderer.render(scene,camera);
@@ -762,7 +734,8 @@ async function boot(){
     preload(p=>$('sload').firstChild.style.width=Math.round(p*100)+'%')]);
   await heroBuild(HERO.eq||DEF_EQ);
   buildWorld();heroInit();
-  foodSpr=new THREE.Sprite(new THREE.SpriteMaterial({map:texOf(IMG.food_0),transparent:true,alphaTest:.1}));foodSpr.scale.set(4.6,4.6,1);foodSpr.visible=false;foodSpr.renderOrder=5;scene.add(foodSpr);
+  foodSpr=new THREE.Mesh(vgeo('food_0',2.8,56),VOX.mat());foodSpr.castShadow=true;foodSpr.visible=false;scene.add(foodSpr);
+  scene.traverse(o=>{if(o.material&&o.material.isMeshStandardMaterial&&o.material.envMapIntensity===1)o.material.envMapIntensity=.35});
   syncRanch();refreshBar();refreshPen();updateHUD();
   $('bPlay').disabled=false;$('bPlay').textContent='시작하기';
   (function pv(){if(!$('start').classList.contains('hide')){drawHeroPreview($('sHero'),performance.now());requestAnimationFrame(pv)}})();
@@ -771,7 +744,7 @@ async function boot(){
 $('bPlay').onclick=()=>{sfx.init();sfx.coin();state.started=true;$('start').classList.add('hide');$('hud').classList.remove('hide');updateHUD()};
 // 포켓몬 게임 안에서 열렸으면 내 캐릭터 옷을 받아요
 let gotMe=null;
-addEventListener('message',e=>{const m=e.data;if(e.origin!==location.origin||!m||m.src!=='poke'||m.type!=='me')return;if(m.eq&&Object.keys(m.eq).length){gotMe=m.eq;if(HERO.pk)heroBuild(m.eq).then(()=>{HERO.key=''})}});
+addEventListener('message',e=>{const m=e.data;if(e.origin!==location.origin||!m||m.src!=='poke'||m.type!=='me')return;if(m.eq&&Object.keys(m.eq).length){gotMe=m.eq;if(hero.F)hero.dress(m.eq)}});
 if(window.parent!==window){try{parent.postMessage({src:'foodthrow',type:'hello'},location.origin)}catch(e){}}
 setTimeout(()=>{HERO.eq=gotMe;boot()},window.parent!==window?350:0);
 </script>
