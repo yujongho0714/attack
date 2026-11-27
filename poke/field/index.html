@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<!-- © 2026 유종호 (용인대 정도 태권도 2관). All rights reserved. 권리자 본인이 요청하는 수정 · 유지보수는 허용. -->
+<meta name="robots" content="noindex,nofollow,noai">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>오픈필드 사냥 테스트</title>
+<style>
+@font-face{font-family:'Galmuri11';src:url('../fonts/Galmuri11.woff2') format('woff2')}
+html,body{margin:0;height:100%;background:#0b0f1e;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;font-family:'Galmuri11',system-ui,sans-serif;color:#fff}
+canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}
+.hud{position:fixed;left:8px;top:calc(8px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.box{background:#0c1430d8;border:2px solid #1c2550;box-shadow:0 0 0 2px #8a96c8;padding:5px 8px;font-size:12px;line-height:1.4}
+.box b{color:#ffd23f}.hp{width:180px;height:10px;background:#2a1020;border:1px solid #000;margin-top:2px}.hp i{display:block;height:100%;background:linear-gradient(#5ef08a,#2cb85a)}
+.st{position:fixed;right:8px;top:calc(8px + env(safe-area-inset-top));text-align:right;pointer-events:none}
+.tag{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);background:#e5482f;color:#fff;font-size:11px;padding:2px 10px;border:2px solid #fff;pointer-events:none}
+.skills{position:fixed;right:calc(10px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,76px);gap:8px}
+.sk{position:relative;width:76px;height:76px;border-radius:50%;border:3px solid #fff;color:#fff;font:900 13px 'Galmuri11',system-ui;display:grid;place-items:center;text-align:center;line-height:1.15;box-shadow:0 4px 0 #0008;overflow:hidden}
+.sk small{display:block;font-size:10px;opacity:.85}.sk .cd{position:absolute;inset:0;background:#000a;transform-origin:bottom;transform:scaleY(0)}
+.bar{position:fixed;left:10px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:6px}
+.bar button{padding:8px 12px;border:3px solid #0b0f24;background:#ffd23f;color:#1c2550;font:900 13px 'Galmuri11',system-ui;box-shadow:0 3px 0 #0b0f24}
+.bar button.on{background:#3fae5a;color:#fff}
+#set{position:fixed;inset:0;background:#000a;display:none;place-items:center;z-index:5}#set.on{display:grid}
+#set .p{width:min(92vw,460px);max-height:88vh;overflow:auto;background:#fffbe8;color:#1c2550;border:3px solid #1c2550;box-shadow:0 0 0 3px #ffd23f;padding:12px}
+#set h3{margin:0 0 8px}#set label{display:grid;grid-template-columns:120px 1fr 56px;align-items:center;gap:6px;font-size:13px;margin:6px 0}#set output{font-weight:900;text-align:right}
+#set .row{display:flex;gap:6px;margin-top:10px}#set button{flex:1;padding:8px;border:3px solid #0b0f24;background:#ffd23f;font:900 13px 'Galmuri11',system-ui}
+#joy{position:fixed;width:120px;height:120px;border-radius:50%;border:3px solid #fff6;background:#0003;display:none;pointer-events:none}#joy i{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:#fff8}
+#load{position:fixed;inset:0;display:grid;place-items:center;background:#0b0f1e;font-size:15px;z-index:9}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="tag">테스트 · 아이들 메뉴에는 없어요</div>
+<div class="hud"><div class="box"><b id="pn">-</b> <span id="pl"></span><div class="hp"><i id="php"></i></div><small id="phx"></small></div>
+ <div class="box" id="dfr"></div></div>
+<div class="st box" id="stat"></div>
+<div class="bar"><button id="bAuto">자동사냥</button><button id="bSet">설정</button><button id="bBack">나가기</button></div>
+<div class="skills"><div class="sk" data-s="2" style="background:#7a3ad0">회전베기<small>주변 전부</small><i class="cd"></i></div><div class="sk" data-s="3" style="background:#d04a2a">메테오<small>몰린 곳</small><i class="cd"></i></div>
+ <div class="sk" data-s="0" style="background:#2f7be8">공격<small>앞쪽</small><i class="cd"></i></div><div class="sk" data-s="1" style="background:#1e9e5e">빔<small>일직선</small><i class="cd"></i></div></div>
+<div id="joy"><i></i></div>
+<div id="set"><div class="p"><h3>테스트 설정</h3>
+ <label>상대 방어율<input type="range" id="sDef" min="0" max="200" value="80"><output></output></label>
+ <label>내 방어력 무시<input type="range" id="sIgn" min="0" max="90" value="0"><output></output></label>
+ <label>일반 공격력<input type="range" id="sNorm" min="0" max="200" value="0"><output></output></label>
+ <label>크리티컬 확률<input type="range" id="sCrt" min="0" max="100" value="20"><output></output></label>
+ <label>크리 저항<input type="range" id="sCrr" min="0" max="60" value="15"><output></output></label>
+ <label>크리 데미지<input type="range" id="sCdm" min="0" max="300" value="50"><output></output></label>
+ <label>몬스터 수<input type="range" id="sMob" min="5" max="60" value="22"><output></output></label>
+ <label>젠 시간(초)<input type="range" id="sGen" min="1" max="15" value="4"><output></output></label>
+ <label>화면 배율<input type="range" id="sZoom" min="1.5" max="5" step=".5" value="2.5"><output></output></label>
+ <label>지도<select id="sMap"><option value="m17">23번도로</option><option value="h11">119번도로</option><option value="h13">120번도로</option><option value="s05">215번도로</option><option value="m03">4번도로</option><option value="m11">15번도로</option></select><span></span></label>
+ <div class="row"><button id="sClose">닫기</button></div></div></div>
+<div id="load">불러오는 중…</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id),cv=$('c'),cx=cv.getContext('2d');
+const T=16,Q=new URLSearchParams(location.search);let Z=+(Q.get('z')||2.5);
+const S={def:.8,ign:0,norm:0,crt:.2,crr:.15,cdm:.5,mob:22,gen:4};
+const R=Math.random,ri=(a,b)=>a+Math.floor(R()*(b-a+1)),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+let MAP=null,LO=null,HI=null,W=0,H=0,M=null,GR=[],WK=[];
+const SPR={},DEX={};let RZ=null;
+// ---------- 데이터 ----------
+async function loadJSON(u){const r=await fetch(u);return r.json()}
+function sheet(key){if(SPR[key])return SPR[key];const o={ok:0,a:null,img:{}};SPR[key]=o;
+  loadJSON('../rz/'+key+'/'+key+'.pmd.json').then(j=>{o.a=j.anims;let n=0;for(const k of ['walk','attack','hurt']){const A=j.anims[k];if(!A)continue;const im=new Image();im.onload=()=>{o.ok=1};im.src='../rz/'+key+'/'+A.f+'-Anim.png';o.img[k]=im}}).catch(()=>{});return o}
+const DIRS=[[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]];   // PMD 줄 순서: 아래 · 오른아래 · 오른 · 오른위 · 위 · 왼위 · 왼 · 왼아래
+const dirRow=(dx,dy)=>{if(!dx&&!dy)return 0;const a=Math.atan2(dy,dx);const i=Math.round(a/(Math.PI/4));return [2,1,0,7,6,5,4,3][(i+8)%8]};
+function drawMon(o,x,y,anim,t,row,sc,alpha){const s=sheet(o);const A=s.a&&(s.a[anim]||s.a.walk),im=s.img[anim]||s.img.walk;if(!A||!im||!im.complete||!im.naturalWidth){cx.fillStyle='#fff8';cx.beginPath();cx.arc(x,y-8*sc,6*sc,0,7);cx.fill();return}
+  let tot=A.d.reduce((a,b)=>a+b,0),f=0,u=Math.floor(t*60)%tot;for(let i=0;i<A.n;i++){u-=A.d[i];if(u<0){f=i;break}}
+  const rows=Math.round(im.naturalHeight/A.h),r=rows>=8?row:0;cx.globalAlpha=alpha==null?1:alpha;
+  cx.drawImage(im,f*A.w,r*A.h,A.w,A.h,Math.round(x-A.a[0]*sc),Math.round(y-A.a[1]*sc),A.w*sc,A.h*sc);cx.globalAlpha=1}
+// ---------- 지도 ----------
+async function loadMap(id){const j=await loadJSON('../maps/'+id+'.json');MAP=j;W=+j.w;H=+j.h;const raw=atob(j.cells);M=new Uint8Array(W*H);GR=[];WK=[];
+  for(let i=0;i<W*H;i++){const v=raw.charCodeAt(i);M[i]=v;if(v===2)GR.push(i);if(v===1||v===2||v===4)WK.push(i)}
+  LO=new Image();LO.src='../maps/'+id+'_lo.webp';HI=new Image();HI.src='../maps/'+id+'_hi.webp';await new Promise(r=>{LO.onload=r;LO.onerror=r})}
+const walk=(px,py)=>{const x=Math.floor(px/T),y=Math.floor(py/T);if(x<0||y<0||x>=W||y>=H)return false;const v=M[y*W+x];return v===1||v===2||v===4};
+// ---------- 나 ----------
+const P={x:0,y:0,vx:0,vy:0,row:0,hp:1,mx:1,lv:50,atk:100,key:'CHARIZARD',name:'리자몽',t:0,act:0,inv:0,cd:[0,0,0,0]};
+function loadSave(){try{let best=null;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||!k.startsWith('pka-save:'))continue;const v=JSON.parse(localStorage.getItem(k));if(v&&v.party&&v.party.length&&(!best||(v.t||0)>(best.t||0)))best=v}
+  if(!best)return;const m=best.party[0];const dex=parseInt(String(m.n).replace(/\D/g,''),10);if(DEX[dex]){P.key=DEX[dex][0];P.name=DEX[dex][1]}P.lv=Math.min(100,m.lv||50);P.rb=best.rebirth||0}catch(e){}}
+// ---------- 몬스터 ----------
+let MOBS=[],POOL=[],DROPS=[],FX=[],NUM=[];
+const ST={kill:0,gold:0,cube:0,t0:performance.now()};
+function mkPool(){const L=Object.entries(RZ).filter(([k,v])=>v&&v[0]>0&&v[0]<=493&&v[3]&&v[3].reduce((a,b)=>a+b,0)<380&&!/_/.test(k));POOL=[];for(let i=0;i<8;i++){const e=L[ri(0,L.length-1)];POOL.push({key:e[0],name:e[1][1],bst:e[1][3].reduce((a,b)=>a+b,0)})}}
+function spawn(){const SP=GR.length>40?GR:WK;if(!SP.length)return;for(let k=0;k<20;k++){const i=SP[ri(0,SP.length-1)],x=(i%W)*T+T/2,y=Math.floor(i/W)*T+T/2;if(Math.hypot(x-P.x,y-P.y)<T*6)continue;
+  const s=POOL[ri(0,POOL.length-1)],lv=ri(P.lv-3,P.lv+3),hp=Math.round((40+s.bst*.9)*(1+lv/25));
+  MOBS.push({x,y,hx:x,hy:y,key:s.key,name:s.name,lv,hp,mx:hp,row:0,t:R()*9,tx:x,ty:y,wt:0,ag:0,hit:0,dead:0});return}}
+// ---------- 데미지 ----------
+const dmgK=()=>Math.max(.05,1-S.def*(1-Math.min(.9,S.ign)));
+function hit(m,mul,big){if(m.dead)return;const ce=Math.max(0,S.crt-S.crr),cr=R()<ce;let d=P.atk*mul*(.85+R()*.3)*dmgK()*(1+S.norm)*(cr?1.5+S.cdm:1);d=Math.max(1,Math.round(d));
+  m.hp-=d;m.hit=.18;m.ag=1;NUM.push({x:m.x+ri(-6,6),y:m.y-28,v:d,cr,t:0});if(m.hp<=0){m.dead=1;m.dt=0;ST.kill++;drop(m);setTimeout(()=>{MOBS=MOBS.filter(x=>x!==m)},450)}}
+function drop(m){const n=ri(1,3);for(let i=0;i<n;i++)DROPS.push({x:m.x+ri(-10,10),y:m.y+ri(-6,6),k:'g',v:ri(5,15)*m.lv,t:0});if(R()<.06)DROPS.push({x:m.x,y:m.y,k:'c',t:0})}
+// ---------- 기술 ----------
+const SK=[{n:'공격',cd:.35,f:()=>{const r=T*2.6,[dx,dy]=DIRS[P.row];FX.push({k:'arc',x:P.x,y:P.y,dx,dy,r,t:0,l:.18});let c=0;for(const m of MOBS){if(m.dead)continue;const vx=m.x-P.x,vy=m.y-P.y,dd=Math.hypot(vx,vy);if(dd<r&&(dd<T||(vx*dx+vy*dy)/dd/Math.hypot(dx,dy)>.35)){hit(m,1);if(++c>=4)break}}}},
+ {n:'빔',cd:1.6,f:()=>{const [dx,dy]=DIRS[P.row],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,len=T*9;FX.push({k:'beam',x:P.x,y:P.y-10,ux,uy,len,t:0,l:.3});for(const m of MOBS){if(m.dead)continue;const vx=m.x-P.x,vy=m.y-P.y,pr=vx*ux+vy*uy;if(pr<0||pr>len)continue;if(Math.abs(vx*uy-vy*ux)<T*1.1)hit(m,1.8)}}},
+ {n:'회전베기',cd:3,f:()=>{const r=T*4;FX.push({k:'ring',x:P.x,y:P.y,r,t:0,l:.35});for(const m of MOBS)if(!m.dead&&Math.hypot(m.x-P.x,m.y-P.y)<r)hit(m,1.4)}},
+ {n:'메테오',cd:6,f:()=>{let best=null,bn=0;for(const m of MOBS){if(m.dead||Math.hypot(m.x-P.x,m.y-P.y)>T*10)continue;let n=0;for(const q of MOBS)if(!q.dead&&Math.hypot(q.x-m.x,q.y-m.y)<T*3.5)n++;if(n>bn){bn=n;best=m}}
+   const tx=best?best.x:P.x+DIRS[P.row][0]*T*5,ty=best?best.y:P.y+DIRS[P.row][1]*T*5;FX.push({k:'met',x:tx,y:ty,r:T*3.5,t:0,l:.9});setTimeout(()=>{for(const m of MOBS)if(!m.dead&&Math.hypot(m.x-tx,m.y-ty)<T*3.5)hit(m,3.2)},600)}}];
+function use(i){if(P.cd[i]>0)return;P.cd[i]=SK[i].cd;P.act=.25;SK[i].f()}
+// ---------- 입력 ----------
+const KEY={};addEventListener('keydown',e=>{KEY[e.key.toLowerCase()]=1;const m={j:0,k:1,l:2,';':3,' ':0}[e.key.toLowerCase()];if(m!=null)use(m)});addEventListener('keyup',e=>{KEY[e.key.toLowerCase()]=0});
+let JS=null;const joy=$('joy');
+cv.addEventListener('pointerdown',e=>{if(e.clientX>innerWidth*.6)return;JS={id:e.pointerId,x:e.clientX,y:e.clientY,dx:0,dy:0};joy.style.display='block';joy.style.left=(e.clientX-60)+'px';joy.style.top=(e.clientY-60)+'px'});
+addEventListener('pointermove',e=>{if(!JS||e.pointerId!==JS.id)return;let dx=e.clientX-JS.x,dy=e.clientY-JS.y;const l=Math.hypot(dx,dy);if(l>45){dx*=45/l;dy*=45/l}JS.dx=dx/45;JS.dy=dy/45;joy.firstChild.style.transform=`translate(${dx}px,${dy}px)`});
+const jend=e=>{if(JS&&e.pointerId===JS.id){JS=null;joy.style.display='none'}};addEventListener('pointerup',jend);addEventListener('pointercancel',jend);
+document.querySelectorAll('.sk').forEach(b=>b.addEventListener('pointerdown',e=>{e.stopPropagation();use(+b.dataset.s)}));
+let AUTO=0;$('bAuto').onclick=()=>{AUTO=!AUTO;$('bAuto').classList.toggle('on',!!AUTO)};
+$('bBack').onclick=()=>{location.href='../index.html'};
+// 설정
+const SL=[['sDef','def',.01,v=>v+'%'],['sIgn','ign',.01,v=>v+'%'],['sNorm','norm',.01,v=>v+'%'],['sCrt','crt',.01,v=>v+'%'],['sCrr','crr',.01,v=>v+'%'],['sCdm','cdm',.01,v=>v+'%'],['sMob','mob',1,v=>v],['sGen','gen',1,v=>v+'초'],['sZoom','z',1,v=>'×'+v]];
+SL.forEach(([id,k,m,f])=>{const el=$(id),o=el.nextElementSibling;const up=()=>{o.textContent=f(el.value);if(k==='z')Z=+el.value;else S[k]=+el.value*m};el.oninput=up;up()});
+$('bSet').onclick=()=>$('set').classList.add('on');$('sClose').onclick=()=>$('set').classList.remove('on');
+$('sMap').onchange=async e=>{await start(e.target.value)};
+// ---------- 루프 ----------
+let last=performance.now(),fps=60,fa=0,fn=0,genT=0;
+function step(dt){P.t+=dt;for(let i=0;i<4;i++)P.cd[i]=Math.max(0,P.cd[i]-dt);P.act=Math.max(0,P.act-dt);P.inv=Math.max(0,P.inv-dt);
+  let ix=(KEY.d||KEY.arrowright?1:0)-(KEY.a||KEY.arrowleft?1:0),iy=(KEY.s||KEY.arrowdown?1:0)-(KEY.w||KEY.arrowup?1:0);if(JS){ix=JS.dx;iy=JS.dy}
+  if(AUTO&&!ix&&!iy){let t=null,bd=1e9;for(const m of MOBS){if(m.dead)continue;const d=Math.hypot(m.x-P.x,m.y-P.y);if(d<bd){bd=d;t=m}}
+    if(t){const dx=t.x-P.x,dy=t.y-P.y;P.row=dirRow(dx,dy);let near=0;for(const m of MOBS)if(!m.dead&&Math.hypot(m.x-P.x,m.y-P.y)<T*4)near++;
+      if(near>=3&&!P.cd[2])use(2);else if(!P.cd[3]&&bd<T*9)use(3);else if(bd<T*8&&!P.cd[1]&&bd>T*2)use(1);else if(bd<T*2.3)use(0);else{ix=dx/bd;iy=dy/bd}}}
+  const l=Math.hypot(ix,iy);if(l>.15){const sp=T*6*(P.act>0?.4:1);const nx=P.x+ix/Math.max(1,l)*sp*dt,ny=P.y+iy/Math.max(1,l)*sp*dt;if(walk(nx,P.y))P.x=nx;if(walk(P.x,ny))P.y=ny;P.row=dirRow(ix,iy);P.mv=1}else P.mv=0;
+  // 몬스터
+  for(const m of MOBS){m.t+=dt;m.hit=Math.max(0,m.hit-dt);if(m.dead){m.dt+=dt;continue}const dP=Math.hypot(P.x-m.x,P.y-m.y);
+    let tx,ty;if(m.ag&&dP<T*12){tx=P.x;ty=P.y}else{m.ag=0;m.wt-=dt;if(m.wt<=0){m.wt=ri(1,4);m.tx=m.hx+ri(-3,3)*T;m.ty=m.hy+ri(-3,3)*T}tx=m.tx;ty=m.ty}
+    const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy);if(d>T*.6){const sp=T*(m.ag?3.2:1.4);const nx=m.x+dx/d*sp*dt,ny=m.y+dy/d*sp*dt;if(walk(nx,m.y))m.x=nx;if(walk(m.x,ny))m.y=ny;m.row=dirRow(dx,dy);m.mv=1}else m.mv=0;
+    if(dP<T*1.1&&!P.inv){P.hp=Math.max(0,P.hp-Math.round(P.mx*.04));P.inv=.6;NUM.push({x:P.x,y:P.y-30,v:'-'+Math.round(P.mx*.04),me:1,t:0});if(P.hp<=0){P.hp=P.mx;NUM.push({x:P.x,y:P.y-50,v:'쓰러졌어요 · 다시!',me:1,t:0})}}}
+  P.hp=Math.min(P.mx,P.hp+P.mx*.01*dt);
+  // 젠
+  genT-=dt;if(genT<=0){genT=S.gen/Math.max(1,S.mob/8);if(MOBS.filter(m=>!m.dead).length<S.mob)spawn()}
+  // 드롭 줍기
+  for(const o of DROPS){o.t+=dt;const d=Math.hypot(o.x-P.x,o.y-P.y);if(d<T*3&&o.t>.4){o.x+=(P.x-o.x)*Math.min(1,dt*8);o.y+=(P.y-o.y)*Math.min(1,dt*8)}if(d<T*.8&&o.t>.4){o.got=1;if(o.k==='g')ST.gold+=o.v;else ST.cube++}}
+  DROPS=DROPS.filter(o=>!o.got&&o.t<40);
+  for(const f of FX)f.t+=dt;FX=FX.filter(f=>f.t<f.l);for(const n of NUM)n.t+=dt;NUM=NUM.filter(n=>n.t<.9)}
+function draw(){const w=cv.width=innerWidth*devicePixelRatio,h=cv.height=innerHeight*devicePixelRatio,z=Z*devicePixelRatio;cx.imageSmoothingEnabled=false;cx.fillStyle='#0b0f1e';cx.fillRect(0,0,w,h);
+  const camx=cl(P.x*z-w/2,0,Math.max(0,W*T*z-w)),camy=cl(P.y*z-h/2,0,Math.max(0,H*T*z-h));cx.save();cx.translate(-Math.round(camx),-Math.round(camy));cx.scale(z,z);
+  if(LO&&LO.complete)cx.drawImage(LO,0,0);if(HI&&HI.complete)cx.drawImage(HI,0,0);   // 풀숲 · 나무 위층을 먼저 그려서 몬스터가 안 가려지게
+  const vis=[];const x0=camx/z-T*2,x1=(camx+w)/z+T*2,y0=camy/z-T*3,y1=(camy+h)/z+T*2;
+  for(const m of MOBS)if(m.x>x0&&m.x<x1&&m.y>y0&&m.y<y1)vis.push(m);vis.push(P);vis.sort((a,b)=>a.y-b.y);
+  for(const o of DROPS){cx.fillStyle=o.k==='g'?'#ffd23f':'#ff5a9a';cx.strokeStyle='#5a3a00';cx.lineWidth=1;cx.beginPath();cx.arc(o.x,o.y-2-Math.abs(Math.sin(o.t*6))*3,o.k==='g'?3:4,0,7);cx.fill();cx.stroke()}
+  for(const e of vis){cx.fillStyle='#0004';cx.beginPath();cx.ellipse(e.x,e.y,8,3,0,0,7);cx.fill();
+    if(e===P){drawMon(P.key,P.x,P.y,P.act>0?'attack':'walk',P.mv||P.act?P.t:0,P.row,1,P.inv>0&&Math.floor(P.t*20)%2?.5:1)}
+    else{drawMon(e.key,e.x,e.y,e.hit>0?'hurt':'walk',e.mv?e.t:0,e.row,1,e.dead?Math.max(0,1-e.dt*2.2):1);if(!e.dead){cx.fillStyle='#000a';cx.fillRect(e.x-10,e.y-32,20,3);cx.fillStyle=e.ag?'#ff5a4a':'#5ef08a';cx.fillRect(e.x-10,e.y-32,20*Math.max(0,e.hp/e.mx),3)}}}
+  for(const f of FX){const k=f.t/f.l;cx.save();if(f.k==='arc'){cx.strokeStyle=`rgba(255,240,180,${1-k})`;cx.lineWidth=4;const a=Math.atan2(f.dy,f.dx);cx.beginPath();cx.arc(f.x,f.y-8,f.r*(.6+k*.4),a-1,a+1);cx.stroke()}
+    else if(f.k==='beam'){cx.strokeStyle=`rgba(120,220,255,${1-k})`;cx.lineWidth=9*(1-k)+2;cx.beginPath();cx.moveTo(f.x,f.y);cx.lineTo(f.x+f.ux*f.len,f.y+f.uy*f.len);cx.stroke();cx.strokeStyle=`rgba(255,255,255,${1-k})`;cx.lineWidth=2;cx.stroke()}
+    else if(f.k==='ring'){cx.strokeStyle=`rgba(200,140,255,${1-k})`;cx.lineWidth=6;cx.beginPath();cx.arc(f.x,f.y-6,f.r*(.3+k*.7),0,7);cx.stroke()}
+    else if(f.k==='met'){const fall=Math.min(1,k/.66);cx.fillStyle=`rgba(255,90,40,${.25*(1-k)})`;cx.beginPath();cx.arc(f.x,f.y,f.r,0,7);cx.fill();if(fall<1){cx.fillStyle='#ffb040';cx.beginPath();cx.arc(f.x+(1-fall)*-30,f.y-(1-fall)*120,6,0,7);cx.fill()}else{cx.strokeStyle=`rgba(255,200,80,${1-k})`;cx.lineWidth=5;cx.beginPath();cx.arc(f.x,f.y,f.r*((k-.66)/.34),0,7);cx.stroke()}}
+    cx.restore()}
+  cx.textAlign='center';for(const n of NUM){const a=1-n.t/.9;cx.globalAlpha=Math.max(0,a);cx.font=`900 ${n.cr?11:9}px Galmuri11,system-ui`;cx.lineWidth=3;cx.strokeStyle='#000';const y=n.y-n.t*22;const s=typeof n.v==='number'?n.v.toLocaleString():n.v;cx.strokeText(s,n.x,y);cx.fillStyle=n.me?'#ff6a6a':n.cr?'#ffd23f':'#fff';cx.fillText(s,n.x,y)}cx.globalAlpha=1;
+  cx.restore()}
+function hud(){const k=dmgK(),mins=(performance.now()-ST.t0)/60000;$('pn').textContent=P.name;$('pl').textContent='Lv.'+P.lv;$('php').style.width=(P.hp/P.mx*100)+'%';$('phx').textContent=Math.round(P.hp)+' / '+P.mx;
+  $('dfr').innerHTML=`방어율 <b>${Math.round(S.def*100)}%</b> · 방무 <b>${Math.round(S.ign*100)}%</b> → 데미지 <b style="color:${k<.6?'#ff7a6a':'#5ef08a'}">${Math.round(k*100)}%</b><br>크리 <b>${Math.round(Math.max(0,S.crt-S.crr)*100)}%</b> · 일반공 <b>+${Math.round(S.norm*100)}%</b>`;
+  $('stat').innerHTML=`처치 <b>${ST.kill}</b> · 분당 <b>${(ST.kill/Math.max(.05,mins)).toFixed(1)}</b><br>골드 <b>${ST.gold.toLocaleString()}</b> · 큐브 <b>${ST.cube}</b><br>몬스터 <b>${MOBS.filter(m=>!m.dead).length}</b> · <b style="color:${fps<40?'#ff7a6a':'#5ef08a'}">${fps} FPS</b>`;
+  document.querySelectorAll('.sk').forEach(b=>{const i=+b.dataset.s;b.querySelector('.cd').style.transform=`scaleY(${P.cd[i]/SK[i].cd})`})}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;fa+=dt;fn++;if(fa>=.5){fps=Math.round(fn/fa);fa=0;fn=0;hud()}step(dt);draw();requestAnimationFrame(loop)}
+async function start(id){$('load').style.display='grid';await loadMap(id);MOBS=[];DROPS=[];
+  const c=WK.length?WK[WK.length>>1]:0;P.x=(c%W)*T+T/2;P.y=Math.floor(c/W)*T+T/2;for(let i=0;i<S.mob;i++)spawn();$('load').style.display='none'}
+(async()=>{RZ=await loadJSON('../rzdex.json');for(const k in RZ){const v=RZ[k];if(v&&v[0]&&!DEX[v[0]])DEX[v[0]]=[k,v[1]]}
+  loadSave();P.atk=Math.round(60+P.lv*4);P.mx=Math.round(200+P.lv*12);P.hp=P.mx;mkPool();sheet(P.key);POOL.forEach(p=>sheet(p.key));
+  await start(Q.get('map')||'m17');requestAnimationFrame(loop)})();
+})();
+</script></body></html>
