@@ -9558,6 +9558,10 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112705,date:'11월 27일',t:'메뉴로 돌아가기 · 나가기 단추 크게 · 미니게임 빨리 열기',items:[
+  {h:"하던 메뉴로 돌아가요",p:["메뉴에서 연 상점 · 탑 · 계란훔치기 · 먹이 던지기 같은 걸 닫으면 <b>맵이 아니라 보던 메뉴 화면</b>으로 돌아가요."]},
+  {h:"나가기 단추가 커졌어요",p:["계란훔치기 · 먹이 던지기 화면 <b>아래 가운데 빨간 「← 나가기」</b> 단추로 나가요."]},
+  {h:"미니게임이 빨리 열려요",p:["3D 그림 도구를 게임 안에 넣고, 게임을 켜 두면 계란훔치기 · 먹이 던지기를 미리 받아 둬요. 두 번째부터는 훨씬 빨리 열려요."]}]},
  {v:2026112704,date:'11월 27일',t:'메뉴 단추 옮기기 · 진행도 순위 고침',items:[
   {h:"오른쪽 메뉴 단추를 하나씩 옮겨요",p:["메뉴 단추를 <b>손가락으로 꾹 눌러 끌면</b> 그 단추만 원하는 곳으로 옮겨져요. 자리는 기억해요. 그냥 누르면 원래처럼 열려요.","<b>「접기」</b> 단추도 끌어서 옮길 수 있어요. 「접기」를 <b>2초 꾹</b> 누르면 모든 단추가 처음 자리로 돌아가요."]},
   {h:"A 단추가 평소엔 숨어요",p:["맵에서 늘 떠 있던 A(공격) 단추가 다른 메뉴를 가려서 숨겼어요. <b>앞에 사람 · 표지판이 있거나 대화 중일 때만</b> 「대화」 단추로 나와요."]},
@@ -12182,6 +12186,23 @@ setInterval(()=>{try{const a=document.getElementById('bA');if(!a)return;let show
     if(A&&((A.npc||[]).some(n=>n.x===X&&n.y===Y&&!n.gone)||(A.M[Y]&&A.M[Y][X]===T_.SIGN)))show=true}
   a.classList.toggle('hideA',!show);if(show&&!a.classList.contains('talkA')){a.classList.add('talkA');a.innerHTML='대화'}}catch(e){}},300);
 }catch(e){console.warn('9EG',e)}})();
+</script>
+<script id="b9eh">
+// ===== 9EH 메뉴에서 연 컨텐츠(상점 · 계란훔치기 · 탑 …)를 닫으면 맵 대신 보던 메뉴로 돌아가요 · 미니게임 미리 받아 두기 =====
+(function(){try{
+let RET=null;
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-hb]');if(b&&document.querySelector('.panel'))RET={cat:HUB.cat,seen:0,t:Date.now(),calm:0}},true);
+const busy=()=>{try{return !!(PANEL||document.getElementById('etOv')||document.getElementById('ftOv')||document.getElementById('trScene')||(typeof BS!=='undefined'&&BS.on)||(typeof DLG!=='undefined'&&DLG.on)||document.querySelector('.panel'))}catch(e){return true}};
+const moving=()=>{try{return !!((typeof P!=='undefined'&&(P.mv||P.queue))||(typeof AUTO!=="undefined"&&AUTO.gt))}catch(e){return false}};
+setInterval(()=>{if(!RET)return;try{
+  if(busy()){RET.seen=1;RET.calm=0;return}
+  if(!RET.seen){if(Date.now()-RET.t>2500)RET=null;return}   // 아무 창도 안 열고 바로 움직이는 것(사냥 가기 · 이동)은 그대로
+  if(moving()||SCENE!=='over'){RET=null;return}
+  if(++RET.calm<2)return;   // 창이 바뀌는 사이(닫고 바로 다음 창)는 기다려요
+  const c=RET.cat;RET=null;HUB.cat=c;hubOpen('c')}catch(e){RET=null}},300);
+// 계란훔치기 · 먹이던지기 미리 받아 두기 (게임을 켜고 조금 뒤 · 와이파이일 때 들어가는 시간 줄이기)
+setTimeout(()=>{try{if(navigator.connection&&navigator.connection.saveData)return;['lib/three.min.js','lib/vox3d.js','eggthief/index.html','foodthrow/index.html','dressup/dress.json'].forEach((u,i)=>setTimeout(()=>fetch(u).catch(()=>{}),i*1500))}catch(e){}},25000);
+}catch(e){console.warn('9EH',e)}})();
 </script>
 <script src="https://yujongho0714.github.io/allinone/back-guard.js" defer></script>
 </body></html>
