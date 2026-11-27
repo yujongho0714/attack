@@ -5070,6 +5070,7 @@ const ETM=5,td=()=>{G.flags=G.flags||{};const d=new Date().toISOString().slice(0
   closePanel(1);const o=document.createElement('div');o.id='etOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#12161c';
   o.innerHTML='<iframe src="eggthief/index.html" style="width:100%;height:100%;border:0"></iframe>';document.body.appendChild(o)};
  addEventListener('message',e=>{const o=document.getElementById('etOv'),m=e.data;if(!o||e.origin!==location.origin||e.source!==o.querySelector('iframe').contentWindow||!m||m.src!=='eggthief')return;
+  if(m.type==='hello'){try{e.source.postMessage({src:'poke',type:'me',eq:(G.me&&G.me.eq)||null},location.origin)}catch(_){}return}
   if(m.type==='close'){o.remove();try{hud()}catch(_){}return}
   if(m.type==='exchange'&&G){const w=wd(),fw=o.querySelector('iframe').contentWindow,cap=wcap(m.best),amt=Math.max(0,Math.floor(+m.amt||0)),g=Math.max(0,Math.min(amt,cap-w.w));if(g>0){w.w+=g;G.money+=g;save()}try{fw.postMessage({src:'pka',type:'wallet',paid:w.w,cap},location.origin)}catch(_){}return}
   if(m.type==='deliver'&&G){const f=td(),fw=o.querySelector('iframe').contentWindow,qt=()=>{try{fw.postMessage({src:'pka',type:'quota',n:f.n,max:ETM},location.origin)}catch(_){}};
@@ -5077,7 +5078,7 @@ const ETM=5,td=()=>{G.flags=G.flags||{};const d=new Date().toISOString().slice(0
    f.t=f.t||{};if(f.t[r]){toast('계란훔치기 성공! 오늘 '+RAR[r]+' 알 진짜 보상은 이미 받았어요 · 이번엔 재미로!');qt();return}f.t[r]=1;f.n++;   // 등급(일반~신화)마다 하루 한 번만 진짜 알 · 나머지는 재미로
    G.eggq=G.eggq||[];G.eggq.push(r);let bonus='';if(!m.fought){addItem('egg',1);bonus=' + 보너스 알'}
    save();eggFill();try{sfx('get')}catch(_){}toast('계란훔치기 성공! '+RAR[r]+' 알'+bonus+' · 오늘 진짜 알 등급 '+f.n+'/'+ETM);qt()}});
- HUB.push({k:'eggthief',n:'계란훔치기',d:'로블록스 「Steal an Egg」처럼! 9개 바이옴(숲~우주)에서 알을 훔쳐 기지 펜으로 가져가요. 러닝머신(8단계)으로 속도를 올려야 먼 바이옴 가디언에게 안 잡혀요. 부화한 포켓몬은 도감에 등록되고, 5종마다 펫 수입이 +5%예요. 알은 펜에서 부화해 펫이 되고 펫이 돈을 벌어요. 방망이로 라이벌을 치고 곰덫을 놓을 수 있어요. 대시 · 점프를 하고 착지하는 순간 대시를 누르면 「착지 대시」로 게이지 없이 계속 빨라지고 가디언도 뛰어넘어요. 5분마다 알이 새로 나와요. 알을 펜에 넣으면 진짜 포켓몬 알을 받아요 — 등급(일반~신화)마다 하루 한 번씩만이고, 같은 등급은 재미로만 즐겨요 (싸우지 않고 안 맞고 성공하면 보너스 알). 펫이 번 돈은 게임돈으로도 들어와요 (하루 최대 30만원 · 제일 좋은 펫이 좋을수록 한도가 커요).',st:()=>'오늘 '+td().n+'/'+ETM,go:[['도전하기',()=>eggThiefOpen()]]})})()}catch(e){}
+ HUB.push({k:'eggthief',n:'계란훔치기 3D',d:'로블록스 「Steal an Egg」 3D판! 내 바람의나라 캐릭터가 러닝머신으로 속도를 키우고, 8개 지역(숲~외계 행성)에서 포켓몬 알을 훔쳐 기지 둥지로 달려와요. 지역마다 거대한 수호 포켓몬이 쫓아와요. 밤에는 알이 30배 빨리 부화하고, 라이벌 도둑은 방망이 · 덫 · 방어막으로 막아요. 알을 둥지에 넣으면 진짜 포켓몬 알을 받아요 — 등급(일반~신화)마다 하루 한 번씩만이고, 같은 등급은 재미로만 즐겨요 (수호 포켓몬과 안 싸우고 안 잡히면 보너스 알). 포켓몬이 번 돈은 게임돈으로도 들어와요 (하루 최대 30만원).',st:()=>'오늘 '+td().n+'/'+ETM,go:[['도전하기',()=>eggThiefOpen()]]})})()}catch(e){}
 
 // ===== 동물에게 먹이던지기 (foodthrow/index.html 을 화면 위에 띄움 · 기술 이펙트 연결) =====
 try{(function(){
