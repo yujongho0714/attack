@@ -5085,8 +5085,9 @@ try{(function(){
   closePanel(1);const o=document.createElement('div');o.id='ftOv';o.style.cssText='position:fixed;inset:0;z-index:99999;background:#0f172a';
   o.innerHTML='<iframe src="foodthrow/index.html" style="width:100%;height:100%;border:0" allow="autoplay"></iframe>';document.body.appendChild(o)};
  addEventListener('message',e=>{const o=document.getElementById('ftOv'),m=e.data;if(!o||e.origin!==location.origin||e.source!==o.querySelector('iframe').contentWindow||!m||m.src!=='foodthrow')return;
+  if(m.type==='hello'){try{e.source.postMessage({src:'poke',type:'me',eq:(G.me&&G.me.eq)||null},location.origin)}catch(_){}}
   if(m.type==='close')o.remove()});
- HUB.push({k:'foodthrow',n:'동물에게 먹이 던지기',d:'로블록스 「동물에게 먹이 던지기」처럼! 철봉으로 힘을 키우고 먹이를 멀리 던져서 야생 동물을 만나요. 게이지를 높은 곳에 맞추면 더 멀리 · 더 운 좋게 날아가요. 동물을 울타리에 모으면 돈을 벌어요. 먹이가 떨어질 때 포켓몬 기술 이펙트가 터져요. (인터넷 연결 필요 · 이 게임의 기록은 따로 저장돼요)',st:()=>'3D 미니게임',go:[['도전하기',()=>foodThrowOpen()]]})})()}catch(e){}
+ HUB.push({k:'foodthrow',n:'동물에게 먹이 던지기',d:'로블록스 「동물에게 먹이 던지기」처럼! 내 바람의나라 캐릭터가 철봉으로 힘을 키우고 먹이를 멀리 던져요. 먹이가 10개 구역을 날아가 떨어지면 포켓몬이 와서 먹어요. 게이지를 높은 곳에 맞추면 더 멀리 · 더 운 좋게 날아가요. 동물을 울타리에 모으면 돈을 벌어요. 먹이가 떨어질 때 포켓몬 기술 이펙트가 터져요. (인터넷 연결 필요 · 이 게임의 기록은 따로 저장돼요)',st:()=>'3D 미니게임',go:[['도전하기',()=>foodThrowOpen()]]})})()}catch(e){}
 
 
 (function(){const c=document.createElement('style');c.textContent=`
