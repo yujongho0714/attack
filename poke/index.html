@@ -4639,11 +4639,15 @@ function lbPick(cap,go){const all=[...G.party,...G.box];all.forEach(m=>{if(!m.ui
       try{if(G.pvpDef&&(G.pvpDef.u||[]).some(u=>!has.has(u))){const id=G.pvpDef.id;G.pvpDef=null;if(id)pvDel(id)}}catch(e){}
       save();try{refreshSpr()}catch(e){}closePanel(1);setTimeout(()=>{try{mlTick()}catch(e){}},50);go(out.length)}};
   openPanel('다음 챕터 · 데려갈 포켓몬',`<div id="lbB"></div>`,null,draw,1)}
+// 가 본 가장 높은 난이도 기록 (지금 난이도 · 챕터 기록 중 최고)
+function dTopUpd(){if(!G)return;let t=Math.max(G.dTop|0,G.rbd|0,DIFF()|0);try{for(const r of (G.rbLog||[]))if(r&&r.to!=null)t=Math.max(t,r.to|0)}catch(e){}if(t!==(G.dTop|0)){G.dTop=t}}
+setInterval(()=>{try{dTopUpd()}catch(e){}},2000);
 let _chapRun=0,_chapWait=0;
 async function chapAuto(){
   if(!G||!G.chapPend||_chapRun)return;
   const cd=G.chapPend-1;
-  if(cd<(G.rbd||0)){G.chapPend=0;save();return}   // 낮은 난이도로 깬 챔피언은 연습 · 챕터는 그대로
+  try{dTopUpd()}catch(e){}
+  if(cd<Math.max(G.rbd||0,G.dTop||0)){G.chapPend=0;save();try{say(['<b>'+DNAME[cd]+'</b> 챔피언 승리! (연습)','이미 <b>'+DNAME[G.dTop]+'</b>까지 가 봤기 때문에 한계돌파는 안 돼요.','한계돌파는 지금까지 가 본 <b>가장 높은 난이도</b>에서 챔피언이 되면 해요.'])}catch(e){}return}   // 11월 28일: 가 본 가장 높은 난이도보다 낮은 곳의 챔피언은 연습 (아래 난이도로 내려가 환생 반복 막기)
   _chapRun=1;
   try{
     const d=Math.min(9,cd+1),n=lbN()+1,cap=rbCap(n),tot=G.party.length+G.box.length;
@@ -9574,6 +9578,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112804,date:'11월 28일',t:'한계돌파 규칙 고침',items:[{img:"",h:"낮은 난이도 챔피언은 연습",p:["지금까지 가 본 <b>가장 높은 난이도</b>보다 낮은 곳에서 챔피언이 되면 <b>연습</b>이에요. 한계돌파(환생) · 다음 난이도로 넘어가지 않아요.","예: 하계까지 가 봤다면 천상계나 그 아래 챔피언은 연습. 한계돌파는 하계 챔피언부터."]}]},
  {v:2026112803,date:'11월 28일',t:'폰 발열 줄임',items:[{img:"",h:"폰이 뜨거워지던 문제",p:["화면 크기 자동으로 화면을 줄인 만큼 게임 그림을 <b>쓸데없이 크게(약 1.8배)</b> 그리고 있었어요.","이제 폰 화면에 맞는 크기로만 그려서 <b>덜 뜨겁고 배터리도 덜 써요</b>. 전투 · 월드보스 · 미니게임 모두 적용."]}]},
  {v:2026112802,date:'11월 28일',t:'자랑하기 · 전체 공지',items:[{img:"",h:"엠블럼 · 장비 · 큐브 자랑",p:["채팅 <b>「자랑」</b> 버튼에서 포켓몬 · 엠블럼 · 장비 · 내 능력치 중 골라 자랑해요.","큐브 창에서도 <b>「채팅에 자랑」</b>으로 방금 돌린 결과를 바로 올릴 수 있어요."]},{img:"",h:"전체 공지",p:["장비 <b>20성 이상</b> 강화, 장비 · 엠블럼 잠재옵션 · 아티팩트 <b>레전드리</b>, 포켓몬 <b>불멸 · 태초 · 만제</b> 초월에 성공하면 모든 사람 화면 위에 <b>공지</b>가 떠요.","채팅창에도 [공지]로 남아요."]}]},
  {v:2026112801,date:'11월 28일',t:'내 능력치 · 큐브 상점 · 권장 방무',items:[{img:"",h:"내 능력치 보기",p:["사이드 메뉴 <b>「능력치」</b> 또는 장비 · 가방 · 아티팩트 · 엠블럼 · 큐브 창 제목 옆 <b>「내 능력치」</b>.","공격력 · 보스 공격력 · 일반 공격력 · 총데미지 · 방어력 무시 · 크리티컬 확률/데미지 등 <b>총 능력치를 출처별(장비 · 엠블럼 잠재 · 아티팩트)</b>로 보여 줘요.","지금 난이도에서 <b>부족한 것</b>(권장 방무 · 크확 · 보공)과 트레이너 · 챔피언에게 들어가는 데미지 %도 보여 줘요. <b>「채팅에 공유」</b>로 친구에게 자랑!"]},
