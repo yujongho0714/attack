@@ -1691,7 +1691,7 @@ function mustCatch(f){try{if(!f||capFull(f))return false;if(AUTO.hunt&&AUTO.hunt
 async function throwBall(f,it){await msg('<b>'+it.n+'</b>을(를) 던졌다!',FAST()?300:600);const fp=side(0),mp=side(1);BS.ball={x:mp.x,y:mp.y,col:it.col};
   for(let i=0;i<=20;i++){const u=i/20;BS.ball.x=mp.x+(fp.x-mp.x)*u;BS.ball.y=mp.y-VW*.1+(fp.y-VW*.12-mp.y+VW*.1)*u-Math.sin(u*Math.PI)*VH*.18;BS.ball.rot=u*12;await sleep(18)}
   BS.foe.white=1;await sleep(160);BS.foe.hide=1;BS.foe.white=0;BS.flash=.15;for(let i=0;i<10;i++){BS.ball.y+=VH*.012;await sleep(16)}
-  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);BS.catchK=1;const _rd=f.hp/S[0]<=.2;const redHit=(!_rd&&f.hp/S[0]<=.35&&R()<.5);if(redHit)try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}const sh=(typeof rarM==='function'&&rarM(f)>=3)?1:Math.pow(redHit?1:(_rd?Math.max(p,.5):p),.25);   // 전설 이상은 무조건 잡혀요
+  const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*f.hp)*cr*it.ball)/(3*S[0]);const p=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*(BS.catchK||1)*[1,.8,.65,.55,.45,.38,.32,.27][Math.min(DIFF(),7)]);BS.catchK=1;const _rd=f.hp/S[0]<=.2;const redHit=(!_rd&&f.hp/S[0]<=.35&&R()<.5);if(redHit)try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}const sh=(typeof rarM==='function'&&rarM(f)>=3)?1:Math.pow(redHit?1:(_rd?Math.max(p,.5):p),.25);   // 전설 이상은 무조건 잡혀요
   let n=0;for(;n<3;n++){await sleep(380);if(R()>sh)break;for(let k=0;k<8;k++){BS.ball.rot=Math.sin(k/8*6.28)*.5;await sleep(28)}BS.ball.rot=0;sfx('tap')}
   await sleep(300);if(n>=3&&R()<sh){sfx('get');await msg('신난다! <b>'+nm(f)+'</b>(을)를 잡았다!',1300,[f.n,'Happy']);BS.ball=null;return true}
   BS.ball=null;BS.foe.hide=0;BS.foe.in=.3;await msg(['안 돼! 포켓몬이 볼에서 나와 버렸다!','아쉽다! 조금만 더 하면 잡을 수 있었는데!','으앗! 잡은 줄 알았는데!'][Math.min(2,n)]);return false}
@@ -1809,7 +1809,7 @@ function actRoll(){if(!ACT.on||ACT.dcd>0||ACT.busy)return;const me=BS.me,f=BS.fo
 // ---------- 기술 쓰기 (턴제와 같은 연출) ----------
 async function actCast(mine,m,dir){const AB=mine?BS.me:BS.foe,DB=mine?BS.foe:BS.me,atk=AB.m,def=DB.m;if(mine)ACT.busy=1;else ACT.fbusy=1;
   try{callout(mine,m.name);AB.lastMv=m}catch(e){}if(m.st){try{rzStatus(mine,m,AB,DB)}catch(e){console.warn(e)}await sleep(450);if(mine)ACT.busy=0;else ACT.fbusy=0;return}const sh=shapeOf(m);let u=dir;if(!u){const dx=DB.ax-AB.ax,dy=DB.ay-AB.ay,L=Math.hypot(dx,dy)||1;u={x:dx/L,y:dy/L}}AB.row=dirRow(u.x,u.y);AB.vx=AB.vy=0;
-  const crit=R()<(mine?1/9:1/14),r=dmgCalc(atk,def,m,crit);const EM=[[.65,.8],[.85,1],[1,1.15],[1.2,1.35],[1.45,1.6],[1.7,1.85],[1.95,2.1],[2.2,2.4]][DIFF()];// 실시간 배틀은 기술을 계속 쓰니까 한 방 데미지를 낮춰서 오래 싸우게 (턴제는 그대로)
+  const crit=R()<(mine?1/9:1/14),r=dmgCalc(atk,def,m,crit);const EM=[[.65,.8],[.85,1],[1,1.15],[1.2,1.35],[1.45,1.6],[1.7,1.85],[1.95,2.1],[2.2,2.4]][Math.min(DIFF(),7)];// 실시간 배틀은 기술을 계속 쓰니까 한 방 데미지를 낮춰서 오래 싸우게 (턴제는 그대로)
   const AK=mine?.33:.45;let dmg=Math.max(1,Math.floor(r.d*AK*(0.85+R()*.15)*(mine?1:EM[BS.trainer?1:0])*rzMul(AB,DB)));if(r.e===0)dmg=0;if(OPER.on&&OPER.god&&!mine)dmg=0;if(OPER.on&&OPER.one&&mine)dmg=def.hp;
   const S=bsz();const pa=m.rk==='delayed'?{x:DB.ax,y:DB.ay}:{x:AB.ax,y:AB.ay};const Rg=rangeOf(sh),dT=Math.hypot(DB.ax-AB.ax,DB.ay-AB.ay);const reach=sh==='circle'?0:Math.min(Rg,dir?Rg:Math.max(S,dT));const pb=sh==='circle'?{x:pa.x,y:pa.y}:{x:pa.x+u.x*reach,y:pa.y+u.y*reach};ACT.last={sh,o:pa,u,t:.35,mine};let decided=null,got=0;const from=def.hp,to=Math.max(0,def.hp-dmg);
   if(!mine)ACT.cast++;
@@ -4680,7 +4680,7 @@ setInterval(()=>{try{if(G&&SCENE==='over')for(const m of G.party){const mx=stOf(
 
 try{HUB.push({k:'diff',n:'난이도',d:'쉬움 · 보통 · 어려움 · 지옥 · 나이트메어. 높을수록 상대가 세고 더 높은 등급 포켓몬이 나오지만 보상이 커요. 챔피언이 되면 다음 난이도가 열려요.',st:()=>DNAME[DIFF()],go:[['난이도',()=>diffOpen()]]})}catch(e){}
 // 트레이너도 난이도가 높을수록 더 강한(높은 등급) 포켓몬을 써요
-{const _tt=typeTeam;typeTeam=function(t,maxB,n,lvs,seed){return _tt(t,maxB+[0,30,65,100,140,185,230,280][DIFF()],n,lvs,seed)}}
+{const _tt=typeTeam;typeTeam=function(t,maxB,n,lvs,seed){const B=[0,30,65,100,140,185,230,280,330,380];return _tt(t,maxB+(B[DIFF()]!=null?B[DIFF()]:B[B.length-1]),n,lvs,seed)}}
 
 // ===== 포케스탑: 길가에 가끔 생겨요 · 가까이 가서 원판을 손가락으로 돌리면 볼 · 상처약 · 열매가 나와요 =====
 // 열매: 오랭열매(체력 +30) · 시트러스열매(체력 +80) · 라즈열매(가지고 있으면 볼 던질 때 자동으로 먼저 줘서 잡기 쉬워짐)
@@ -9177,7 +9177,7 @@ async function rtGo(){
     let foe=null;for(let i=0;i<20&&!foe;i++){const n=keys[Math.floor(Math.random()*keys.length)];try{foe=mkMon(n,Math.max(1,Math.min(100,(m0.lv||5)+ri(-2,2))))}catch(e){}}
     if(!foe){toast('상대를 만들지 못했어요');return}
     // 6F-1: 실시간 포획(시험 전투는 볼이 공짜·무한, 잡아도 저장 안 됨). 확률은 기존 던지기 공식 그대로
-    const catchP=(f,it,ratio)=>{if(ratio>.2&&ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);const _pp=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);return ratio<=.2?Math.max(_pp,.5):_pp};
+    const catchP=(f,it,ratio)=>{if(ratio>.2&&ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(f),M=META[f.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);const _pp=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(f)]*[1,.8,.65,.55,.45,.38,.32,.27][Math.min(DIFF(),7)]);return ratio<=.2?Math.max(_pp,.5):_pp};
     const balls=()=>['ball','great','hyper','master'].filter(k=>ITEMS[k]).map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:'∞'}));
     const r=await RTB.start({me,foe,getSpr,sprKey,drawPm,stOf,eff,RZM,mv,META,TCOL,nm,fxe:{FX2,VFX,MV,SKFX},balls,takeBall:k=>ITEMS[k],catchP,...rtCommon(),bg:()=>{try{return bgImg('grass')}catch(e){return null}},
       // 6F-4c 시험: 회복약 무한(저장 안 됨)
@@ -9259,7 +9259,7 @@ async function rtWild(o){
   const balls=()=>BALLS().map(k=>({k,e:ITEMS[k].e,n:ITEMS[k].n,count:G.bag[k]||0}));
   const takeBall=k=>{const it=ITEMS[k];if(!it||(G.bag[k]||0)<=0)return null;G.bag[k]--;let r=it;
     if(it.ball&&it.ball<255&&(G.bag.razz||0)>0&&G.opt.razz!==false){G.bag.razz--;r=Object.assign({},it,{ball:it.ball*1.5});try{toast('🍓 라즈열매를 먼저 줬다! 잡기 쉬워졌다')}catch(e){}}return r};
-  const catchP=(x,it,ratio)=>{if(rarM(x)>=3)return 1;if(ratio>.2&&ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);const _pp=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38,.32,.27][DIFF()]);return ratio<=.2?Math.max(_pp,.5):_pp};
+  const catchP=(x,it,ratio)=>{if(rarM(x)>=3)return 1;if(ratio>.2&&ratio<=.35&&Math.random()<.5){try{toast('✨ 약해져서 쉽게 잡혀요!')}catch(e){}return 1}const S=stOf(x),M=META[x.n],b=bst(M.stats);const cr=b>=580?20:Math.max(3,Math.min(255,Math.round(255-(b-180)*.55)));const a=((3*S[0]-2*S[0]*ratio)*cr*it.ball)/(3*S[0]);const _pp=Math.min(1,a/255*(G.dex.c[M.dex]?1:1.2)*CATW[rarM(x)]*[1,.8,.65,.55,.45,.38,.32,.27][Math.min(DIFF(),7)]);return ratio<=.2?Math.max(_pp,.5):_pp};
   let res='win',lastMon=null,timeUp=0;
   const setBS=async(f,faint)=>{const me2=(lastMon&&lastMon.hp>0)?lastMon:(alive()[0]||lastMon||G.party[0]);
     BS.foe={m:f,S:await getSpr(sprKey(f)),st:faint?'faint':'idle',t:0,in:0,hide:faint?1:0};
@@ -9559,6 +9559,10 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112707,date:'11월 27일',t:'하계 체육관 고침 · 던전 버튼 · 하는 방법 · 일일 숙제 자동',items:[{img:"",h:"하계 · 명계 체육관이 다시 돼요",p:["하계 · 명계에서 체육관에 들어가면 멈추던 문제를 고쳤어요. 이제 수련생 → 관장 순서로 싸워요.","<b>빛의 조각 = 하계의 배지</b>예요. 관장을 이기면 1개씩 받아요. 하계는 <b>타입 상성이 반대</b>예요!"]},
+  {img:"",h:"퀘스트 옆 「하는 방법」",p:["화면 위 퀘스트 줄 옆 <b>「하는 방법」</b>을 누르면 지금 퀘스트를 어떻게 하는지 그림과 함께 자세히 알려 줘요.","체육관이면 관장 그림 · 추천 레벨 · <b>센 타입 · 약한 타입</b>까지 보여 줘요."]},
+  {img:"",h:"사이드 메뉴 「던전」",p:["일일 던전 · 변이 던전 · 탑 · 월드보스 · 포탈을 한곳에 모았어요."]},
+  {img:"",h:"일일 숙제 자동",p:["일일 숙제 창의 <b>「자동으로」</b>를 누르면 남은 일일 던전을 한 번에 끝내요.","변이 던전 · 계란훔치기 · 먹이 던지기도 숙제 목록에 들어갔어요.","화면 크기가 폰에 맞춰 자동으로 줄어요 (메뉴 → 화면 크기 → 자동)."]}]},
  {v:2026112706,date:'11월 27일',t:'먹이 던지기 · 계란훔치기 거리 원작처럼 길게',items:[
   {h:"먹이 던지기: 엄청 멀리!",p:["구역마다 거리가 점점 크게 늘어나요 — 초원 0~120m · 사막 ~350m · 산호 바다 ~900m … 구름 무지개 ~230km · <b>우주 무지개 길은 600km부터 끝없이</b>.","처음엔 초원 근처에 떨어지고, <b>철봉으로 힘을 키우고 좋은 음식을 살수록</b> 더 먼 구역(더 좋은 포켓몬)까지 날아가요. 「지도」에서 구역별 거리와 가 본 곳을 볼 수 있어요."]},
   {h:"계란훔치기: 닿으면 멈춰요",p:["러닝머신 · 알 · 선물 상자 · 라이벌 알 · (알 들고 있을 때) 빈 둥지에 닿으면 <b>그 자리에서 멈춰요</b>. 빨라서 지나치지 않아요.","다시 가려면 <b>조이스틱(방향키)에서 손을 뗐다가 다시 밀면</b> 출발해요. 알을 훔치면 바로 달릴 수 있어요."]},
@@ -10460,9 +10464,9 @@ try{const C=[{k:'dq',n:'📜 오늘의 천계 의뢰 (매일)',d:'매일 새 의
 <script id="b9ay">
 // ===== 9AY 컨텐츠 화면: 큰 분류 → 섹션별 그림 목록 =====
 (function(){try{
-const HZC=[['day','ic_gift','일일 숙제','#e09a00','일일 던전 자동 · 변이 던전 · 계란훔치기 · 먹이 던지기 · 출석'],['bt','ic_fast','배틀 · 도전','#d8323f','스토리 · 월드보스 · 천계 탑 · 변이 던전'],['fr','ic_rank','친구랑','#2f7be8','난투전 · 레이드 · 랭킹 · 명예의 전당'],
+const HZC=[['dg','gm/ic/ic_vdungeon','던전','#6a3fc8','일일 던전 · 변이 던전 · 탑 · 월드보스 · 포탈'],['day','ic_gift','일일 숙제','#e09a00','일일 던전 자동 · 변이 던전 · 계란훔치기 · 먹이 던지기 · 출석'],['bt','ic_fast','배틀 · 도전','#d8323f','스토리 · 월드보스 · 천계 탑 · 변이 던전'],['fr','ic_rank','친구랑','#2f7be8','난투전 · 레이드 · 랭킹 · 명예의 전당'],
   ['up','ic_star','키우기','#8048e8','편성 · 장비 · 승급 · 각성'],['col','ic_dex','모으기 · 탐험','#1e9e5e','도감 · 카드팩 · 알 · 마을'],['set','ic_menu','설정 · 소식','#5b6383','화면 · 전투 방식 · 업데이트']];
-const SEC={day:[['일일 던전 (자동으로 다 돌기)',['svauto','svg','svs','svb','svx','svk']],['매일 미니게임 · 변이 던전',['mut','eggthief','foodthrow']],['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매일 다시 도전',['rm','portal']]],
+const SEC={dg:[['일일 던전 (자동으로 다 돌기)',['svauto','svg','svs','svb','svx','svk']],['변이 던전 (매주 · 보스 5층 러시)',['mut']],['탑 오르기',['ctw','tower']],['월드보스',['wb','wbc','wbe']],['포탈 · 재대결',['portal','rm']]],day:[['일일 던전 (자동으로 다 돌기)',['svauto','svg','svs','svb','svx','svk']],['매일 미니게임 · 변이 던전',['mut','eggthief','foodthrow']],['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매일 다시 도전',['rm','portal']]],
   bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 5일 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🧬 주간 변이 던전 (보스 5층 러시)',['mut']],['🗡 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스)',['svx','svg','svs','svb','svk']]],
   fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 명예의 전당',['hof','rank','wc','dojo']]],
   up:[['🐾 포켓몬 키우기',['team','embl','trans','awake','soulx','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
@@ -12211,6 +12215,117 @@ setInterval(()=>{if(!RET)return;try{
 // 계란훔치기 · 먹이던지기 미리 받아 두기 (게임을 켜고 조금 뒤 · 와이파이일 때 들어가는 시간 줄이기)
 setTimeout(()=>{try{if(navigator.connection&&navigator.connection.saveData)return;['lib/three.min.js','lib/vox3d.js','eggthief/index.html','foodthrow/index.html','dressup/dress.json'].forEach((u,i)=>setTimeout(()=>fetch(u).catch(()=>{}),i*1500))}catch(e){}},25000);
 }catch(e){console.warn('9EH',e)}})();
+</script>
+<script id="b9qg">
+// ===== 9QG 사이드 「던전」 버튼 (컨텐츠 → 던전 분류) · 퀘스트 「하는 방법」 (그림 + 자세한 설명) =====
+(function(){try{
+const $=id=>document.getElementById(id);
+// ---------- 1) 사이드 메뉴 「던전」 ----------
+function dgBtn(){const side=$('side');if(!side||$('bDgn'))return;const b=document.createElement('button');b.id='bDgn';
+  b.innerHTML='<img class="sic" src="ui/gm/ic/ic_vdungeon.webp" alt=""><span>던전</span>';
+  b.onclick=()=>{try{sfx('tap')}catch(e){}HUB.cat='dg';hubOpen('c');const g=document.querySelector('.panel .pb');if(g)g.scrollTop=0};
+  const h=$('bHub');side.insertBefore(b,h?h.nextSibling:null)}
+setInterval(dgBtn,1500);dgBtn();
+// 남은 일일 던전이 있으면 빨간 점
+setInterval(()=>{try{const b=$('bDgn');if(!b)return;const h=HUB.find(x=>x.k==='svauto');const on=!!(h&&/남은/.test(h.st()||''));let d=b.querySelector('.dgdot');if(on&&!d){d=document.createElement('i');d.className='dgdot';b.appendChild(d)}else if(!on&&d)d.remove()}catch(e){}},3000);
+
+// ---------- 2) 퀘스트 하는 방법 ----------
+const TY=['NORMAL','FIRE','WATER','ELECTRIC','GRASS','ICE','FIGHTING','POISON','GROUND','FLYING','PSYCHIC','BUG','ROCK','GHOST','DRAGON','DARK','STEEL','FAIRY'];
+const reg=()=>window.REGCUR||'';
+const tyChip=t=>`<span class="qgty"><i class="tyi" style="${tyIco(t)}"></i>${TN[t]}</span>`;
+function strongVs(t){try{return TY.filter(x=>eff(x,[t])>=2)}catch(e){return []}}
+function weakVs(t){try{return TY.filter(x=>eff(x,[t])<1)}catch(e){return []}}
+const img=(src,cls)=>`<img class="${cls||'qgimg'}" src="${src}" alt="" onerror="this.remove()">`;
+const sec=(h,body,pic)=>`<div class="qgs">${pic?`<div class="qgp">${pic}</div>`:''}<div class="qgb"><h4>${h}</h4>${body}</div></div>`;
+const ol=a=>'<ol>'+a.map(x=>'<li>'+x+'</li>').join('')+'</ol>';
+const AUTOTXT=sec('제일 쉬운 방법: 자동',ol(['화면 위 퀘스트 오른쪽 <b>「▶ 자동」</b>을 누르면 길 찾기 · 배틀까지 알아서 해요.','퀘스트 줄을 누르고 <b>「길 따라 자동으로 걷기」</b>를 누르면 노란 선을 따라 걸어가고, 배틀은 직접 해요.','포켓몬이 많이 다치면 자동이 먼저 포켓몬센터에 들러요.']),img('ui/ic_auto.webp','qgic'));
+
+function regionInfo(){
+  const r=reg();
+  if(r==='u')return sec('하계가 뭐예요? 빛의 조각은요?',
+    '<p><b>하계</b>는 뒤집힌 세계(반전세계)예요. 지도는 성도 지방(연두마을 → 검은먹시티)이에요.</p>'+ol([
+     '<b>빛의 조각 = 하계의 배지</b>예요. 관장 8명이 하나씩 갖고 있어요. 관장을 이기면 조각 1개를 받아요.',
+     '조각은 <b>순서대로</b> 모아요: 도라지시티(비행) → 고동마을(벌레) → 금빛시티(노말) → 인주시티(고스트) → 담청시티(격투) → 진청시티(강철) → 황토마을(얼음) → 검은먹시티(드래곤).',
+     '<b style="color:#d4142e">하계에서는 타입 상성이 반대예요!</b> 원래 "효과가 굉장한" 타입이 약해지고, "별로인" 타입이 세져요. 아래에 지금 관장한테 센 타입을 적어 두었어요.',
+     '8개를 다 모으면 리그(석영고원)에서 태홍 · 기라티나와 싸워요.',
+     '조각 모은 개수는 화면 위 퀘스트 줄 「빛의 조각 N/8」에 보여요.','<b>하계 상대는 아주 강해요.</b> 바로 못 이기는 게 정상이에요. 막히면 <b>「던전」</b>에서 골드 · 영혼 · 경험치를 모으고, 장비 · 각성으로 키운 다음 다시 도전해요.'])+badgeCase(),
+    img('ui/news/n36_u_stages.webp','qgimg'));
+  if(r==='d')return sec('명계가 뭐예요? 기억은요?',
+    '<p><b>명계</b>는 모든 기억이 모이는 땅이에요. 지도는 처음 모험했던 곳과 같아요.</p>'+ol([
+     '<b>기억 = 명계의 배지</b>예요. 관장 8명을 이길 때마다 기억 1개를 되찾아요.',
+     '8개를 다 모으면 기원의 전당에서 아르세우스의 그림자와 싸워요.',
+     '모은 개수는 퀘스트 줄 「기억 N/8」에 보여요.','<b>명계 상대는 아주 강해요.</b> 막히면 「던전」에서 키운 다음 다시 도전해요.'])+badgeCase(),
+    img('ui/news/n35_d_stages.webp','qgimg'));
+  return '';
+}
+function gymGuide(o){
+  const b=G.badges|0,g=GYM[b];if(!g)return '';const town=TOWNS[b+1],rec=gymAce(b)-1+LVO(),lv=topLvD();
+  const sv=strongVs(g.t),wk=weakVs(g.t);let spr='';try{spr=TRS.gym[b]}catch(e){}
+  const words=reg()==='u'?'빛의 조각':reg()==='d'?'기억':'배지';
+  return sec(town+' 체육관 · '+(g.n||'관장'),
+    '<p>상대 타입: '+tyChip(g.t)+' · 추천 레벨 <b>Lv.'+rec+'</b> (지금 내 최고 Lv.'+lv+(lv<rec?' → <b style="color:#d4142e">'+(rec-lv)+' 더 올려요</b>':' · 충분해요')+')</p>'+
+    ol(['<b>'+town+'</b>으로 가요 (「▶ 자동」 또는 「길 따라 걷기」).','마을에서 <b>체육관 건물 문</b>으로 들어가요.','먼저 <b>체육관 수련생</b>과 싸우고, 이기면 바로 <b>관장</b>과 싸워요.','이기면 <b>'+words+'</b>를 받고 다음 마을로 갈 수 있어요.','지면 포켓몬센터로 돌아가요. 레벨을 올리거나 센 타입으로 바꿔서 다시 가요.'])+
+    (sv.length?'<p class="qgk">이 관장한테 <b>센 타입</b>'+(reg()==='u'?' (하계 반대 상성 적용)':'')+': '+sv.map(tyChip).join(' ')+'</p>':'')+
+    (wk.length?'<p class="qgk">이 관장한테 <b>약한 타입</b> (피하기): '+wk.map(tyChip).join(' ')+'</p>':'')+
+    '<p class="qgk">「편성」에서 센 타입 포켓몬을 앞에 두면 쉬워요.</p>',
+    (spr?img('trainers/'+spr+'.png','qgspr'):'')+badgeHtml(b,0,0));
+}
+function lvGuide(o){
+  const m=String(o.t).match(/Lv\.(\d+)\s*→\s*(\d+)/);const a=m?+m[1]:topLvD(),bb=m?+m[2]:0;
+  return sec('레벨 올리기'+(bb?' (Lv.'+a+' → '+bb+')':''),
+    ol(['퀘스트에 적힌 <b>도로(풀숲)</b>로 가요.','풀숲을 걸으면 야생 포켓몬이 나와요. 이기면 경험치를 받아요.','사이드 메뉴 <b>「자동사냥」</b>을 누르면 그 자리에서 계속 싸워요.','<b>「던전」 → 경험치 던전</b>도 레벨이 빨리 올라요. <b>이상한사탕</b>을 쓰면 바로 1레벨 올라요.','목표 레벨이 되면 퀘스트가 자동으로 「체육관 도전」으로 바뀌어요.']),
+    img('ui/ic_hunt.webp','qgic'));
+}
+function leagueGuide(){
+  let e='';try{e=TRS.elite.map(s=>img('trainers/'+s+'.png','qgsm')).join('')}catch(_){}
+  return sec(reg()==='u'?'리그 · 태홍과 기라티나':reg()==='d'?'기원의 전당':'포켓몬 리그',
+    ol(['배지(조각) 8개가 있어야 들어가요.','<b>사천왕 4명</b>과 연달아 싸우고, 마지막에 <b>챔피언</b>과 싸워요.','한 명 이길 때마다 포켓몬이 회복돼요.','지면 처음부터 다시 해요. 레벨을 충분히 올리고 가요 (챔피언 로드 퀘스트가 레벨을 알려 줘요).']),
+    '<div class="qgrow">'+e+'</div>');
+}
+function build(){
+  const o=objective()||{t:''},t=String(o.t||'');let h='';
+  if(!G.party||!G.party.length)h+=sec('첫 포켓몬 받기',ol(['마을의 <b>연구소</b> 건물로 들어가요.','박사님께 첫 포켓몬을 골라 받아요.','받으면 다음 퀘스트(레벨 올리기 · 체육관)가 나와요.']),img('ui/ic_dex.webp','qgic'));
+  else if(/치료/.test(t))h+=sec('포켓몬 치료',ol(['포켓몬이 많이 다쳤어요.','가까운 <b>포켓몬센터</b>(하계는 치료사의 집)로 가면 모두 회복돼요.','사이드 메뉴 <b>「치료」</b>를 눌러도 돼요.']),img('ui/ic_gift.webp','qgic'));
+  else if(/챕터 완료|난이도를 올려/.test(t))h+=sec('챕터 완료! 다음 난이도로',ol(['이 난이도의 이야기를 다 깼어요.','<b>메뉴 → 난이도</b>에서 다음 난이도를 골라요.','난이도가 오르면 새 지방 · 새 이야기가 시작되고 보상이 커져요.']),img('ui/news/n29_difflook.webp','qgimg'));
+  else if(/레벨 올리기/.test(t))h+=lvGuide(o)+(/챔피언 로드/.test(t)?'':gymPeek());
+  else if(/체육관 도전/.test(t))h+=gymGuide(o);
+  else if(/상위 체육관/.test(t))h+=sec('상위 체육관',ol(['챔피언이 된 뒤 열리는 상위 지역의 체육관이에요.','퀘스트에 적힌 마을로 가서 체육관 문으로 들어가요.','4개를 다 이기면 섬에서 전설 · 신화 포켓몬을 찾을 수 있어요.']),img('ui/ic_badge.webp','qgic'));
+  else if(/리그|기원의 전당|기라티나/.test(t))h+=leagueGuide();
+  else if(/도감/.test(t))h+=sec('도감 채우기',ol(['아직 안 잡은 포켓몬을 잡아요.','퀘스트 창의 <b>「다음 도감 포켓몬 찾으러 가기」</b>를 누르면 나오는 곳까지 데려가요.','「도감」에서 포켓몬을 누르면 나오는 곳을 볼 수 있어요.']),img('ui/ic_dex.webp','qgic'));
+  else h+=sec('지금 할 일',ol(['<b>'+t+'</b>','퀘스트 줄을 누르면 자세한 진행 상황이 나와요.','「▶ 자동」을 누르면 알아서 진행해요.']),img('ui/ic_quest.webp','qgic'));
+  h+=regionInfo()+AUTOTXT;
+  return '<div class="qgnow"><small>지금 퀘스트</small><b>'+t+'</b></div>'+h+'<div class="qgbt"><button id="qgGo">길 따라 가기</button><button id="qgAu">전부 자동</button></div>';
+}
+function gymPeek(){try{const g=GYM[G.badges|0];if(!g||(G.badges|0)>=8)return '';return gymGuide({})}catch(e){return ''}}
+function qGuide(){if(!G)return;openPanel('하는 방법',build(),null,p=>{
+  const go=p.querySelector('#qgGo'),au=p.querySelector('#qgAu');
+  if(go)go.onclick=()=>{try{sfx('tap')}catch(e){}AUTO.on=1;AUTO.guide=1;AUTO.huntOnly=0;AUTO.hunt=null;AUTO.gt=objective().t;G.autoQuest=0;closePanel();hud();toast('노란 선을 따라 걸어요! (배틀은 직접)')};
+  if(au)au.onclick=()=>{try{sfx('tap')}catch(e){}AUTO.on=1;AUTO.guide=0;AUTO.huntOnly=0;AUTO.hunt=null;G.autoQuest=1;closePanel();hud()}})}
+window.qGuide=qGuide;
+// 퀘스트 줄 옆 「하는 방법」 단추
+function qgBtn(){const w=$('hObjW');if(!w||$('bQg'))return;const b=document.createElement('button');b.id='bQg';b.innerHTML='하는<br>방법';
+  b.onclick=e=>{e.stopPropagation();try{sfx('tap')}catch(_){}qGuide()};const a=$('bAuto');w.insertBefore(b,a||null)}
+setInterval(qgBtn,1500);qgBtn();
+// 퀘스트 창 맨 위에도 「하는 방법 자세히 보기」
+{const _q=questOpen;questOpen=function(){const r=_q.apply(this,arguments);try{const p=document.querySelector('.panel');const m=p&&p.querySelector('.qm');if(m&&!p.querySelector('#qgMore')){const b=document.createElement('button');b.id='qgMore';b.className='main';b.textContent='하는 방법 자세히 보기 (그림 · 설명)';b.onclick=()=>{try{sfx('tap')}catch(e){}closePanel(1);qGuide()};m.insertBefore(b,m.querySelector('#qGo'))}}catch(e){}return r}}
+const css=document.createElement('style');css.textContent=`
+#bDgn{position:relative}#bDgn .dgdot{position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#e5482f;border:2px solid #fff}
+#bQg{flex:none;padding:2px 9px;border:3px solid #1c2550;border-radius:10px;background:#ffd23f;color:#1c2550;font:900 11.5px/1.15 'Galmuri11',system-ui,sans-serif;box-shadow:0 3px 0 #1c2550;cursor:pointer}
+#bQg:active{transform:translateY(2px);box-shadow:0 1px 0 #1c2550}
+.panel .qgnow{padding:8px 10px;margin-bottom:8px;background:#1c2550;color:#fff;border:3px solid #ffd23f}.panel .qgnow small{display:block;color:#ffd23f;font-size:11px}.panel .qgnow b{font-size:14px}
+.panel .qgs{display:flex;gap:10px;margin:0 0 10px;padding:8px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 4px 0 #0b0f24}
+.panel .qgp{flex:none;width:min(34%,170px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#e9edff;border:2px solid #1c255055;padding:6px}
+.panel .qgb{flex:1;min-width:0;color:#1c2550;font-size:13px;line-height:1.55}.panel .qgb h4{margin:0 0 4px;font:900 15px 'Galmuri11',system-ui,sans-serif;color:#1c2550}
+.panel .qgb ol{margin:4px 0;padding-left:20px}.panel .qgb p{margin:4px 0}.panel .qgk{font-size:12.5px}
+.panel .qgimg{width:100%;border:2px solid #1c2550;display:block}.panel .qgic{width:64px;height:64px;object-fit:contain;image-rendering:pixelated}
+.panel .qgspr{width:100%;max-height:150px;object-fit:contain;image-rendering:pixelated}.panel .qgp .bdg2{width:64px;height:64px}
+.panel .qgrow{display:grid;grid-template-columns:1fr 1fr;gap:4px}.panel .qgsm{width:100%;object-fit:contain;image-rendering:pixelated}
+.panel .qgty{display:inline-flex;align-items:center;gap:3px;margin:2px 3px 2px 0;padding:1px 6px 1px 2px;background:#fff;border:2px solid #1c255055;font-weight:800;font-size:12px;white-space:nowrap}.panel .qgty .tyi{width:18px;height:18px}
+.panel .qgb .bcase{max-width:320px;margin-top:6px}
+.panel .qgbt{display:flex;gap:8px;flex-wrap:wrap}.panel .qgbt button{flex:1;padding:10px!important;border:3px solid #0b0f24;background:#ffd23f!important;color:#1c2550;font:900 14px 'Galmuri11',monospace;box-shadow:0 3px 0 #0b0f24;border-radius:0!important}
+.panel #qgMore{width:100%;margin:6px 0}
+@media (max-width:560px){.panel .qgs{flex-direction:column}.panel .qgp{width:100%}}`;document.head.appendChild(css);
+}catch(e){console.warn('9QG',e)}})();
 </script>
 <script src="https://yujongho0714.github.io/allinone/back-guard.js" defer></script>
 </body></html>
