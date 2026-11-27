@@ -9574,6 +9574,8 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112801,date:'11월 28일',t:'내 능력치 · 큐브 상점 · 권장 방무',items:[{img:"",h:"내 능력치 보기",p:["사이드 메뉴 <b>「능력치」</b> 또는 장비 · 가방 · 아티팩트 · 엠블럼 · 큐브 창 제목 옆 <b>「내 능력치」</b>.","공격력 · 보스 공격력 · 일반 공격력 · 총데미지 · 방어력 무시 · 크리티컬 확률/데미지 등 <b>총 능력치를 출처별(장비 · 엠블럼 잠재 · 아티팩트)</b>로 보여 줘요.","지금 난이도에서 <b>부족한 것</b>(권장 방무 · 크확 · 보공)과 트레이너 · 챔피언에게 들어가는 데미지 %도 보여 줘요. <b>「채팅에 공유」</b>로 친구에게 자랑!"]},
+  {img:"",h:"큐브 상점 · 큐브가 모자라면 바로",p:["큐브 창 위에 <b>내 골드</b>와 <b>「큐브 상점」</b>. 큐브마다 어디에 쓰는지 · 등급업 확률 · 특징을 설명해요.","큐브를 다 쓰면 「큐브 상점으로 갈까요?」가 나와요.","도전 조건 창에 <b>방어력 무시</b> 줄이 생겼어요 — 권장 방무와 내 방무, 얼마나 부족한지."]}]},
  {v:2026112709,date:'11월 28일',t:'천계 교육 (넘길 수 없어요) · 큐브 7종 실습 · 이탈 옵션',items:[{img:"",h:"방무가 모자라면 큐브 영상 · 큐브 창 자동",p:["상대가 단단해서 데미지가 60% 아래로 깎이면, 배틀 전에 <b>큐브 영상</b>이 나와요 (넘길 수 없어요 · 20분에 한 번). 레어 → 유니크 → 레전드리로 올리면 방무 · 보공이 생기고 <b>한 방 데미지가 얼마나 커지는지</b> 보여 줘요.","배틀이 끝나면 <b>큐브 창이 저절로 열리고</b>, 장착한 엠블럼(없으면 무기 · 방패)이 큐브 박스에 들어가 있어요. 가진 큐브 중 제일 좋은 걸 골라 둬요."]},
   {img:"",h:"천계부터는 교육이 먼저예요",p:["천계 이상이면 <b>방어율 · 방무 · 보스 공격력 · 크리티컬 저항 · 스위칭 템 · 이탈 옵션</b> 설명 6장이 먼저 나와요. 넘길 수 없어요.","끝나면 <b>견습 엠블럼 · 연습용 아티팩트 · 큐브 7종 하나씩</b>을 무료로 주고, 큐브 창에서 <b>하나씩 직접 써 봐야</b> 교육이 끝나요. 다 하면 명장의 큐브 10개 더!"]},
   {img:"",h:"큐브 창에서 아티팩트도 · 이탈 옵션",p:["큐브 창에서 성유물 · 천공 · 어메이징 큐브로 <b>아티팩트</b>도 돌려요.","<b style='color:#ff7ad9'>이탈 옵션</b>: 앱솔루트 · 어메이징 큐브로 돌리면 줄마다 4% 확률로 그 등급 최대치를 넘는 숫자(최대 1.4배)가 나와요. 분홍 「이탈」로 보여요."]}]},
@@ -10256,6 +10258,7 @@ const REQ={6:[
   ['장비 끼기',()=>[eqN(),4],'gr','부위','부위'],
   ['장비 공격력',()=>[gAtk(),20],'gr','%','%'],
   ['파티 각성 ★ 합',()=>[awSum(),6],'aw','개','개'],
+  ['방어력 무시',()=>[window.myIgnNow?Math.round(myIgnNow()):0,window.recIgn?recIgn():0],'ign','%','%'],
   ['파티 전투력',()=>[(()=>{try{return CP.list(party6())}catch(e){return 0}})(),rcp(6)],'aw','','']],
  7:[
   ['출결 캐릭터 (장비)',()=>[G.me?1:0,1],'qr','없음!','있음'],
@@ -10263,6 +10266,7 @@ const REQ={6:[
   ['장비 공격력',()=>[gAtk(),50],'gr','%','%'],
   ['파티 각성 ★ 합',()=>[awSum(),18],'aw','개','개'],
   ['신화 이상 포켓몬',()=>[rarN(4),2],'tr','마리','마리'],
+  ['방어력 무시',()=>[window.myIgnNow?Math.round(myIgnNow()):0,window.recIgn?recIgn():0],'ign','%','%'],
   ['파티 전투력',()=>[(()=>{try{return CP.list(party6())}catch(e){return 0}})(),rcp(7)],'aw','','']]};
 const fmS=v=>v>=1e4?fm(Math.round(v)):String(Math.round(v));
 function reqNow(){const d=Math.max(DIFF(),G.rbd|0);if(d<6||DIFF()<6)return null;const k=d>=7&&DIFF()>=7?7:6;
@@ -10270,8 +10274,8 @@ function reqNow(){const d=Math.max(DIFF(),G.rbd|0);if(d<6||DIFF()<6)return null;
 let RH=null,RHc=0;
 function reqDraw(){try{const on=G&&SCENE==='over'&&!document.getElementById('rtbRoot')&&!document.body.classList.contains('wbsw');const q=on?reqNow():null;
   if(!q||!q.bad.length){if(RH)RH.style.display='none';return}
-  if(!RH){RH=document.createElement('div');RH.id='reqHud';document.body.appendChild(RH);RH.onclick=e=>{const g=e.target.closest('[data-rg]');if(g){e.stopPropagation();sfx('tap');const x=g.dataset.rg;try{if(x==='qr')xferOpen();else if(x==='gr')gearOpen();else if(x==='aw')awOpen();else if(x==='tr')window.trOpen&&trOpen()}catch(er){}return}if(e.target.closest('.rqh')){RHc^=1;reqDraw();return}tgOpen()}}
-  RH.style.display='block';const nm=DNAME[q.k],ok=q.L.length-q.bad.length;
+  if(!RH){RH=document.createElement('div');RH.id='reqHud';document.body.appendChild(RH);RH.onclick=e=>{const g=e.target.closest('[data-rg]');if(g){e.stopPropagation();sfx('tap');const x=g.dataset.rg;try{if(x==='qr')xferOpen();else if(x==='gr')gearOpen();else if(x==='aw')awOpen();else if(x==='tr')window.trOpen&&trOpen();else if(x==='ign')window.ignGuide&&ignGuide()}catch(er){}return}if(e.target.closest('.rqh')){RHc^=1;reqDraw();return}tgOpen()}}
+  RH.style.display='block';const nm=DNAME[DIFF()]||DNAME[q.k],ok=q.L.length-q.bad.length;
   RH.className=RHc?'mini':'';
   RH.innerHTML=`<div class="rqh">⚠ ${nm} 도전 조건 <b>${ok}/${q.L.length}</b><i>${RHc?'▼':'▲'}</i></div>${RHc?`<div class="rqw">${q.bad[0].n} 너무 낮아요!</div>`:`<div class="rqw">너무 낮아서 <b>위험해요!</b> 지금은 ${nm} 상대를 이기기 어려워요</div>`+
     q.L.map(x=>{const p=Math.max(0,Math.min(1,x.cur/x.need)),col=p>=1?'#3ddc84':p>=.6?'#ffc83d':'#ff3b4e',lv=p>=1?'충분':p>=.6?'조금 부족':'위험';
@@ -12425,7 +12429,7 @@ function cubeDemo(b){return new Promise(done=>{const fr=b.fr,bf=b.bf,i0=b.M.ign,
    [13500,()=>{d.querySelector('.cdwait').style.display='none';const ok=d.querySelector('#cdOk');ok.style.display='';ok.onclick=()=>{try{sfx('tap')}catch(e){}d.classList.add('out');setTimeout(()=>{d.remove();done()},300)}}]];
   T.forEach(([t,f])=>setTimeout(()=>{try{f()}catch(e){}},t))})}
 window.cubeDemo=cubeDemo;
-function autoCube(){const t=bestTgt();if(!t){ignGuide();return}const c=bestCube();if(!(G.bag[c]>0)){toast('큐브가 없어요 · 상점 · 서바이버 코인 상점 · 월드보스 보상에서 얻어요');ignGuide();return}
+function autoCube(){const t=bestTgt();if(!t){ignGuide();return}const c=bestCube();if(!(G.bag[c]>0)){askShop();return}
   toast('방무가 모자라요! '+(t.startsWith('emb')?'엠블럼':t==='eq:weapon'?'무기':'방패')+'을(를) 큐브로 돌려서 유니크 이상 · 방무 · 보공을 노려요');hubOpen2(c,t)}
 window.autoCube=autoCube;
 let lowAt=0;
@@ -12435,6 +12439,7 @@ function ignGuide(o0){if(!G)return;const M=myOff(o0||{}),d=DIFF();
   const rows=CLS.map(([k,n,o])=>{const fr=window.dfrOf(o),cr=window.crrOf(o),kk=dmgK(fr,M.ign);return `<tr class="${kk<.6?'lw':''}"><td>${n}</td><td>${Math.round(fr*100)}%</td><td>${needIgn(fr,.5)}%</td><td>${needIgn(fr,.8)}%</td><td><b>${Math.round(kk*100)}%</b></td><td>${Math.round(cr*100)}%</td></tr>`}).join('');
   const hasEmb=!!(G.emb&&Object.keys(G.emb).length);
   openPanel('방어력 무시 · 보스 공격력 · 크리티컬',`<div class="igd">
+   <div class="igs igr"><h4>${DNAME[d]} 권장 방어력 무시</h4>${(()=>{const rq=window.recIgn(),me=Math.round(M.ign),lack=Math.max(0,rq-me);return `<div class="igbar"><i style="width:${Math.min(100,me/Math.max(1,rq)*100)}%;background:${lack?'#ff5a4a':'#3ad66a'}"></i></div><p>권장 <b>${rq}%</b> · 내 방무 <b>${me}%</b> · ${lack?'<b style="color:#d4142e">'+lack+'% 부족해요</b>':'<b style="color:#1e9e5e">충분해요</b>'} <small>(트레이너에게 데미지 70% 기준)</small></p>`})()}</div>
    <div class="igs"><h4>지금 내 능력 (${DNAME[d]})</h4><div class="igm"><span>방어력 무시<b>${Math.round(M.ign)}%</b>${M.ignRaw>90?'<small>90%까지만 적용</small>':'<small>최대 90%까지 적용</small>'}</span><span>보스 공격력<b>+${Math.round(M.boss)}%</b><small>트레이너 · 관장 · 챔피언 · 월드보스</small></span><span>일반 공격력<b>+${Math.round(M.norm)}%</b><small>야생 사냥</small></span><span>크리티컬 확률<b>약 ${M.crt.toFixed(0)}%</b><small>상대 저항만큼 빠져요</small></span></div></div>
    <div class="igs"><h4>상대마다 필요한 방무</h4><p>데미지 = 1 − 방어율 × (1 − 내 방무). 방무가 모자라면 데미지가 반토막 나거나 거의 안 들어가요 (최소 5%).</p>
     <table class="igt"><tr><th>상대</th><th>방어율</th><th>데미지 50%</th><th>데미지 80%</th><th>지금 내 데미지</th><th>크리 저항</th></tr>${rows}</table></div>
@@ -12447,8 +12452,8 @@ function ignGuide(o0){if(!G)return;const M=myOff(o0||{}),d=DIFF();
    <div class="igs"><h4>스위칭 템 (상황마다 바꿔 끼우기)</h4><ol><li><b>사냥할 때</b> · 일반 공격력 잠재 엠블럼 · 아티팩트를 끼워요. 사냥터는 방어율이 절반이라 방무가 조금만 있어도 돼요.</li><li><b>트레이너 · 관장 · 챔피언 · 월드보스</b> · 보스 공격력 + 방어력 무시 잠재 엠블럼으로 바꿔 끼워요. 크리티컬 저항이 높아서 크리티컬 확률도 더 필요해요.</li><li>엠블럼마다 잠재옵션이 따로라, <b>사냥용 · 보스용 엠블럼을 하나씩</b> 돌려 두면 끼우기만 하면 돼요.</li></ol></div>
    <div class="igs"><h4>엠블럼 얻는 곳</h4><ol><li><b>견습 엠블럼</b> · 천계부터 튜토리얼에서 한 번 받아요${G.emb&&G.emb.novice?' (받음)':''}.</li><li><b>월드보스 주간 순위</b> · 참여만 해도 루카리오 엠블럼 · 순위가 높을수록 좋은 엠블럼.</li><li><b>업적</b> · 강화 관장 10단계 · 액자틀 20종 · 한정뽑기권 10장 · 전설 액자틀 5종.</li></ol>
     <p>큐브는 상점 · 서바이버 코인 상점 · 월드보스 순위 보상에서 얻어요.</p></div>
-   <div class="igb"><button data-ig="emb">엠블럼 잠재옵션</button><button data-ig="cube">장비 큐브</button><button data-ig="art">아티팩트</button>${!(G.flags&&G.flags.embTut)&&d>=6?'<button data-ig="tut">견습 엠블럼 받기</button>':''}</div></div>`,null,p=>{
-   p.querySelectorAll('[data-ig]').forEach(b=>b.onclick=()=>{try{sfx('tap')}catch(e){}const k=b.dataset.ig;closePanel(1);if(k==='emb')hubOpen2(null,G.embEq?'emb:'+G.embEq:null);else if(k==='cube')hubOpen2();else if(k==='art'){try{window.artOpen()}catch(e){}}else if(k==='tut')embTut(1)})})}
+   <div class="igb"><button data-ig="shop">큐브 상점</button><button data-ig="emb">엠블럼 잠재옵션</button><button data-ig="cube">장비 큐브</button><button data-ig="art">아티팩트</button>${!(G.flags&&G.flags.embTut)&&d>=6?'<button data-ig="tut">견습 엠블럼 받기</button>':''}</div></div>`,null,p=>{
+   p.querySelectorAll('[data-ig]').forEach(b=>b.onclick=()=>{try{sfx('tap')}catch(e){}const k=b.dataset.ig;closePanel(1);if(k==='emb')hubOpen2(null,G.embEq?'emb:'+G.embEq:null);else if(k==='cube')hubOpen2();else if(k==='art'){try{window.artOpen()}catch(e){}}else if(k==='tut')embTut(1);else if(k==='shop')cubeShop()})})}
 window.ignGuide=ignGuide;
 // 하는 방법 창에도
 {const _g=window.qGuide;if(_g)window.qGuide=function(){const r=_g.apply(this,arguments);try{if(DIFF()>=6){const p=document.querySelector('.panel'),bt=p&&p.querySelector('.qgbt');if(bt&&!p.querySelector('#qgIgn')){const M=myOff({}),fr=window.dfrOf({trainer:'트레이너'});bt.insertAdjacentHTML('beforebegin',`<div class="qgs" id="qgIgn"><div class="qgb"><h4>방어력 무시 · 보스 공격력 · 크리티컬</h4><p>천계부터 상대에게 방어율이 있어요. 지금 내 방무 <b>${Math.round(M.ign)}%</b> → 트레이너에게 데미지 <b>${Math.round(dmgK(fr,M.ign)*100)}%</b>.</p><button class="main" id="qgIgnB">자세히 보기 (필요한 방무 · 올리는 방법)</button></div></div>`);p.querySelector('#qgIgnB').onclick=()=>{closePanel(1);ignGuide()}}}}catch(e){}return r}}
@@ -12474,12 +12479,12 @@ function hStep(){const T=hTgt(CB.pick),C=cubeOf(CB.t);if(!fitT(CB.t,T)||!(G.bag[
   const og=T.g,up=R()<C[3][T.g]&&T.g<C[4],ng=up?Math.min(C[4],T.g+1):T.g,no=hRoll(T,ng,C[8]);
   if(C[8]){CB.pend={og,oo:T.o.map(x=>x.slice()),ng,no,up};CB.last=null}else{T.set(ng,no);CB.last={og,ng,up};CB.pend=null}save();return{up,og,ng}}
 async function hGo(){if(CB.busy){CB.stop=1;return}const T=hTgt(CB.pick),C=cubeOf(CB.t);if(!T){toast('아래에서 큐브에 넣을 '+(C[7]==='art'?'아티팩트':'장비나 엠블럼')+'을 먼저 골라요');return}
-  if(!fitT(CB.t,T)){toast(C[7]==='art'?'이 큐브는 아티팩트 전용이에요':'이 큐브는 장비 · 엠블럼에 써요');return}if(!(G.bag[CB.t]>0)){toast(C[1]+'가 없어요');return}if(CB.pend){toast('먼저 이전 / 이후 옵션을 골라요');return}
+  if(!fitT(CB.t,T)){toast(C[7]==='art'?'이 큐브는 아티팩트 전용이에요':'이 큐브는 장비 · 엠블럼에 써요');return}if(!(G.bag[CB.t]>0)){askShop(C[1]);return}if(CB.pend){toast('먼저 이전 / 이후 옵션을 골라요');return}
   if(CB.auto&&!C[8]&&!(C[3][T.g]>0&&T.g<C[4])){toast('이 큐브로는 더 못 올라가는 등급이에요');return}
   CB.busy=1;CB.stop=0;let n=0;hDraw();const box=document.querySelector('.hcbox');if(box){box.classList.remove('shk');void box.offsetWidth;box.classList.add('shk')}
-  if(!CB.auto||C[8]){await new Promise(r=>setTimeout(r,450));const r=hStep();CB.busy=0;if(r&&r.up){try{sfx('badge')}catch(e){}hFx(1);toast('등급 UP! '+GRN[r.og]+' → '+GRN[r.ng])}else{try{sfx('get')}catch(e){}hFx(0)}hDraw();return}
+  if(!CB.auto||C[8]){await new Promise(r=>setTimeout(r,450));const r=hStep();CB.busy=0;if(r&&r.up){try{sfx('badge')}catch(e){}hFx(1);toast('등급 UP! '+GRN[r.og]+' → '+GRN[r.ng])}else{try{sfx('get')}catch(e){}hFx(0)}hDraw();if(!(G.bag[CB.t]>0)&&!window.__tutRun&&!(G.flags&&G.flags.tutIgn&&G.flags.tutIgn.s==='cube'))setTimeout(()=>askShop(C[1]),900);return}
   while(!CB.stop&&G.bag[CB.t]>0){const r=hStep();n++;CB.msg=n+'번 돌리는 중… (큐브 '+n+'개)';if(n%5===0){hDraw();await new Promise(r=>setTimeout(r,30))}if(r&&r.up){CB.msg=n+'번 만에 등급 UP! '+GRN[r.og]+' → '+GRN[r.ng];try{sfx('badge')}catch(e){}hFx(1);break}}
-  if(!(G.bag[CB.t]>0))CB.msg=(n?n+'번 돌렸어요 · ':'')+'큐브를 다 썼어요';else if(CB.stop)CB.msg=n+'번 돌리고 멈췄어요';CB.busy=0;hDraw()}
+  const out=!(G.bag[CB.t]>0);if(out)CB.msg=(n?n+'번 돌렸어요 · ':'')+'큐브를 다 썼어요';else if(CB.stop)CB.msg=n+'번 돌리고 멈췄어요';CB.busy=0;hDraw();if(out)setTimeout(()=>askShop(C[1]),400)}
 function hFx(up){const b=document.querySelector('.hcbox');if(!b)return;const f=document.createElement('i');f.className='hcfx'+(up?' up':'');b.appendChild(f);setTimeout(()=>f.remove(),up?1400:600);if(up){const t=document.createElement('em');t.className='hcup';t.textContent='GRADE UP!';b.appendChild(t);setTimeout(()=>t.remove(),1500)}}
 function hProb(){const C=cubeOf(CB.t);const rows=GRN.map((g,i)=>`<tr><td style="color:${GRC[i]};font-weight:900">${g}</td><td>${i<3?'→ <span style="color:'+GRC[i+1]+'">'+GRN[i+1]+'</span>':'최고 등급'}</td><td>${i<3&&i<C[4]&&C[3][i]>0?Math.round(C[3][i]*100)+'%':'<span style="opacity:.5">없음</span>'}</td></tr>`).join('');
   const er=EOPT.map(x=>`<tr><td>${x[1]}${PREM.includes(x[0])?' *':''}</td>${x[3].map(r=>`<td>${r[1]?r[0]+'~'+r[1]:'-'}</td>`).join('')}</tr>`).join('');
@@ -12500,7 +12505,7 @@ async function hubOpen2(t,pick){if(!G)return;if(t)CB.t=t;if(pick){CB.pick=pick;C
   const isArt=cubeOf(CB.t)[7]==='art',L=isArt?arL:CB.tab==='eq'?eqL:emL;
   const grid=L.slice(0,120).map(k=>{const T=hTgt(k);return T?`<button class="hcs ${k===CB.pick?'on':''}" data-hp="${k}" style="--gc:${GRC[T.g]}">${T.ic}<b>${T.html?T.nm:esc(T.nm)}</b><small>${GRN[T.g]}</small><i>${T.sub}</i></button>`:''}).join('')||`<p class="hhint">${isArt?'아직 아티팩트가 없어요 (각성 ★3 포켓몬 · 교육 보상)':CB.tab==='emb'?'아직 엠블럼이 없어요 (교육 보상 · 월드보스 순위 · 업적)':'낀 장비가 없어요 (장비 화면에서 끼워요)'}</p>`;
   const C=cubeOf(CB.t);
-  openPanel('큐브',`<div class="hcw"><div class="hcrow">${cards}</div>
+  openPanel('큐브',`<div class="hcw"><div class="hcgold"><span>내 골드 <b>${(G.money|0).toLocaleString()}원</b></span><button id="hcShop">큐브 상점</button></div><div class="hcrow">${cards}</div>
    <div class="hcbox" style="--cc:${C[2]}"><div class="hchd">${hIc(CB.t,'hcic b')}<div class="hcn"><small>보유 개수</small><span>×<b id="hcN">${G.bag[CB.t]||0}</b></span></div><button class="hcpr" id="hcPr">확률</button></div><div class="hcslot" id="hcSlot">${hSlot()}</div><div class="hcmsg" id="hcMsg">${CB.msg||''}</div></div>
    <div class="hcact"><label${C[8]?' style="display:none"':''}><input type="checkbox" id="hcAu" ${CB.auto?'checked':''}> 등급업까지 자동 돌리기</label><button class="pri" id="hcGo">큐브 돌리기</button></div>
    <p class="hhint">${isArt?'아티팩트 큐브는 <b>아티팩트</b>에만 써요.':'장비 큐브는 <b>장비 · 엠블럼 잠재옵션</b>에 써요. 방어력 무시 · 보스 공격력은 <b>무기 · 방패 · 엠블럼</b>에서 나와요.'} 방무는 <b>유니크</b>부터 · <b style="color:#ff7ad9">이탈</b> = 등급 최대치를 넘은 옵션 (앱솔루트 · 어메이징 큐브)</p>
@@ -12509,8 +12514,56 @@ async function hubOpen2(t,pick){if(!G)return;if(t)CB.t=t;if(pick){CB.pick=pick;C
    p.querySelectorAll('[data-hc]').forEach(b=>b.onclick=()=>{if(CB.busy)return;try{sfx('tap')}catch(e){}const nt=b.dataset.hc,was=cubeOf(CB.t)[7];CB.t=nt;if(cubeOf(nt)[7]!==was)CB.pick=null;CB.last=null;CB.pend=null;CB.msg='';hubOpen2()});
    p.querySelectorAll('[data-ht]').forEach(b=>b.onclick=()=>{if(CB.busy)return;CB.tab=b.dataset.ht;hubOpen2()});
    p.querySelectorAll('[data-hp]').forEach(b=>b.onclick=()=>{if(CB.busy)return;try{sfx('tap')}catch(e){}CB.pick=b.dataset.hp;CB.last=null;CB.pend=null;CB.msg='';hDraw();const s=p.querySelector('.pb');if(s)try{s.scrollTo({top:0,behavior:'smooth'})}catch(e){s.scrollTop=0}});
-   p.querySelector('#hcGo').onclick=()=>hGo();const au=p.querySelector('#hcAu');if(au)au.onchange=e=>{CB.auto=e.target.checked?1:0};p.querySelector('#hcPr').onclick=()=>hProb();hBindRes(p);try{window.tutTick&&tutTick()}catch(e){}})}
+   p.querySelector('#hcGo').onclick=()=>hGo();const shb=p.querySelector('#hcShop');if(shb)shb.onclick=()=>{if(CB.busy)return;try{sfx('tap')}catch(e){}closePanel(1);cubeShop()};const au=p.querySelector('#hcAu');if(au)au.onchange=e=>{CB.auto=e.target.checked?1:0};p.querySelector('#hcPr').onclick=()=>hProb();hBindRes(p);try{window.tutTick&&tutTick()}catch(e){}})}
 window.cubeHub=hubOpen2;
+// ===== 큐브 상점 (내 골드 · 큐브 설명 · 바로 사기) · 큐브가 모자라면 상점으로 =====
+const CSH=[['cube','에픽까지만 올라가요 (레어 → 에픽 6%). 싸서 처음 연습용 · 옵션만 다시 뽑을 때 좋아요.','장비 · 엠블럼'],
+ ['cube2','레전드리까지 올라가요 (레어→에픽 12% · 에픽→유니크 5% · 유니크→레전드리 2%). <b>방무 · 보공 노리는 기본 큐브</b>예요.','장비 · 엠블럼'],
+ ['cube6','결과를 보고 <b>이전 / 이후 옵션 중에 골라요</b>. 등급업 14% · 7% · 4% · 줄마다 4% <b style="color:#ff7ad9">이탈 옵션</b>(최대치 1.4배).','장비 · 엠블럼'],
+ ['cube3','명장의 큐브보다 1%p 더 잘 올라가요 (13% · 6% · 3%).','장비 · 엠블럼','카오스 월드보스 순위 보상'],
+ ['cube4','아티팩트 옵션을 바꾸고 레전드리까지 올려요 (12% · 5% · 2%).','아티팩트'],
+ ['cube5','성유물의 큐브보다 1%p 더 잘 올라가요 (13% · 6% · 3%).','아티팩트','카오스 월드보스 순위 보상'],
+ ['cube7','아티팩트용 이전 / 이후 고르기 · 이탈 옵션 (14% · 7% · 4%).','아티팩트']];
+const won=n=>(n|0).toLocaleString()+'원';
+function cubeShop(back){if(!G)return;const rows=CSH.map(([k,d,w,src])=>{const it=ITEMS[k];if(!it)return '';const p=it.p,can=p>0;
+   return `<div class="csr"><div class="csi">${it.e}</div><div class="cst"><b>${it.n}</b> <small>${w} · 가진 것 ${G.bag[k]||0}개</small><p>${d}</p><em>${can?won(p)+' / 1개':'상점에 없어요 · '+(src||'보상으로만')}</em></div>${can?`<div class="csb">${[1,10,100].map(n=>`<button data-cs="${k}" data-n="${n}" ${G.money<p*n?'disabled':''}>${n}개<small>${won(p*n)}</small></button>`).join('')}</div>`:''}</div>`}).join('');
+  openPanel('큐브 상점',`<div class="csw"><div class="csm"><span>내 골드</span><b>${won(G.money)}</b></div><p class="hhint">큐브로 장비 · 엠블럼 · 아티팩트의 잠재옵션을 바꿔요. <b>방어력 무시는 유니크부터</b> 나오니까 명장의 큐브로 유니크까지 올리는 게 먼저예요. 골드는 사냥 · 골드 던전 · 일일 숙제에서 모아요.</p>${rows}
+   <div class="csx"><button data-cx="hub">큐브 창으로</button><button data-cx="gold">골드 던전 가기</button></div></div>`,null,p=>{
+   p.querySelectorAll('[data-cs]').forEach(b=>b.onclick=()=>{const k=b.dataset.cs,n=+b.dataset.n,pr=ITEMS[k].p;try{buyAsk(k,n,pr,n2=>{G.money-=pr*n2;addItem(k,n2);save();try{sfx('get')}catch(e){}toast(ITEMS[k].n+' ×'+n2+' 샀어요');cubeShop(back)})}catch(e){if(G.money>=pr*n){G.money-=pr*n;addItem(k,n);save();toast(ITEMS[k].n+' ×'+n+' 샀어요');cubeShop(back)}}});
+   p.querySelectorAll('[data-cx]').forEach(b=>b.onclick=()=>{try{sfx('tap')}catch(e){}const x=b.dataset.cx;closePanel(1);if(x==='hub')hubOpen2();else{try{const h=HUB.find(q=>q.k==='svg');if(h)h.go[0][1]()}catch(e){}}})})}
+window.cubeShop=cubeShop;
+async function askShop(name){const v=await ovBox('큐브가 모자라요',`<p>${name?'<b>'+name+'</b>가 다 떨어졌어요. ':''}큐브 상점에서 살까요?</p><p>내 골드 <b>${won(G.money)}</b></p>`,[{t:'나중에',v:0},{t:'큐브 상점 가기',main:1,v:1}]);if(v){closePanel(1);cubeShop()}}
+window.askShop=askShop;
+window.myIgnNow=()=>{try{return myOff({}).ign}catch(e){return 0}};
+window.recIgn=()=>{try{const fr=window.dfrOf({trainer:'트레이너'});return needIgn(fr,.7)}catch(e){return 0}};   // 권장 방무 = 트레이너에게 데미지 70%가 나오는 만큼
+// ===== 내 능력치 보기 (장비 · 가방 · 아티팩트 · 엠블럼 · 큐브 창 어디서든) · 부족한 것 · 채팅에 공유 =====
+const SROW=[['atk','공격력','%'],['boss','보스 공격력','%'],['norm','일반 공격력','%'],['tdmg','총데미지','%'],['tatk','총공격력','%'],['elem','모든속성 공격력','%'],['ign','방어력 무시','%'],['crt','크리티컬 확률','%'],['cdm','크리티컬 데미지','%'],['hp','체력','%'],['def','방어력','%'],['eva','회피','%'],['vamp','흡혈','%']];
+function statSrc(){const L=alive()[0]||G.party[0];const src={gear:{},emb:{},art:{}};
+  try{const t=gearStats();for(const k in t)src.gear[k]=t[k]}catch(e){}
+  try{const E=window.embPotStats();if(E)for(const k in E)src.emb[k]=E[k]}catch(e){}
+  try{const A=L&&window.ART_API?(()=>{const t={};const ids=Array.isArray(L.art)?L.art:[];const AI=ART_API.AI();for(const id of ids){const a=id&&AI[id];if(a)for(const [k,v] of a.o)t[k]=(t[k]||0)+v}return t})():{};src.art=A}catch(e){}
+  const tot={};for(const s of [src.gear,src.emb,src.art])for(const k in s)tot[k]=(tot[k]||0)+(+s[k]||0);return{L,src,tot}}
+const r1=v=>Math.round(v*10)/10;
+function statOpen(){if(!G)return;const {L,src,tot}=statSrc(),d=DIFF(),M=myOff({}),rq=window.recIgn(),crrT=Math.round(window.crrOf({trainer:'트레이너'})*100),crrC=Math.round(window.crrOf({trainer:'챔피언'})*100);
+  const ignT=Math.min(90,tot.ign||0),crtT=100/24+(tot.crt||0),eff=Math.max(0,crtT-crrT);
+  const rows=SROW.filter(([k])=>tot[k]||src.gear[k]||src.emb[k]||src.art[k]||['boss','ign','crt','cdm','norm','tdmg','atk'].includes(k)).map(([k,n,u])=>`<tr class="${['boss','ign','tdmg','atk'].includes(k)?'pr':''}"><td>${n}</td><td>${r1(src.gear[k]||0)}</td><td>${r1(src.emb[k]||0)}</td><td>${r1(src.art[k]||0)}</td><td><b>${k==='ign'?r1(ignT)+(tot.ign>90?' (90까지)':''):k==='crt'?r1(crtT):r1(tot[k]||0)}${u}</b></td></tr>`).join('');
+  const chk=[];if(d>=6){chk.push(['방어력 무시',ignT,rq,'%','트레이너에게 데미지 70% 기준']);chk.push(['크리티컬 확률',crtT,crrT+20,'%','트레이너 저항 '+crrT+'% + 20%']);chk.push(['보스 공격력',tot.boss||0,d>=8?60:d>=7?40:20,'%','관장 · 챔피언 · 월드보스용'])}
+  const need=chk.map(([n,cur,rqv,u,why])=>{const lack=Math.max(0,Math.round(rqv-cur)),p=Math.min(1,cur/Math.max(1,rqv));return `<div class="snr"><span><b>${n}</b><small>${why}</small></span><div class="snb"><i style="width:${p*100}%;background:${lack?'#ff5a4a':'#3ad66a'}"></i></div><em class="${lack?'no':'ok'}">${Math.round(cur)}${u} / ${Math.round(rqv)}${u}${lack?' · '+lack+u+' 부족':' · 충분'}</em></div>`}).join('');
+  openPanel('내 능력치',`<div class="stw"><div class="sth"><span>${L?esc(nm(L))+' Lv.'+dLv(L):''}</span><span>${DNAME[d]}</span><span>골드 <b>${(G.money|0).toLocaleString()}원</b></span></div>
+   ${d>=6?`<div class="sts"><h4>${DNAME[d]}에서 부족한 것</h4>${need}<div class="stk"><span>트레이너에게 데미지 <b>${Math.round(dmgK(window.dfrOf({trainer:'트레이너'}),ignT)*100)}%</b></span><span>챔피언에게 <b>${Math.round(dmgK(window.dfrOf({trainer:'챔피언'}),ignT)*100)}%</b></span><span>크리 실제 확률 <b>${Math.round(eff)}%</b> (챔피언 ${Math.round(Math.max(0,crtT-crrC))}%)</span></div></div>`:''}
+   <div class="sts"><h4>총 능력치 (출처별)</h4><table class="stt"><tr><th>능력치</th><th>장비</th><th>엠블럼 잠재</th><th>아티팩트<small>${L?'('+esc(nm(L))+')':''}</small></th><th>합계</th></tr>${rows}</table>
+    <p class="stn">장비는 강화(★) 배율이 들어간 값이에요 · 방어력 무시 · 보스 공격력은 강화 배율이 없어요 · 아티팩트는 포켓몬마다 따로라 지금 선두 포켓몬 기준 · 크리티컬 확률에는 기본 4%가 들어 있어요.</p></div>
+   <div class="stb"><button data-sb="share">채팅에 공유</button><button data-sb="hub">큐브 창</button><button data-sb="shop">큐브 상점</button><button data-sb="ign">방무 안내</button></div></div>`,null,p=>{
+   p.querySelectorAll('[data-sb]').forEach(b=>b.onclick=async()=>{try{sfx('tap')}catch(e){}const x=b.dataset.sb;
+    if(x==='share'){const t=`[능력치·${DNAME[d]}] 방무${Math.round(ignT)} 보공${Math.round(tot.boss||0)} 일공${Math.round(tot.norm||0)} 크확${Math.round(crtT)} 크뎀${Math.round(tot.cdm||0)} 총뎀${Math.round(tot.tdmg||0)} 공${Math.round(tot.atk||0)}`;
+      try{const ok=await chSend('t',t.slice(0,60));if(ok!==false){toast('채팅에 내 능력치를 공유했어요');try{sfx('get')}catch(e){}}}catch(e){toast('지금은 채팅에 못 보내요')}return}
+    closePanel(1);if(x==='hub')hubOpen2();else if(x==='shop')cubeShop();else ignGuide()})})}
+window.statOpen=statOpen;
+// 어디서든: 장비 · 가방 · 아티팩트 · 엠블럼 · 큐브 · 큐브 상점 · 편성 창 제목 옆에 「내 능력치」
+setInterval(()=>{try{const p=document.querySelector('.panel');if(!p||p.querySelector('#statBtn'))return;const h=p.querySelector('.ph b');if(!h)return;const t=h.textContent;
+  if(!/장비|가방|아티팩트|엠블럼|큐브|편성|방어력 무시|내 포켓몬/.test(t)||/내 능력치/.test(t))return;const b=document.createElement('button');b.id='statBtn';b.textContent='내 능력치';b.onclick=e=>{e.stopPropagation();try{sfx('tap')}catch(_){}closePanel(1);statOpen()};h.insertAdjacentElement('afterend',b)}catch(e){}},700);
+// 사이드 메뉴에도
+setInterval(()=>{try{const side=$('side');if(!side||$('bStat'))return;const b=document.createElement('button');b.id='bStat';b.innerHTML='<img class="sic" src="ui/ic_star.webp" alt="" style="filter:hue-rotate(180deg)"><span>능력치</span>';b.onclick=()=>{try{sfx('tap')}catch(e){}statOpen()};const g=$('bDgn')||$('bHub');side.insertBefore(b,g?g.nextSibling:null)}catch(e){}},1500);
 // 견습 엠블럼 (교육 보상) — 능력치는 낮지만 잠재옵션 연습용
 try{if(window.EMB&&!EMB.some(e=>e.id==='novice'))EMB.push({id:'novice',n:'견습 엠블럼',img:'ui/gm/rank/rank_50_lucario.webp',src:'천계 교육 보상',all:3,x:{},xd:'잠재옵션 연습용 (능력치는 낮아요)'})}catch(e){}
 // ===== 천계 교육 (넘길 수 없어요): 방어율 · 방무 · 보공 · 크리 저항 · 스위칭 · 이탈 → 큐브 7종 하나씩 직접 써 보기 =====
@@ -12557,7 +12610,21 @@ const css=document.createElement('style');css.textContent=`
 .panel .epc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.panel .epc button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 3px!important;border:3px solid #0b0f24;border-radius:0!important;background:#ffd23f!important;color:#1c2550;font:900 11.5px 'Galmuri11',system-ui;box-shadow:0 3px 0 #0b0f24}
 .panel .epc button[disabled]{opacity:.45}.panel .epc .ic{width:26px;height:26px}.panel .epc small{font-weight:700;font-size:10.5px}
 .panel .eptip{margin:6px 0 0;font-size:11.5px;color:#4a5070}
-.panel .hcw{color:#1c2550}.panel .hcrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-bottom:8px}
+.panel .hcw{color:#1c2550}.panel .hcgold{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;padding:6px 10px;background:#1c2550;color:#fff;border:3px solid #ffd23f}.panel .hcgold b{color:#ffd23f;font-size:16px}.panel .hcgold button{padding:6px 14px!important;border:3px solid #0b0f24!important;background:#ffd23f!important;color:#1c2550!important;font:900 13px 'Galmuri11',system-ui;border-radius:0!important}
+.panel .csw{color:#1c2550}.panel .csm{display:flex;justify-content:flex-start;gap:12px;align-items:center;padding:8px 12px;margin-bottom:6px;background:#1c2550;color:#fff;border:3px solid #ffd23f;font-weight:900}.panel .csm b{color:#ffd23f;font-size:20px}
+.panel .csr{display:flex;gap:10px;align-items:center;margin:0 0 8px;padding:8px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 3px 0 #0b0f24}.panel .csi .ic{width:44px;height:44px}.panel .cst{flex:1;min-width:0;font-size:12.5px;line-height:1.5}.panel .cst b{font-size:14px}.panel .cst p{margin:2px 0}.panel .cst em{font-style:normal;font-weight:900;color:#b8580a}
+.panel .csb{display:flex;flex-direction:column;gap:4px}.panel .csb button{display:flex;flex-direction:column;align-items:center;padding:4px 10px!important;min-width:84px;border:3px solid #0b0f24!important;background:#ffd23f!important;color:#1c2550!important;font:900 12px 'Galmuri11',system-ui;border-radius:0!important}.panel .csb small{font-size:10px;font-weight:700}.panel .csb button[disabled]{opacity:.4}
+.panel .csx{display:flex;gap:8px}.panel .csx button{flex:1;padding:9px!important;border:3px solid #0b0f24;background:#cfe8ff!important;color:#1c2550;font:900 13px 'Galmuri11',system-ui;border-radius:0!important}
+#statBtn{margin-left:10px;padding:4px 10px;border:2px solid #0b0f24;background:#ffd23f;color:#1c2550;font:900 12px 'Galmuri11',system-ui;cursor:pointer;vertical-align:middle}
+.panel .stw{color:#1c2550}.panel .sth{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:flex-start;padding:7px 10px;background:#1c2550;color:#fff;border:3px solid #ffd23f;font-weight:900;margin-bottom:8px}.panel .sth b{color:#ffd23f}
+.panel .sts{margin:0 0 10px;padding:8px 10px;background:#fffbe8;border:3px solid #1c2550;box-shadow:0 4px 0 #0b0f24}.panel .sts h4{margin:0 0 6px;font:900 15px 'Galmuri11',system-ui}
+.panel .snr{display:grid;grid-template-columns:150px 1fr 170px;align-items:center;gap:8px;margin:5px 0;font-size:12.5px}.panel .snr span{display:flex;flex-direction:column}.panel .snr small{font-size:10.5px;opacity:.7}
+.panel .snb{height:12px;background:#e9edff;border:2px solid #1c2550}.panel .snb i{display:block;height:100%}.panel .snr em{font-style:normal;font-weight:900;text-align:right}.panel .snr em.no{color:#d4142e}.panel .snr em.ok{color:#1e9e5e}
+.panel .stk{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;font-size:12.5px}.panel .stk b{color:#b8580a}
+.panel .stt{width:100%;border-collapse:collapse;font-size:12.5px;text-align:center}.panel .stt th{background:#1c2550;color:#ffd23f;padding:4px}.panel .stt th small{display:block;font-size:10px;color:#fff}.panel .stt td{border:1px solid #1c255033;padding:3px}.panel .stt td:first-child{text-align:left;font-weight:800}.panel .stt tr.pr td:first-child{color:#c0307a}.panel .stt td b{color:#b8580a}
+.panel .stn{font-size:11px;opacity:.75;margin:6px 0 0}.panel .stb{display:flex;gap:8px;flex-wrap:wrap}.panel .stb button{flex:1;min-width:110px;padding:9px!important;border:3px solid #0b0f24;background:#ffd23f!important;color:#1c2550;font:900 13px 'Galmuri11',system-ui;box-shadow:0 3px 0 #0b0f24;border-radius:0!important}
+@media (max-width:560px){.panel .snr{grid-template-columns:1fr}.panel .snr em{text-align:left}}
+.panel .igr .igbar{height:14px;background:#e9edff;border:2px solid #1c2550}.panel .igr .igbar i{display:block;height:100%}.panel .hcrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-bottom:8px}
 .panel .hcc{display:flex;flex-direction:column;gap:2px;padding:6px 8px!important;border:3px solid var(--cc,#7a86b0)!important;border-radius:10px!important;background:#1c1533!important;color:#fff!important;text-align:left;box-shadow:0 3px 0 #0b0f24}
 .panel .hcc.on{box-shadow:0 0 0 3px #fff,0 0 14px var(--cc)}.panel .hcc.art{--cc:#3ad0a0;opacity:.85}.panel .hcc .hct{display:flex;align-items:center;gap:6px}.panel .hcc b{flex:1;font:900 13px 'Galmuri11',system-ui;color:var(--cc)}.panel .hcc em{font-style:normal;font-weight:900}.panel .hcc small{font-size:10.5px;opacity:.75}
 .panel .hcic{width:26px;height:26px;object-fit:contain}.panel .hcic.b{width:64px;height:64px;filter:drop-shadow(0 0 10px var(--cc))}
