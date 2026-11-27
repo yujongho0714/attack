@@ -9300,7 +9300,7 @@ async function rtWild(o){
         loseTxt:reserve?'쓰러졌다! 다음 포켓몬!':'눈앞이 캄캄해졌다…',endHint:autoActive()?'자동으로 계속해요':'화면을 누르면 계속해요',
         // 7A: 자동전투 — 내 포켓몬도 AI(T4). 야생은 잡고 싶은 포켓몬이면 자동 볼(예전 자동 규칙 wantCatch·autoBallFor 그대로)
         autoMe:autoActive()?1:0,autoTier:'T4',rollTut:!G.rollTut,onRollTut:()=>{G.rollTut=1;save()},catchAt:()=>{try{const r=rarM(f);return r<=0?.35:r===1?.28:r===2?.22:.15}catch(e){return .25}},autoBall:()=>{try{return(!tr&&autoActive()&&wantCatch(f)&&!capFull(f))?autoBallFor(f):null}catch(e){return null}}},
-        tr?{noQuit:1,maxTime:300}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,saveFoe:()=>{try{return BALLS().length>0&&mustCatch(f)}catch(e){return false}},blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
+        tr?{noQuit:0,maxTime:300,quitText:'배틀에서 나갈까요? (진 걸로 쳐요 · 돈은 안 잃고, 다시 도전할 수 있어요)'}:{noTimeLimit:1,quitText:'도망칠까요?',drawTxt:'시간이 다 됐다',balls,takeBall,catchP,saveFoe:()=>{try{return BALLS().length>0&&mustCatch(f)}catch(e){return false}},blockBall:()=>capFull(f)?'이미 '+MONCAP+'마리라서 못 잡아요':null}));
       const L=window.RTB.last||{};
       // 6F-4b: 교대로 여러 마리가 싸웠을 수 있음 → 체력은 uid별로 저장, 마지막에 싸운 포켓몬이 cur
       if(L.hpBy){for(const q of G.party){const hb=L.hpBy[q.uid];if(hb!=null)q.hp=hb>0?Math.max(1,Math.round(hb)):0}}
@@ -9771,7 +9771,7 @@ const NEWS=[
  {v:2026111908,date:'11월 19일 밤',t:'포켓몬 얼굴 그림(초상화)이 예전 그림으로 돌아왔어요',items:[
   {img:'',h:'🖼 예전 초상화 복구',p:['대화창 · 카드팩 · 도감에 나오는 포켓몬 얼굴 그림이 <b>예전 그림</b>으로 돌아왔어요.','기쁨 · 화남 같은 표정 그림도 다시 나와요.']}]},
  {v:2026111907,date:'11월 19일 밤',t:'나가기 · 교대 · 약 버튼이 커졌어요',items:[
-  {img:'ui/news/n12_btn.webp',h:'🏃 나가기 · 🔄 교대 · 🧪 약 버튼',p:['실시간 전투 <b>왼쪽 아래</b>에 큰 버튼 3개가 있어요.','<b>🏃 나가기</b>(빨강): 야생 전투에서 도망가요. 트레이너 전투는 회색 「도망 불가」로 보여요.','<b>🔄 교대</b>(파랑): 다른 포켓몬으로 바꿔요. 바꾼 뒤엔 남은 초가 보여요.','<b>🧪 약</b>(초록): 오른쪽 위 노란 숫자 = 남은 약 개수. 쓰면 잠깐 회색이 되고 남은 초가 보여요.']}]},
+  {img:'ui/news/n12_btn.webp',h:'🏃 나가기 · 🔄 교대 · 🧪 약 버튼',p:['실시간 전투 <b>왼쪽 아래</b>에 큰 버튼 3개가 있어요.','<b>🏃 나가기</b>(빨강): 전투에서 나가요. 트레이너 전투도 나갈 수 있어요 (진 걸로 쳐요 · 돈은 안 잃어요).','<b>🔄 교대</b>(파랑): 다른 포켓몬으로 바꿔요. 바꾼 뒤엔 남은 초가 보여요.','<b>🧪 약</b>(초록): 오른쪽 위 노란 숫자 = 남은 약 개수. 쓰면 잠깐 회색이 되고 남은 초가 보여요.']}]},
  {v:2026111906,date:'11월 19일 밤',t:'때릴 때 화면이 검게 번쩍이던 것 없앴어요',items:[
   {img:'',h:'🖤 막타 화면 번쩍임 없앰',p:['기술 마지막 타가 맞을 때 화면 색이 확 뒤집혀서 <b>검게 번쩍</b>이던 연출을 없앴어요.','실시간 전투 · 3대3 · 턴제 전투 모두 적용돼요. 따로 누를 건 없어요!']}]},
  {v:2026111905,date:'11월 19일 밤',t:'내 기록 자동 보관 (잃어버려도 복구돼요)',items:[
