@@ -3952,11 +3952,12 @@ RKB.adv.n='진행도';RKB.tower.n='격투 탑';
 // ===== 진행도 랭킹: 「나이트메어 · 3번째 관장 · 3환생」처럼 어디까지 왔는지 보여요 =====
 // 순위: 환생 횟수 → 난이도 → 진행 단계 → 도감 수 순서 · 한 숫자(v)에 담아서 보내고 보여 줄 때 풀어요
 const advStage=()=>G.champ?9+Math.min(4,G.ub||0):Math.min(8,G.badges||0);
-const advV=()=>Math.min(99,lbN())*1e6+Math.min(9,Math.max(DIFF(),G.rbd|0))*1e5+advStage()*1e3+Math.min(999,Object.keys(G.dex.c||{}).length);
-function advFmt(v){const rb=Math.floor(v/1e6),d=Math.floor(v/1e5)%10,S=Math.floor(v/1e3)%100,dx=v%1e3;
+// 11/27: 난이도(하계 · 명계 포함)가 가장 먼저 → 진행 단계 → 환생 → 도감 수 (예전엔 환생이 먼저라 하계에 가도 순위가 안 바뀌었어요)
+const advV=()=>Math.min(9,Math.max(DIFF(),G.rbd|0))*1e7+advStage()*1e5+Math.min(99,lbN())*1e3+Math.min(999,Object.keys(G.dex.c||{}).length);
+function advFmt(v){const d=Math.floor(v/1e7)%10,S=Math.floor(v/1e5)%100,rb=Math.floor(v/1e3)%100,dx=v%1e3;
   const st=S===0?'모험 시작':S<8?S+'번째 관장':S===8?'포켓몬 리그':S===9?'챔피언':'상위 체육관 '+(S-9);
   return (DNAME[d]||'')+' '+st+' <small>'+(rb?rb+'한계돌파 · ':'')+'도감 '+dx+'마리</small>'}
-RKB.adv={n:'진행도',k:()=>'adv2',v:()=>advV(),u:'',d:'한계돌파 횟수 → 난이도 → 진행 단계(관장 · 리그 · 챔피언 · 상위 체육관) → 도감 수 순서로 순위가 정해져요',f:advFmt};
+RKB.adv={n:'진행도',k:()=>'adv3',v:()=>advV(),u:'',d:'난이도(천계 · 천상계 · 하계 · 명계까지) → 진행 단계(관장 · 리그 · 챔피언 · 상위 체육관) → 환생 횟수 → 도감 수 순서로 순위가 정해져요',f:advFmt};
 const rkv=(b,v)=>RKB[b].f?RKB[b].f(v):v.toLocaleString()+RKB[b].u;
 const RKT=[['dex','획득 수'],['adv','진행도'],['wb','월드보스'],['tower','격투 탑']];
 async function rankOpen(b){if(!G)return;b=b||G.rkTab||'dex';G.rkTab=b;
@@ -4051,13 +4052,13 @@ rankFetch=async function(b){const c=wbCfg();if(!c)return null;
     if(r.ok){const j=await r.json();if(Array.isArray(j))L=j.filter(x=>x.document).map(x=>conv(x.document))}}catch(e){}
   if(!L){try{L=[];let tok='';for(let i=0;i<12;i++){const r=await fetch(`${base}/${path}/players?pageSize=300&key=${c.apiKey}${tok?'&pageToken='+encodeURIComponent(tok):''}`);if(!r.ok)throw 0;const j=await r.json();L.push(...(j.documents||[]).map(conv));if(!j.nextPageToken)break;tok=j.nextPageToken}L.sort((a,b)=>b.v-a.v)}catch(e){return null}}
   // 진행도: 아직 아무것도 안 한 기록(보통 · 모험 시작 · 도감 0마리)은 빼요
-  if(b==='adv')L=L.filter(x=>x.v>=1e6||x.v%1e5>0);
+  if(b==='adv')L=L.filter(x=>x.v>0);
   // 운영자는 서버에 안 올라가지만, 자기 진행도가 어디쯤인지는 볼 수 있게 내 화면에만 끼워 줘요 (id가 달라서 왕관 · 순위 휘장에는 영향 없어요)
   try{if(false&&(b==='adv'||b==='dex')&&rkStaff()){const v=Math.floor(RKB[b].v());if(v>0){const nm0=(String(G.name||'').split('#')[0]||'운영자').slice(0,6)+'·미등록';L.push({id:G.pid+'~preview',name:nm0+repTag(),v,preview:1});L.sort((a,b)=>b.v-a.v)}}}catch(e){}
   return L};
 const rkStaff=()=>{try{return !!((typeof isGM==='function'&&isGM())||(typeof isOp==='function'&&isOp()))}catch(e){return false}};
 // 난이도 배지: 쉬움 · 보통 · 어려움은 담백하게, 지옥부터 점점 화려하게
-advFmt=function(v){const rb=Math.floor(v/1e6),d=Math.min(9,Math.floor(v/1e5)%10),S=Math.floor(v/1e3)%100,dx=v%1e3;
+advFmt=function(v){const d=Math.min(9,Math.floor(v/1e7)%10),S=Math.floor(v/1e5)%100,rb=Math.floor(v/1e3)%100,dx=v%1e3;
   const st=S===0?'모험 시작':S<8?S+'번째 관장':S===8?'포켓몬 리그':S===9?'챔피언':'상위 체육관 '+(S-9);
   return `<span class="dfx d${d}"><i></i><i></i>${DNAME[d]||''}</span> ${st} <small>${rb?rb+'환생 · ':''}도감 ${dx}마리</small>`};
 RKB.adv.f=advFmt;
@@ -8530,7 +8531,7 @@ chParse=async function(d){try{const id=decodeURIComponent(d.name.split('/').pop(
 chSend=async function(ty,text,mon,ex){if(!G||!G.pid){toast('먼저 게임을 시작해요');return false}if(!navigator.onLine||!fsBase()){toast('인터넷이 연결되면 채팅할 수 있어요');return false}if(BANS.has(G.pid)){toast('채팅을 쓸 수 없는 계정이에요');return false}
   if(Date.now()-CHLAST<(ty==='t'?3500:20000)){toast(ty==='t'?'조금 천천히 보내요':'자랑은 20초에 한 번씩 할 수 있어요');return false}
   const x=chClean(text||'');if(ty==='t'&&!x)return false;const ms=Math.floor(Date.now()),sec=Math.floor(ms/1000),b=acB64u(new TextEncoder().encode(x));
-  await chRkRefresh();const tier=chMyTier(),me=cpMe();let seg=ms.toString(36)+(tier?'.'+tier:'');if(me.tk||me.pm)seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv).toString(36);try{seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv||0).toString(36)+'.'+Math.floor(advV()).toString(36)}catch(e){}   /* 9H: 지금 진행도도 같이 보냄(옛 버전은 무시) */
+  await chRkRefresh();const tier=chMyTier(),me=cpMe();let seg=ms.toString(36)+(tier?'.'+tier:'');if(me.tk||me.pm)seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv).toString(36);try{seg=ms.toString(36)+'.'+tier+'.'+(me.tk||'-')+'.'+(me.pm||'-')+'.'+Math.floor(me.pv||0).toString(36)+'.'+Math.floor(advV()+1e9).toString(36)}catch(e){}   /* 9H: 지금 진행도도 같이 보냄(옛 버전은 무시) */
   let body;if(ty==='p')body='p'+chKeyMon(mon)+'~'+b;else if(ty==='c')body='c'+ex.m+'.'+Math.floor(ex.v).toString(36);else if(ty==='d')body='d'+ex.m+'.'+Math.floor(ex.v).toString(36)+'~'+ex.l.map(k36).join(',');else body='t'+b;
   const id='m~'+seg+'~'+G.pid+'~'+body,name=chNameAva().slice(0,12),CMo=chMon(ms),vm=CMo.v,t=sec*1048576+await gmMac(id,name,vm,sec);
   CHLAST=ms;const er=await chPut(CMo.bd,id,name,vm,t);if(er){toast('보내지 못했어요 ('+er+') · 잠시 뒤에 다시 해요');CHLAST=0;return false}
@@ -8538,7 +8539,7 @@ chSend=async function(ty,text,mon,ex){if(!G||!G.pid){toast('먼저 게임을 시
 // 보이는 모양: 칭호 · 전투력 · 덱 얼굴
 const ttl=o=>o.tk?`<u class="cptk">${o.tk==='ch6'||o.tk==='ch7'?(window.CPH?CPH(o.tk):esc(CP.title(o.tk))):esc(CP.title(o.tk))}</u>`:'',cpe=o=>o.pm?`<em class="cpv">⚡${o.pv>=1e4?(o.pv/1e4).toFixed(1)+'만':fmtN(o.pv)}</em>`:'';
 {const _n=chName;chName=function(o){let h=_n.apply(this,arguments);try{h=h.replace('<span class="chhd">','<span class="chhd">'+ttl(o));h=h.replace(/<\/b><\/span>$/,'</b>'+cpe(o)+'</span>')}catch(e){}return h}}
-const advS=o=>{let v0=o.adv;if(!v0){try{for(let i=CHM.length-1;i>=0;i--){const x=CHM[i];if(x.pid===o.pid&&x.adv){v0=x.adv;break}}}catch(e){}}if(!v0)return'';const v=v0,rb=Math.floor(v/1e6),d=Math.floor(v/1e5)%10,S=Math.floor(v/1e3)%100;const st=S===0?'시작':S<8?'배지 '+S:S===8?'리그':S===9?'챔피언':'상위 '+(S-9);return `<em class="chadv chadv2">${rb?'<b class="chrb">'+rb+'돌파</b>':''}<span class="dfx d${Math.min(9,d)}"><i></i><i></i>${DNAME[d]||''}</span><u>${st}</u></em>`};   /* 9H 진행도 꼬리표 */
+const advS=o=>{let v0=o.adv;if(!v0){try{for(let i=CHM.length-1;i>=0;i--){const x=CHM[i];if(x.pid===o.pid&&x.adv){v0=x.adv;break}}}catch(e){}}if(!v0)return'';const nw=v0>=1e9,v=nw?v0-1e9:v0,rb=nw?Math.floor(v/1e3)%100:Math.floor(v/1e6),d=nw?Math.floor(v/1e7)%10:Math.floor(v/1e5)%10,S=nw?Math.floor(v/1e5)%100:Math.floor(v/1e3)%100;   /* 11/27 새 방식(+1e9)과 옛 방식 둘 다 */const st=S===0?'시작':S<8?'배지 '+S:S===8?'리그':S===9?'챔피언':'상위 '+(S-9);return `<em class="chadv chadv2">${rb?'<b class="chrb">'+rb+'돌파</b>':''}<span class="dfx d${Math.min(9,d)}"><i></i><i></i>${DNAME[d]||''}</span><u>${st}</u></em>`};   /* 9H 진행도 꼬리표 */
 {const _r=chRow;chRow=function(o){let h=_r.apply(this,arguments);if(!h)return h;try{{const ad=advS(o);h=h.replace('<small class="cht">',ad+(ad?'':ttl(o))+cpe(o)+'<small class="cht">')}
   if(o.ty==='d')h=h.replace(/<\/div><\/div>$/,'<div class="cpdk">'+o.dl.map(n=>`<img src="${THUMB[n]||''}" alt="">`).join('')+'</div></div></div>');
   else if(o.ty==='c')h=h.replace(/<\/div><\/div>$/,'<div class="cpbig">⚡ '+fmtN(o.bv)+'</div></div></div>')}catch(e){}return h}}
@@ -9557,6 +9558,10 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112704,date:'11월 27일',t:'메뉴 단추 옮기기 · 진행도 순위 고침',items:[
+  {h:"오른쪽 메뉴 단추를 하나씩 옮겨요",p:["메뉴 단추를 <b>손가락으로 꾹 눌러 끌면</b> 그 단추만 원하는 곳으로 옮겨져요. 자리는 기억해요. 그냥 누르면 원래처럼 열려요.","<b>「접기」</b> 단추도 끌어서 옮길 수 있어요. 「접기」를 <b>2초 꾹</b> 누르면 모든 단추가 처음 자리로 돌아가요."]},
+  {h:"A 단추가 평소엔 숨어요",p:["맵에서 늘 떠 있던 A(공격) 단추가 다른 메뉴를 가려서 숨겼어요. <b>앞에 사람 · 표지판이 있거나 대화 중일 때만</b> 「대화」 단추로 나와요."]},
+  {h:"진행도 순위가 제대로 바뀌어요",p:["예전엔 환생 횟수가 먼저라 <b>하계 · 명계에 가도 순위가 안 올라갔어요</b>. 이제 <b>난이도(천계 → 천상계 → 하계 → 명계) → 관장 · 챔피언 → 환생 → 도감</b> 순서예요.","새 순서로 순위표를 새로 만들어서, 게임을 켜면 몇 분 안에 저절로 다시 올라가요."]}]},
  {v:2026112703,date:'11월 27일',t:'주간 변이 던전 · 시즌 명예의 전당 · 랭킹 엠블럼',items:[
   {h:"주간 변이 던전 (보스 5층 러시)",p:["<b>찾는 곳</b>: 메뉴 → <b>배틀 · 도전</b> → 주간 변이 던전 (천계부터 열려요)","매주 <b>규칙 카드 3장</b>이 바뀌어요 (예: 단단한 보스 · 힘 빠짐 · 세 마리 승부). 이번 주 테마 타입 보스 5마리와 <b>1층부터 5층까지 이어서</b> 싸워요.","층 사이엔 체력이 반만 차고, 지면 그 자리에서 끝! <b>하루 3번</b> 들어갈 수 있어요.","층마다 이번 주 첫 돌파 보상(결정 · 큐브 · 액자틀 상자 · 한정뽑기권), <b>5층까지 다 깨면 명예 접두사 「변이 던전 정복자」</b> · 주간 랭킹도 있어요."]},
   {h:"시즌 명예의 전당",p:["<b>찾는 곳</b>: 메뉴 → <b>친구랑</b> → 시즌 명예의 전당","한 달(시즌) 동안 모은 <b>시즌 패스 점수</b>가 명예 점수예요. 저절로 순위에 올라가요.","달이 바뀌면 <b>1위 · 2~3위 · 4~10위 · 11~30위</b>가 명예의 전당에 올라 <b>명예 접두사</b>(능력치 +30~80%)를 받아요. 시즌이 지날수록 더 세져요.","명예 접두사는 <b>내 캐릭터와 포켓몬 한 마리에 둘 다</b> 달 수 있어요 (명예의 전당 화면 아래 「내 명예 접두사」)."]},
