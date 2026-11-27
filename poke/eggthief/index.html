@@ -426,8 +426,15 @@ function updateHUD(){
    ===================================================================== */
 const P={pos:new THREE.Vector3(-4,0,10),vel:new THREE.Vector3(),ground:true};
 function near(x,z,r){return Math.hypot(P.pos.x-x,P.pos.z-z)<r}
+function stationNear(){
+  if(ST.carry){for(let i=0;i<save.slotsN;i++){const sl=W.slots[i];if(!save.slots[i]&&sl&&near(sl.x,sl.z,2.6))return{k:'s'+i,x:sl.x,z:sl.z,r:2.6}}return null}
+  if(near(-7,5,2.2))return{k:'tm',x:-7,z:5,r:2.2,snap:1};
+  if(!save.gift&&near(-6.5,13,3))return{k:'gift',x:-6.5,z:13,r:3};
+  for(const rs of W.rs)if(rs.egg&&near(rs.x,rs.z,2.8))return{k:rs,x:rs.x,z:rs.z,r:2.8};
+  if(!ST.night){let b=null,bd=3.2;for(const w of W.eggs){const d=Math.hypot(P.pos.x-w.x,P.pos.z-w.z);if(d<bd){bd=d;b=w}}if(b)return{k:b,x:b.x,z:b.z,r:3.2}}
+  return null}
 function act(){
-  if(!ST.started)return;
+  if(!ST.started)return;ST.hold=0;
   if(!save.gift&&near(-6.5,13,3.6)){save.gift=true;save.speed+=10000;if(!save.trs.includes(2))save.trs.push(2);save.tr=2;persist();updateHUD();sfx.hatch();toast('선물! 속도 +10,000 · 물결 꼬리','#7cf0a4');return}
   if(ST.boss.on&&near(0,-12,7)){const d=Math.max(8,Math.round(10+Math.log10(Math.max(10,save.speed))*6));ST.boss.hp-=d;ST.atk=.5;sfx.bonk();fxBurst(new THREE.Vector3(0,3,-12),0xf43f5e);toast('보스 공격! -'+d+'  남은 체력 '+Math.max(0,ST.boss.hp),'#ffb0ff');
     if(ST.boss.hp<=0){ST.boss.on=false;W.boss.root.visible=W.bossRing.visible=false;$('evB').classList.add('hide');const r=15+Math.floor(Math.random()*10);save.shards+=r;persist();updateHUD();sfx.hatch();toast('균열 보스를 물리쳤어요! 파편 +'+r,'#ffe16b')}return}
@@ -593,6 +600,11 @@ function loop(){
     const spd=(10+Math.log2(Math.max(1,save.speed/12))*5.2)*wm*(ST.ride?1.32:1)*bm;
     const fov=58+(ST.sprint&&V.lengthSq()>.001?9:0);if(Math.abs(camera.fov-fov)>.1){camera.fov+=(fov-camera.fov)*.15;camera.updateProjectionMatrix()}
     FW.set(-Math.sin(ST.yaw),0,-Math.cos(ST.yaw));RT.set(Math.cos(ST.yaw),0,-Math.sin(ST.yaw));V.set(0,0,0).addScaledVector(FW,fw).addScaledVector(RT,rt);
+    // 11/27 러닝머신 · 알 · 선물 상자 · 둥지에 닿으면 멈춰요 (빨라서 지나쳐 버리지 않게) — 손을 뗐다 다시 밀면 출발
+    {const inp=V.lengthSq()>.001,st=stationNear();
+      if(st&&st.k!==ST.lastSt&&inp&&!ST.hold){ST.hold=1;ST.lastSt=st.k;ST.ls=st;if(st.snap)P.pos.set(st.x,P.pos.y,st.z);P.vel.x=P.vel.z=0;sfx.pop()}
+      if(ST.lastSt&&(!st||st.k!==ST.lastSt)&&ST.ls&&!near(ST.ls.x,ST.ls.z,ST.ls.r*1.5)){ST.lastSt=null;ST.ls=null}
+      if(ST.hold){if(!inp)ST.hold=2;else if(ST.hold===2)ST.hold=0;else{V.set(0,0,0);P.vel.x=P.vel.z=0}}}
     const onTM=Math.abs(P.pos.x+7)<2.2&&Math.abs(P.pos.z-5)<3.2&&P.pos.y<1.2;const tr=TRAILS[save.tr]||TRAILS[0];
     if(onTM){const tm=TMS[save.tm],g=Math.max(1,Math.round(tm.g*tr.m*(save.bo.speed>0?2:1)));setT($('tmPill'),tm.n+' · 속도 +'+fmt(g));$('tmPill').classList.remove('hide');
       ST.tmT+=dt;if(ST.tmT>=.24){ST.tmT=0;save.speed+=g;sfx.tick();updateHUD()}}else $('tmPill').classList.add('hide');
