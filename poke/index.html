@@ -12144,5 +12144,39 @@ const css=document.createElement('style');css.textContent=`
 .rkem{width:22px;height:22px;object-fit:contain;vertical-align:middle;margin-right:3px;filter:drop-shadow(0 1px 0 #0006)}`;document.head.appendChild(css);
 }catch(e){console.warn('9EF 변이 던전 · 명예의 전당',e)}})();
 </script>
+<script id="b9eg">
+// ===== 9EG 오른쪽 메뉴 단추 하나씩 끌어서 옮기기 · 「접기」 단추도 옮기기 · 맵에서 A(공격) 단추 숨기기 =====
+// · 메뉴 단추를 손가락으로 끌면 그 단추만 옮겨져요 (자리 기억) · 그냥 누르면 원래대로 열려요
+// · 「접기」 단추도 끌어서 옮겨요 · 「접기」를 2초 꾹 누르면 모든 단추 자리가 처음으로 돌아가요
+// · A 단추는 평소엔 안 보이고, 앞에 사람 · 표지판이 있거나 대화 중일 때만 「대화」로 나와요
+(function(){try{
+const K='pk_side_btn_pos';let SP={};try{SP=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
+const sv=()=>{try{localStorage.setItem(K,JSON.stringify(SP))}catch(e){}};
+const keyOf=el=>el.id||('t:'+(el.textContent||'').trim());
+const apply=()=>{document.querySelectorAll('#side > button, #sideFold').forEach(el=>{const c=SP[keyOf(el)];const v=c?c[0]+'px '+c[1]+'px':'';if(el.style.translate!==v)el.style.translate=v})};
+setInterval(apply,700);apply();
+let TD=null;   // {el,id,sx,sy,ox,oy,on,lp}
+document.addEventListener('pointerdown',e=>{if(e.button>0)return;const el=e.target.closest&&e.target.closest('#side > button, #sideFold');if(!el)return;
+  e.stopPropagation();   // 메뉴 전체가 같이 움직이지 않게
+  const id=keyOf(el),c=SP[id]||[0,0];TD={el,id,sx:e.clientX,sy:e.clientY,ox:c[0],oy:c[1],on:0,pid:e.pointerId};
+  if(el.id==='sideFold')TD.lp=setTimeout(()=>{if(TD&&!TD.on){SP={};sv();apply();TD.blk=1;try{toast('메뉴 단추 자리를 처음으로 되돌렸어요')}catch(_){}}},2000)},true);
+document.addEventListener('pointermove',e=>{if(!TD||e.pointerId!==TD.pid)return;const dx=e.clientX-TD.sx,dy=e.clientY-TD.sy;
+  if(!TD.on){if(Math.hypot(dx,dy)<10)return;TD.on=1;clearTimeout(TD.lp);TD.el.classList.add('hdg')}
+  e.preventDefault();e.stopPropagation();
+  const r=TD.el.getBoundingClientRect(),cur=SP[TD.id]||[0,0],bl=r.left-cur[0],bt=r.top-cur[1];
+  const nx=Math.min(Math.max(bl+TD.ox+dx,2),innerWidth-r.width-2)-bl,ny=Math.min(Math.max(bt+TD.oy+dy,2),innerHeight-r.height-2)-bt;
+  SP[TD.id]=[Math.round(nx),Math.round(ny)];TD.el.style.translate=SP[TD.id][0]+'px '+SP[TD.id][1]+'px'},true);
+const end=e=>{if(!TD||e.pointerId!==TD.pid)return;clearTimeout(TD.lp);const t=TD;TD=null;if(t.on||t.blk){t.el.classList.remove('hdg');sv();
+  const kill=ev=>{ev.stopPropagation();ev.preventDefault()};t.el.addEventListener('click',kill,{capture:true,once:true});setTimeout(()=>t.el.removeEventListener('click',kill,{capture:true}),300)}};
+document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);
+// A 단추: 대화할 게 있을 때만
+const st=document.createElement('style');st.textContent='#side > button,#sideFold{touch-action:none}#bA.hideA{display:none!important}#bA.talkA{font-size:14px}';document.head.appendChild(st);
+setInterval(()=>{try{const a=document.getElementById('bA');if(!a)return;let show=false;
+  if(typeof DLG!=='undefined'&&DLG.on)show=true;
+  else if(typeof SCENE!=='undefined'&&SCENE==='over'&&typeof G!=='undefined'&&G){const A=curA(),d=P.dir,X=P.x+[0,-1,1,0][d],Y=P.y+[1,0,0,-1][d];
+    if(A&&((A.npc||[]).some(n=>n.x===X&&n.y===Y&&!n.gone)||(A.M[Y]&&A.M[Y][X]===T_.SIGN)))show=true}
+  a.classList.toggle('hideA',!show);if(show&&!a.classList.contains('talkA')){a.classList.add('talkA');a.innerHTML='대화'}}catch(e){}},300);
+}catch(e){console.warn('9EG',e)}})();
+</script>
 <script src="https://yujongho0714.github.io/allinone/back-guard.js" defer></script>
 </body></html>
