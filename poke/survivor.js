@@ -116,13 +116,17 @@ function start(k,tier){tier=tier|0;
  let skipping=0,skT=null;
   const finish=res=>{if(done)return;done=1;clearInterval(skT);window.__SBP=null;removeEventListener('message',onMsg);ov.remove();
    if(skipping){const b=recs(k)[res.tier|0];if(b&&scoreOf(b)>scoreOf(res))res=Object.assign({},res,{got:b.got,kills:b.kills,bdmg:b.bdmg,bk:b.bk|0,r:b.r|0})}
-   try{BGM.area()}catch(e){}try{saveRec(k,res)}catch(e){}reward(k,res);pop()};
+   try{BGM.area()}catch(e){}try{saveRec(k,res)}catch(e){}
+   if(AUTO){const A=AUTO;Promise.resolve(reward(k,res,{quiet:1})).then(t=>{A.lines.push(D.n+' (직접 · '+TN()[tier]+') · '+t);pop();setTimeout(autoNext,700)});return}
+   reward(k,res);pop()};
  const onMsg=e=>{if(e.source!==ifr.contentWindow)return;const d=e.data;if(d&&d.sb)finish(d)};
  addEventListener('message',onMsg);
- ex.onclick=()=>{try{ifr.contentWindow.postMessage({cmd:'quit'},'*')}catch(e){}setTimeout(()=>finish({sb:1,mode:D.m,tier,r:2,kills:0,got:0,bdmg:0}),1200)};
+ const quit=()=>{try{ifr.contentWindow.postMessage({cmd:'quit'},'*')}catch(e){}setTimeout(()=>finish({sb:1,mode:D.m,tier,r:2,kills:0,got:0,bdmg:0}),1200)};
+ ex.onclick=()=>{if(AUTO)AUTO.stop=1;quit()};
   const sk=document.createElement('button');sk.id='svSkip';sk.disabled=true;sk.style.cssText='position:absolute;left:104px;top:calc(env(safe-area-inset-top,0px) + 28px);z-index:2;padding:6px 10px;font-size:13px';ov.appendChild(sk);
   let sec=30;const tk=()=>{sk.textContent=sec>0?'⏭ 스킵 ('+sec+')':'⏭ 스킵';sk.disabled=sec>0};tk();skT=setInterval(()=>{if(sec>0){sec--;tk()}},1000);
-  sk.onclick=()=>{if(sk.disabled)return;sk.disabled=true;skipping=1;ex.onclick()};
+  sk.onclick=()=>{if(sk.disabled)return;sk.disabled=true;skipping=1;quit()};
+  if(AUTO){const iv=setInterval(()=>{if(done){clearInterval(iv);return}if(!sk.disabled&&recs(k)[tier]){clearInterval(iv);sk.onclick()}},500)}
  };
  packParty().then(P=>{window.__SBP=(P&&P.length)?P:null},()=>{window.__SBP=null}).then(run,run);
 }
@@ -167,6 +171,27 @@ function sweepPick(k){
  const a=p.querySelector('#svAll');if(a)a.onclick=()=>{closePanel(1);sweepAll(k)};
  p.querySelectorAll('button[data-t]').forEach(b=>b.onclick=async()=>{closePanel(1);await sweepRun(k,+b.dataset.t,false);pop()});
 }
+
+// ---------- 일일 던전 자동으로 다 돌기 ----------
+// 기록이 있으면 그 기록으로 바로 끝내요 (스킵과 같은 결과) · 처음 하는 던전은 🤖 자동 조종으로 끝까지 하고, 그 기록으로 남은 횟수를 끝내요
+let AUTO=null;
+function autoQueue(){const s=sv(),q=[];for(const k of ['gold','soul','boss','play'])for(let i=s.n[k]|0;i<DAILY;i++)q.push(k);return q}
+function autoAll(){
+ if(AUTO||document.getElementById('svOv')||window.__svBusy)return;if(!G||!G.party||!G.party.length)return;
+ const q=autoQueue();if(!q.length){toast('일일 던전은 오늘 다 했어요');return}
+ let pa=null;try{pa=localStorage.getItem('sb-auto');localStorage.setItem('sb-auto','1')}catch(e){}
+ AUTO={q,lines:[],pa,n:q.length};try{closePanel(1)}catch(e){}toast('일일 던전 '+q.length+'판을 자동으로 돌아요');autoNext()}
+async function autoNext(){
+ const A=AUTO;if(!A)return;const k=A.stop?null:A.q.shift();
+ if(!k){AUTO=null;try{if(A.pa==null)localStorage.removeItem('sb-auto');else localStorage.setItem('sb-auto',A.pa)}catch(e){}pop();
+  openPanel('일일 던전 자동 결과','<div style="padding:10px;font-size:14px;line-height:1.6"><b>'+(A.stop?'중간에 멈췄어요 · ':'')+A.lines.length+'판 끝냈어요</b><br>'+(A.lines.length?A.lines.join('<br>'):'끝낸 판이 없어요')+'</div>');return}
+ const D=DG[k],bt=bestTier(k);
+ if(bt>=0){const r=await sweepRun(k,bt,true);if(r!=null)A.lines.push(D.n+' (기록 · '+TN()[bt]+') · '+r);pop();setTimeout(autoNext,250);return}
+ const mx=Math.min(9,DIFF());G.svLast=G.svLast||{};const t=Math.min(mx,G.svLast[k]!=null?G.svLast[k]:mx);
+ start(k,t);if(!document.getElementById('svOv')&&!window.__svBusy){setTimeout(autoNext,250)}
+}
+window.svAutoAll=autoAll;
+HUB.push({k:'svauto',n:'일일 던전 자동으로 다 돌기',d:'골드 · 영혼 · 일일보스 · 경험치 던전의 오늘 남은 횟수를 한 번에 끝내요. 직접 해 본 기록이 있으면 그 기록으로 바로(스킵), 처음이면 자동 조종으로 끝까지 하고 그 기록으로 나머지를 끝내요. 하는 중에 「나가기」를 누르면 멈춰요.',st:()=>{const n=autoQueue().length;return n?'오늘 남은 '+n+'판':'오늘 다 했어요'},go:[['자동으로 다 돌기',()=>autoAll()]]});
 
 // ---------- 보상 ----------
 async function reward(k,res,opt){opt=opt||{};
@@ -219,6 +244,9 @@ function tasks(){
  const out=[],s=sv();
  for(const k of ['gold','soul','boss','play']){const D=DG[k],n=s.n[k]|0;if(n<DAILY)out.push({id:k,t:D.e+' '+D.n,c:n+'/'+DAILY,go:()=>pickTier(k)})}
  try{if(typeof wbS==='function'&&typeof WB_TRY!=='undefined'){const n=wbS().tries[dayKey()]||0;if(n<WB_TRY)out.push({id:'wb',t:'🐉 월드보스',c:n+'/'+WB_TRY,go:()=>wbOpen()})}}catch(e){}
+ try{if(typeof vdOpen==='function'){const h=HUB.find(x=>x.k==='mut'),m=h&&String(h.st()||'').match(/오늘 입장 (\d+)\/(\d+)/);if(m&&+m[1]>0)out.push({id:'mut',t:'변이 던전',c:(+m[2]-+m[1])+'/'+m[2],go:()=>vdOpen()})}}catch(e){}
+ try{if(typeof eggThiefOpen==='function'){const d=new Date().toISOString().slice(0,10),f=(G.flags&&G.flags.et&&G.flags.et.d===d)?G.flags.et:{n:0};if((f.n|0)<5)out.push({id:'et',t:'계란훔치기',c:(f.n|0)+'/5',go:()=>eggThiefOpen()})}}catch(e){}
+ try{if(typeof foodThrowOpen==='function'){const d=dayKey();if(!(G.flags&&G.flags.ftd===d))out.push({id:'ft',t:'먹이 던지기',c:'0/1',go:()=>{G.flags=G.flags||{};G.flags.ftd=d;save();foodThrowOpen()}})}}catch(e){}
  try{const h=HUB.find(x=>x.k==='dq');if(h){const m=String(h.st()||'').match(/(\d+)\/3/);if(m&&+m[1]<3)out.push({id:'dq',t:'📜 천계 의뢰',c:m[1]+'/3',go:()=>h.go[0][1]()})}}catch(e){}
  return out;
 }
@@ -228,7 +256,7 @@ const css=document.createElement('style');css.textContent=`
 #svHw .hwh b{flex:1}#svHw .hwh i{font-style:normal;min-width:20px;text-align:center;padding:0 5px;background:#e5482f;color:#fff;border-radius:9px}
 #svHw .hwb{padding:4px}#svHw.cl .hwb{display:none}
 #svHw .hwr{display:flex;align-items:center;gap:6px;padding:5px 4px;border-bottom:1px dashed #1c255055}#svHw .hwr:last-child{border:0}
-#svHw .hwr span{flex:1;min-width:0}#svHw .hwr small{display:block;font-size:11px;opacity:.75}
+#svHw .hwr span{flex:1;min-width:0}#svHw .hwauto{background:#e3f6d8}#svHw .hwauto button{background:#3fae5a!important;color:#fff!important}#svHw .hwr small{display:block;font-size:11px;opacity:.75}
 #svHw .hwr button{padding:5px 9px!important;border:2px solid #0b0f24!important;background:#ffd23f!important;color:#1c2550!important;font:900 12px 'Galmuri11',system-ui!important;box-shadow:0 2px 0 #0b0f24!important;border-radius:0!important;min-height:0!important;height:auto!important;width:auto!important}`;
 document.head.appendChild(css);
 let hw=null,sig='';
@@ -256,10 +284,11 @@ function pop(){try{
  if(!T.length){if(hw)hw.style.display='none';return}
  if(!hw)build();
  hw.style.display='';
- const sg=T.map(x=>x.id+x.c).join('|');
+ const sg=T.map(x=>x.id+x.c).join('|')+'#'+(AUTO?1:0);
  if(sg!==sig){sig=sg;
   hw.querySelector('.hwh i').textContent=T.length;
   const b=hw.querySelector('.hwb');b.innerHTML='';
+  const aq=autoQueue().length;if(aq>1){const r=document.createElement('div');r.className='hwr hwauto';r.innerHTML='<span>일일 던전 '+aq+'판<small>자동으로 다 돌기</small></span><button>자동</button>';r.querySelector('button').onclick=()=>{try{sfx('tap')}catch(e){}autoAll()};b.appendChild(r)}
   T.forEach(x=>{const r=document.createElement('div');r.className='hwr';r.innerHTML='<span>'+x.t+'<small>'+x.c+'</small></span><button>하기</button>';
    r.querySelector('button').onclick=()=>{try{sfx('tap')}catch(e){}x.go()};b.appendChild(r)});
   arrow();clampPos()}
