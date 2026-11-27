@@ -111,9 +111,9 @@ body{background:#0b1020;font-family:'Galmuri11',monospace;color:#fff}
 
 <div id="start"><div id="sbox" class="pnl">
   <h1 class="sh">계란 훔치기 3D</h1>
-  <p>러닝머신에서 <b style="color:#8fe3ff">속도</b>를 키우고, 가속(Shift)은 언제든 켜고 끌 수 있어요. 알을 훔치면 자동으로 켜져요.<br>, 8개 지역의 <b>포켓몬 알</b>을 훔쳐 내 기지 둥지로 달려와요.<br>
-     지역을 지키는 <b style="color:#ff9aa6">거대 포켓몬</b>이 쫓아와요. 밤이 되면 알이 <b style="color:#ffe16b">30배 빨리</b> 부화해요.<br>
-     라이벌 도둑은 방망이로 쫓아내고, 덫과 방어막으로 기지를 지켜요.</p>
+  <p>러닝머신에서 <b style="color:#8fe3ff">속도</b>를 키우고, 가속(Shift)은 언제든 켜고 끌 수 있어요. 알을 훔치면 자동으로 켜져요.<br>, 9개 지역(숲 → 호수 → 사막 → 정글 → 설산 → 화산 → 심해 → 선사 → 우주)의 <b>포켓몬 알</b>을 훔쳐 내 기지 둥지로 달려와요.<br>
+     지역마다 <b style="color:#ff9aa6">수호 포켓몬</b>이 쫓아와요. 권장 속도보다 느리면 잡혀요. 알은 <b style="color:#ffe16b">5분마다</b> 새로 나와요.<br>
+     라이벌 도둑을 방망이로 치거나 덫에 걸리게 하면 알을 떨어뜨려요.</p>
   <div id="sload"><i></i></div>
   <button id="bPlay" class="btn g off">불러오는 중…</button>
 </div></div>
@@ -198,23 +198,26 @@ const TRAILS=[
   {n:'꼬리 없음',m:1,c:0},{n:'새싹 꼬리',m:1.2,c:120},{n:'물결 꼬리',m:1.45,c:900},{n:'보라 오라',m:1.8,c:6500},{n:'태양 불꽃',m:2.3,c:45000},
   {n:'진홍 불꽃',m:3,c:320000},{n:'성운 꼬리',m:4,c:2200000},{n:'유령 꼬리',m:5.5,c:15000000},{n:'지옥불',m:7.5,c:110000000},{n:'천상의 빛',m:11,c:850000000}];
 // 지역: 바닥색 · 나무 모양 · 수호 포켓몬 · 알 포켓몬 2종 [키, 등급, 수익, 부화초]
+// 원작 「Steal an Egg」 9개 지역 · 권장 속도 · 수호자 (포켓몬으로 바꿈)
 const BIOMES=[
-  {id:'forest',n:'숲',req:0,z0:-22,z1:-54,g:['#4f9a3c','#5cae45','#3f7f2f'],tree:'oak',gk:'URSARING',gn:'거대 링곰',gs:24,sky:'#7ec8ff',pets:[['TORCHIC',0,6,16],['LYCANROC',1,15,24]]},
-  {id:'lake',n:'호수',req:50,z0:-54,z1:-88,g:['#d8c48a','#c9b277','#e4d39d'],tree:'reed',lake:1,gk:'FERALIGATR',gn:'심연의 장크로다일',gs:68,sky:'#8fd6ff',pets:[['PSYDUCK',1,38,30],['LAPRAS',2,95,40]]},
-  {id:'desert',n:'사막',req:250,z0:-88,z1:-124,g:['#e8b45a','#d9a24a','#f2c46c'],tree:'cactus',gk:'DRAPION',gn:'사막 드래피온',gs:310,sky:'#ffd89a',pets:[['CAMERUPT',2,240,50],['SIGILYPH',3,620,65]]},
-  {id:'snow',n:'설산',req:1200,z0:-124,z1:-162,g:['#eef6ff','#dbe9f7','#ffffff'],tree:'pine',snow:1,gk:'ABOMASNOW',gn:'설산 눈설왕',gs:1450,sky:'#cfe9ff',pets:[['PIPLUP',3,1650,75],['BEARTIC',4,4400,90]]},
-  {id:'sakura',n:'벚꽃',req:6000,z0:-162,z1:-202,g:['#7fbf6a','#8fcf78','#f4b6d0'],tree:'sakura',gk:'ZOROARK',gn:'환상의 조로아크',gs:7200,sky:'#ffd6ec',pets:[['CHERRIM',4,12000,105],['NINETALES',5,34000,125]],altar:'sakura'},
-  {id:'enchanted',n:'마법의 숲',req:30000,z0:-202,z1:-244,g:['#3b2a5e','#4a3570','#2f2150'],tree:'magic',gk:'GOLURK',gn:'고대 골루그',gs:36000,sky:'#7d5ac9',pets:[['PONYTA',5,95000,140],['DRAGONITE',6,280000,160]]},
-  {id:'angels',n:'천사와 악마',req:150000,z0:-244,z1:-288,g:['#5a1a1a','#f3e6c8','#3a1010'],tree:'pillar',gk:'GIRATINA',gn:'심판의 기라티나',gs:185000,sky:'#c98a6a',pets:[['DARKRAI',7,820000,180],['TOGEKISS',8,2400000,210]],altar:'fusion'},
-  {id:'alien',n:'외계 행성',req:1000000,z0:-288,z1:-335,g:['#141a3a','#1d2550','#0e1230'],tree:'crystal',gk:'DEOXYS',gn:'우주의 테오키스',gs:1250000,sky:'#1a1440',pets:[['ELGYEM',8,7500000,240],['RAYQUAZA',9,25000000,300]]}
+  {id:'forest',n:'숲',req:0,g:['#4f9a3c','#5cae45','#3f7f2f'],tree:'oak',gk:'BLAZIKEN',gn:'숲의 수호자 번치코',sky:'#7ec8ff',pets:[['TORCHIC',0,6,16],['GROWLITHE',0,10,20],['HOOTHOOT',1,15,24],['VULPIX',1,22,28]]},
+  {id:'lake',n:'호수',req:900,g:['#7fbf6a','#6aa84a','#8fcf78'],tree:'reed',lake:1,gk:'SWANNA',gn:'호수의 수호자 스완나',sky:'#8fd6ff',pets:[['POLIWAG',1,30,30],['SQUIRTLE',1,45,34],['WHISCASH',2,70,38],['WOOPER',2,95,42]]},
+  {id:'desert',n:'사막',req:10000,g:['#e8b45a','#d9a24a','#f2c46c'],tree:'cactus',gk:'DRAPION',gn:'사막의 수호자 드래피온',sky:'#ffd89a',pets:[['SANDSHREW',2,180,50],['CAMERUPT',2,260,55],['EKANS',3,420,60],['SIGILYPH',4,620,65]]},
+  {id:'jungle',n:'정글',req:40000,g:['#2f7a2a','#3a8f33','#24621f'],tree:'jungle',gk:'INCINEROAR',gn:'정글의 수호자 어흥염',sky:'#9fd88a',pets:[['TOUCANNON',3,1000,75],['KROKOROK',3,1500,80],['PASSIMIAN',4,2400,85],['SERPERIOR',4,3400,90]]},
+  {id:'snow',n:'설산',req:170000,g:['#eef6ff','#dbe9f7','#ffffff'],tree:'pine',snow:1,gk:'ABOMASNOW',gn:'설산의 수호자 눈설왕',sky:'#cfe9ff',pets:[['PIPLUP',4,5500,100],['BEARTIC',4,8000,105],['PILOSWINE',5,12500,110],['MAMOSWINE',5,18000,120]]},
+  {id:'volcano',n:'화산',req:700000,g:['#3a2a28','#4a3330','#d9481a'],tree:'lava',gk:'HOUNDOOM',gn:'화산의 수호자 헬가',sky:'#ff9a6a',pets:[['SALANDIT',5,30000,130],['MOLTRES',5,45000,140],['ARCANINE',6,70000,150],['CHARIZARD',6,100000,160]]},
+  {id:'abyss',n:'심해 바다',req:2500000,g:['#123a5a','#0f3050','#1a4a70'],tree:'coral',gk:'WAILORD',gn:'심해의 수호자 고래왕',sky:'#2a6aa0',pets:[['SHARPEDO',6,170000,170],['WAILMER',6,250000,180],['DEWGONG',7,400000,190],['TENTACRUEL',7,600000,200]]},
+  {id:'prehistoric',n:'선사 시대',req:17000000,g:['#8a7a4a','#7a6a3a','#9a8a5a'],tree:'fern',gk:'TYRANTRUM',gn:'선사의 수호자 견고라스',sky:'#e8c890',pets:[['DODUO',7,1000000,210],['BASTIODON',7,1500000,220],['AURORUS',8,2400000,235],['ARCHEOPS',8,3600000,250]]},
+  {id:'cosmic',n:'우주',req:700000000,g:['#141a3a','#1d2550','#0e1230'],tree:'crystal',gk:'RAYQUAZA',gn:'우주의 수호자 레쿠쟈',sky:'#1a1440',pets:[['CLEFAIRY',8,7000000,260],['PONYTA',9,15000000,280],['LUNALA',9,30000000,300]]}
 ];
-{let z=-22;[52,58,62,66,70,74,80,88].forEach((L,i)=>{BIOMES[i].z0=z;BIOMES[i].z1=z-L;z-=L})}
+const PW=[50,30,14,6];
+{let z=-22;[46,48,50,52,54,56,58,60,66].forEach((L,i)=>{BIOMES[i].z0=z;BIOMES[i].z1=z-L;BIOMES[i].gs=Math.max(300,BIOMES[i].req);z-=L})}
 const ZEND=BIOMES[BIOMES.length-1].z1;
-const SPECIAL=[['TYRANTRUM',7,1100000,60,'연구소 합성'],['ARCEUS',9,45000000,90,'천사와 악마 융합'],['GROUDON',9,60000000,90,'천사와 악마 융합']];
+const SPECIAL=[['DIALGA',7,1100000,60,'연구소 합성'],['ARCEUS',9,45000000,90,'불꽃과 우주 융합'],['GROUDON',9,60000000,90,'불꽃과 우주 융합']];
 const PETS={};BIOMES.forEach((b,bi)=>b.pets.forEach(p=>PETS[p[0]]={id:p[0],r:p[1],inc:p[2],ht:p[3],bi}));SPECIAL.forEach(p=>PETS[p[0]]={id:p[0],r:p[1],inc:p[2],ht:p[3],sp:p[4]});
 const ALLP=Object.keys(PETS);
 const KO={},DEXN={};const nm=id=>KO[id]||id;const face=id=>'../pk/portrait/'+String(DEXN[id]||0).padStart(4,'0')+'/Normal.png';
-const MAP_W=120;
+const MAP_W=64,LW=40;
 
 /* =====================================================================
    3. 저장
@@ -225,7 +228,7 @@ let save=null;try{save=JSON.parse(localStorage.getItem(SKEY)||'null')}catch(e){}
 if(!save)save=JSON.parse(JSON.stringify(DEF));for(const k in DEF)if(save[k]===undefined)save[k]=JSON.parse(JSON.stringify(DEF[k]));
 save.slots=save.slots.map(s=>s&&PETS[s.p]?s:null);save.mounts=save.mounts.filter(m=>PETS[m.p]);
 function persist(){try{localStorage.setItem(SKEY,JSON.stringify(save))}catch(e){}}
-const ST={started:false,night:false,cyc:90,carry:null,chase:null,ride:false,shT:0,shCD:0,batCD:0,atk:0,tmT:0,boss:{on:false,hp:120,max:120,t:0},bossNext:35,yaw:0,pitch:.36,drag:false,lm:{x:0,y:0},keys:{},joy:{x:0,y:0},mode:'shop',tab:'tm',fought:false,face:{x:0,z:-1},sprint:false};
+const ST={started:false,night:false,cyc:300,carry:null,chase:null,ride:false,shT:0,shCD:0,batCD:0,atk:0,tmT:0,boss:{on:false,hp:120,max:120,t:0},bossNext:35,yaw:0,pitch:.36,drag:false,lm:{x:0,y:0},keys:{},joy:{x:0,y:0},mode:'shop',tab:'tm',fought:false,face:{x:0,z:-1},sprint:false};
 
 /* =====================================================================
    4. 3D 세상 (유니티 느낌: 그림자 · 반사 · 톤매핑)
@@ -287,7 +290,7 @@ function buildBase(){
   // 밤 장벽
   W.nightWall=new THREE.Mesh(new THREE.PlaneGeometry(MAP_W,14),new THREE.MeshBasicMaterial({color:0x818cf8,transparent:true,opacity:.35,side:THREE.DoubleSide,depthWrite:false}));W.nightWall.position.set(0,7,-22);W.nightWall.visible=false;scene.add(W.nightWall);
   // 광장 꾸미기 (그림을 입체로)
-  [['hub_fountain',2,9,-3,6],['hub_flags',-1,-18,-20,4.5],['hub_flags',1,18,-20,4.5],['hub_flowers',0,-2,18,2.2],['hub_flowers',0,6,18,2.2]].forEach(a=>{const im=IMG[a[0]];if(!im)return;const h=a[4],s=h/im.height;
+  [['hub_flags',-1,-(LW/2+2),-21,4.5],['hub_flags',1,LW/2+2,-21,4.5]].forEach(a=>{const im=IMG[a[0]];if(!im)return;const h=a[4],s=h/im.height;
     const g=VOX.build(im,0,0,im.width,im.height,{s,maxT:8,bulge:.9,ay:'auto'});const m=new THREE.Mesh(g,VOX.mat());m.position.set(a[2],0,a[3]);m.castShadow=true;scene.add(m)});
 }
 // 나무들 (지역마다 모양이 달라요)
@@ -303,28 +306,30 @@ function tree(kind,x,z,s){const g=new THREE.Group();g.position.set(x,0,z);g.scal
   else if(kind==='reed'){const c=L(0x6aa84a);for(let i=0;i<5;i++){const m=add(new THREE.BoxGeometry(.15,1.6+Math.random(),.15),c,.9);m.position.x=(Math.random()-.5);m.position.z=(Math.random()-.5)}}
   else if(kind==='magic'){add(new THREE.BoxGeometry(.6,2.6,.6),M({color:0x2a1a40}),1.3);const m=new THREE.MeshStandardMaterial({color:0xb36bff,emissive:0x8b3dff,emissiveIntensity:.6,roughness:.5});add(new THREE.BoxGeometry(2.4,1.6,2.4),m,3.2)}
   else if(kind==='pillar'){add(new THREE.BoxGeometry(1.2,5,1.2),L(Math.random()<.5?0xf3e6c8:0x3a1414),2.5);add(new THREE.BoxGeometry(1.8,.4,1.8),L(0xd4a84a),5.1)}
+  else if(kind==='jungle'){add(new THREE.BoxGeometry(.7,4.2,.7),trunk,2.1);add(new THREE.BoxGeometry(3.4,1.1,3.4),L(0x2f8a2a),4.6);add(new THREE.BoxGeometry(2.2,1,2.2),L(0x3aa034),5.5)}
+  else if(kind==='lava'){const m=new THREE.MeshStandardMaterial({color:0x2a1a18,roughness:.9});const o=add(new THREE.DodecahedronGeometry(1.3,0),m,1);const c=add(new THREE.BoxGeometry(.5,.25,.5),new THREE.MeshStandardMaterial({color:0xff6a1a,emissive:0xff4a0a,emissiveIntensity:1.4}),2)}
+  else if(kind==='coral'){[0xff6aa8,0xffa04a,0x6ae0ff].forEach((c,k)=>{const m=add(new THREE.BoxGeometry(.35,1.4+k*.6,.35),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:.25}),.7+k*.3);m.position.x=(k-1)*.6})}
+  else if(kind==='fern'){add(new THREE.BoxGeometry(.6,3,.6),M({color:0x5a4020}),1.5);[0,1,2,3].forEach(k=>{const m=add(new THREE.BoxGeometry(2.4,.2,.6),L(0x4a7a2a),3);m.rotation.y=k*Math.PI/4})}
   else if(kind==='crystal'){const m=new THREE.MeshStandardMaterial({color:0x7df9ff,emissive:0x2dd4bf,emissiveIntensity:.8,roughness:.15,metalness:.2});const o=add(new THREE.OctahedronGeometry(1.2),m,1.6);o.scale.y=1.8}
   scene.add(g);return g}
 function buildBiomes(){
   BIOMES.forEach((b,i)=>{const len=Math.abs(b.z1-b.z0),zm=(b.z0+b.z1)/2;
-    const fl=new THREE.Mesh(new THREE.PlaneGeometry(MAP_W,len),M({map:noiseTex(b.g,[30,Math.round(len/4)],3),roughness:b.snow?.6:.9}));fl.rotation.x=-Math.PI/2;fl.position.set(0,.01,zm);fl.receiveShadow=true;scene.add(fl);
-    if(b.lake){const w=new THREE.Mesh(new THREE.CircleGeometry(11,40),new THREE.MeshPhysicalMaterial({color:0x2a8fd8,roughness:.08,metalness:.1,transparent:true,opacity:.82,clearcoat:1,envMapIntensity:1.2}));w.rotation.x=-Math.PI/2;w.position.set(0,.05,zm);w.receiveShadow=true;scene.add(w);W.water=w}
-    // 양옆 절벽
-    const wm=M({color:new THREE.Color(b.g[0]).multiplyScalar(.6)});[-1,1].forEach(s=>box(6,8,len,wm,s*(MAP_W/2+3),4,zm));
-    // 나무
-    for(let k=0;k<26;k++){const x=(Math.random()-.5)*(MAP_W-10),z=b.z0-3-Math.random()*(len-6),sc=.9+Math.random()*.6;if(Math.abs(x)<4&&k%3)continue;tree(b.tree,x,z,sc);W.trees.push({x,z,r:1.3*sc})}
-    for(let k=0;k<8;k++){const x=(Math.random()-.5)*(MAP_W-10),z=b.z0-3-Math.random()*(len-6),sc=.8+Math.random()*1.4;const rk=new THREE.Mesh(new THREE.DodecahedronGeometry(sc,0),M({color:new THREE.Color(b.g[0]).multiplyScalar(.55),roughness:.95}));rk.position.set(x,sc*.5,z);rk.castShadow=true;rk.receiveShadow=true;scene.add(rk);W.trees.push({x,z,r:sc*.95})}
-    // 속도 문 (아치 그림을 입체로)
-    if(b.req>0){const gi=['gate_1','gate_6','gate_2','gate_5','gate_9','gate_8','gate_7','gate_3'][i];const im=IMG[gi];
-      if(im){const h=10,s=h/im.height;const g=VOX.build(im,0,0,im.width,im.height,{s,maxT:10,bulge:1,ay:'auto'});const m=new THREE.Mesh(g,VOX.mat());m.position.set(0,0,b.z0);m.castShadow=true;scene.add(m);
-        [-42,-21,21,42].forEach(x=>{const c=m.clone();c.position.x=x;scene.add(c)})}
-      const bar=new THREE.Mesh(new THREE.PlaneGeometry(MAP_W,6),new THREE.MeshBasicMaterial({color:0xf43f5e,transparent:true,opacity:.28,side:THREE.DoubleSide,depthWrite:false}));bar.position.set(0,3,b.z0);scene.add(bar);
-      const L=labelSprite(b.n+' · 속도 '+fmt(b.req)+' 필요','#ffe16b');L.position.set(0,11,b.z0+.5);L.scale.multiplyScalar(1.6);scene.add(L);W.gates.push({b,bar,L})}
-    else{const L=labelSprite(b.n,'#ffe16b');L.position.set(0,6,b.z0);L.scale.multiplyScalar(1.4);scene.add(L)}
-    // 제단
-    if(b.altar){const a=new THREE.Mesh(new THREE.CylinderGeometry(3,3.4,.6,8),M({color:b.altar==='sakura'?0xffb3c6:0xffe27a,emissive:b.altar==='sakura'?0xf43f5e:0xd97706,emissiveIntensity:.35,roughness:.4}));a.position.set(0,.3,zm);a.castShadow=true;a.receiveShadow=true;scene.add(a)}
+    // 달리는 길 (가운데) + 양옆 낮은 턱 + 바깥 꾸밈 땅
+    const fl=new THREE.Mesh(new THREE.PlaneGeometry(LW,len),M({map:noiseTex(b.g,[18,Math.round(len/4)],3),roughness:b.snow?.6:.9}));fl.rotation.x=-Math.PI/2;fl.position.set(0,.01,zm);fl.receiveShadow=true;scene.add(fl);
+    const side=M({map:noiseTex([new THREE.Color(b.g[0]).multiplyScalar(.75).getStyle(),new THREE.Color(b.g[1]).multiplyScalar(.7).getStyle()],[12,Math.round(len/4)],3)});
+    [-1,1].forEach(sd=>{const o=new THREE.Mesh(new THREE.PlaneGeometry(60,len),side);o.rotation.x=-Math.PI/2;o.position.set(sd*(LW/2+30),.005,zm);o.receiveShadow=true;scene.add(o);
+      box(1.2,1.1,len,M({color:new THREE.Color(b.g[0]).multiplyScalar(.55)}),sd*(LW/2+.6),.55,zm)});
+    if(b.lake){const w=new THREE.Mesh(new THREE.CircleGeometry(12,40),new THREE.MeshPhysicalMaterial({color:0x2a8fd8,roughness:.08,metalness:.1,transparent:true,opacity:.82,clearcoat:1,envMapIntensity:1.2}));w.rotation.x=-Math.PI/2;w.position.set(0,.05,zm);w.receiveShadow=true;scene.add(w);W.water=w}
+    // 나무는 길 바깥에만 (길을 막지 않아요)
+    for(let k=0;k<14;k++){const sd=k%2?1:-1;tree(b.tree,sd*(LW/2+4+Math.random()*22),b.z0-2-Math.random()*(len-4),.9+Math.random()*.6)}
+    // 입구: 길 양옆에 아치 · 지역 이름 · 권장 속도
+    const gi=['gate_0','gate_1','gate_6','gate_2','gate_5','gate_7','gate_8','gate_3','gate_9'][i];const im=IMG[gi];
+    if(im){const h=8,s2=h/im.height;const g=VOX.build(im,0,0,im.width,im.height,{s:s2,maxT:10,bulge:1,ay:'auto'});[-1,1].forEach(sd=>{const m=new THREE.Mesh(g,VOX.mat());m.position.set(sd*(LW/2+5),0,b.z0);m.castShadow=true;scene.add(m)})}
+    const L=labelSprite((i+1)+'. '+b.n+(b.req?'  · 권장 속도 '+fmt(b.req):''),'#ffe16b');L.position.set(LW/2+5,9.5,b.z0);L.scale.multiplyScalar(1.3);scene.add(L);
+    const L2=L.clone();L2.position.x=-(LW/2+5);scene.add(L2);
+    const ln=new THREE.Mesh(new THREE.PlaneGeometry(LW,.5),new THREE.MeshBasicMaterial({color:0xffd23f,transparent:true,opacity:.6}));ln.rotation.x=-Math.PI/2;ln.position.set(0,.03,b.z0);scene.add(ln);
     // 수호 포켓몬
-    const gp=new VOX.Poke('../rz/',b.gk,{size:1.9+i*.12});gp.root.position.set(0,0,zm);scene.add(gp.root);
+    const gp=new VOX.Poke('../rz/',b.gk,{size:1.8+i*.1});gp.root.position.set(0,0,zm);scene.add(gp.root);
     const gl=labelSprite(b.gn,'#ff9aa6');scene.add(gl);
     W.guards.push({b,p:gp,L:gl,home:zm,pos:new THREE.Vector3(0,0,zm),ang:Math.random()*6,aggro:false,stun:0,v:new THREE.Vector3()});
   });
@@ -336,14 +341,19 @@ function buildBiomes(){
 function eggMesh(pid,scale){const r=RAR[PETS[pid].r];const e=VOX.egg(r.e[0],r.e[1],r.e[2],r.g);e.scale.setScalar(1.15*scale);return e}
 function rollSize(){const T=SIZES.reduce((s,v)=>s+v.w,0);let r=Math.random()*T;for(let i=0;i<SIZES.length;i++){if(r<SIZES[i].w)return i;r-=SIZES[i].w}return 1}
 function rollMut(){const L=save.bo.luck>0?2.2:1;const w=MUTS.map((m,i)=>i?m.w*L:m.w),T=w.reduce((a,b)=>a+b,0);let r=Math.random()*T;for(let i=0;i<w.length;i++){if(r<w[i])return i;r-=w[i]}return 0}
+const NEST_M=()=>W.nestM||(W.nestM=M({map:noiseTex(['#c9a35a','#a8823e','#e0bd72'],[3,1],2),roughness:1}));
+function wildEgg(b,pid,sz,x,z){const m=eggMesh(pid,SIZES[sz].s);m.position.set(x,.35,z);scene.add(m);
+  const n=new THREE.Mesh(new THREE.TorusGeometry(.95*SIZES[sz].s,.32,8,18),NEST_M());n.rotation.x=-Math.PI/2;n.position.set(x,.22,z);n.receiveShadow=true;scene.add(n);
+  let glow=null;if(PETS[pid].r>=4){glow=new THREE.PointLight(RAR[PETS[pid].r].g,1.2,7);glow.position.set(x,1.4,z);scene.add(glow)}
+  const e={b,pid,sz,m,n,x,z,glow};W.eggs.push(e);return e}
+function killEgg(w){scene.remove(w.m);scene.remove(w.n);if(w.glow)scene.remove(w.glow)}
+function pickPet(b){const T=b.pets.reduce((a,_,i)=>a+PW[i],0);let r=Math.random()*T;for(let i=0;i<b.pets.length;i++){if(r<PW[i])return b.pets[i][0];r-=PW[i]}return b.pets[0][0]}
 function resetEggs(){
-  W.eggs.forEach(w=>{scene.remove(w.m);if(w.glow)scene.remove(w.glow)});W.eggs.length=0;
-  BIOMES.forEach(b=>{for(let i=0;i<6;i++){const pid=b.pets[Math.random()<.7?0:1][0],sz=rollSize(),x=(Math.random()-.5)*(MAP_W-20),z=b.z0-8-Math.random()*(Math.abs(b.z1-b.z0)-12);
-    const m=eggMesh(pid,SIZES[sz].s);m.position.set(x,.1,z);scene.add(m);let glow=null;
-    if(PETS[pid].r>=4){glow=new THREE.PointLight(RAR[PETS[pid].r].g,1.2,7);glow.position.set(x,1.2,z);scene.add(glow)}
-    W.eggs.push({b,pid,sz,m,x,z,glow})}});
-  W.rs.forEach(rs=>{if(rs.mesh)scene.remove(rs.mesh);const b=BIOMES[Math.floor(Math.random()*5)];const pid=b.pets[1][0],sz=rollSize();rs.egg={pid,sz,src:b.id};rs.mesh=eggMesh(pid,SIZES[sz].s);rs.mesh.position.set(rs.x,.6,rs.z);scene.add(rs.mesh)});
+  W.eggs.forEach(killEgg);W.eggs.length=0;
+  BIOMES.forEach(b=>{for(let i=0;i<5;i++){const len=Math.abs(b.z1-b.z0);wildEgg(b,pickPet(b),rollSize(),(Math.random()-.5)*(LW-8),b.z0-6-Math.random()*(len-10))}});
+  W.rs.forEach(rs=>{if(rs.mesh)scene.remove(rs.mesh);const b=BIOMES[Math.floor(Math.random()*4)];const pid=pickPet(b),sz=rollSize();rs.egg={pid,sz,src:b.id};rs.mesh=eggMesh(pid,SIZES[sz].s);rs.mesh.position.set(rs.x,.6,rs.z);scene.add(rs.mesh)});
 }
+function biomeAt(z){return BIOMES.find(b=>z<=b.z0&&z>b.z1)||BIOMES[0]}
 const hero=new VOX.Hero('../dressup/');
 let carryMesh=null,mountPoke=null;
 function setCarry(it){ST.carry=it;if(carryMesh){scene.remove(carryMesh);carryMesh=null}if(it){carryMesh=eggMesh(it.pid,.8*SIZES[it.sz].s);scene.add(carryMesh)}drawCarryIcon();updateHUD()}
@@ -360,7 +370,18 @@ async function buildRivals(){
   const pk=hero.pk;const pick=c=>{const L=(pk&&pk.cats[c])||[];return L.length?c+':'+L[Math.floor(Math.random()*L.length)].id:null};
   for(let i=0;i<3;i++){const h=new VOX.Hero('../dressup/');h.pk=pk;const eq={};['coat','hair','weapon','helmet'].forEach(c=>{if(c==='helmet'&&Math.random()<.5)return;const v=pick(c);if(v)eq[c]=v});await h.dress(eq);
     const L=labelSprite(RIVN[i],'#ff9aa6');scene.add(h.root,L);
-    W.rivals.push({n:RIVN[i],h,L,pos:new THREE.Vector3(14+i*3,0,8-i*5),mode:i===1?'RAID':'ROAM',tgt:new THREE.Vector3(12,0,-30),stun:0,snare:0,hx:0,hz:1})}}
+    W.rivals.push({n:RIVN[i],h,L,pos:new THREE.Vector3(14+i*3,0,8-i*5),raid:i===1,goal:null,carry:null,cm:null,stun:0,snare:0,hx:0,hz:1})}}
+function rivalPlan(r){
+  if(r.carry){const rs=W.rs.find(x=>!x.egg);r.goal=rs?{t:'home',rs,p:new THREE.Vector3(rs.x,0,rs.z)}:{t:'home',p:new THREE.Vector3(18,0,2)};return}
+  if(r.raid&&ST.shT<=0&&!ST.night){const k=save.slots.findIndex((d,i)=>d&&d.st==='EGG'&&i<save.slotsN);if(k>=0&&Math.random()<.5){r.goal={t:'base',k,p:new THREE.Vector3(W.slots[k].x,0,W.slots[k].z)};toast(r.n+' 이(가) 내 기지 알을 노려요!','#ff9aa6');return}}
+  if(!ST.night){const L=W.eggs.filter(w=>BIOMES.indexOf(w.b)<=2);if(L.length){const w=L[Math.floor(Math.random()*L.length)];r.goal={t:'egg',w,p:new THREE.Vector3(w.x,0,w.z)};return}}
+  r.goal={t:'walk',p:new THREE.Vector3((Math.random()-.5)*40,0,Math.random()*14)}}
+function rivalCarry(r,it){r.carry=it;if(r.cm)scene.remove(r.cm);r.cm=it?eggMesh(it.pid,.7*SIZES[it.sz].s):null;if(r.cm)scene.add(r.cm)}
+function rivalArrive(r){const G=r.goal;r.goal=null;
+  if(G.t==='egg'){const k=W.eggs.indexOf(G.w);if(k>=0){W.eggs.splice(k,1);killEgg(G.w);rivalCarry(r,{pid:G.w.pid,sz:G.w.sz,src:G.w.b.id})}}
+  else if(G.t==='base'){const d=save.slots[G.k];if(d&&d.st==='EGG'&&ST.shT<=0){rivalCarry(r,{pid:d.p,sz:d.sz,src:'base'});save.slots[G.k]=null;syncSlots();persist();sfx.roar();toast(r.n+' 이(가) 내 알을 훔쳐 가요! 방망이로 쳐요','#ff9aa6')}}
+  else if(G.t==='home'&&r.carry){if(G.rs&&!G.rs.egg){G.rs.egg=r.carry;G.rs.mesh=eggMesh(r.carry.pid,SIZES[r.carry.sz].s);G.rs.mesh.position.set(G.rs.x,.6,G.rs.z);scene.add(G.rs.mesh)}rivalCarry(r,null)}}
+function rivalDrop(r){if(!r.carry)return;const it=r.carry;rivalCarry(r,null);const b=r.pos.z<-22?biomeAt(r.pos.z):BIOMES[0];wildEgg(b,it.pid,it.sz,r.pos.x,r.pos.z);toast(r.n+' 이(가) 알을 떨어뜨렸어요!','#ffe16b')}
 function syncSlots(){
   W.slots.forEach((sm,i)=>{sm.ring.material.color.setHex(i<save.slotsN?0x38bdf8:0x475569);sm.ring.material.opacity=i<save.slotsN?.85:.35;
     if(sm.obj){sm.gr.remove(sm.obj);sm.obj=null}if(sm.poke){sm.gr.remove(sm.poke.root);sm.poke=null}
@@ -403,13 +424,13 @@ function act(){
     setCarry(null);ST.chase=null;$('vign').classList.add('hide');syncSlots();persist();sfx.coin();toast(nm(it.pid)+' 알을 '+(si+1)+'번 둥지에! 부화 시작','#8fe3ff');
     if(FR&&it.src!=='lab')parent.postMessage({src:'eggthief',type:'deliver',tier:Math.min(4,Math.floor(pp.r/2)),killed:false,fought:ST.fought},location.origin);ST.fought=false;return}
   for(const rs of W.rs){if(rs.egg&&near(rs.x,rs.z,3.4)){setCarry(rs.egg);setSprint(true);rs.egg=null;scene.remove(rs.mesh);rs.mesh=null;sfx.roar();toast('라이벌 기지에서 '+nm(ST.carry.pid)+' 알을 훔쳤어요!','#ff9aa6');return}}
-  if(ST.night)return toast('밤에는 야생 입구가 막혀요','#b8c4ff');
+  if(ST.night)return toast('맵이 닫혀 있어요. 곧 알이 새로 나와요','#b8c4ff');
   let bi=-1,bd=3.8;W.eggs.forEach((w,i)=>{const d=Math.hypot(P.pos.x-w.x,P.pos.z-w.z);if(d<bd){bd=d;bi=i}});
-  if(bi<0)return;const w=W.eggs.splice(bi,1)[0];scene.remove(w.m);if(w.glow)scene.remove(w.glow);setCarry({pid:w.pid,sz:w.sz,src:w.b.id});
-  const g=W.guards.find(g=>g.b.id===w.b.id);if(g){g.aggro=true;ST.chase=g;$('vign').classList.remove('hide')}setSprint(true);sfx.roar();toast(nm(w.pid)+' 알을 훔쳤다! 가속 켜짐 · 도망쳐요!','#ff9aa6')}
+  if(bi<0)return;const w=W.eggs.splice(bi,1)[0];killEgg(w);setCarry({pid:w.pid,sz:w.sz,src:w.b.id});
+  const g=w.z<-22&&W.guards.find(g=>g.b.id===w.b.id);if(g){g.aggro=true;ST.chase=g;$('vign').classList.remove('hide')}setSprint(true);sfx.roar();toast(nm(w.pid)+' 알을 훔쳤다! 가속 켜짐 · 도망쳐요!','#ff9aa6')}
 function bat(){
   if(!ST.started||ST.batCD>0)return;ST.batCD=.55;ST.atk=.5;sfx.bonk();
-  W.rivals.forEach(r=>{if(P.pos.distanceTo(r.pos)<4){r.stun=3.5;r.pos.add(new THREE.Vector3().subVectors(r.pos,P.pos).setY(0).normalize().multiplyScalar(9));fxBurst(r.pos.clone().setY(2),0xffd23f);toast(r.n+' 을(를) 날려 보냈어요!','#ff9aa6')}});
+  W.rivals.forEach(r=>{if(P.pos.distanceTo(r.pos)<4){r.stun=3.5;rivalDrop(r);r.goal=null;r.pos.add(new THREE.Vector3().subVectors(r.pos,P.pos).setY(0).normalize().multiplyScalar(9));fxBurst(r.pos.clone().setY(2),0xffd23f);toast(r.n+' 을(를) 날려 보냈어요!','#ff9aa6')}});
   W.guards.forEach(g=>{if(P.pos.distanceTo(g.pos)<5){g.stun=1.4;ST.fought=true;fxBurst(g.pos.clone().setY(2.5),0xffffff);toast(g.b.gn+' 기절 1.4초!','#ffe16b')}})}
 function trap(){
   if(!ST.started)return;if(save.cash<50)return toast('덫은 50골드예요','#ff9aa6');
@@ -430,7 +451,7 @@ const BURST=[];function fxBurst(p,col){for(let i=0;i<10;i++){const m=new THREE.M
 const MH={shop:['상점','../ui/ic_shop.webp','러닝머신 · 꼬리 · 둥지 · 파편 상점',[['tm','러닝머신'],['tr','꼬리'],['slot','둥지'],['sh','파편 상점']]],
   pets:['내 기지','../ui/ic_egg.webp','부화한 포켓몬은 돈을 벌어요. 별똥별로 탈것으로 바꿀 수도 있어요.',[['base','둥지'],['mount','탈것']]],
   index:['도감','../items/POKEBALL.png','5종 모을 때마다 모든 수익 +5%',[]],
-  lab:['연구소','../ui/ic_fuse.webp','특별한 포켓몬을 만들고, 달리기 대회에 나가요',[['lab','박사님 합성'],['fuse','천사와 악마 융합'],['race','달리기 대회']]],
+  lab:['연구소','../ui/ic_fuse.webp','특별한 포켓몬을 만들고, 달리기 대회에 나가요',[['lab','박사님 합성'],['fuse','불꽃과 우주 융합'],['race','달리기 대회']]],
   map:['지역 지도','../ui/ic_map.webp','지역마다 필요한 속도와 알 포켓몬이에요',[]]};
 function openM(m,tab){ST.mode=m;const h=MH[m];$('mtitle').textContent=h[0];$('mimg').src=h[1];$('mdesc').textContent=m==='index'?'5종 모을 때마다 모든 수익 +5% (지금 +'+Math.floor(save.dex.length/5)*5+'%) · '+save.dex.length+'/'+ALLP.length:h[2];
   ST.tab=tab||(h[3][0]||[''])[0];$('mtabs').innerHTML=h[3].map(t=>`<button class="btn ${t[0]===ST.tab?'y':'k'}" data-t="${t[0]}">${t[1]}</button>`).join('');
@@ -457,7 +478,7 @@ function renderM(){
     B.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{IT[+b.dataset.i][4]();sfx.hatch();persist();updateHUD();renderM()})}
   else if(m==='pets'&&t==='base'){let h='';for(let i=0;i<save.slotsN;i++){const s=save.slots[i];
       if(!s){h+=`<div class="row2"><div class="tx"><b style="color:#9aa6bd">${i+1}번 둥지 · 비어 있어요</b></div></div>`;continue}
-      const p=PETS[s.p];if(s.st==='EGG'){h+=`<div class="row2"><img class="fc px" src="${face(s.p)}" style="filter:brightness(0) opacity(.5)" alt=""><div class="tx"><b>${i+1}번 · ${rr(p.r)} ${SIZES[s.sz].n} 알 (부화 중)</b><small>${Math.ceil(s.rem)}초 남음${ST.night?' · 밤이라 30배 빨라요':''}</small><div class="bar"><i style="width:${100-s.rem/s.tot*100}%"></i></div></div></div>`;continue}
+      const p=PETS[s.p];if(s.st==='EGG'){h+=`<div class="row2"><img class="fc px" src="${face(s.p)}" style="filter:brightness(0) opacity(.5)" alt=""><div class="tx"><b>${i+1}번 · ${rr(p.r)} ${SIZES[s.sz].n} 알 (부화 중)</b><small>${Math.ceil(s.rem)}초 남음</small><div class="bar"><i style="width:${100-s.rem/s.tot*100}%"></i></div></div></div>`;continue}
       const inc=Math.round(slotInc(s)*idxMult());h+=`<div class="row2"><img class="fc px" src="${face(s.p)}" alt=""><div class="tx"><b>${i+1}번 · ${mut(s.mu)}${nm(s.p)} ${rr(p.r)} ${SIZES[s.sz].n}</b><small>+${fmt(inc)}/초</small></div><button class="btn p" data-mt="${i}">탈것 (별 ${save.stars})</button><button class="btn r" data-sl="${i}">팔기 +${fmt(inc*10)}</button></div>`}
     B.innerHTML=h;
     B.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{const i=+b.dataset.mt,s=save.slots[i];if(save.stars<=0)return toast('별똥별이 없어요 (상점 · 밤에 떨어져요)','#ff9aa6');save.stars--;save.mounts.push({p:s.p,sz:s.sz,mu:s.mu});save.mount=save.mounts.length-1;save.slots[i]=null;syncSlots();persist();updateHUD();renderM();sfx.hatch();toast(nm(s.p)+' 탈것 등록! R로 타요','#d9b8ff')});
@@ -468,14 +489,14 @@ function renderM(){
   else if(m==='index'){B.innerHTML=BIOMES.map(b=>`<div class="sec">${b.n}</div><div class="grid">`+b.pets.map(p=>{const on=save.dex.includes(p[0]);return card(face(p[0]),on?nm(p[0]):'???',on?'+'+fmt(p[2])+'/초 · 부화 '+p[3]+'초':'알을 부화시키면 등록',null,'',false,!on,RAR[p[1]].c)}).join('')+'</div>').join('')+
     '<div class="sec">특별 포켓몬</div><div class="grid">'+SPECIAL.map(p=>{const on=save.dex.includes(p[0]);return card(face(p[0]),on?nm(p[0]):'???',p[4],null,'',false,!on,RAR[p[1]].c)}).join('')+'</div>'}
   else if(m==='lab'&&t==='lab'){const pets=save.slots.map((s,i)=>s&&s.st==='PET'?i:-1).filter(i=>i>=0);
-    B.innerHTML=`<div class="row2" style="align-items:flex-start"><img class="fc px" src="${face('TYRANTRUM')}" alt=""><div class="tx" style="font-size:12px;line-height:1.6"><b style="color:#7cf0a4">박사님의 실험 알</b>부화한 포켓몬 <b>2마리</b> + 파편 <b>3개</b>로 시크릿 <b>${nm('TYRANTRUM')}</b> 알을 만들어요.<br>지금 포켓몬 ${pets.length}마리 · 파편 ${save.shards}개</div></div><button id="bLab" class="btn g" style="width:100%;padding:12px">실험하기</button>`;
-    $('bLab').onclick=()=>{if(pets.length<2)return toast('부화한 포켓몬 2마리가 필요해요','#ff9aa6');if(save.shards<3)return toast('파편 3개가 필요해요','#ff9aa6');save.shards-=3;save.slots[pets[0]]=null;const p=PETS.TYRANTRUM;save.slots[pets[1]]={st:'EGG',p:'TYRANTRUM',sz:rollSize(),rem:p.ht,tot:p.ht,sak:false,mu:0};syncSlots();persist();updateHUD();renderM();sfx.hatch();toast('실험 성공! '+nm('TYRANTRUM')+' 알','#7cf0a4')}}
-  else if(m==='lab'&&t==='fuse'){const a=save.slots.findIndex(s=>s&&s.st==='PET'&&s.p==='TOGEKISS'),d=save.slots.findIndex(s=>s&&s.st==='PET'&&s.p==='DARKRAI');
-    B.innerHTML=`<div class="row2" style="align-items:flex-start"><img class="fc px" src="${face('ARCEUS')}" alt=""><div class="tx" style="font-size:12px;line-height:1.6"><b style="color:#ffe16b">천사와 악마 융합</b>${nm('TOGEKISS')}(천사) + ${nm('DARKRAI')}(악마)를 모두 기지에 두면 디바인 <b>${nm('ARCEUS')}</b> 또는 <b>${nm('GROUDON')}</b> 콜로서스 알이 나와요.<br><span style="color:${a>=0?'#7cf0a4':'#ff9aa6'}">${nm('TOGEKISS')} ${a>=0?'있음':'없음'}</span> · <span style="color:${d>=0?'#7cf0a4':'#ff9aa6'}">${nm('DARKRAI')} ${d>=0?'있음':'없음'}</span></div></div><button id="bFuse" class="btn y" style="width:100%;padding:12px">융합하기</button>`;
-    $('bFuse').onclick=()=>{if(a<0||d<0)return toast('두 포켓몬이 모두 기지에 있어야 해요','#ff9aa6');const k=Math.random()<.5?'ARCEUS':'GROUDON',p=PETS[k];save.slots[d]=null;save.slots[a]={st:'EGG',p:k,sz:4,rem:p.ht,tot:p.ht,sak:true,mu:0};syncSlots();persist();updateHUD();renderM();sfx.hatch();toast('빛과 어둠의 융합! '+nm(k)+' 알','#ffe16b')}}
+    B.innerHTML=`<div class="row2" style="align-items:flex-start"><img class="fc px" src="${face('DIALGA')}" alt=""><div class="tx" style="font-size:12px;line-height:1.6"><b style="color:#7cf0a4">박사님의 실험 알</b>부화한 포켓몬 <b>2마리</b> + 파편 <b>3개</b>로 시크릿 <b>${nm('DIALGA')}</b> 알을 만들어요.<br>지금 포켓몬 ${pets.length}마리 · 파편 ${save.shards}개</div></div><button id="bLab" class="btn g" style="width:100%;padding:12px">실험하기</button>`;
+    $('bLab').onclick=()=>{if(pets.length<2)return toast('부화한 포켓몬 2마리가 필요해요','#ff9aa6');if(save.shards<3)return toast('파편 3개가 필요해요','#ff9aa6');save.shards-=3;save.slots[pets[0]]=null;const p=PETS.DIALGA;save.slots[pets[1]]={st:'EGG',p:'DIALGA',sz:rollSize(),rem:p.ht,tot:p.ht,sak:false,mu:0};syncSlots();persist();updateHUD();renderM();sfx.hatch();toast('실험 성공! '+nm('DIALGA')+' 알','#7cf0a4')}}
+  else if(m==='lab'&&t==='fuse'){const a=save.slots.findIndex(s=>s&&s.st==='PET'&&s.p==='PONYTA'),d=save.slots.findIndex(s=>s&&s.st==='PET'&&s.p==='CHARIZARD');
+    B.innerHTML=`<div class="row2" style="align-items:flex-start"><img class="fc px" src="${face('ARCEUS')}" alt=""><div class="tx" style="font-size:12px;line-height:1.6"><b style="color:#ffe16b">불꽃과 우주 융합</b>${nm('PONYTA')}(우주) + ${nm('CHARIZARD')}(화산)을 모두 기지에 두면 디바인 <b>${nm('ARCEUS')}</b> 또는 <b>${nm('GROUDON')}</b> 콜로서스 알이 나와요.<br><span style="color:${a>=0?'#7cf0a4':'#ff9aa6'}">${nm('PONYTA')} ${a>=0?'있음':'없음'}</span> · <span style="color:${d>=0?'#7cf0a4':'#ff9aa6'}">${nm('CHARIZARD')} ${d>=0?'있음':'없음'}</span></div></div><button id="bFuse" class="btn y" style="width:100%;padding:12px">융합하기</button>`;
+    $('bFuse').onclick=()=>{if(a<0||d<0)return toast('두 포켓몬이 모두 기지에 있어야 해요','#ff9aa6');const k=Math.random()<.5?'ARCEUS':'GROUDON',p=PETS[k];save.slots[d]=null;save.slots[a]={st:'EGG',p:k,sz:4,rem:p.ht,tot:p.ht,sak:true,mu:0};syncSlots();persist();updateHUD();renderM();sfx.hatch();toast('불꽃과 우주의 융합! '+nm(k)+' 알','#ffe16b')}}
   else if(m==='lab'&&t==='race'){B.innerHTML=`<div class="row2" style="align-items:flex-start"><img class="fc px" src="../ui/ic_fast.webp" style="background:#2a3044;object-fit:contain" alt=""><div class="tx" style="font-size:12px;line-height:1.6"><b style="color:#8fe3ff">달리기 대회</b>내 속도 ${fmt(save.speed)}${ST.ride?' · 탈것 1.5배':''}로 겨뤄요. 1등이면 트로피 +1과 상금!</div></div><button id="bRace" class="btn b" style="width:100%;padding:12px">출전하기</button>`;
     $('bRace').onclick=()=>{const es=save.speed*(ST.ride?1.5:1),wc=Math.min(.92,.35+Math.log10(Math.max(10,es))*.1);if(Math.random()<wc){const pz=Math.max(250,Math.round(income()*15+save.speed*2));save.trophies++;save.cash+=pz;sfx.hatch();toast('1등! 트로피 +1 · 상금 +'+fmt(pz),'#ffe16b')}else{sfx.bonk();toast('아쉽게 2등! 속도를 더 키워요','#ff9aa6')}persist();updateHUD()}}
-  else if(m==='map'){B.innerHTML='<div class="grid">'+BIOMES.map((b,i)=>card(face(b.gk),(i+1)+'. '+b.n,'필요 속도 '+fmt(b.req)+'<br>수호: '+b.gn+'<br>'+b.pets.map(p=>`<img src="${face(p[0])}" class="px" style="width:28px;height:28px;border-radius:6px;border:2px solid #0b1020;vertical-align:middle;${save.dex.includes(p[0])?'':'filter:brightness(0) opacity(.5)'}" alt="">`).join(' '),null,'',false,save.speed<b.req)).join('')+'</div>'}
+  else if(m==='map'){B.innerHTML='<div class="grid">'+BIOMES.map((b,i)=>card(face(b.gk),(i+1)+'. '+b.n,(b.req?'권장 속도 '+fmt(b.req):'누구나')+'<br>수호: '+b.gn+'<br>'+b.pets.map(p=>`<img src="${face(p[0])}" class="px" style="width:28px;height:28px;border-radius:6px;border:2px solid #0b1020;vertical-align:middle;${save.dex.includes(p[0])?'':'filter:brightness(0) opacity(.5)'}" alt="">`).join(' '),null,'',false,false)).join('')+'</div>'}
 }
 const THC={};function stripThumb(n){if(THC[n])return THC[n];const im=IMG[n];if(!im)return '';const c=document.createElement('canvas');const fw=im.width/4;c.width=fw;c.height=im.height;c.getContext('2d').drawImage(im,0,0,fw,im.height,0,0,fw,im.height);return THC[n]=c.toDataURL()}
 function trailThumb(i){return stripThumb('tl_'+i)}
@@ -526,15 +547,15 @@ function loop(){
     // 낮 · 밤
     ST.cyc-=dt;if(ST.cyc<=0){ST.night=!ST.night;
       if(ST.night){ST.cyc=13;W.nightWall.visible=true;scene.background=new THREE.Color(0x0a0f24);scene.fog.color.set(0x0a0f24);sun.intensity=.25;if(hemi)hemi.intensity=.12;sfx.night();save.stars++;persist();
-        if(P.pos.z<-22){P.pos.set(-4,0,10);if(ST.carry){toast('밤이 되어 알을 놓쳤어요','#b8c4ff');setCarry(null)}ST.chase=null;$('vign').classList.add('hide')}toast('밤! 부화 30배 · 별똥별 +1','#b8c4ff')}
-      else{ST.cyc=90;W.nightWall.visible=false;scene.background=DAYBG;scene.fog.color.set(0xcfe6ff);sun.intensity=2.1;if(hemi)hemi.intensity=.3;resetEggs();sfx.pop();toast('아침! 야생 알이 새로 나왔어요','#ffe16b')}}
-    $('cycT').textContent=ST.night?(ST.cyc<=3?'곧 알이 새로 나와요':'밤 · 부화 30배'):'낮 · 지역 열림';$('cycT').style.color=ST.night?'#b8c4ff':'#ffe16b';
-    $('cycN').textContent=String(Math.floor(ST.cyc/60)).padStart(2,'0')+':'+String(Math.ceil(ST.cyc%60)%60).padStart(2,'0');
+        if(P.pos.z<-22){P.pos.set(-4,0,10);if(ST.carry){toast('맵이 닫혀서 알을 놓쳤어요','#b8c4ff');setCarry(null)}ST.chase=null;$('vign').classList.add('hide')}toast('맵이 13초 닫혀요 · 별똥별 +1','#b8c4ff')}
+      else{ST.cyc=300;W.nightWall.visible=false;scene.background=DAYBG;scene.fog.color.set(0xcfe6ff);sun.intensity=2.1;if(hemi)hemi.intensity=.3;resetEggs();sfx.pop();toast('알이 새로 나왔어요! (5분마다)','#ffe16b')}}
+    $('cycT').textContent=ST.night?'맵 닫힘 · 곧 알이 새로 나와요':'알 새로 나오기까지';$('cycT').style.color=ST.night?'#b8c4ff':'#ffe16b';
+    {const T=Math.max(0,Math.ceil(ST.cyc));$('cycN').textContent=String(Math.floor(T/60)).padStart(2,'0')+':'+String(T%60).padStart(2,'0')}
     // 균열 보스
     if(!ST.boss.on){ST.bossNext-=dt;if(ST.bossNext<=0){ST.bossNext=75;ST.boss={on:true,hp:120,max:120,t:40};W.boss.root.visible=W.bossRing.visible=true;$('evB').classList.remove('hide');sfx.roar();toast('가운데 광장에 균열 보스 기라티나!','#ffb0ff')}}
     else{ST.boss.t-=dt;if(ST.boss.t<=0){ST.boss.on=false;W.boss.root.visible=W.bossRing.visible=false;$('evB').classList.add('hide')}}
     // 부화
-    const hm=ST.night?30:1;let hatched=false;
+    const hm=1;let hatched=false;
     save.slots.forEach(s=>{if(!s||s.st!=='EGG')return;s.rem-=dt*hm;if(s.rem<=0){let mu=rollMut();if(s.sak&&Math.random()<.25)mu=MUTS.length-1;s.st='PET';s.mu=mu;
       if(!save.dex.includes(s.p)){save.dex.push(s.p);toast('도감 등록 '+save.dex.length+'/'+ALLP.length,'#8fe3ff')}hatched=true;sfx.hatch();toast('부화! '+(MUTS[mu].n?MUTS[mu].n+' ':'')+SIZES[s.sz].n+' '+nm(s.p),'#7cf0a4')}});
     if(hatched){syncSlots();persist();updateHUD()}
@@ -559,29 +580,27 @@ function loop(){
     else{P.vel.x*=.76;P.vel.z*=.76;if(onTM){ST.face.x=0;ST.face.z=-1}}
     P.vel.y-=28*dt;P.pos.addScaledVector(P.vel,dt);if(P.pos.y<=0){P.pos.y=0;P.vel.y=0;P.ground=true}
     if(ST.night&&P.pos.z<-21.2)P.pos.z=-21.2;
-    for(const g of W.gates){if(save.speed<g.b.req&&P.pos.z<g.b.z0+.5)P.pos.z=g.b.z0+.5;g.bar.visible=save.speed<g.b.req;g.L.visible=g.bar.visible}
-    P.pos.x=Math.max(-MAP_W/2+1.5,Math.min(MAP_W/2-1.5,P.pos.x));P.pos.z=Math.max(ZEND+2,Math.min(20,P.pos.z));
-    for(const t of W.trees){const dx=P.pos.x-t.x,dz=P.pos.z-t.z,d=Math.hypot(dx,dz);if(d<t.r+.5&&d>.001){P.pos.x=t.x+dx/d*(t.r+.5);P.pos.z=t.z+dz/d*(t.r+.5)}}
+    {const hw=P.pos.z<-22?LW/2-1:MAP_W/2-1.5;P.pos.x=Math.max(-hw,Math.min(hw,P.pos.x))}P.pos.z=Math.max(ZEND+2,Math.min(20,P.pos.z));
     // 수호 포켓몬
     W.guards.forEach(g=>{let vx=0,vz=0;
       if(g.stun>0){g.stun-=dt}
       else if(g.aggro&&ST.chase===g&&ST.carry){
         if(P.pos.z>-22){g.aggro=false;ST.chase=null;$('vign').classList.add('hide');toast('안전 구역! 수호 포켓몬이 돌아가요','#7cf0a4')}
-        else{const gs=10+Math.log2(Math.max(1,g.b.gs/12))*5.2;V.subVectors(P.pos,g.pos).setY(0);if(V.length()>.1){V.normalize();vx=V.x;vz=V.z;g.pos.addScaledVector(V,gs*dt)}
-          if(g.pos.distanceTo(P.pos)<2.8){sfx.roar();toast(g.b.gn+' 에게 잡혀서 알을 빼앗겼어요!','#ff9aa6');setCarry(null);g.aggro=false;ST.chase=null;ST.fought=true;$('vign').classList.add('hide');P.pos.set(-4,0,10)}}}
-      else{g.ang+=dt*.5;const tx=Math.sin(g.ang)*34,tz=g.home+Math.cos(g.ang*.7)*7;V.set(tx-g.pos.x,0,tz-g.pos.z);if(V.length()>.2){V.normalize();vx=V.x;vz=V.z;g.pos.addScaledVector(V,5*dt)}}
-      for(const t of W.trees){const dx=g.pos.x-t.x,dz=g.pos.z-t.z,d=Math.hypot(dx,dz),rr=t.r+1.2;if(d<rr&&d>.001){g.pos.x=t.x+dx/d*rr;g.pos.z=t.z+dz/d*rr}}
+        else{const gs=(10+Math.log2(Math.max(1,g.b.gs/12))*5.2)*1.08;V.subVectors(P.pos,g.pos).setY(0);if(V.length()>.1){V.normalize();vx=V.x;vz=V.z;g.pos.addScaledVector(V,gs*dt)}
+          if(g.pos.distanceTo(P.pos)<2.8){sfx.roar();toast(g.b.gn+' 에게 잡혔어요! 알을 놓치고 출발점으로 날아가요','#ff9aa6');setCarry(null);setSprint(false);g.aggro=false;ST.chase=null;ST.fought=true;$('vign').classList.add('hide');P.pos.set(-4,0,10)}}}
+      else{g.ang+=dt*.5;const tx=Math.sin(g.ang)*(LW/2-6),tz=g.home+Math.cos(g.ang*.7)*7;V.set(tx-g.pos.x,0,tz-g.pos.z);if(V.length()>.2){V.normalize();vx=V.x;vz=V.z;g.pos.addScaledVector(V,5*dt)}}
       g.p.root.position.copy(g.pos);g.p.tick(dt,camera,vx,vz);g.L.position.set(g.pos.x,g.p.mesh.geometry&&g.p.mesh.geometry.boundingSphere?g.p.size*g.p.mesh.geometry.boundingSphere.radius*2+1:6,g.pos.z)});
-    // 라이벌 도둑
+    // 라이벌 도둑: 야생 알을 훔쳐 자기 기지로 · 가끔 내 기지 알도 노려요 (방망이 · 덫에 걸리면 알을 떨어뜨려요)
     W.rivals.forEach((r,i)=>{let mv2=false;
       if(r.stun>0){r.stun-=dt}else if(r.snare>0){r.snare-=dt}else{
-        for(let ti=W.traps.length-1;ti>=0;ti--){const t=W.traps[ti];if(Math.hypot(r.pos.x-t.x,r.pos.z-t.z)<1.6){r.snare=5;scene.remove(t.m);W.traps.splice(ti,1);sfx.trap();toast('덫에 '+r.n+' 이(가) 5초 잡혔어요!','#ffe16b');break}}
+        for(let ti=W.traps.length-1;ti>=0;ti--){const t=W.traps[ti];if(Math.hypot(r.pos.x-t.x,r.pos.z-t.z)<1.6){r.snare=5;scene.remove(t.m);W.traps.splice(ti,1);sfx.trap();rivalDrop(r);toast('덫에 '+r.n+' 이(가) 5초 잡혔어요!','#ffe16b');break}}
         if(r.snare<=0){
-          if(ST.shT>0&&r.pos.x<-3&&r.pos.z>-14&&r.pos.z<18){r.pos.x=6;r.tgt.set(16,0,4)}
-          if(r.mode==='RAID'&&Math.hypot(r.pos.x+16,r.pos.z-2)<2.2){toast(r.n+' 이(가) 내 기지에 들어왔어요! 방망이로 쫓아내요','#ff9aa6');r.tgt.set(18,0,4)}
-          V.subVectors(r.tgt,r.pos).setY(0);if(V.length()<1.5){if(r.mode==='RAID'&&Math.random()<.45&&ST.shT<=0)r.tgt.set(-16,0,2);else r.tgt.set((Math.random()-.5)*90,0,ST.night?Math.random()*14:-10-Math.random()*90)}
-          else{V.normalize();r.pos.addScaledVector(V,7.8*dt);r.hx=V.x;r.hz=V.z;mv2=true}}}
-      r.h.root.position.copy(r.pos);r.h.root.rotation.z=r.stun>0?.6:0;r.h.tick(now,camera,r.hx,r.hz,mv2,0);r.L.position.set(r.pos.x,3.6,r.pos.z)});
+          if(ST.shT>0&&r.pos.x<-3&&r.pos.z>-14&&r.pos.z<18){r.pos.x=6;r.goal=null}
+          if(!r.goal)rivalPlan(r);
+          const G=r.goal;V.subVectors(G.p,r.pos).setY(0);
+          if(V.length()<1.8){rivalArrive(r)}else{V.normalize();r.pos.addScaledVector(V,(r.carry?6.8:7.8)*dt);r.hx=V.x;r.hz=V.z;mv2=true}}}
+      r.h.root.position.copy(r.pos);r.h.root.rotation.z=r.stun>0?.6:0;r.h.tick(now,camera,r.hx,r.hz,mv2,0);r.L.position.set(r.pos.x,3.6,r.pos.z);
+      if(r.cm){r.cm.position.set(r.pos.x,3.1,r.pos.z);r.cm.rotation.y+=dt*2}});
     // 터짐 · 꼬리
     for(let i=BURST.length-1;i>=0;i--){const b=BURST[i];b.l-=dt;b.v.y-=18*dt;b.m.position.addScaledVector(b.v,dt);b.m.material.opacity=Math.max(0,b.l/.6);if(b.l<=0){scene.remove(b.m);BURST.splice(i,1)}}
     for(let i=W.trail.length-1;i>=0;i--){const t=W.trail[i];t.l-=dt;t.s.material.opacity=Math.max(0,t.l/.45);if(t.l<=0){scene.remove(t.s);t.s.material.map.dispose();W.trail.splice(i,1)}}
@@ -603,7 +622,6 @@ function updateCtx(){
   if(!save.gift&&near(-6.5,13,3.6))return show('[E] 선물 상자 열기  (속도 +10,000 · 꼬리)','선물 열기 [E]');
   if(ST.boss.on&&near(0,-12,7))return show('[E] 균열 보스 공격  (체력 '+Math.max(0,ST.boss.hp)+'/'+ST.boss.max+')','보스 공격 [E]');
   if(ST.carry){for(let i=0;i<save.slotsN;i++)if(!save.slots[i]&&near(W.slots[i].x,W.slots[i].z,3.4))return show('[E] '+(i+1)+'번 둥지에 '+nm(ST.carry.pid)+' 알 놓기','둥지에 놓기 [E]');box.classList.add('hide');bt.textContent='기지로 도망쳐요!';return}
-  for(const g of W.gates)if(save.speed<g.b.req&&Math.abs(P.pos.z-g.b.z0)<3.5)return show(g.b.n+' 은(는) 속도 '+fmt(g.b.req)+' 이 필요해요');
   const rs=W.rs.find(r=>r.egg&&near(r.x,r.z,3.4));if(rs)return show('[E] 라이벌 기지의 '+nm(rs.egg.pid)+' 알 훔치기','라이벌 알 훔치기 [E]');
   const w=W.eggs.find(w=>near(w.x,w.z,3.8));if(w){const r=RAR[PETS[w.pid].r];return show('[E] '+r.n+' '+SIZES[w.sz].n+' '+nm(w.pid)+' 알 훔치기  (권장 속도 '+fmt(w.b.gs)+')','알 훔치기 [E]')}
   box.classList.add('hide');bt.textContent='훔치기 · 놓기 [E]'}
@@ -625,7 +643,7 @@ if(FR){$('pkExit').style.display='flex';$('pkExit').onclick=()=>{xflush(true);pe
    13. 시작
    ===================================================================== */
 async function boot(){
-  const IM=['gate_1','gate_2','gate_3','gate_5','gate_6','gate_7','gate_8','gate_9','hub_fountain','hub_flags','hub_flowers'];
+  const IM=['gate_0','gate_1','gate_2','gate_3','gate_5','gate_6','gate_7','gate_8','gate_9','hub_flags'];
   const FX=['tm_gray','tm_cyan','tm_lava','tm_elec','tm_gold','tm_ice','tm_rocket','tm_angel',...[1,2,3,4,5,6,7,8,9].map(i=>'tl_'+i)];
   let d=0;const tot=IM.length+FX.length+ALLP.length+BIOMES.length;const step=()=>{$('sload').firstChild.style.width=Math.round(++d/tot*100)+'%'};
   await Promise.all([...IM.map(async n=>{IMG[n]=await VOX.loadImg('../foodthrow/img/'+n+'.webp');step()}),...FX.map(async n=>{IMG[n]=await VOX.loadImg('fx/'+n+'.webp');step()}),
