@@ -917,11 +917,12 @@ function dealDamage(att,def,mi,opt){
   if(def.ab&&def.ab.length){try{if(abGuard(att,def,m,e))return 0}catch(er){}}   // ② 특성 D: 부유·흡수·방음·방진·불가사의부적
   const stab=att.tera&&att.tera===m.type?(att.types.includes(m.type)?2:1.5):att.types.includes(m.type)?1.5:1;
   const cx0=att.critX||{c:0,d:0};   // 7G: 크리티컬 확률·데미지 보너스(접두사·먹이 아이템·내 캐릭터 접두사)
-  const crit=!(W.rz3&&rz3Lucky(def))&&!(def.ab&&def.ab.length&&abNoCrit(def,att))&&((att.ab&&att.ab.length&&abHas(att,'MERCILESS')&&def.ail&&def.ail.poison!=null)||rnd()<(att.critWin>0?.5:(att.ab&&att.ab.length&&abHas(att,'SUPERLUCK')?1/8:1/24)+cx0.c));   // H: 무도한행동 — 독인 상대엔 항상 급소   // F: 대운=급소 단계 +1(1/24→1/8) · 전투무장·조가비갑옷=급소 안 맞음   // ③ 3/3 행운의주문: 내가 맞을 땐 급소 없음
+  const crit=!(W.rz3&&rz3Lucky(def))&&!(def.ab&&def.ab.length&&abNoCrit(def,att))&&((att.ab&&att.ab.length&&abHas(att,'MERCILESS')&&def.ail&&def.ail.poison!=null)||rnd()<(att.critWin>0?.5:(att.ab&&att.ab.length&&abHas(att,'SUPERLUCK')?1/8:1/24)+cx0.c-((!att.side&&def&&def.side&&def.mon&&def.mon.crr)||0)));   // 11월 27일 상대 크리티컬 저항 · H: 무도한행동 — 독인 상대엔 항상 급소   // F: 대운=급소 단계 +1(1/24→1/8) · 전투무장·조가비갑옷=급소 안 맞음   // ③ 3/3 행운의주문: 내가 맞을 땐 급소 없음
   let power=m.p*(opt.pm||1)*(opt._skin?1.2:1);
   const _ign=Math.min(.9,((att.gear&&att.gear.aA&&att.gear.aA.ign)||0)/100);   // 9BZ 아티팩트 방어력 무시
   let base=((2*att.lv/5+2)*power*(A*Am)/Math.max(1,D*Dm*(1-_ign))/50+2);
   let dmg=base*.52*stab*e*(.85+rnd()*.15)*(crit?1.5*(1+cx0.d):1)*(m.melee&&m.phys?1.15:1)*(att.zb&&att.zb.on>0?1.3:1);   // 9F 만제 버프
+  try{const _dr=(def&&def.side&&def.mon&&def.mon.dfr)||0;if(_dr>0&&!att.side)dmg*=Math.max(.05,1-_dr*(1-_ign))}catch(er){}   // 11월 27일: 상대 방어율(%) — 방어력 무시가 모자라면 데미지가 깎여요 (메이플식: 1 − 방어율 × (1 − 방무), 최소 5%)
   if(att.ail.burn&&m.phys)dmg*=.5;
   if(opt.mult)dmg*=opt.mult;
   if(att.gmx)dmg*=1.6;if(def.gmx)dmg*=.55;   // 거다이맥스: 공격 ×1.6 · 받는 피해 ×0.55

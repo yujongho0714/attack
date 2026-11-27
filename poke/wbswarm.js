@@ -69,10 +69,11 @@ function calcDmg(att,def,m){
   const e=m.type&&m.id!=='struggle'?C.eff(m.type,def.types):1;
   const stab=att.types.includes(m.type)?1.5:1;
   const cx=att.critX||{c:0,d:0};
-  const crit=Math.random()<(1/24+cx.c);
+  const crit=Math.random()<(1/24+cx.c-((!att.side&&def&&def.side&&def.mon&&def.mon.crr)||0));
   const _ign=Math.min(.9,((att.gear&&att.gear.aA&&att.gear.aA.ign)||0)/100);   // 9BZ 아티팩트 방어력 무시
   let base=((2*att.lv/5+2)*m.p*A/Math.max(1,D*(1-_ign))/50+2);
   let dmg=base*.52*stab*e*(.85+Math.random()*.15)*(crit?1.5*(1+cx.d):1)*(m.melee&&m.phys?1.15:1);
+  try{const _dr=(def&&def.side&&def.mon&&def.mon.dfr)||0;if(_dr>0&&!att.side)dmg*=Math.max(.05,1-_dr*(1-_ign))}catch(er){}   // 11월 27일: 상대 방어율(%) — 방어력 무시가 모자라면 데미지가 깎여요 (메이플식: 1 − 방어율 × (1 − 방무), 최소 5%)
   if(att.gear&&att.gear.atk)dmg*=1+att.gear.atk/100;
   if(att.gear&&att.gear.aA){const q=att.gear.aA;dmg*=(1+(q.tatk||0)/100)*(1+(q.tdmg||0)/100)*(1+(q.elem||0)/100)*(1+(q.aB||0)/100)}   // 9BZ 아티팩트
   if(C.dmgMul){try{dmg*=+C.dmgMul(att.mon,def.mon,m.id)||1}catch(er){}}
