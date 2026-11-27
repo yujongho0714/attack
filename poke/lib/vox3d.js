@@ -30,27 +30,39 @@ function build(src,sx,sy,sw,sh,opt){
   const th=new Float32Array(N);for(let i=0;i<N;i++)if(op[i])th[i]=Math.min(maxT,Math.round((minT+(d[i]-1)*bul)*2)/2);
   let by=0;for(let i=0;i<N;i++)if(op[i])by=Math.max(by,(i/W|0)+1);
   const ax=opt.ax==null?W/2:opt.ax,ay=opt.ay==null||opt.ay==='auto'?by:opt.ay;
-  const P=[],Nn=[],C=[];
-  function quad(a,b,c,dd,n,r,g,bb){P.push(...a,...b,...c,...a,...c,...dd);for(let k=0;k<6;k++){Nn.push(...n);C.push(r,g,bb)}}
-  const fl=opt.flip?-1:1;
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(!op[i])continue;
-    const r=LIN[px[i*4]],g=LIN[px[i*4+1]],b=LIN[px[i*4+2]];const t=th[i]*s/2;
-    let X0=(x-ax)*s*fl,X1=(x+1-ax)*s*fl;if(fl<0){const tt=X0;X0=X1;X1=tt}
-    const Y1=(ay-y)*s,Y0=(ay-y-1)*s;
-    quad([X0,Y0,t],[X1,Y0,t],[X1,Y1,t],[X0,Y1,t],[0,0,1],r,g,b);            // 앞
-    quad([X1,Y0,-t],[X0,Y0,-t],[X0,Y1,-t],[X1,Y1,-t],[0,0,-1],r*.8,g*.8,b*.8); // 뒤
-    const sr=r*.78,sg=g*.78,sb=b*.78;
-    const side=(ni,mk)=>{const nt=(ni>=0&&op[ni])?th[ni]*s/2:0;if(nt>=t)return;if(nt===0)mk(-t,t);else{mk(nt,t);mk(-t,-nt)}};
-    // 위
-    side(y>0?i-W:-1,(z0,z1)=>quad([X0,Y1,z1],[X1,Y1,z1],[X1,Y1,z0],[X0,Y1,z0],[0,1,0],r*.95,g*.95,b*.95));
-    // 아래
-    side(y<H-1?i+W:-1,(z0,z1)=>quad([X0,Y0,z0],[X1,Y0,z0],[X1,Y0,z1],[X0,Y0,z1],[0,-1,0],sr*.8,sg*.8,sb*.8));
-    // 왼쪽/오른쪽 (뒤집혔으면 반대)
-    const L=x>0?i-1:-1,R=x<W-1?i+1:-1;const lx=fl>0?X0:X1,rx=fl>0?X1:X0;
-    side(fl>0?L:R,(z0,z1)=>quad([X0,Y0,z0],[X0,Y0,z1],[X0,Y1,z1],[X0,Y1,z0],[-1,0,0],sr,sg,sb));
-    side(fl>0?R:L,(z0,z1)=>quad([X1,Y0,z1],[X1,Y0,z0],[X1,Y1,z0],[X1,Y1,z1],[1,0,0],sr,sg,sb));
-  }
+  // 같은 색 · 같은 두께 칸은 하나로 합쳐서 면 수를 크게 줄여요 (구린 폰에서도 가볍게)
+  const qc=new Int32Array(N);for(let i=0;i<N;i++)qc[i]=((px[i*4]>>3)<<10)|((px[i*4+1]>>3)<<5)|(px[i*4+2]>>3);
+  const P=[],Nn=[],C=[],I=[];let nv=0;
+  const fl=opt.flip?-1:1;const X=x=>(x-ax)*s*fl;
+  function quad(ax_,ay_,az,bx,by_,bz,cx,cy,cz,dx,dy,dz,nx,ny,nz,c,f){
+    const r=LIN[((c>>10)&31)*8+4]*f,g=LIN[((c>>5)&31)*8+4]*f,b=LIN[(c&31)*8+4]*f;
+    P.push(ax_,ay_,az,bx,by_,bz,cx,cy,cz,dx,dy,dz);for(let k=0;k<4;k++){Nn.push(nx,ny,nz);C.push(r,g,b)}I.push(nv,nv+1,nv+2,nv,nv+2,nv+3);nv+=4}
+  const T2=i=>th[i]*s/2;
+  const nbT=(ok,ni)=>ok&&op[ni]?th[ni]:0;
+  // 앞 · 뒤 · 위 · 아래 (가로로 합치기)
+  for(let y=0;y<H;y++){const Y1=(ay-y)*s,Y0=(ay-y-1)*s;
+    for(let pass=0;pass<3;pass++){let x=0;
+      while(x<W){const i=y*W+x;
+        const nt=pass===1?nbT(y>0,i-W):pass===2?nbT(y<H-1,i+W):-1;
+        if(!op[i]||(pass>0&&nt>=th[i])){x++;continue}
+        const c=qc[i],t=th[i];let x2=x;
+        while(x2+1<W){const j=y*W+x2+1;if(!op[j]||qc[j]!==c||th[j]!==t)break;const nj=pass===1?nbT(y>0,j-W):pass===2?nbT(y<H-1,j+W):-1;if(nj!==nt)break;x2++}
+        let xa=X(x),xb=X(x2+1);if(xa>xb){const q=xa;xa=xb;xb=q}const tt=t*s/2;
+        if(pass===0){quad(xa,Y0,tt,xb,Y0,tt,xb,Y1,tt,xa,Y1,tt,0,0,1,c,1);quad(xb,Y0,-tt,xa,Y0,-tt,xa,Y1,-tt,xb,Y1,-tt,0,0,-1,c,.8)}
+        else{const n2=nt*s/2;const zs=nt===0?[[-tt,tt]]:[[n2,tt],[-tt,-n2]];
+          for(const [z0,z1] of zs){if(pass===1)quad(xa,Y1,z1,xb,Y1,z1,xb,Y1,z0,xa,Y1,z0,0,1,0,c,.95);else quad(xa,Y0,z0,xb,Y0,z0,xb,Y0,z1,xa,Y0,z1,0,-1,0,c,.62)}}
+        x=x2+1}}}
+  // 왼쪽 · 오른쪽 (세로로 합치기)
+  for(let x=0;x<W;x++){for(const side of [-1,1]){const nx=fl>0?x+side:x-side;const ok=nx>=0&&nx<W;let y=0;
+    while(y<H){const i=y*W+x;const nt=ok?nbT(true,y*W+nx):0;if(!op[i]||nt>=th[i]){y++;continue}
+      const c=qc[i],t=th[i];let y2=y;
+      while(y2+1<H){const j=(y2+1)*W+x;if(!op[j]||qc[j]!==c||th[j]!==t)break;const nj=ok?nbT(true,(y2+1)*W+nx):0;if(nj!==nt)break;y2++}
+      const Yt=(ay-y)*s,Yb=(ay-y2-1)*s,tt=t*s/2,n2=nt*s/2;const xl=Math.min(X(x),X(x+1)),xr=Math.max(X(x),X(x+1));
+      const zs=nt===0?[[-tt,tt]]:[[n2,tt],[-tt,-n2]];
+      for(const [z0,z1] of zs){if(side<0)quad(xl,Yb,z0,xl,Yb,z1,xl,Yt,z1,xl,Yt,z0,-1,0,0,c,.78);else quad(xr,Yb,z1,xr,Yb,z0,xr,Yt,z0,xr,Yt,z1,1,0,0,c,.78)}
+      y=y2+1}}}
   const G=new T.BufferGeometry();G.setAttribute('position',new T.Float32BufferAttribute(P,3));G.setAttribute('normal',new T.Float32BufferAttribute(Nn,3));G.setAttribute('color',new T.Float32BufferAttribute(C,3));
+  G.setIndex(nv>65535?new T.Uint32BufferAttribute(I,1):new T.Uint16BufferAttribute(I,1));
   G.computeBoundingSphere();G.userData={w:W*s,h:H*s};return G;
 }
 const MAT=new T.MeshStandardMaterial({vertexColors:true,roughness:.5,metalness:.05,envMapIntensity:.45});
