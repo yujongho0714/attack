@@ -9557,6 +9557,10 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112703,date:'11월 27일',t:'주간 변이 던전 · 시즌 명예의 전당 · 랭킹 엠블럼',items:[
+  {h:"주간 변이 던전 (보스 5층 러시)",p:["<b>찾는 곳</b>: 메뉴 → <b>배틀 · 도전</b> → 주간 변이 던전 (천계부터 열려요)","매주 <b>규칙 카드 3장</b>이 바뀌어요 (예: 단단한 보스 · 힘 빠짐 · 세 마리 승부). 이번 주 테마 타입 보스 5마리와 <b>1층부터 5층까지 이어서</b> 싸워요.","층 사이엔 체력이 반만 차고, 지면 그 자리에서 끝! <b>하루 3번</b> 들어갈 수 있어요.","층마다 이번 주 첫 돌파 보상(결정 · 큐브 · 액자틀 상자 · 한정뽑기권), <b>5층까지 다 깨면 명예 접두사 「변이 던전 정복자」</b> · 주간 랭킹도 있어요."]},
+  {h:"시즌 명예의 전당",p:["<b>찾는 곳</b>: 메뉴 → <b>친구랑</b> → 시즌 명예의 전당","한 달(시즌) 동안 모은 <b>시즌 패스 점수</b>가 명예 점수예요. 저절로 순위에 올라가요.","달이 바뀌면 <b>1위 · 2~3위 · 4~10위 · 11~30위</b>가 명예의 전당에 올라 <b>명예 접두사</b>(능력치 +30~80%)를 받아요. 시즌이 지날수록 더 세져요.","명예 접두사는 <b>내 캐릭터와 포켓몬 한 마리에 둘 다</b> 달 수 있어요 (명예의 전당 화면 아래 「내 명예 접두사」)."]},
+  {h:"랭킹에 친구 엠블럼",p:["랭킹 · 월드보스 순위 · 명예의 전당에서 친구가 장착한 <b>엠블럼</b>이 이름 옆에 작게 보여요.","내 엠블럼은 랭킹에 새로 등록할 때부터 보여요."]}]},
  {v:2026112702,date:'11월 27일',t:'천상계 상대 체력 되돌림 · 미니게임 3D',items:[
   {h:"천상계 상대 체력",p:["천상계 상대 포켓몬 체력을 <b>원래대로 ×115</b>로 되돌렸어요 (그동안 ×90이었어요). 엠블럼 · 액자틀로 강해진 만큼 다시 손맛이 생겨요."]},
   {h:"미니게임 3D",p:["<b>계란훔치기 3D</b>: 원작처럼 9개 지역 · 권장 속도 · 수호 포켓몬. 가속은 언제든 켜고 끌 수 있고 알을 훔치면 자동으로 켜져요. 화질 버튼으로 가볍게 할 수 있어요.","<b>포켓몬 먹이 던지기</b>: 내 캐릭터 · 포켓몬 · 음식 · 철봉 · 울타리가 모두 입체로 바뀌었어요."]}]},
@@ -10439,17 +10443,17 @@ try{const C=[{k:'dq',n:'📜 오늘의 천계 의뢰 (매일)',d:'매일 새 의
 <script id="b9ay">
 // ===== 9AY 컨텐츠 화면: 큰 분류 → 섹션별 그림 목록 =====
 (function(){try{
-const HZC=[['day','ic_gift','매일 할 것','#e09a00','출석 · 의뢰 · 포케스탑 · 시즌 패스'],['bt','ic_fast','배틀 · 도전','#d8323f','스토리 · 월드보스 · 천계 탑 · 서바이버 던전'],['fr','ic_rank','친구랑','#2f7be8','난투전 · 레이드 · 교환 · 랭킹'],
+const HZC=[['day','ic_gift','매일 할 것','#e09a00','출석 · 의뢰 · 포케스탑 · 시즌 패스'],['bt','ic_fast','배틀 · 도전','#d8323f','스토리 · 월드보스 · 천계 탑 · 변이 던전'],['fr','ic_rank','친구랑','#2f7be8','난투전 · 레이드 · 랭킹 · 명예의 전당'],
   ['up','ic_star','키우기','#8048e8','편성 · 장비 · 승급 · 각성'],['col','ic_dex','모으기 · 탐험','#1e9e5e','도감 · 카드팩 · 알 · 마을'],['set','ic_menu','설정 · 소식','#5b6383','화면 · 전투 방식 · 업데이트']];
 const SEC={day:[['🎁 매일 받는 보상',['season','dq','stop']],['🔁 매일 다시 도전',['rm','portal']]],
-  bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 5일 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🗡 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스)',['svx','svg','svs','svb','svk']]],
-  fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 기타',['rank','wc','dojo']]],
+  bt:[['📖 이야기 · 가이드',['tg','story','diff','first']],['👑 5일 보스',['wb','wbc','wbe']],['🗼 탑 오르기',['ctw','tower']],['🧬 주간 변이 던전 (보스 5층 러시)',['mut']],['🗡 서바이버 던전 (경험치 · 골드 · 영혼 · 월드보스)',['svx','svg','svs','svb','svk']]],
+  fr:[['⚔ PVP (실시간 · 3대3 자동 · 친구 대전)',['brawl','rmroom','pvp']],['🤝 친구와 함께',['raid','trade']],['🏆 랭킹 · 명예의 전당',['hof','rank','wc','dojo']]],
   up:[['🐾 포켓몬 키우기',['team','embl','trans','awake','soulx','rebirth','lb','prefix']],['🛡 장비 · 기술',['gear','skill','tera','trash']]],
   col:[['📖 도감',['dex','dxr']],['🎴 포켓몬 얻기',['card','egg','eggthief','wild']],['🏘 마을 · 날씨',['mg','shop','wx','foodthrow']]],
   set:[['📢 소식 · 정보',['news','odds']],['🖥 화면 · 전투',['vscale','btmode','dskin','hitfx','a2fx','dmeter']]]};
 const catOf=k=>{for(const c in SEC)for(const x of SEC[c])if(x[1].includes(k))return c;return 'col'};
 const DX=d=>['p',d],IM=s=>['i',s],SH=s=>['s',s];
-const HZP={season:IM('ui/gm/ic/ic_season.webp'),dq:IM('ui/gm/ic/ic_quest.webp'),stop:IM('ui/gm/ic/ic_stop.webp'),rm:IM('ui/gm/ic/ic_rematch.webp'),portal:IM('ui/gm/ic/ic_portal.webp'),
+const HZP={mut:IM('ui/gm/ic/ic_bossrush.webp'),hof:IM('ui/gm/ic/ic_cat_hall.webp'),season:IM('ui/gm/ic/ic_season.webp'),dq:IM('ui/gm/ic/ic_quest.webp'),stop:IM('ui/gm/ic/ic_stop.webp'),rm:IM('ui/gm/ic/ic_rematch.webp'),portal:IM('ui/gm/ic/ic_portal.webp'),
   tg:DX(493),story:IM('badges/b7.webp'),wb:IM('ui/gm/ic/ic_wb.webp'),wbc:IM('ui/gm/ic/ic_wb_chaos.webp'),wbe:IM('ui/gm/ic/ic_wb_eternal.webp'),ctw:DX(249),tower:IM('ui/gm/ic/ic_tower.webp'),first:IM('ui/rk_crown1.webp'),diff:DX(491),
   brawl:IM('ui/gm/ic/ic_brawl.webp'),raid:IM('ui/gm/ic/ic_raid.webp'),pvp:IM('ui/gm/ic/ic_pvp.webp'),rmroom:DX(448),trade:IM('ui/gm/ic/ic_trade.webp'),rank:IM('ui/gm/rank2/rank_1_trophy_gold.webp'),wc:DX(201),dojo:DX(107),
   team:DX(6),gear:IM('ui/gm/ic/ic_gear.webp'),trans:IM('ui/tr/seal.png'),awake:IM('ui/gm/ic/ic_awake.webp'),soulx:IM('ui/gm/ic/ic_soulx.webp'),embl:IM('ui/gm/rank/rank_1_arceus.webp'),rebirth:DX(250),lb:IM('ui/gm/ic/ic_limit.webp'),prefix:IM('ui/gm/ic/ic_prefix.webp'),skill:SH('ui/news/n13_beam.webp'),tera:IM('ui/tr/breath.png'),trash:IM('ui/ic_trash.webp'),
@@ -11918,5 +11922,227 @@ setTimeout(function g(){if(!G){setTimeout(g,3000);return}if(!G.frGift){G.frGift=
 }catch(e){console.warn('9EC 엠블럼',e)}})();
 </script>
 <style>#mg .mgb{overflow-y:auto;max-height:calc(100vh - 64px);-webkit-overflow-scrolling:touch}</style>
+<script id="vd9ef">
+// ===== 9EF 주간 변이 던전 · 시즌 명예의 전당 · 랭킹 엠블럼 =====
+// ① 주간 변이 던전: 매주 규칙 카드 3장 + 5층 보스 러시 (층 사이 회복 반만 · 지면 끝) · 하루 입장 3번 · 층마다 이번 주 첫 돌파 보상 · 주간 랭킹
+// ② 시즌 명예의 전당: 시즌(한 달) 명예 점수 = 그 달 시즌 패스 점수 · 달이 바뀌면 지난 시즌 1위 · 2~3위 · 4~10위 · 11~30위에게 「명예 접두사」
+//    명예 접두사는 내 캐릭터와 포켓몬 한 마리에 동시에 달 수 있어요 (능력치 크게) · 변이 던전 5층 정복도 명예 접두사
+// ③ 랭킹에 친구가 장착한 엠블럼이 이름 옆에 보여요
+(function(){try{
+const GM='ui/gm/';
+const reach=d=>{try{return Math.max(DIFF(),G.rbd|0)>=d}catch(e){return false}};
+const kst=()=>new Date(Date.now()+9*3600e3);
+const monK=(o)=>{const d=kst();d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+(o||0));return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')};
+const dayK=()=>{const d=kst();return d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate()};
+const hash=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+const rng=seed=>{let a=hash(seed);return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}};
+const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fm=n=>n>=1e8?(n/1e8).toFixed(1).replace(/\.0$/,'')+'억':n>=1e4?Math.round(n/1e4).toLocaleString()+'만':(n|0).toLocaleString();
+const IT={gem:['ui/tr/gem.png','승급의 결정'],cube:['ui/cube1.webp','명장의 큐브'],cube2:['ui/cube2.webp','장인의 큐브'],frbox:[GM+'items/it_honor_box.webp','액자틀 상자'],ncgt:[GM+'items/it_ticket_ltd.webp','한정뽑기권'],gold:[GM+'items/it_coin.webp','골드']};
+const rwH=r=>Object.entries(r).map(([k,v])=>`<span class="vd-rw"><img src="${(IT[k]||[])[0]||''}" alt="">${(IT[k]||[0,k])[1]} ${k==='gold'?fm(v):'×'+v}</span>`).join('');
+const giveR=r=>{for(const [k,v] of Object.entries(r)){if(k==='gold')G.money=(G.money|0)+v;else if(k==='gem'){if(window.trmAdd)trmAdd('gem',v)}else{addItem(k,v);if(k==='ncgt')G.ncgtSum=(G.ncgtSum|0)+v}}save();try{hud()}catch(e){}};
+
+// ---------- 명예 접두사 (접두사 그룹 8) ----------
+PXG[8]='명예';PXC[8]='#e8a317';PXM[8]=10;
+const HT=[['1st','명예의 왕',80,20,40,'hon_plate_1st'],['top3','명예의 수호자',60,15,30,'hon_plate_top3'],['top10','명예의 기사',45,10,20,'hon_plate_top10'],['top30','명예의 용사',30,5,10,'hon_plate_top30']];
+const HON0=PX.length,HONM=24;   // 2026-11 시즌부터 24시즌 · 시즌마다 +2%씩 더 강해요
+for(let mo=0;mo<HONM;mo++)for(let t=0;t<HT.length;t++){const [id,nm,v,c,cd]=HT[t];const y=2026+Math.floor((10+mo)/12),m=(10+mo)%12+1,val=v+mo*2;
+  PX.push({i:PX.length,g:8,n:`${String(y).slice(2)}년 ${m}월 ${nm}`,lim:1,hon:id,hm:mo,e:{hp:val,atk:val,def:val,spa:val,spd:val,spe:val,crt:c,cdm:cd}})}
+const HONACH=PX.length;PX.push({i:HONACH,g:8,n:'변이 던전 정복자',lim:1,hon:'ach',e:{hp:25,atk:30,def:25,spa:30,spd:25,spe:15,crt:5,cdm:10}});
+const honIdx=(mk,tier)=>{const [y,m]=mk.split('-').map(Number);const mo=(y-2026)*12+(m-11);if(mo<0||mo>=HONM)return -1;return HON0+mo*HT.length+tier};
+const honPlate=p=>GM+'items/'+(p.hon==='ach'?'hon_plate_ach':(HT.find(t=>t[0]===p.hon)||HT[3])[5])+'.webp';
+function honGive(i,why){if(i<0||!PX[i])return false;G.hon=G.hon||[];if(G.hon.includes(i))return false;G.hon.push(i);save();try{sfx('badge')}catch(e){}toast('명예 접두사 획득! ['+PX[i].n+'] '+(why||''));return true}
+window.honGive=honGive;
+
+// ---------- 규칙 카드 ----------
+const RULES={
+  foe_hp:{n:'거대한 보스',d:'보스 체력 ×2',img:'rule_foe_hp',k:'foe'},
+  foe_atk:{n:'사나운 보스',d:'보스 공격 · 특공 ×1.5',img:'rule_foe_atk',k:'foe'},
+  foe_def:{n:'단단한 보스',d:'보스 방어 · 특방 ×1.5',img:'rule_foe_def',k:'foe'},
+  my_weak:{n:'힘 빠짐',d:'내 포켓몬 공격 · 특공 −30%',img:'rule_my_weak',k:'me'},
+  noheal:{n:'회복 없음',d:'층 사이에 체력이 안 차요',img:'rule_noheal',k:'me'},
+  nopotion:{n:'물약 금지',d:'던전 안에서 물약을 못 써요',img:'rule_nopotion',k:'me'},
+  norare:{n:'고급 금지',d:'신화 등급 이상 포켓몬은 못 나가요',img:'rule_norare',k:'team'},
+  one:{n:'단 한 마리',d:'파티 맨 앞 1마리만 나가요',img:'rule_one',k:'team'},
+  three:{n:'세 마리 승부',d:'파티 앞 3마리만 나가요',img:'rule_three',k:'team'},
+  type:{n:'타입 제한',d:'',img:'rule_type',k:'team'}};
+const T18=['NORMAL','FIRE','WATER','ELECTRIC','GRASS','ICE','FIGHTING','POISON','GROUND','FLYING','PSYCHIC','BUG','ROCK','GHOST','DRAGON','DARK','STEEL','FAIRY'];
+const VDB=[['변이 문지기','SINNOH_Lucian'],['변이 수호자','CHAMPION_Lance'],['변이 장군','LEADER_Sabrina'],['변이 군주','CHAMPION_Cynthia'],['변이의 왕','CHAMPION_Red']];
+const VBG=['d_void','d_crystal','d_lava','d_temple','s_portal'];
+const VHX=[3,4.5,6,8,11];
+const VRW=[{gem:2,gold:30000},{gem:3,frbox:1},{gem:4,cube:1},{gem:5,cube:2},{gem:8,cube2:1,ncgt:1}];
+let WKC=null;
+function vdWeek(){const wk=wbWeek();if(WKC&&WKC.wk===wk)return WKC;const r=rng('vd~'+wk);const pick=a=>a[Math.floor(r()*a.length)];
+  const theme=pick(T18);let allowT=pick(T18.filter(t=>t!==theme));
+  const foeR=pick(['foe_hp','foe_atk','foe_def']);const meR=pick(['my_weak','noheal','nopotion']);const tmR=pick(['norare','one','three','type']);
+  const rules=[foeR,meR,tmR];
+  const pool=SPECIES.filter(s=>{const M=META[s];return M&&!M.form&&(M.types||[]).includes(theme)}).sort((a,b)=>bst(META[b].stats)-bst(META[a].stats));
+  const top=pool.slice(0,Math.max(5,Math.min(12,pool.length)));const mid=pool.slice(5,30).length?pool.slice(5,30):pool;
+  const bosses=[];const used=new Set();for(let f=4;f>=0;f--){let c=top.filter(n=>!used.has(n));const n=c[Math.min(c.length-1,Math.floor(r()*Math.min(3,c.length)))]||pool[0];used.add(n);bosses[f]=n}
+  bosses.sort((a,b)=>bst(META[a].stats)-bst(META[b].stats));   // 위층일수록 센 보스
+  const floors=bosses.map((n,f)=>{const team=[n];const mn=f>=4?2:f>=2?1:0;for(let i=0;i<mn;i++)team.push(mid[Math.floor(r()*mid.length)]||n);return{f:f+1,name:VDB[f][0],spr:VDB[f][1],bg:VBG[f],team,hx:VHX[f]}});
+  WKC={wk,theme,allowT,rules,floors};return WKC}
+const ruleD=(id,W)=>id==='type'?TN[W.allowT]+' 타입 포켓몬만 나가요':RULES[id].d;
+function vdS(){G.vd=G.vd||{};const V=G.vd,wk=wbWeek(),d=dayK();if(V.wk!==wk){V.wk=wk;V.wb=0;V.got={};V.clr=0}if(V.day!==d){V.day=d;V.n=0}return V}
+const VD_DAY=3;
+try{RKB.mut={n:'변이 던전 (이번 주)',k:()=>'mut-'+wbWeek(),v:()=>vdS().wb||0,u:'점',d:'이번 주 변이 던전 최고 점수 · 1층마다 100점, 5층까지 다 깨면 남은 체력만큼 더 · 매주 새 규칙'};RKT.push(['mut','변이 던전'])}catch(e){}
+
+// 능력치: 보스 강화 · 내 포켓몬 약화
+const MV={on:0,weak:0};
+{const _s=stOf;stOf=function(m){const S=_s.apply(this,arguments);try{if(!m)return S;let o=null;
+  if(m.vdA&&m.vdA!==1){o=S.slice();o[1]=Math.round(o[1]*m.vdA);o[3]=Math.round(o[3]*m.vdA)}
+  if(m.vdD&&m.vdD!==1){o=o||S.slice();o[2]=Math.round(o[2]*m.vdD);o[4]=Math.round(o[4]*m.vdD)}
+  if(MV.on&&MV.weak&&G&&G.party.includes(m)){o=o||S.slice();o[1]=Math.round(o[1]*.7);o[3]=Math.round(o[3]*.7)}
+  return o||S}catch(e){return S}}}
+// 출전 가능한 포켓몬
+function vdTeam(W){let L=G.party.slice();const R0=W.rules;
+  if(R0.includes('norare'))L=L.filter(m=>rarM(m)<4);
+  if(R0.includes('type'))L=L.filter(m=>((META[m.n]||{}).types||[]).includes(W.allowT));
+  if(R0.includes('one'))L=L.slice(0,1);if(R0.includes('three'))L=L.slice(0,3);return L}
+// 파티 · 물약 잠깐 맡기기 (던전이 끝나면 그대로 돌려놔요 · 중간에 앱이 꺼져도 다음에 켜면 돌려놔요)
+function vdBegin(sel,W){G.vdOrig=G.party.map(m=>m.uid);G.vdHold=G.party.filter(m=>!sel.includes(m));G.party=sel;
+  if(W.rules.includes('nopotion')){G.vdPot={};for(const k in G.bag)if(ITEMS[k]&&ITEMS[k].heal&&!ITEMS[k].ball&&(G.bag[k]|0)>0){G.vdPot[k]=G.bag[k];G.bag[k]=0}}
+  MV.on=1;MV.weak=W.rules.includes('my_weak')?1:0;save()}
+function vdRestore(){try{if(G.vdOrig){const all=[...G.party,...(G.vdHold||[])];const P=G.vdOrig.map(u=>all.find(m=>m.uid===u)).filter(Boolean);for(const m of all)if(!P.includes(m))P.push(m);G.party=P}
+  if(G.vdPot){for(const k in G.vdPot)G.bag[k]=(G.bag[k]|0)+G.vdPot[k]}}catch(e){console.warn('vdRestore',e)}delete G.vdOrig;delete G.vdHold;delete G.vdPot;MV.on=0;MV.weak=0}
+setTimeout(function g(){if(!G){setTimeout(g,2000);return}if(G.vdOrig||G.vdPot){vdRestore();save()}},2500);
+
+function vdOpen(){if(!G)return;const W=vdWeek(),V=vdS(),lock=!reach(6),left=VD_DAY-(V.n|0),T=vdTeam(W);
+  const rc=id=>{const R1=RULES[id];return `<div class="vd-card"><img src="${GM}items/${R1.img}.webp" alt=""><b>${R1.n}</b><small>${esc2(ruleD(id,W))}</small></div>`};
+  const fl=W.floors.map(F=>{const got=(V.got||{})[F.f];return `<div class="vd-fl${got?' got':''}"><span class="vd-fn">${F.f}층</span><span class="vd-tm">${F.team.map((n,i)=>`<img class="${i?'mn':''}" src="${THUMB[n]||''}" title="${META[n].name}" alt="">`).join('')}</span><span class="vd-fb"><b>${F.name}</b><small>${META[F.team[0]].name}${F.team.length>1?' + 부하 '+(F.team.length-1):''}</small></span><span class="vd-frw">${got?`<img class="vd-seal" src="${GM}items/vd_floor_seal.webp" alt=""><em>돌파</em>`:rwH(VRW[F.f-1])}</span></div>`}).join('');
+  openPanel('주간 변이 던전',`<div class="vd">
+    <div class="vd-top"><img src="${GM}items/vd_door.webp" alt=""><div><b>이번 주 테마: <em class="rtg" style="background:${TCOL[W.theme]}">${TN[W.theme]}</em> 보스 5층 러시</b><small>규칙 카드 3장이 매주 바뀌어요. 1층부터 5층까지 이어서 싸우고, 지면 그 자리에서 끝! 층 사이엔 체력 반만 차요.</small></div></div>
+    ${lock?'<p class="vd-lk">천계에 가면 열려요</p>':''}
+    <div class="vd-cards">${W.rules.map(rc).join('')}</div>
+    <div class="vd-pt"><b>나갈 포켓몬 ${T.length}마리</b><span>${T.map(m=>`<img src="${THUMB[m.n]||''}" alt="">`).join('')||'<small>이번 주 규칙에 맞는 포켓몬이 파티에 없어요 · 편성을 바꿔 주세요</small>'}</span></div>
+    <div class="vd-fls">${fl}</div>
+    <div class="vd-go"><span class="vd-key"><img src="${GM}items/it_vd_key.webp" alt="">오늘 남은 입장 <b>${Math.max(0,left)}</b> / ${VD_DAY}</span><button class="emb-b vd-big" id="vdGo" ${lock||left<=0||!T.length?'disabled':''}>1층부터 도전!</button></div>
+    <div class="vd-sc">이번 주 최고 <b>${V.wb||0}점</b> · 5층 정복 ${V.clr||0}번${G.hon&&G.hon.includes(HONACH)?' · 명예 접두사 「변이 던전 정복자」 보유':' · 5층까지 다 깨면 명예 접두사 「변이 던전 정복자」'}</div>
+    <div class="wbt"><button id="vdRk">랭킹 등록 (이번 주 ${V.wb||0}점)</button><button id="vdRv">랭킹 보기</button></div></div>`,null,p=>{
+    p.querySelector('#vdRk').onclick=()=>{try{rankPush('mut')}catch(e){}};p.querySelector('#vdRv').onclick=()=>{closePanel(1);try{rankOpen('mut')}catch(e){}};
+    const g=p.querySelector('#vdGo');if(g)g.onclick=()=>vdRun()})}
+window.vdOpen=vdOpen;window.vdWeek=vdWeek;
+
+function vdNext(f,W){return new Promise(done=>{const F=W.floors[f];let fin=0;const end=v=>{if(fin)return;fin=1;clearInterval(t);closePanel(1);done(v)};
+  const hpP=Math.round(G.party.reduce((a,m)=>a+Math.max(0,m.hp)/stOf(m)[0],0)/Math.max(1,G.party.length)*100);
+  openPanel(f+'층 돌파!',`<div class="vd vd-mid"><img class="vd-sealbig" src="${GM}items/vd_floor_seal.webp" alt=""><b>${f}층 돌파!</b><small>내 포켓몬 체력 평균 ${hpP}%${W.rules.includes('noheal')?' · 이번 주는 회복 없음':' · 체력이 반만큼 찼어요'}</small>
+    <div class="vd-nx"><span>다음: ${f+1}층 ${F.name}</span><span class="vd-tm">${F.team.map((n,i)=>`<img class="${i?'mn':''}" src="${THUMB[n]||''}" alt="">`).join('')}</span></div>
+    <div class="vd-go"><button class="emb-b gy" id="vdQ">그만두기</button><button class="emb-b vd-big" id="vdN">${f+1}층 도전!</button></div></div>`,null,p=>{p.querySelector('#vdN').onclick=()=>end(true);p.querySelector('#vdQ').onclick=()=>end(false)});
+  const pn=document.querySelector('.panel');const t=setInterval(()=>{if(pn&&!document.body.contains(pn))end(false)},400)})}
+
+async function vdFight(F,W){const R0=W.rules;
+  const foes=F.team.map((n,i)=>{const m=mkMon(n,100);m.hpx=F.hx*(i?.55:1)*(R0.includes('foe_hp')?2:1);m.vdA=R0.includes('foe_atk')?1.5:1;m.vdD=R0.includes('foe_def')?1.5:1;m.hp=stOf(m)[0];return m});
+  try{await trainerScene(F.spr,F.name+' ('+F.f+'층)',F.f===5?['여기가 변이 던전의 끝이다!','이번 주 규칙 속에서 나를 이길 수 있을까?']:[['변이의 힘을 느껴 봐!','규칙이 바뀌어도 이길 수 있어?','한 층 한 층이 시험이다!','변이된 '+TN[W.theme]+' 타입의 힘이다!'][F.f%4]])}catch(e){}
+  return await battle({trainer:F.name,foes,money:F.f*6000,scaled:1,bg:F.bg,lose:'변이 던전 도전 끝!'})}
+
+let VDRUN=0;
+async function vdRun(){if(VDRUN)return;const W=vdWeek(),V=vdS();if(!reach(6)){toast('천계에 가면 열려요');return}if(SCENE!=='over'){toast('밖에서만 들어갈 수 있어요');return}
+  if((V.n|0)>=VD_DAY){toast('오늘 입장은 다 썼어요 · 내일 다시!');return}
+  const sel=vdTeam(W);if(!sel.length){toast('이번 주 규칙에 맞는 포켓몬이 파티에 없어요');return}
+  VDRUN=1;V.n=(V.n|0)+1;closePanel(1);healAll();vdBegin(sel,W);let cl=0,score=0;
+  try{for(let f=1;f<=5;f++){if(!G.party.some(m=>m.hp>0))break;const r=await vdFight(W.floors[f-1],W);if(r!=='win')break;cl=f;
+      if(!V.got[f]){V.got[f]=1;giveR(VRW[f-1]);toast('변이 던전 '+f+'층 이번 주 첫 돌파 보상!')}
+      if(f===5){V.clr=(V.clr|0)+1;honGive(HONACH,'(변이 던전 5층 정복)')}
+      if(f<5){if(!W.rules.includes('noheal'))for(const m of G.party){const mx=stOf(m)[0];m.hp=Math.min(mx,Math.max(0,m.hp)+Math.round(mx*.5))}save();if(!await vdNext(f,W))break}}
+    const hpP=Math.round(G.party.reduce((a,m)=>a+Math.max(0,m.hp)/stOf(m)[0],0)/Math.max(1,G.party.length)*99);
+    score=cl*100+(cl===5?hpP:0);
+  }catch(e){console.warn('vdRun',e)}
+  finally{vdRestore();healAll();VDRUN=0;if(score>(V.wb||0))V.wb=score;save()}
+  try{ev&&ev('vd')}catch(e){}
+  openPanel('변이 던전 결과',`<div class="vd vd-mid"><img class="vd-sealbig" src="${GM}items/${cl===5?'vd_door':'vd_floor_seal'}.webp" alt=""><b>${cl===5?'5층 정복!':cl?cl+'층까지 돌파':'1층에서 끝'}</b><small>이번 판 ${score}점 · 이번 주 최고 ${V.wb||0}점</small>
+    <div class="wbt"><button class="main" id="vrRk">랭킹 등록</button><button id="vrBk">던전으로</button></div></div>`,null,p=>{p.querySelector('#vrRk').onclick=()=>{try{rankPush('mut')}catch(e){}};p.querySelector('#vrBk').onclick=()=>{closePanel(1);vdOpen()}})}
+
+// ---------- 시즌 명예의 전당 ----------
+const hofScore=()=>{try{return (spS().xp|0)}catch(e){return 0}};
+try{RKB.hof={n:'명예 점수 (이번 시즌)',k:()=>'hof-'+monK(),v:hofScore,u:'점',d:'이번 달(시즌) 시즌 패스 점수 · 달이 바뀌면 1~30위가 명예의 전당에 올라 명예 접두사를 받아요'};RKT.push(['hof','명예의 전당'])}catch(e){}
+async function hofFetch(mk,n){const c=wbCfg();if(!c)return null;const base=`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents`,path='pokeRank/hof-'+mk;
+  try{const r=await fetch(`${base}/${path}:runQuery?key=${c.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],orderBy:[{field:{fieldPath:'v'},direction:'DESCENDING'}],limit:n||40}})});
+    if(!r.ok)return null;const j=await r.json();let L=(Array.isArray(j)?j:[]).filter(x=>x.document).map(x=>{const f=x.document.fields||{};return{id:x.document.name.split('/').pop(),name:(f.name||{}).stringValue||'?',v:+((f.v||{}).integerValue||0)}});
+    try{if(typeof isGMName==='function')L=L.filter(x=>!isGMName(x.name))}catch(e){}try{if(typeof BANS!=='undefined')L=L.filter(x=>!BANS.has(x.id))}catch(e){}try{if(typeof STAFF!=='undefined')L=L.filter(x=>!STAFF.has(x.id))}catch(e){}
+    return L}catch(e){return null}}
+// 점수는 조용히 자동 등록 (1시간에 한 번 · 인터넷 될 때)
+async function hofPush(){try{const c=wbCfg();if(!c||!navigator.onLine||!G||!G.pid)return;if(typeof isGM==='function'&&isGM())return;if(typeof isOp==='function'&&isOp())return;const v=hofScore();if(v<=0)return;
+  G.hofP=G.hofP||{};const mk=monK();if(G.hofP.k===mk&&G.hofP.v===v&&Date.now()-(G.hofP.t||0)<3600e3)return;
+  const nm=(typeof rkName==='function'?rkName():(G.name||'트레이너')).slice(0,12);
+  const r=await fetch(`https://firestore.googleapis.com/v1/projects/${c.projectId}/databases/(default)/documents/pokeRank/hof-${mk}/players/${G.pid}?key=${c.apiKey}&updateMask.fieldPaths=name&updateMask.fieldPaths=v&updateMask.fieldPaths=t`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:nm},v:{integerValue:String(v)},t:{integerValue:String(Date.now())}}})});
+  if(r.ok){G.hofP={k:mk,v,t:Date.now()};save()}}catch(e){}}
+// 달이 바뀌면 지난 시즌 순위 확인 → 명예 접두사
+async function hofCheck(){try{if(!G||!navigator.onLine)return;const pm=monK(-1);G.hofChk=G.hofChk||{};if(G.hofChk[pm])return;if(pm<'2026-11')return;
+  const L=await hofFetch(pm,40);if(!L)return;G.hofChk[pm]=1;const i=L.findIndex(x=>x.id===G.pid);
+  if(i>=0&&i<30){const tier=i===0?0:i<3?1:i<10?2:3;const idx=honIdx(pm,tier);if(honGive(idx,'(지난 시즌 '+(i+1)+'위)')){addItem('frbox',tier===0?3:tier===1?2:1)}}save()}catch(e){}}
+setTimeout(function g(){if(!G){setTimeout(g,3000);return}hofCheck();hofPush();setInterval(()=>{hofPush()},15*60e3)},6000);
+
+function honEquipHtml(){const H=(G.hon||[]).map(i=>PX[i]).filter(Boolean);if(!H.length)return '<p class="vd-lk">아직 명예 접두사가 없어요. 시즌 30위 안에 들거나 변이 던전 5층을 정복하면 받아요.</p>';
+  return `<div class="hof-own">${H.map(p=>{const me=G.mepx===p.i,pm=G.party.find(m=>m.px===p.i);return `<div class="hof-pl"><img src="${honPlate(p)}" alt=""><b>${p.n}</b><small>${typeof pxTxt==='function'?pxTxt(p):''}</small>
+    <div class="hof-eq"><button class="emb-b${me?' gy':''}" data-hc="${p.i}">${me?'캐릭터에 달림':'내 캐릭터에 달기'}</button><button class="emb-b" data-hp="${p.i}">${pm?nm(pm)+'에 달림 · 바꾸기':'포켓몬에 달기'}</button></div></div>`}).join('')}</div>`}
+async function hofOpen(){if(!G)return;const cur=monK();const seasons=[];for(let o=-1;o>=-6;o--){const k=monK(o);if(k<'2026-11')break;seasons.push(k)}
+  const draw=(live,past)=>{const top=live||[];const podium=top.slice(0,3);const mi=top.findIndex(x=>x.id===G.pid);
+    const row=(x,i)=>{const r=rkSplit(x.name);return `<div class="hof-r${x.id===G.pid?' me':''}"><b>${i+1}</b><span>${r.rep&&THUMB[r.rep]?`<img src="${THUMB[r.rep]}" alt="">`:''}${esc2(r.name)}</span><em>${(x.v|0).toLocaleString()}점</em></div>`};
+    return `<div class="hof"><div class="hof-hd"><img src="${GM}ic/ic_cat_hall.webp" alt=""><div><b>${cur.replace('-','년 ')}월 시즌</b><small>시즌 패스 점수(명예 점수)로 순위를 매겨요. 달이 바뀌면 1위 · 2~3위 · 4~10위 · 11~30위가 명예의 전당에 오르고 <b>명예 접두사</b>를 받아요 (캐릭터와 포켓몬에 둘 다 달 수 있어요 · 능력치 +30~80%).</small></div></div>
+      <div class="hof-pod">${[1,0,2].map(i=>{const x=podium[i];if(!x)return `<div class="hof-pc p${i+1} em"></div>`;const r=rkSplit(x.name);return `<div class="hof-pc p${i+1}">${i===0?`<img class="hof-cr" src="${GM}items/hall_crown.webp" alt="">`:''}<span>${r.rep&&THUMB[r.rep]?`<img src="${THUMB[r.rep]}" alt="">`:''}</span><b>${esc2(r.name)}</b><em>${(x.v|0).toLocaleString()}</em></div>`}).join('')}</div>
+      <div class="hof-me">내 명예 점수 <b>${hofScore().toLocaleString()}점</b> · ${mi>=0?'지금 '+(mi+1)+'위':'아직 순위 밖'} <small>(자동으로 올라가요)</small></div>
+      <div class="hof-l">${live?top.slice(0,30).map(row).join('')||'<small>아직 아무도 없어요</small>':'<small>인터넷이 꺼져 있거나 서버에 연결이 안 돼요</small>'}</div>
+      <h4 class="hof-h">내 명예 접두사</h4>${honEquipHtml()}
+      <h4 class="hof-h">지난 시즌 명예의 전당</h4>${past.length?past.map(([k,L])=>`<div class="hof-past"><b>${k.replace('-','년 ')}월</b>${(L||[]).slice(0,10).map((x,i)=>`<span class="t${i<1?1:i<3?3:10}"><i>${i+1}</i>${esc2(rkSplit(x.name).name)}</span>`).join('')||'<small>기록 없음</small>'}</div>`).join(''):'<p class="vd-lk">첫 시즌이 끝나면(12월 1일) 여기에 올라가요.</p>'}</div>`};
+  openPanel('시즌 명예의 전당',draw(null,[]).replace('서버에 연결이 안 돼요','불러오는 중…'),null,async p=>{
+    const bind=()=>{p.querySelectorAll('[data-hc]').forEach(b=>b.onclick=()=>{const i=+b.dataset.hc;if(G.mepx===i)return;if(G.mepxOld==null)G.mepxOld=G.mepx;G.mepx=i;save();try{sfx('badge');hud()}catch(e){}toast('내 캐릭터에 ['+PX[i].n+']!');hofOpen()});
+      p.querySelectorAll('[data-hp]').forEach(b=>b.onclick=()=>{const i=+b.dataset.hp;const L=G.party.map((m,k)=>`<button class="emb-b" data-pk="${k}"><img src="${THUMB[m.n]||''}" alt="" style="width:36px;height:36px;vertical-align:middle">${nm(m)}</button>`).join('');
+        const box=p.querySelector('.hof-own');const d=document.createElement('div');d.className='hof-pick';d.innerHTML='<b>어느 포켓몬에 달까요? (원래 접두사는 기억해 둬요)</b><div>'+L+'</div>';box.prepend(d);
+        d.querySelectorAll('[data-pk]').forEach(x=>x.onclick=()=>{const m=G.party[+x.dataset.pk];if(!m)return;for(const o of [...G.party,...G.box])if(o!==m&&o.px===i){o.px=o.pxOld!=null?o.pxOld:pxRoll();delete o.pxOld}if(m.pxOld==null)m.pxOld=m.px;m.px=i;save();try{sfx('badge')}catch(e){}toast(nm(m)+'에게 ['+PX[i].n+']!');hofOpen()})})};
+    bind();
+    const [live,...past]=await Promise.all([hofFetch(cur,30),...seasons.map(k=>hofFetch(k,10))]);
+    if(!document.body.contains(p))return;p.querySelector('.hof').outerHTML=draw(live,seasons.map((k,i)=>[k,past[i]]).filter(x=>x[1]&&x[1].length));bind()})}
+window.hofOpen=hofOpen;window.hofFetch=hofFetch;
+
+// ---------- 랭킹에 엠블럼 ----------
+// 랭킹 이름 끝에 보이지 않는 글자 3개로 장착한 엠블럼 번호를 붙여서 보내요 (화면엔 안 보여요)
+const ZW=['​','‌','‍','⁠'],ZM='﻿';
+const embI=()=>{try{if(!G||!G.embEq||!window.EMB)return -1;if(!(G.emb&&G.emb[G.embEq]))return -1;return EMB.findIndex(e=>e.id===G.embEq)}catch(e){return -1}};
+if(typeof rkName==='function'){const _rk=rkName;rkName=function(){const r=_rk.apply(this,arguments);const i=embI();if(i<0||i>15)return r;const k=r.lastIndexOf('#');let base=k<0?r:r.slice(0,k);const tag=k<0?'':r.slice(k);const em=ZM+ZW[i>>2]+ZW[i&3];if((base+em+tag).length>12)base=base.slice(0,Math.max(1,12-em.length-tag.length));return base+em+tag}}
+const EMBN=new Map();
+if(typeof rkSplit==='function'){const _sp=rkSplit;rkSplit=function(raw){raw=String(raw||'');const m=raw.match(/﻿([​‌‍⁠])([​‌‍⁠])/);let e=-1;if(m){e=ZW.indexOf(m[1])*4+ZW.indexOf(m[2]);raw=raw.replace(m[0],'')}const r=_sp.call(this,raw);r.emb=e;if(e>=0&&window.EMB&&EMB[e])EMBN.set(String(r.name).trim(),e);return r}}
+setInterval(()=>{try{const p=document.querySelector('.panel');if(!p||!EMBN.size||!window.EMB)return;
+  p.querySelectorAll('.rkm:not([data-em]),.pc b:not([data-em]),.hof-r span:not([data-em]),.hof-pc b:not([data-em])').forEach(el=>{el.dataset.em=1;const t=(el.firstChild&&el.firstChild.nodeType===3?el.firstChild.textContent:el.textContent).replace(/\s*나\s*$/,'').trim();
+    let e=EMBN.get(t);if(e==null){for(const [k,v] of EMBN)if(t.startsWith(k)||el.textContent.includes(k)){e=v;break}}if(e==null||!EMB[e])return;
+    el.insertAdjacentHTML('afterbegin',`<img class="rkem" src="${EMB[e].img}" title="${EMB[e].n}" alt="">`)})}catch(er){}},600);
+
+// ---------- 컨텐츠 목록 ----------
+try{HUB.push({k:'mut',n:'주간 변이 던전',d:'매주 바뀌는 규칙 카드 3장 속에서 보스 5층 러시! 층마다 첫 돌파 보상 · 5층 정복하면 명예 접두사 · 주간 랭킹 (천계부터).',st:()=>{if(!reach(6))return '천계에 가면 열려요';const V=vdS();return '이번 주 최고 '+(V.wb||0)+'점 · 오늘 입장 '+Math.max(0,VD_DAY-(V.n|0))+'/'+VD_DAY},go:[['변이 던전 가기',()=>vdOpen()]]});
+  HUB.push({k:'hof',n:'시즌 명예의 전당',d:'한 달 시즌 동안 모은 명예 점수(시즌 패스 점수) 순위 · 1~30위는 명예 접두사(캐릭터 · 포켓몬 둘 다) · 지난 시즌 기록.',st:()=>'이번 시즌 '+hofScore().toLocaleString()+'점'+(G&&G.hon&&G.hon.length?' · 명예 접두사 '+G.hon.length+'개':''),go:[['명예의 전당 보기',()=>hofOpen()]]})}catch(e){}
+
+const css=document.createElement('style');css.textContent=`
+.vd,.hof{font-family:'Galmuri11',monospace;color:#f6e7c4;border-style:solid;border-width:26px;border-image:url(${GM}ui/ui_panel_main.webp) 110 fill stretch;image-rendering:pixelated;margin:2px 0;background:url(${GM}items/bg_vdungeon.webp) center/cover}
+.hof{background:url(${GM}items/bg_hall.webp) center top/cover}.vd,.hof{padding:4px 8px}
+.vd-top,.hof-hd{display:flex;gap:10px;align-items:center;border-style:solid;border-width:12px;border-image:url(${GM}ui/ui_panel_dark.webp) 56 fill stretch;margin-bottom:8px}.vd-top img{width:96px;flex:none}.hof-hd img{width:64px;flex:none}
+.vd-top b,.hof-hd b{display:block;color:#ffd23f;font-size:15px;text-shadow:2px 2px 0 #1a0e06}.vd-top small,.hof-hd small{display:block;font-size:11.5px;color:#e9d3a8;line-height:1.45;margin-top:3px}
+.vd-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.vd-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;border-style:solid;border-width:10px;border-image:url(${GM}ui/ui_panel_dark.webp) 56 fill stretch}
+.vd-card img{width:min(92px,100%);image-rendering:pixelated;filter:drop-shadow(0 3px 0 #0008)}.vd-card b{color:#fff;font-size:13px;text-shadow:2px 2px 0 #1a0e06}.vd-card small{font-size:10.5px;color:#e9d3a8;line-height:1.35}
+.vd-pt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;font-size:12.5px}.vd-pt b{color:#ffd23f}.vd-pt img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated}
+.vd-fls{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}.vd-fl{display:flex;align-items:center;gap:8px;padding:4px 8px;background:rgba(10,6,24,.62);border:2px solid #4a3a2a}.vd-fl.got{border-color:#c8961e;background:rgba(60,40,8,.6)}
+.vd-fn{font-size:15px;color:#ffd23f;min-width:36px;text-shadow:2px 2px 0 #000}.vd-tm{display:flex;align-items:flex-end}.vd-tm img{width:46px;height:46px;object-fit:contain;image-rendering:pixelated}.vd-tm img.mn{width:30px;height:30px;opacity:.85}
+.vd-fb{flex:1;min-width:0}.vd-fb b{display:block;font-size:13px;color:#fff}.vd-fb small{font-size:10.5px;color:#d8c8a8}.vd-frw{display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;max-width:46%;align-items:center}
+.vd-rw{display:inline-flex;align-items:center;gap:2px;font-size:10px;color:#fff3d6;background:rgba(0,0,0,.35);padding:1px 4px}.vd-rw img{width:16px;height:16px;object-fit:contain}
+.vd-seal{width:30px}.vd-frw em{font-style:normal;color:#ffd23f;font-size:12px}
+.vd-go{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;margin:6px 0}.vd-key{display:flex;align-items:center;gap:5px;font-size:12.5px}.vd-key img{width:34px}.vd-key b{color:#ffd23f;font-size:16px}
+.vd-big{font-size:17px!important;padding:6px 18px!important}.vd-sc{font-size:11.5px;color:#e9d3a8;margin-bottom:4px}.vd-lk{font-size:12px;color:#ffb08a;margin:4px 0 8px}
+.vd-mid{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}.vd-mid>b{font-size:22px;color:#ffd23f;text-shadow:2px 2px 0 #1a0e06}.vd-mid>small{font-size:12px;color:#e9d3a8}.vd-sealbig{width:160px;animation:frIn .6s ease-out}
+.vd-nx{display:flex;align-items:center;gap:8px;font-size:13px}
+@media (max-width:520px){.vd-cards{grid-template-columns:repeat(3,1fr)}.vd-frw{max-width:40%}.vd-top img{width:70px}}
+.hof-pod{position:relative;width:min(440px,100%);aspect-ratio:256/215;margin:4px auto 8px;background:url(${GM}items/hall_podium.webp) center bottom/100% auto no-repeat;image-rendering:pixelated}
+.hof-pc{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;width:32%}.hof-pc.p1{left:50%;bottom:46%}.hof-pc.p2{left:17%;bottom:37%}.hof-pc.p3{left:83%;bottom:35%}.hof-pc.em{display:none}
+.hof-pc span img{width:54px;height:54px;object-fit:contain;image-rendering:pixelated}.hof-pc.p1 span img{width:68px;height:68px}
+.hof-pc b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#1a0e06d8;color:#fff;font-size:12px;padding:1px 6px}.hof-pc em{font-style:normal;font-size:11px;color:#ffd23f;text-shadow:1px 1px 0 #000}.hof-cr{width:54px;margin-bottom:-6px;animation:crownB3 1.6s ease-in-out infinite}
+.hof-hd small b,.vd-top small b{display:inline!important;font-size:inherit!important;color:#ffd23f}
+.hof-me{font-size:12.5px;margin-bottom:6px}.hof-me b{color:#ffd23f}.hof-me small{color:#d8c8a8}
+.hof-l{display:flex;flex-direction:column;gap:3px;max-height:260px;overflow:auto;margin-bottom:8px}.hof-r{display:flex;align-items:center;gap:8px;padding:3px 8px;background:rgba(0,0,0,.45);border:2px solid #4a3a2a;font-size:12.5px}.hof-r.me{border-color:#ffd23f}
+.hof-r b{min-width:24px;color:#ffd23f}.hof-r span{flex:1;display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;white-space:nowrap}.hof-r span img{width:28px;height:28px;object-fit:contain;image-rendering:pixelated}.hof-r em{font-style:normal;color:#fff3d6}
+.hof-h{margin:10px 0 6px!important;padding:4px 8px!important;background:#1a0e06!important;color:#ffd23f!important;font-size:13px;border-left:6px solid #c8961e}
+.hof-own{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}.hof-pl{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;border-style:solid;border-width:12px;border-image:url(${GM}ui/ui_panel_dark.webp) 56 fill stretch}
+.hof-pl img{width:150px;image-rendering:pixelated}.hof-pl b{color:#fff;font-size:13px;text-shadow:2px 2px 0 #1a0e06}.hof-pl small{font-size:10.5px;color:#e9d3a8}.hof-eq{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.hof-pick{grid-column:1/-1;padding:6px;background:rgba(0,0,0,.5);border:2px solid #ffd23f}.hof-pick>b{display:block;font-size:12px;margin-bottom:4px}.hof-pick>div{display:flex;flex-wrap:wrap;gap:4px}
+.hof-past{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:6px;font-size:12px}.hof-past>b{color:#ffd23f;min-width:84px}.hof-past span{display:inline-flex;gap:3px;align-items:center;background:rgba(0,0,0,.45);padding:1px 6px}.hof-past span i{font-style:normal;color:#ffd23f}.hof-past span.t1{box-shadow:0 0 0 2px #ffd23f}
+.rkem{width:22px;height:22px;object-fit:contain;vertical-align:middle;margin-right:3px;filter:drop-shadow(0 1px 0 #0006)}`;document.head.appendChild(css);
+}catch(e){console.warn('9EF 변이 던전 · 명예의 전당',e)}})();
+</script>
 <script src="https://yujongho0714.github.io/allinone/back-guard.js" defer></script>
 </body></html>
