@@ -9574,6 +9574,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112802,date:'11월 28일',t:'자랑하기 · 전체 공지',items:[{img:"",h:"엠블럼 · 장비 · 큐브 자랑",p:["채팅 <b>「자랑」</b> 버튼에서 포켓몬 · 엠블럼 · 장비 · 내 능력치 중 골라 자랑해요.","큐브 창에서도 <b>「채팅에 자랑」</b>으로 방금 돌린 결과를 바로 올릴 수 있어요."]},{img:"",h:"전체 공지",p:["장비 <b>20성 이상</b> 강화, 장비 · 엠블럼 잠재옵션 · 아티팩트 <b>레전드리</b>, 포켓몬 <b>불멸 · 태초 · 만제</b> 초월에 성공하면 모든 사람 화면 위에 <b>공지</b>가 떠요.","채팅창에도 [공지]로 남아요."]}]},
  {v:2026112801,date:'11월 28일',t:'내 능력치 · 큐브 상점 · 권장 방무',items:[{img:"",h:"내 능력치 보기",p:["사이드 메뉴 <b>「능력치」</b> 또는 장비 · 가방 · 아티팩트 · 엠블럼 · 큐브 창 제목 옆 <b>「내 능력치」</b>.","공격력 · 보스 공격력 · 일반 공격력 · 총데미지 · 방어력 무시 · 크리티컬 확률/데미지 등 <b>총 능력치를 출처별(장비 · 엠블럼 잠재 · 아티팩트)</b>로 보여 줘요.","지금 난이도에서 <b>부족한 것</b>(권장 방무 · 크확 · 보공)과 트레이너 · 챔피언에게 들어가는 데미지 %도 보여 줘요. <b>「채팅에 공유」</b>로 친구에게 자랑!"]},
   {img:"",h:"큐브 상점 · 큐브가 모자라면 바로",p:["큐브 창 위에 <b>내 골드</b>와 <b>「큐브 상점」</b>. 큐브마다 어디에 쓰는지 · 등급업 확률 · 특징을 설명해요.","큐브를 다 쓰면 「큐브 상점으로 갈까요?」가 나와요.","도전 조건 창에 <b>방어력 무시</b> 줄이 생겼어요 — 권장 방무와 내 방무, 얼마나 부족한지."]}]},
  {v:2026112709,date:'11월 28일',t:'천계 교육 (넘길 수 없어요) · 큐브 7종 실습 · 이탈 옵션',items:[{img:"",h:"방무가 모자라면 큐브 영상 · 큐브 창 자동",p:["상대가 단단해서 데미지가 60% 아래로 깎이면, 배틀 전에 <b>큐브 영상</b>이 나와요 (넘길 수 없어요 · 20분에 한 번). 레어 → 유니크 → 레전드리로 올리면 방무 · 보공이 생기고 <b>한 방 데미지가 얼마나 커지는지</b> 보여 줘요.","배틀이 끝나면 <b>큐브 창이 저절로 열리고</b>, 장착한 엠블럼(없으면 무기 · 방패)이 큐브 박스에 들어가 있어요. 가진 큐브 중 제일 좋은 걸 골라 둬요."]},
@@ -12506,7 +12507,7 @@ async function hubOpen2(t,pick){if(!G)return;if(t)CB.t=t;if(pick){CB.pick=pick;C
   const grid=L.slice(0,120).map(k=>{const T=hTgt(k);return T?`<button class="hcs ${k===CB.pick?'on':''}" data-hp="${k}" style="--gc:${GRC[T.g]}">${T.ic}<b>${T.html?T.nm:esc(T.nm)}</b><small>${GRN[T.g]}</small><i>${T.sub}</i></button>`:''}).join('')||`<p class="hhint">${isArt?'아직 아티팩트가 없어요 (각성 ★3 포켓몬 · 교육 보상)':CB.tab==='emb'?'아직 엠블럼이 없어요 (교육 보상 · 월드보스 순위 · 업적)':'낀 장비가 없어요 (장비 화면에서 끼워요)'}</p>`;
   const C=cubeOf(CB.t);
   openPanel('큐브',`<div class="hcw"><div class="hcgold"><span>내 골드 <b>${(G.money|0).toLocaleString()}원</b></span><button id="hcShop">큐브 상점</button></div><div class="hcrow">${cards}</div>
-   <div class="hcbox" style="--cc:${C[2]}"><div class="hchd">${hIc(CB.t,'hcic b')}<div class="hcn"><small>보유 개수</small><span>×<b id="hcN">${G.bag[CB.t]||0}</b></span></div><button class="hcpr" id="hcPr">확률</button></div><div class="hcslot" id="hcSlot">${hSlot()}</div><div class="hcmsg" id="hcMsg">${CB.msg||''}</div></div>
+   <div class="hcbox" style="--cc:${C[2]}"><div class="hchd">${hIc(CB.t,'hcic b')}<div class="hcn"><small>보유 개수</small><span>×<b id="hcN">${G.bag[CB.t]||0}</b></span></div><button class="hcpr" id="hcPr">확률</button></div><div class="hcslot" id="hcSlot">${hSlot()}</div><div class="hcmsg" id="hcMsg">${CB.msg||''}</div><button class="hcbrag" id="hcBrag">채팅에 자랑</button></div>
    <div class="hcact"><label${C[8]?' style="display:none"':''}><input type="checkbox" id="hcAu" ${CB.auto?'checked':''}> 등급업까지 자동 돌리기</label><button class="pri" id="hcGo">큐브 돌리기</button></div>
    <p class="hhint">${isArt?'아티팩트 큐브는 <b>아티팩트</b>에만 써요.':'장비 큐브는 <b>장비 · 엠블럼 잠재옵션</b>에 써요. 방어력 무시 · 보스 공격력은 <b>무기 · 방패 · 엠블럼</b>에서 나와요.'} 방무는 <b>유니크</b>부터 · <b style="color:#ff7ad9">이탈</b> = 등급 최대치를 넘은 옵션 (앱솔루트 · 어메이징 큐브)</p>
    ${isArt?'<div class="tabs"><button class="on">아티팩트 '+arL.length+'</button></div>':`<div class="tabs"><button data-ht="emb" class="${CB.tab==='emb'?'on':''}">엠블럼 ${emL.length}</button><button data-ht="eq" class="${CB.tab==='eq'?'on':''}">장비 ${eqL.length}</button></div>`}<div class="hcg">${grid}</div></div>`,null,p=>{
@@ -12514,7 +12515,7 @@ async function hubOpen2(t,pick){if(!G)return;if(t)CB.t=t;if(pick){CB.pick=pick;C
    p.querySelectorAll('[data-hc]').forEach(b=>b.onclick=()=>{if(CB.busy)return;try{sfx('tap')}catch(e){}const nt=b.dataset.hc,was=cubeOf(CB.t)[7];CB.t=nt;if(cubeOf(nt)[7]!==was)CB.pick=null;CB.last=null;CB.pend=null;CB.msg='';hubOpen2()});
    p.querySelectorAll('[data-ht]').forEach(b=>b.onclick=()=>{if(CB.busy)return;CB.tab=b.dataset.ht;hubOpen2()});
    p.querySelectorAll('[data-hp]').forEach(b=>b.onclick=()=>{if(CB.busy)return;try{sfx('tap')}catch(e){}CB.pick=b.dataset.hp;CB.last=null;CB.pend=null;CB.msg='';hDraw();const s=p.querySelector('.pb');if(s)try{s.scrollTo({top:0,behavior:'smooth'})}catch(e){s.scrollTop=0}});
-   p.querySelector('#hcGo').onclick=()=>hGo();const shb=p.querySelector('#hcShop');if(shb)shb.onclick=()=>{if(CB.busy)return;try{sfx('tap')}catch(e){}closePanel(1);cubeShop()};const au=p.querySelector('#hcAu');if(au)au.onchange=e=>{CB.auto=e.target.checked?1:0};p.querySelector('#hcPr').onclick=()=>hProb();hBindRes(p);try{window.tutTick&&tutTick()}catch(e){}})}
+   p.querySelector('#hcGo').onclick=()=>hGo();const hbr=p.querySelector('#hcBrag');if(hbr)hbr.onclick=()=>{if(CB.busy||!CB.pick||CB.pend)return toast(CB.pend?'먼저 이전 / 이후를 골라요':'먼저 큐브에 넣을 걸 골라요');try{sfx('tap')}catch(e){}bragItem(CB.pick,CB.last?CB.t:null,CB.last&&CB.last.up)};const shb=p.querySelector('#hcShop');if(shb)shb.onclick=()=>{if(CB.busy)return;try{sfx('tap')}catch(e){}closePanel(1);cubeShop()};const au=p.querySelector('#hcAu');if(au)au.onchange=e=>{CB.auto=e.target.checked?1:0};p.querySelector('#hcPr').onclick=()=>hProb();hBindRes(p);try{window.tutTick&&tutTick()}catch(e){}})}
 window.cubeHub=hubOpen2;
 // ===== 큐브 상점 (내 골드 · 큐브 설명 · 바로 사기) · 큐브가 모자라면 상점으로 =====
 const CSH=[['cube','에픽까지만 올라가요 (레어 → 에픽 6%). 싸서 처음 연습용 · 옵션만 다시 뽑을 때 좋아요.','장비 · 엠블럼'],
@@ -12559,6 +12560,42 @@ function statOpen(){if(!G)return;const {L,src,tot}=statSrc(),d=DIFF(),M=myOff({}
       try{const ok=await chSend('t',t.slice(0,60));if(ok!==false){toast('채팅에 내 능력치를 공유했어요');try{sfx('get')}catch(e){}}}catch(e){toast('지금은 채팅에 못 보내요')}return}
     closePanel(1);if(x==='hub')hubOpen2();else if(x==='shop')cubeShop();else ignGuide()})})}
 window.statOpen=statOpen;
+// ===== 엠블럼 · 장비 · 큐브 자랑 (채팅 한 줄 · 60자) =====
+const OSH={atk:'공',boss:'보공',norm:'일공',tdmg:'총뎀',tatk:'총공',elem:'속성',ign:'방무',crt:'크확',cdm:'크뎀',hp:'체력',def:'방어',eva:'회피',vamp:'흡혈'};
+const plain=h=>String(h||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+function bragTxt(k,cubeT,up){const T=hTgt(k);if(!T)return '';const kind=T.ty==='emb'?'엠블럼':T.ty==='art'?'아티팩트':'장비 '+(ME_KO[T.id]||'');
+  const nmS=plain(T.nm).replace(/^\[[^\]]*\]\s*/,'').slice(0,9),ops=T.o.map(([o,v])=>(OSH[o]||o)+v).join(' ');
+  const head=cubeT?'['+cubeOf(cubeT)[1].replace(' 큐브','')+'큐브'+(up?' '+GRN[T.g]+' UP!':'')+'] ':'['+kind+'] ';
+  return (head+nmS+'·'+GRN[T.g]+' | '+ops).slice(0,60)}
+async function bragItem(k,cubeT,up){const t=bragTxt(k,cubeT,up);if(!t)return;try{const ok=await chSend('t',t);if(ok!==false){try{sfx('get')}catch(e){}toast('채팅에 자랑했어요!')}}catch(e){toast('지금은 채팅에 못 보내요')}}
+window.bragItem=bragItem;
+// ===== 공지: 장비 20강 이상 · 레전드리 등급(장비 · 엠블럼 · 아티팩트) · 불멸/태초/만제 초월 → 모두의 화면 위에 띠 + 채팅에 [공지] =====
+const NMK='⁣';   // 공지 표시 (손으로는 못 치는 글자)
+function annBar(t){let w=$('annBar');if(!w){w=document.createElement('div');w.id='annBar';document.body.appendChild(w)}const d=document.createElement('div');d.className='anr';d.innerHTML='<b>공지</b><span>'+esc(t)+'</span>';w.appendChild(d);setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),600)},7000);try{sfx('badge')}catch(e){}}
+let annQ=[],annBusy=0;
+async function annSend(t){annBar(t);annQ.push(t);if(annBusy)return;annBusy=1;try{while(annQ.length){const x=annQ.shift();for(let i=0;i<4;i++){let ok=false;try{ok=await chSend('t',NMK+x.slice(0,58))}catch(e){}if(ok!==false)break;await new Promise(r=>setTimeout(r,4000))}await new Promise(r=>setTimeout(r,4000))}}finally{annBusy=0}}
+window.annSend=annSend;window.annBar=annBar;
+const myN=()=>(String(G.name||'').split('#')[0]||'누군가').slice(0,8);
+// 상태를 훑어서 새로 생긴 것만 공지 (처음엔 지금 상태를 기억만)
+function annScan(){if(!G||!G.party)return;G.annSeen=G.annSeen||null;const first=!G.annSeen;const S=G.annSeen||(G.annSeen={});const out=[];
+  try{if(G.me&&G.me.eq)for(const c of ME_CATS){const key=G.me.eq[c];if(!key)continue;const sf=gSF(c),k='sf:'+c;if(sf.s>=20&&!sf.b&&(S[k]|0)<sf.s){if(!first)out.push(myN()+'님이 '+ME_KO[c]+' '+sf.s+'성 강화 성공!');S[k]=sf.s}
+    const it=gItem(key),kg='eq:'+key;if(it.g>=3&&!S[kg]){if(!first)out.push(myN()+'님의 '+ME_KO[c]+' 잠재옵션이 레전드리!');S[kg]=1}}}catch(e){}
+  try{if(G.embPot)for(const id in G.embPot){const P=G.embPot[id],k='em:'+id;if(P&&P.g>=3&&!S[k]){const e=(window.EMB||[]).find(x=>x.id===id);if(!first)out.push(myN()+'님의 '+(e?e.n:'엠블럼')+' 잠재옵션이 레전드리!');S[k]=1}}}catch(e){}
+  try{const A=window.ART_API&&ART_API.AI();if(A)for(const id in A){const a=A[id],k='ar:'+id;if(a&&a.g>=3&&!S[k]){if(!first)out.push(myN()+'님이 레전드리 아티팩트 '+ART_API.aName(a)+' 획득!');S[k]=1}}}catch(e){}
+  try{for(const m of [...(G.party||[]),...(G.box||[])]){if(!m||!m.uid)continue;const r=rarM(m),k='tr:'+m.uid;if(r>=7&&(S[k]|0)<r){if(!first)out.push(myN()+'님이 '+nm(m)+'(을)를 '+RAR[r]+'(으)로 초월!');S[k]=r}}}catch(e){}
+  if(first||out.length)save();for(const t of out)annSend(t)}
+setInterval(()=>{try{annScan()}catch(e){}},2500);
+// 다른 사람 공지: 채팅에 들어온 [공지] 글을 띠로 보여 줘요 (3분 안에 올라온 것만 · 한 번씩)
+const annShown=new Set();
+setInterval(()=>{try{const L=(typeof CHM!=='undefined'&&CHM)||[];const now=Date.now();for(const o of L.slice(-30)){const x=String(o.x||'');if(!x.startsWith(NMK))continue;const id=o.id||(o.name+o.ms);if(annShown.has(id))continue;annShown.add(id);if(o.pid===G.pid)continue;if(now-(o.ms||0)<180e3)annBar(x.slice(1))}}catch(e){}},2000);
+// 채팅창에서는 [공지]로 보여요
+{const _cp=chParse;chParse=async function(){const o=await _cp.apply(this,arguments);try{if(o&&typeof o.x==='string'&&o.x.startsWith(NMK)){o.notice=1;o.x=NMK+'[공지] '+o.x.slice(1)}}catch(e){}return o}}
+async function bragPick(ty){const L=ty==='emb'?(window.EMB||[]).filter(e=>G.emb&&G.emb[e.id]).map(e=>'emb:'+e.id):(G.me&&G.me.eq?ME_CATS.filter(c=>G.me.eq[c]).map(c=>'eq:'+c):[]);
+  if(!L.length){toast(ty==='emb'?'엠블럼이 없어요':'낀 장비가 없어요');return}
+  const btns=L.slice(0,10).map(k=>{const T=hTgt(k);return{t:(ty==='emb'?plain(T.nm):(ME_KO[T.id]+' · '+plain(T.nm).slice(0,12)))+' ['+GRN[T.g]+']',v:k}});btns.push({t:'취소',v:null});btns.col=1;
+  const k=await ovBox(ty==='emb'?'어떤 엠블럼을 자랑할까요?':'어떤 장비를 자랑할까요?','<small>등급과 잠재옵션이 채팅에 올라가요</small>',btns);if(k)bragItem(k)}
+{const _bp=window.chBragPick||(typeof chBragPick!=='undefined'?chBragPick:null);if(_bp){chBragPick=async function(){const k=await ovBox('무엇을 자랑할까요?','',Object.assign([{t:'포켓몬 · 전투력 · 덱',v:'old'},{t:'엠블럼 자랑',v:'emb'},{t:'장비 자랑',v:'eq'},{t:'내 능력치 자랑',v:'st'},{t:'취소',v:null}],{col:1}));
+  if(k==='old')return _bp.apply(this,arguments);if(k==='emb'||k==='eq')return bragPick(k);if(k==='st'){statOpen();setTimeout(()=>{const b=document.querySelector('[data-sb="share"]');if(b)b.click()},500)}}}}
 // 어디서든: 장비 · 가방 · 아티팩트 · 엠블럼 · 큐브 · 큐브 상점 · 편성 창 제목 옆에 「내 능력치」
 setInterval(()=>{try{const p=document.querySelector('.panel');if(!p||p.querySelector('#statBtn'))return;const h=p.querySelector('.ph b');if(!h)return;const t=h.textContent;
   if(!/장비|가방|아티팩트|엠블럼|큐브|편성|방어력 무시|내 포켓몬/.test(t)||/내 능력치/.test(t))return;const b=document.createElement('button');b.id='statBtn';b.textContent='내 능력치';b.onclick=e=>{e.stopPropagation();try{sfx('tap')}catch(_){}closePanel(1);statOpen()};h.insertAdjacentElement('afterend',b)}catch(e){}},700);
@@ -12644,6 +12681,9 @@ const css=document.createElement('style');css.textContent=`
 @media (max-width:560px){.tutex div{grid-template-columns:1fr}}
 .panel .hcop li.out b{color:#ff7ad9;text-shadow:0 0 6px #ff7ad9}.panel .hcop em{font-style:normal;font-size:10px;padding:0 4px;margin-left:3px;background:#ff7ad9;color:#1c0a20;border-radius:3px}
 .panel .hccmp{display:grid;grid-template-columns:1fr 1fr;gap:8px}.panel .hccmp>div>small{display:block;font-weight:900;margin-bottom:2px}.panel .hcc{background:#1c1533!important;color:#fff!important}.panel .hccmp .nw{background:#ffd23f14;border-radius:8px;padding:0 4px}.panel .hcpk{display:flex;gap:6px;margin-top:6px}.panel .hcpk button{flex:1}
+.panel .hcbrag{display:block;margin:6px auto 0;padding:5px 14px!important;border:2px solid #fff6!important;background:#ff5a9a!important;color:#fff!important;font:900 12px 'Galmuri11',system-ui;border-radius:8px!important}
+#annBar{position:fixed;left:50%;top:calc(46px + env(safe-area-inset-top));transform:translateX(-50%);z-index:100005;display:flex;flex-direction:column;gap:4px;pointer-events:none;width:min(94vw,620px)}
+#annBar .anr{display:flex;align-items:center;gap:8px;padding:6px 12px;background:linear-gradient(90deg,#5a0a30,#2a0a40);border:3px solid #ffd23f;color:#fff;font:900 13px 'Galmuri11',system-ui;box-shadow:0 0 18px #ffd23f88;animation:anIn .5s;transition:opacity .6s}#annBar .anr.out{opacity:0}#annBar b{padding:1px 8px;background:#ffd23f;color:#5a0a30}@keyframes anIn{from{transform:translateY(-20px);opacity:0}}
 .panel .hcmsg{min-height:16px;margin-top:6px;text-align:center;font-size:12px;color:#ffd23f}
 .panel .hcfx{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle,#fff8,transparent 60%);animation:hcFx .6s forwards}.panel .hcfx.up{background:radial-gradient(circle,#ffe17a,transparent 70%);animation-duration:1.4s}@keyframes hcFx{from{opacity:1}to{opacity:0}}
 .panel .hcup{position:absolute;left:0;right:0;top:40%;text-align:center;font:italic 900 30px system-ui;color:#ffd23f;-webkit-text-stroke:2px #1c2550;paint-order:stroke fill;animation:hcUp 1.5s forwards;pointer-events:none}@keyframes hcUp{0%{transform:scale(.3);opacity:0}20%{transform:scale(1.15);opacity:1}80%{opacity:1}100%{transform:translateY(-30px);opacity:0}}
