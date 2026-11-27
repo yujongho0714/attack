@@ -1450,7 +1450,7 @@ const guardBlock=g=>g.need>=100?(G.ub||0)<g.need-100:G.badges<g.need;
 // ===== 걸어 다니기 · 화면 그리기 · 조작 =====
 const EVB={n:0};// 이벤트(체육관·리그·라이벌·탑) 진행 중엔 걷기·자동 이동 잠금
 const cv=document.getElementById('cv'),cx=cv.getContext('2d');let VW=0,VH=0,DPR=1,TS=32;
-function resize(){DPR=Math.min(2,devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=VW*DPR;cv.height=VH*DPR;cv.style.width=VW+'px';cv.style.height=VH+'px';TS=Math.max(26,Math.floor(Math.min(VW/11,VH/15)))}
+function resize(){DPR=Math.min(2,devicePixelRatio||1)*(window.VSCALE||1);VW=innerWidth;VH=innerHeight;cv.width=VW*DPR;cv.height=VH*DPR;cv.style.width=VW+'px';cv.style.height=VH+'px';TS=Math.max(26,Math.floor(Math.min(VW/11,VH/15)))}
 addEventListener('resize',resize);resize();
 const P={x:0,y:0,dir:0,mv:null,mode:'walk',fr:0,trail:[],busy:0,queue:null};let SCENE='title',NOW=0,LAST=performance.now();
 const KEY={dir:-1};
@@ -2306,7 +2306,7 @@ const CardPack=(()=>{
     let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>{if(v)return v;const m=/pk\/portrait\/(\d{4,5})\//.exec(o.img);return m&&typeof rzFace==='function'?rzFace(m[1]).then(u=>u?loadImg(u,4000):null):null}).then(v=>art=v):null;   /* 9H: 초상화 폴더가 없어져서 카드팩에 ?가 뜸 → 레조넌스 그림에서 잘라 쓰기 */const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=(await loadImg(o.base+'pk'+t+'.webp',800))||(t>6?await loadImg(o.base+'pk6.webp',800):null)||(t>3?await loadImg(o.base+'pk3.webp',800):null);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>v||(t>6?loadImg(o.base+'frame6.webp',4000):null)).then(v=>frmI[t]=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
-      const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
+      const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1)*(window.VSCALE||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
       let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false,SW=null,PWs=200,cutK=0;const NEED=RF>=2?TAPS[RF]:0;let ubT=0,ubF=0;
       let C=COL[R],C2=COL2[R];function setR(x,keep){ubF=R;R=x;C=COL[R];C2=COL2[R];if(!keep)pk=pkI[R]||pk}
       function upFx(){flash=1;shake=26;burst(40+R*12,6+R,C,70);burst(16,8,'#fff',50);S.rev(R);ubT=performance.now()+1100;if(R>=2)bolts=1;try{navigator.vibrate&&navigator.vibrate([30,40,90])}catch(e){}}
@@ -3303,7 +3303,7 @@ function arcOpen(k){const D=ARC[k],S=arcS(k);const B=mgOpen(areaName(D.a)+' · '
    <button class="pxbig argo">시작!</button><small>이번 주 최고 기록은 랭킹 → 「${D.n}」에 올라가요 · 월요일에 1~10위 카드팩</small></div></div></div>`;
   B.querySelector('.argo').onclick=()=>{sfx('tap');arcRun(k,B)}}
 async function arcRun(k,B){const D=ARC[k];const W=B.querySelector('.arw'),cv2=W.querySelector('canvas'),hud=W.querySelector('.arhud'),ctl=W.querySelector('.arctl'),ov=W.querySelector('.arov');ov.classList.remove('on');ov.innerHTML='';
-  const c=cv2.getContext('2d');let w=0,h=0,dp=1;const fit=()=>{dp=Math.min(2,devicePixelRatio||1);w=W.clientWidth;h=W.clientHeight;cv2.width=w*dp;cv2.height=h*dp;cv2.style.width=w+'px';cv2.style.height=h+'px'};fit();
+  const c=cv2.getContext('2d');let w=0,h=0,dp=1;const fit=()=>{dp=Math.min(2,devicePixelRatio||1)*(window.VSCALE||1);w=W.clientWidth;h=W.clientHeight;cv2.width=w*dp;cv2.height=h*dp;cv2.style.width=w+'px';cv2.style.height=h+'px'};fit();
   const lead=arcLead();const me=await arcSpr(sprKey(lead));const keys={},E={c,get w(){return w},get h(){return h},me,lead,keys,hud,ctl,t:0,over:false,tap:0};
   const G2=ARCG[k];const st=await G2.init(E,arcS(k));let last=performance.now(),alive=true;
   const kd=e=>{const K=e.key.toLowerCase();if(!keys[K]){keys[K]=1;G2.key&&G2.key(E,st,K,1)}if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(K))e.preventDefault()},ku=e=>{const K=e.key.toLowerCase();keys[K]=0;G2.key&&G2.key(E,st,K,0)};
@@ -6726,7 +6726,7 @@ const SKL={
 };
 // 레벨별 연출을 작은 화면에 비슷하게 그려서 보여줘요 (실제 전투 연출 코드와 같은 색 · 같은 단계 규칙을 써요)
 function skPlay(cv,T,L,rb,faceSrc){
-  const cx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1),W=cv.clientWidth||300,H=cv.clientHeight||150;
+  const cx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1)*(window.VSCALE||1),W=cv.clientWidth||300,H=cv.clientHeight||150;
   cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
   const S=Math.min(W,H*1.7)/6.5,ax=W*.18,ay=H*.64,bx=W*.82,by=H*.64;
   const sty=A2.STY[T]||A2.STY.NORMAL,st=A2.stopsFor(T,Math.max(1,L)),Lc=Math.min(5,L),tc=SKFX.col(T);
@@ -9574,6 +9574,7 @@ try{HUB.unshift({k:'dskin',n:'💥 데미지 스킨',d:'때릴 때 나오는 숫
 // ---------- 📢 업데이트 소식 ----------
 // 새 업데이트마다 맨 위에 하나씩 추가 (v를 올리면 다음에 켤 때 한 번 자동으로 보여 줘요)
 const NEWS=[
+ {v:2026112803,date:'11월 28일',t:'폰 발열 줄임',items:[{img:"",h:"폰이 뜨거워지던 문제",p:["화면 크기 자동으로 화면을 줄인 만큼 게임 그림을 <b>쓸데없이 크게(약 1.8배)</b> 그리고 있었어요.","이제 폰 화면에 맞는 크기로만 그려서 <b>덜 뜨겁고 배터리도 덜 써요</b>. 전투 · 월드보스 · 미니게임 모두 적용."]}]},
  {v:2026112802,date:'11월 28일',t:'자랑하기 · 전체 공지',items:[{img:"",h:"엠블럼 · 장비 · 큐브 자랑",p:["채팅 <b>「자랑」</b> 버튼에서 포켓몬 · 엠블럼 · 장비 · 내 능력치 중 골라 자랑해요.","큐브 창에서도 <b>「채팅에 자랑」</b>으로 방금 돌린 결과를 바로 올릴 수 있어요."]},{img:"",h:"전체 공지",p:["장비 <b>20성 이상</b> 강화, 장비 · 엠블럼 잠재옵션 · 아티팩트 <b>레전드리</b>, 포켓몬 <b>불멸 · 태초 · 만제</b> 초월에 성공하면 모든 사람 화면 위에 <b>공지</b>가 떠요.","채팅창에도 [공지]로 남아요."]}]},
  {v:2026112801,date:'11월 28일',t:'내 능력치 · 큐브 상점 · 권장 방무',items:[{img:"",h:"내 능력치 보기",p:["사이드 메뉴 <b>「능력치」</b> 또는 장비 · 가방 · 아티팩트 · 엠블럼 · 큐브 창 제목 옆 <b>「내 능력치」</b>.","공격력 · 보스 공격력 · 일반 공격력 · 총데미지 · 방어력 무시 · 크리티컬 확률/데미지 등 <b>총 능력치를 출처별(장비 · 엠블럼 잠재 · 아티팩트)</b>로 보여 줘요.","지금 난이도에서 <b>부족한 것</b>(권장 방무 · 크확 · 보공)과 트레이너 · 챔피언에게 들어가는 데미지 %도 보여 줘요. <b>「채팅에 공유」</b>로 친구에게 자랑!"]},
   {img:"",h:"큐브 상점 · 큐브가 모자라면 바로",p:["큐브 창 위에 <b>내 골드</b>와 <b>「큐브 상점」</b>. 큐브마다 어디에 쓰는지 · 등급업 확률 · 특징을 설명해요.","큐브를 다 쓰면 「큐브 상점으로 갈까요?」가 나와요.","도전 조건 창에 <b>방어력 무시</b> 줄이 생겼어요 — 권장 방무와 내 방무, 얼마나 부족한지."]}]},

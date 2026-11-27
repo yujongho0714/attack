@@ -17,7 +17,7 @@ const CardPack=(()=>{
     let art=null;const artP=o.img?loadImg(o.img,8000).then(v=>v||(/\/[A-Za-z]+\.png$/.test(o.img)&&!/Normal\.png$/.test(o.img)?loadImg(o.img.replace(/[A-Za-z]+\.png$/,'Normal.png'),6000):null)).then(v=>art=v):null;const pkI=[];for(let t=R;t<=PR;t++)pkI[t]=(await loadImg(o.base+'pk'+t+'.webp',800))||(t>3?await loadImg(o.base+'pk3.webp',800):null);let pk=pkI[R];const frmI={};for(let t=CS;t<=RF;t++)loadImg(o.base+'frame'+t+'.webp',4000).then(v=>frmI[t]=v);
     return new Promise(done=>{
       const cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99999;touch-action:none;background:#000';document.body.appendChild(cv);
-      const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
+      const c=cv.getContext('2d');let W,H,DP;function rs(){DP=Math.min(2,devicePixelRatio||1)*(function(){try{return (parent&&parent.VSCALE)||window.VSCALE||1}catch(e){return 1}})();W=innerWidth;H=innerHeight;cv.width=W*DP;cv.height=H*DP;c.setTransform(DP,0,0,DP,0,0)}rs();addEventListener('resize',rs);
       let rev=0,ph='in',t0=performance.now(),pt=0,taps=0,shake=0,flash=0,P=[],bolts=0,closed=false,SW=null,PWs=200,cutK=0;const NEED=RF>=2?TAPS[RF]:0;let ubT=0,ubF=0;
       let C=COL[R],C2=COL2[R];function setR(x,keep){ubF=R;R=x;C=COL[R];C2=COL2[R];if(!keep)pk=pkI[R]||pk}
       function upFx(){flash=1;shake=26;burst(40+R*12,6+R,C,70);burst(16,8,'#fff',50);S.rev(R);ubT=performance.now()+1100;if(R>=2)bolts=1;try{navigator.vibrate&&navigator.vibrate([30,40,90])}catch(e){}}

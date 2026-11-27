@@ -122,7 +122,7 @@ const sfr=(K,t)=>Math.floor(t*12)%K.n;
 /* ───────── 기본 설정 ───────── */
 const cv=document.getElementById('c'), ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1;
-function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=cv.clientWidth||innerWidth;H=cv.clientHeight||innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);ctx.imageSmoothingEnabled=false;}
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1)*(function(){try{return (parent&&parent.VSCALE)||window.VSCALE||1}catch(e){return 1}})();W=cv.clientWidth||innerWidth;H=cv.clientHeight||innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);ctx.imageSmoothingEnabled=false;}
 addEventListener('resize',resize);resize();
 
 const SC=2;

@@ -303,7 +303,7 @@ function buildUI(){
   W.rs=()=>fit();addEventListener('resize',W.rs);
   W.ui=U;fit();
 }
-function fit(){const U=W.ui,d=Math.min(2,devicePixelRatio||1);U.cv.width=Math.round(innerWidth*d);U.cv.height=Math.round(innerHeight*d);W.cx=U.cv.getContext('2d')}
+function fit(){const U=W.ui,d=Math.min(2,devicePixelRatio||1)*(window.VSCALE||1);U.cv.width=Math.round(innerWidth*d);U.cv.height=Math.round(innerHeight*d);W.cx=U.cv.getContext('2d')}
 function setMoveBtns(){
   const U=W.ui,me=W.me;U.mv.innerHTML='';W.mbtn=[];
   if(!me)return;

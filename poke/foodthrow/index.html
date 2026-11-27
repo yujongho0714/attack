@@ -361,7 +361,7 @@ scene.fog=new THREE.Fog(0x7cc4ff,60,260);
 const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,2200);
 const LOWDEV=(navigator.hardwareConcurrency||4)<=4||(navigator.deviceMemory||4)<=3;
 const renderer=new THREE.WebGLRenderer({antialias:!LOWDEV,powerPreference:'high-performance'});
-renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,LOWDEV?1:1.5));VOX.heroRes=LOWDEV?130:180;
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,LOWDEV?1:1.5)*(function(){try{return (parent&&parent.VSCALE)||window.VSCALE||1}catch(e){return 1}})());VOX.heroRes=LOWDEV?130:180;
 renderer.shadowMap.enabled=true;
 document.getElementById('cv').appendChild(renderer.domElement);
 VOX.setupRenderer(renderer,scene,'#7cc4ff','#5a8a4a');scene.background=SKY0.clone();
@@ -761,7 +761,7 @@ setTimeout(()=>{HERO.eq=gotMe;boot()},window.parent!==window?350:0);
   var inFrame=window.parent!==window,ex=document.getElementById('pkExit');
   if(inFrame){ex.style.display='flex';ex.onclick=function(){try{persist()}catch(e){}parent.postMessage({src:'foodthrow',type:'close'},location.origin)}}
   var cv=document.createElement('canvas');cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:45';document.body.appendChild(cv);
-  var g=cv.getContext('2d'),dpr=1,W=0,H=0;function fit(){dpr=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr}fit();addEventListener('resize',fit);
+  var g=cv.getContext('2d'),dpr=1,W=0,H=0;function fit(){dpr=Math.min(2,devicePixelRatio||1)*(function(){try{return (parent&&parent.VSCALE)||window.VSCALE||1}catch(e){return 1}})();W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr}fit();addEventListener('resize',fit);
   var ready=!!window.EMPFX,LIST=[];if(!ready){var sc=document.createElement('script');sc.src='../empress-fx.js';sc.onload=function(){ready=true};document.head.appendChild(sc)}
   var FOODFX=['energyball','ember','flamethrower','thunderbolt','aurasphere','flamethrower','bubblebeam','sludgebomb','thunderbolt','dazzlinggleam'];
   function fire(id,from,to,size){if(!window.EMPFX)return;var dx=to.x-from.x,dy=to.y-from.y,d=Math.max(60,Math.hypot(dx,dy)),sz=Math.max(.6,Math.min(2.2,size||1));

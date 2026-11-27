@@ -1244,7 +1244,7 @@ function buildUI(){
     if(k==='Escape'&&!W.over&&!C.noQuit)stop('quit')};
   W.ku=e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;IN.keys[k]=0};
   addEventListener('keydown',W.kd);addEventListener('keyup',W.ku);
-  W.rs=()=>{const dpr=Math.min(2,devicePixelRatio||1);cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr)};
+  W.rs=()=>{const dpr=Math.min(2,devicePixelRatio||1)*(window.VSCALE||1);cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr)};
   W.rs();addEventListener('resize',W.rs);
 }
 function updSide(){try{   // 9R: 교대·약 버튼에 남은 시간·개수 표시

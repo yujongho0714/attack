@@ -2040,7 +2040,7 @@ function buildUI(){
     if(k==='Escape'&&!W.over&&!C.noQuit)stop('quit')};
   W.ku=e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;IN.keys[k]=0};
   addEventListener('keydown',W.kd);addEventListener('keyup',W.ku);
-  W.rs=()=>{const dpr=Math.min(1.5,devicePixelRatio||1)*(W.q||1);cv.width=Math.max(320,Math.round(innerWidth*dpr));cv.height=Math.max(180,Math.round(innerHeight*dpr))};   // 렉 줄이기: 기본 1.5배까지, 느리면 자동으로 더 낮춤
+  W.rs=()=>{const dpr=Math.min(1.5,devicePixelRatio||1)*(W.q||1)*(window.VSCALE||1);cv.width=Math.max(320,Math.round(innerWidth*dpr));cv.height=Math.max(180,Math.round(innerHeight*dpr))};   // 렉 줄이기: 기본 1.5배까지, 느리면 자동으로 더 낮춤
   W.rs();addEventListener('resize',W.rs);
 }
 // ---------- 10A: 왼쪽 교대 목록 (초상화 · 이름 · 한계돌파 별 · 각성 별 · 눌러서 바로 교체) ----------

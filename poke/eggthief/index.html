@@ -244,7 +244,7 @@ renderer.setSize(innerWidth,innerHeight);document.getElementById('cv').appendChi
 VOX.setupRenderer(renderer,scene,'#5aa8ff','#6a7a5a');
 const DAYBG=scene.background;
 const sun=VOX.sunLight(scene,30);
-function applyQ(){const pr=[.75,1,Math.min(devicePixelRatio,1.75)][QL];renderer.setPixelRatio(Math.min(devicePixelRatio,pr));renderer.setSize(innerWidth,innerHeight);
+function applyQ(){const pr=[.75,1,Math.min(devicePixelRatio,1.75)][QL];renderer.setPixelRatio(Math.min(devicePixelRatio,pr)*(function(){try{return (parent&&parent.VSCALE)||window.VSCALE||1}catch(e){return 1}})());renderer.setSize(innerWidth,innerHeight);
   const sh=QL>0;if(renderer.shadowMap.enabled!==sh){renderer.shadowMap.enabled=sh;sun.castShadow=sh;scene.traverse(o=>{if(o.material){[].concat(o.material).forEach(m=>m.needsUpdate=true)}})}
   VOX.heroRes=QL===0?120:QL===1?160:230;try{localStorage.setItem('et3d-q',QL)}catch(e){}const b=document.getElementById('tQ');if(b)b.textContent=['화질 낮음','화질 보통','화질 좋음'][QL]}
 applyQ();
