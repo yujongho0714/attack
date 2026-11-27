@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><script src="https://yujongho0714.github.io/allinone/jd-roster.js" defer></script>
+<!doctype html><html lang="ko"><head>
 <!--
   © 2026 유종호 (용인대 정도 태권도 2관). All rights reserved.
   이 프로그램의 코드 · 화면 구성 · 기능 설계는 저작권법으로 보호됩니다.
@@ -5879,17 +5879,14 @@ const ACF={q:'',list:null,busy:0};
 async function acOpen(){if(!isGM()){toast('관장님(GM)만 쓸 수 있어요');return}if(!ACPRIV){const ok=await new Promise(done=>{const o=document.createElement('div');o.id='gmPw';o.innerHTML=`<div class="gmw"><div class="gmt">계정 관리</div><p>번호를 보려면 관장님 비밀번호를 한 번 더 넣어 주세요.</p><input type="password" id="gmIn" autocomplete="off" placeholder="비밀번호"><p class="gme"></p><div class="gmb"><button id="gmNo">닫기</button><button id="gmYes" class="main">열기</button></div></div>`;document.body.appendChild(o);
     const inp=o.querySelector('#gmIn');setTimeout(()=>{try{inp.focus()}catch(e){}},50);const go=async()=>{try{await acUnlock(inp.value);o.remove();done(true)}catch(e){o.querySelector('.gme').textContent='비밀번호가 틀렸어요';sfx('hit')}};
     o.querySelector('#gmYes').onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});o.querySelector('#gmNo').onclick=()=>{o.remove();done(false)}});if(!ok)return}
-  if(window.JDR&&!ACF.jdr){ACF.jdr=1;JDR.on(()=>{if(document.querySelector('.acl')&&ACF.list)acDraw()})}ACF.list=null;acDraw();const L=await fsList('users');await banLoad(1);if(!L){ACF.list=[];acDraw();toast('서버에 연결하지 못했어요');return}const by=new Map();
+  ACF.list=null;acDraw();const L=await fsList('users');await banLoad(1);if(!L){ACF.list=[];acDraw();toast('서버에 연결하지 못했어요');return}const by=new Map();
   for(const x of L){const m=/^u~([^~]+)~(.+)$/.exec(x.id);if(!m)continue;let num='';try{num=JSON.parse(await acDec(m[2])).n||''}catch(e){continue}const o=by.get(m[1]);if(!o||x.t>o.t)by.set(m[1],{pid:m[1],name:x.name,num,t:x.t,b:x.v})}
   try{const RL=await acRankList();for(const x of RL){if(!by.has(x.pid))by.set(x.pid,{pid:x.pid,name:x.name,num:'',t:0,b:0,un:1})}}catch(e){}
   ACF.list=[...by.values()].sort((a,b)=>b.t-a.t);acDraw()}
 function acDraw(){const fmt=n=>String(n).replace(/^(\d{3})(\d{3,4})(\d{4})$/,'$1-$2-$3');const q=ACF.q.trim().replace(/-/g,'');const L=(ACF.list||[]).filter(x=>!q||x.name.includes(q)||x.num.includes(q));
-  const JL=window.JDR&&JDR.list.length?JDR.list:null;const jdTag=x=>{if(!JL)return '';const n=String(x.num||'').replace(/\D/g,'');if(!n)return '';const m=JL.filter(s=>s.phones.includes(n));
-    if(!m.length)return '<small class="acj no">도장 명단에 없음</small>';const a=m.filter(s=>!s.out);return a.length?`<small class="acj">도장 · ${esc(a.map(s=>s.name+' '+(s.grade||'')).join(', '))}</small>`:`<small class="acj no">퇴관 · ${esc(m.map(s=>s.name).join(', '))}</small>`};
-  const row=x=>{const ban=BANS.has(x.pid);return `<div class="acr${ban?' ban':''}"><span><b>${esc(x.name||'(이름 없음)')}</b><small>${x.num?fmt(x.num):'번호 모름'}</small>${jdTag(x)}</span><small>${x.un?'랭킹에만 있음 (아직 등록 전)':'배지 '+x.b+' · 마지막 '+new Date(x.t*1000).toLocaleDateString('ko-KR')}</small><button data-ac="${x.pid}" class="${ban?'':'del'}">${ban?'복구':'삭제'}</button></div>`};
+  const row=x=>{const ban=BANS.has(x.pid);return `<div class="acr${ban?' ban':''}"><span><b>${esc(x.name||'(이름 없음)')}</b><small>${x.num?fmt(x.num):'번호 모름'}</small></span><small>${x.un?'랭킹에만 있음 (아직 등록 전)':'배지 '+x.b+' · 마지막 '+new Date(x.t*1000).toLocaleDateString('ko-KR')}</small><button data-ac="${x.pid}" class="${ban?'':'del'}">${ban?'복구':'삭제'}</button></div>`};
   openPanel('계정 관리 (GM)',`<p class="hhint">게임을 켠 적 있는 계정이에요 (인터넷이 될 때 등록돼요). 도장 명단과 번호를 대조해서, 우리 도장이 아니거나 악용하는 계정은 <b>삭제</b>해요. 삭제하면 모든 랭킹 · 주간 보상에서 빠지고, 그 폰이 인터넷에 연결되면 게임 기록이 지워져요. 같은 번호로 새로 만들어도 막혀요.</p>
    <input id="acQ" class="gmq" value="${esc(ACF.q)}" placeholder="닉네임이나 번호로 찾기"><div class="acl">${ACF.list===null?'<p class="hhint">불러오는 중…</p>':L.length?L.map(row).join(''):'<p class="hhint">계정이 없어요</p>'}</div><p class="hhint">총 ${(ACF.list||[]).length}명 · 삭제 ${BANS.size}명</p>`,null,p=>{
-   if(window.JDR){try{const h=p.querySelector('.hhint');h&&h.insertAdjacentElement('afterend',JDR.chip(null,'margin:4px;'))}catch(e){}}
    const qi=p.querySelector('#acQ');qi.oninput=()=>{ACF.q=qi.value;clearTimeout(qi._t);qi._t=setTimeout(()=>{acDraw();setTimeout(()=>{const x=document.querySelector('#acQ');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length)}},30)},350)};
    p.querySelectorAll('[data-ac]').forEach(b=>b.onclick=()=>{const x=ACF.list.find(y=>y.pid===b.dataset.ac);if(!x)return;const ban=BANS.has(x.pid);
      itAsk(ban?'<b>'+esc(x.name)+'</b> 계정을 복구할까요?':'<b>'+esc(x.name)+'</b> ('+fmt(x.num)+') 계정을 정말 삭제할까요?',ban?'다시 랭킹에 나오고 게임할 수 있어요 (지워진 기록은 돌아오지 않아요).':'모든 랭킹에서 빠지고, 그 폰의 게임 기록이 지워져요.',async()=>{if(await banSet(x.pid,x.num,x.name,!ban)){sfx(ban?'get':'hit');toast(ban?'복구했어요':'삭제했어요');acDraw()}else toast('실패 · 인터넷을 확인해 주세요')})})})}
@@ -5898,7 +5895,7 @@ function acDraw(){const fmt=n=>String(n).replace(/^(\d{3})(\d{3,4})(\d{4})$/,'$1
 {const _od=opDraw;opDraw=async function(){const r=await _od.apply(this,arguments);try{const p=document.querySelector('.panel');const t=p&&p.querySelector('.tabs');if(t&&!t.querySelector('[data-acm]')){t.insertAdjacentHTML('beforeend','<button data-acm="1">계정 관리</button>');t.querySelector('[data-acm]').onclick=()=>{sfx('tap');acOpen()}}}catch(e){}return r}}
 (function(){const c=document.createElement('style');c.textContent=`.acl{display:flex;flex-direction:column;gap:6px;margin:6px 4px;max-height:52vh;overflow:auto;padding:4px}
 .acr{display:flex;align-items:center;gap:10px;background:#fffaf0;padding:8px 10px;box-shadow:0 0 0 2px #1c2550}.acr span{display:flex;flex-direction:column;min-width:120px}.acr span small{font-size:14px;color:#1c2550;font-weight:700}.acr>small{flex:1;font-size:12px;color:#5a6080}
-.acr span small.acj{font-size:12px;color:#17643a}.acr span small.acj.no{color:#c0392b}.acr.ban{background:#ffe4e4;opacity:.8}.acr.ban b{text-decoration:line-through}.panel .acr button.del{color:#fff!important;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%)!important}`;document.head.appendChild(c)})();
+.acr.ban{background:#ffe4e4;opacity:.8}.acr.ban b{text-decoration:line-through}.panel .acr button.del{color:#fff!important;background:linear-gradient(#ff7a6a 0 50%,#e0483a 50%)!important}`;document.head.appendChild(c)})();
 // ---------- 랭킹에 있는 사람 전부 (등록 전 계정도) → 바로 삭제 ----------
 async function acRankList(){const boards=['dex','adv','pvp','tower-'+wbWeek(),'mgstack-'+wbWeek(),'mgvolley-'+wbWeek(),'mgcross-'+wbWeek(),'mggeo-'+wbWeek(),'mgwc-'+wbWeek()];const by=new Map();
   for(const b of boards){const L=await fsList(b);if(!L)continue;for(const x of L){const n=rkSplit(x.name).name.trim();if(isGMName(x.name))continue;const o=by.get(x.id)||{pid:x.id,name:n,where:[]};o.where.push(b.split('-')[0]);by.set(x.id,o)}}
